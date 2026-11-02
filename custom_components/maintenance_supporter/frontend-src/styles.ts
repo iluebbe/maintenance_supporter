@@ -710,7 +710,8 @@ export const sharedStyles = css`
     box-sizing: border-box;
   }
   /* Shape icon so status is not conveyed by colour alone (accessibility). */
-  .status-badge ha-icon { --mdc-icon-size: 14px; margin-left: -1px; }
+  .status-badge ha-icon,
+  .status-badge ha-svg-icon { --mdc-icon-size: 14px; margin-left: -1px; }
 
   /* Light-background statuses (green/orange/grey) carry DARK text: white on
      them fails even the 3:1 WCAG UI-contrast floor (2.2–2.8:1), while the
@@ -1312,12 +1313,35 @@ export const sharedStyles = css`
   /* ha-icon-button: the mwc-icon-button these rules styled is not defined on
      HA 2026.x — it rendered as a bare 18 px icon, no button, no focus (audit
      2026-09-29). --ha-icon-button-size is the variable 2026.x reads. */
-  .row-actions ha-icon-button {
+  .row-actions ha-icon-button,
+  .row-actions .row-icon-btn {
     display: inline-flex;
     --ha-icon-button-size: 32px;
     --mdc-icon-button-size: 32px;
     --mdc-icon-size: 18px;
   }
+  /* A row's Complete / Skip: a plain button drawn like an ha-icon-button,
+     which is far too heavy to create per row (_renderRowActions). */
+  .row-icon-btn {
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    box-sizing: border-box;
+    width: var(--ha-icon-button-size, 48px);
+    height: var(--ha-icon-button-size, 48px);
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .row-icon-btn:hover { background: color-mix(in srgb, currentColor 12%, transparent); }
+  .row-icon-btn:active { background: color-mix(in srgb, currentColor 20%, transparent); }
+  .row-icon-btn:focus-visible { outline: 2px solid var(--primary-color); outline-offset: -2px; }
+  .row-icon-btn:disabled { opacity: 0.38; cursor: default; background: none; }
 
   .row-actions .btn-complete { color: var(--maint-ok-color); }
   .row-actions .btn-skip { color: var(--secondary-text-color); }
@@ -1993,7 +2017,8 @@ export const sharedStyles = css`
 
   /* ── Shared responsive styles (panel + card) ── */
   @media (max-width: 600px) {
-    .row-actions ha-icon-button {
+    .row-actions ha-icon-button,
+    .row-actions .row-icon-btn {
       --ha-icon-button-size: 44px;
       --mdc-icon-button-size: 44px;
       --mdc-icon-size: 22px;

@@ -2,6 +2,41 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.117.1] - 2026-11-02
+
+### ⚡ Performance
+
+- **Back to the list is immediate, and the list is where you left it.** The overview and All objects are kept
+  while a task or object page is open. Back (the browser's, the phone's gesture, the page's back arrow) puts them
+  back as they were, scrolled where they were; the breadcrumb still opens the overview at its top. Today and Tasks
+  keep their lists between tab switches. The calendar and the settings are built afresh as before, since they
+  load their data when they open.
+- **Phones draw only the rows on screen.** At phone width the list drew every task on each return to it, some
+  6,000 elements for 160 tasks. It is windowed now, as on wider screens.
+- **The grouped list draws only the rows on screen too.** Grouped by area, person, group or object, every row was
+  drawn. Every section card stays; inside them only the rows in view are drawn.
+- **Lighter rows.** The Complete and Skip buttons of each row, the QR button of the objects table and the status
+  icon no longer use Home Assistant's icon button and icon elements, which took up to 3 ms each to create. They
+  look and work the same.
+- **The tab bar no longer measures the half-built page.** Home Assistant's tab bar measured the whole page each
+  time the overview was drawn, for scroll arrows that four short tabs never need. It is drawn without them; tabs
+  that do not fit still scroll sideways.
+- **The list is laid out once per change instead of twice.** It is measured in the next frame, after Home
+  Assistant's elements in it have drawn.
+- **The first task opened after the panel loads opens as fast as the rest.** Once the list is up and the browser is
+  idle, the panel draws one task page once, hidden, so its code and templates are ready. Nothing is loaded for it.
+- **A new page starts at its top at once** instead of gliding up from the list's position.
+- Measured with real clicks on a home with 160 tasks and the processor at half speed. Against 2.116.0: back to the
+  list 581 → 86 ms, the Tasks tab 452 → 57 ms. With the rest of this release on top: back to a grouped list
+  239 → 50 ms, the first task opened after loading 80 → 40 ms.
+
+### 🐛 Fixed
+
+- **Row chips sit on the line of the row's text again.** Since 2.117.0 the chips of a desktop row (area, people,
+  groups) sat 3 px high.
+- **The list follows the scroll after the panel was left mid-measurement.** A measurement still pending when the
+  panel left the page kept the list's window from moving once the panel came back.
+
 ## [2.117.0] - 2026-11-02
 
 ### ✨ Added

@@ -92,6 +92,19 @@ export function computeWindow(i: VirtualWindowInput): VirtualWindow {
   };
 }
 
+/** The rows to draw of one section of a grouped list, its rows starting at
+ *  `listTop`: computeWindow's slice, except that a section off screen by
+ *  more than the overscan draws none (computeWindow clamps to the nearest
+ *  rows, so every section below the screen drew its first ones). */
+export function sectionWindow(i: VirtualWindowInput & { offsets: ArrayLike<number> }): readonly [number, number] {
+  if (i.total <= 0) return [0, 0];
+  const height = i.offsets[i.total];
+  const margin = (i.overscan ?? 12) * (height / i.total);
+  if (i.listTop + height < i.scrollTop - margin || i.listTop > i.scrollTop + i.viewportHeight + margin) return [0, 0];
+  const w = computeWindow(i);
+  return [w.start, w.end];
+}
+
 /** Measured row heights, by row key. Rows nobody has seen yet count as the
  *  mean of the measured ones. A new table width forgets everything, because
  *  the rows wrap differently. */

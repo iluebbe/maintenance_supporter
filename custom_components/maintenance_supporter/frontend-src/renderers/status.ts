@@ -13,6 +13,10 @@
  */
 
 import { html } from "lit";
+import {
+  mdiAlertCircle, mdiAlertOctagon, mdiArchiveOutline, mdiBellAlert, mdiCalendarBlankOutline,
+  mdiCheckCircle, mdiCircleMedium, mdiPauseCircleOutline,
+} from "@mdi/js";
 import { t } from "../styles";
 import { STATUS_COLORS, STATUS_ICONS } from "../status-constants";
 
@@ -67,6 +71,24 @@ export function statusIcon(key: string): string {
   return STATUS_ICONS[key === "done" ? "completed" : key] || "mdi:circle-medium";
 }
 
+/** statusIcon() as an SVG path. A list row draws the pill's glyph straight
+ *  away, where an `ha-icon` first looks the name up (24 lookups per list
+ *  draw, perf 2026-11-02). A test keeps this table in step with the names. */
+export const STATUS_ICON_PATHS: Record<string, string> = {
+  "mdi:check-circle": mdiCheckCircle,
+  "mdi:alert-circle": mdiAlertCircle,
+  "mdi:alert-octagon": mdiAlertOctagon,
+  "mdi:bell-alert": mdiBellAlert,
+  "mdi:archive-outline": mdiArchiveOutline,
+  "mdi:pause-circle-outline": mdiPauseCircleOutline,
+  "mdi:calendar-blank-outline": mdiCalendarBlankOutline,
+  "mdi:circle-medium": mdiCircleMedium,
+};
+
+export function statusIconPath(key: string): string {
+  return STATUS_ICON_PATHS[statusIcon(key)] ?? mdiCircleMedium;
+}
+
 /** The status pill: icon + label + colour, so status is never conveyed by
  *  colour alone. `chip` is the larger header variant of the task detail.
  *  The label sits in its own span so narrow rows can drop it (#150) while
@@ -77,5 +99,5 @@ export function renderStatusBadge(task: StatusLike, lang: string, variant: "pill
   if (variant === "chip") {
     return html`<span class="status-chip ${key}">${label}</span>`;
   }
-  return html`<span class="status-badge ${key}" role="img" title="${label}" aria-label="${label}"><ha-icon icon="${statusIcon(key)}"></ha-icon><span class="status-label">${label}</span></span>`;
+  return html`<span class="status-badge ${key}" role="img" title="${label}" aria-label="${label}"><ha-svg-icon .path=${statusIconPath(key)}></ha-svg-icon><span class="status-label">${label}</span></span>`;
 }

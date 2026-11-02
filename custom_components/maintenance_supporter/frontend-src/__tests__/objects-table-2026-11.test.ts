@@ -87,6 +87,11 @@ describe("objects table (2026-11)", () => {
   it("a header sorts by its column, again turns it round, empty cells last", async () => {
     const panel = await mountTable(["name", "manufacturer", "actions"]);
     expect(sr(panel).querySelector("th.oc-actions button") === null, "the actions column does not sort").to.equal(true);
+    // A row's QR is a plain named button (an ha-icon-button per row cost
+    // ~3 ms to create, perf 2026-11-02).
+    const qr = sr(panel).querySelector<HTMLButtonElement>("td.oc-actions button.row-icon-btn.obj-table-qr")!;
+    expect(qr.getAttribute("aria-label")).to.equal("QR Code");
+    expect(sr(panel).querySelectorAll("td.oc-actions ha-icon-button").length).to.equal(0);
     await tapHeader(panel, "manufacturer");
     expect(names(panel)).to.deep.equal(["Car", "Boiler", "Alarm"]); // audi, Vaillant, (none)
     expect(sr(panel).querySelector("th.oc-manufacturer")!.getAttribute("aria-sort")).to.equal("ascending");

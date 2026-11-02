@@ -201,6 +201,9 @@ describe("beta UI: HA's components and their events", () => {
       "overview", (k) => picked.push(k), html`<button class="search">⌕</button>`));
     const group = host.querySelector("ha-tab-group") as HTMLElement & { active?: string };
     expect(group.active).to.equal("overview");
+    // No scroll arrows: deciding on them read the group's width as it
+    // attached and laid out the whole page being built (perf 2026-11-02).
+    expect(group.hasAttribute("without-scroll-controls")).to.equal(true);
     expect(host.querySelector("ha-tab-group-tab.trace-tab")?.getAttribute("panel")).to.equal("trace");
     expect(host.querySelector(".tab-bar .search")).to.exist;
     group.dispatchEvent(new CustomEvent("wa-tab-show", { detail: { name: "trace" } }));

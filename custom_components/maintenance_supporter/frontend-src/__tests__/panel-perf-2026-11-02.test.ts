@@ -18,6 +18,9 @@ import { expect } from "@open-wc/testing";
 import { mountPanel, obj, resetTaskSeq, sr, task } from "./_panel-utils.js";
 import { HASS_STATES_REDRAW_MS, onlyStatesChanged } from "../helpers/hass-changes";
 import { formatDateShort, formatDateTime, formatNumber, formatUnit, monthName, weekdayName } from "../styles";
+import * as mdi from "@mdi/js";
+import { mdiCheck } from "@mdi/js";
+import { STATUS_ICON_PATHS, STATUS_KEYS, statusIcon, statusIconPath } from "../renderers/status";
 
 type Panel = HTMLElement & {
   hass: Record<string, unknown>;
@@ -31,6 +34,7 @@ type Panel = HTMLElement & {
 };
 
 const tick = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const frame = () => new Promise((r) => requestAnimationFrame(() => r(undefined)));
 
 async function mounted(): Promise<Panel> {
   const { el } = await mountPanel([
@@ -142,6 +146,9 @@ describe("perf 2026-11-02: the panel and Home Assistant's state changes", () => 
     expect(measured).to.equal(0);
     p._filterStatus = "due_soon";
     await p.updateComplete;
+    // Measured in the next frame, once the rows' own elements have drawn.
+    expect(measured).to.equal(0);
+    await frame();
     expect(measured).to.equal(1);
     expect(sr(p).querySelectorAll(".task-row:not(.virt-sizer)").length).to.equal(1);
   });
@@ -160,5 +167,48 @@ describe("perf 2026-11-02: formatters built once, same words as before", () => {
     // With seconds for a trace step, without for everything else.
     expect(formatDateTime(d.toISOString(), "en", true)).to.match(/:09/);
     expect(formatDateTime(d.toISOString(), "en")).not.to.match(/:09/);
+  });
+});
+
+/**
+ * Measured on the prod home (4,700 entities, 160 tasks, 2026-11-02): every
+ * return to the list built 24 rows, and each row's Complete and Skip were
+ * ha-icon-buttons, ~2.7 ms apiece to create (three shadow roots and a
+ * form-associated button), and its status pill looked its icon up by name.
+ * The list was measured before the rows' own elements had drawn, so the
+ * frame laid it out twice.
+ */
+describe("perf 2026-11-02: light list rows", () => {
+  it("a row's actions are plain buttons with a glyph, named for screen readers", async () => {
+    const p = await mounted();
+    (p as unknown as { _rowActionStyle: string })._rowActionStyle = "icons";
+    p.requestUpdate();
+    await p.updateComplete;
+    const row = sr(p).querySelector(".task-row:not(.virt-sizer)")!;
+    const done = row.querySelector<HTMLButtonElement>("button.row-icon-btn.btn-complete")!;
+    expect(done.getAttribute("aria-label")).to.equal("Complete");
+    expect((done.querySelector("ha-svg-icon") as HTMLElement & { path?: string }).path).to.equal(mdiCheck);
+    expect(row.querySelector("button.row-icon-btn.btn-skip")).to.not.equal(null);
+    expect(row.querySelectorAll("ha-icon-button, ha-icon").length, "no heavy element per row").to.equal(0);
+  });
+
+  it("the status glyph is the path of the icon the pill names, for every status", () => {
+    const camel = (name: string) => name.replace(/^mdi:/, "mdi-").replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
+    for (const key of STATUS_KEYS) {
+      const name = statusIcon(key);
+      expect(STATUS_ICON_PATHS[name], `${key} → ${name}`).to.equal((mdi as Record<string, string>)[camel(name)]);
+      expect(statusIconPath(key)).to.equal(STATUS_ICON_PATHS[name]);
+    }
+  });
+
+  it("a frame still pending when the panel leaves the page does not block the list later", async () => {
+    const p = await mounted();
+    const priv = p as unknown as { _virtRaf: number; _scheduleVirtualWindow: () => void };
+    priv._scheduleVirtualWindow();
+    expect(priv._virtRaf).to.not.equal(0);
+    const parent = p.parentNode!;
+    p.remove();
+    expect(priv._virtRaf).to.equal(0);
+    parent.appendChild(p);
   });
 });

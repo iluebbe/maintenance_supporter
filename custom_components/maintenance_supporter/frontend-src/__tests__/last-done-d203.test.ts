@@ -10,6 +10,7 @@ import { render } from "lit";
 import { addDaysIso, haToday } from "../helpers/ha-time";
 import { renderDueText } from "../renderers/progress";
 import { formatLastDone } from "../styles";
+import { mdiCalendarBlankOutline } from "@mdi/js";
 import { NO_DUE_COLOR, renderStatusBadge, statusColor, statusKey } from "../renderers/status";
 import "../maintenance-card.js";
 import type { MaintenanceSupporterCard } from "../maintenance-card";
@@ -128,7 +129,7 @@ describe("status of a task without a due date (D#203 follow-up)", () => {
     const pill = host.querySelector(".status-badge")!;
     expect(pill.classList.contains("no_due")).to.equal(true);
     expect(pill.textContent!.trim()).to.equal("No due date");
-    expect(pill.querySelector("ha-icon")!.getAttribute("icon")).to.equal("mdi:calendar-blank-outline");
+    expect((pill.querySelector("ha-svg-icon") as HTMLElement & { path?: string }).path).to.equal(mdiCalendarBlankOutline);
     render(renderStatusBadge(task, "en", "chip"), host);
     expect(host.querySelector(".status-chip.no_due")!.textContent).to.equal("No due date");
     expect(statusColor(task)).to.equal(NO_DUE_COLOR);

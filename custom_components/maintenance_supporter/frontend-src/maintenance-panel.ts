@@ -10,10 +10,12 @@ import { isStaleBundle, pendingRestartVersion, type ServerVersion } from "./help
 import { customElement, property, state } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
 import { guard } from "lit/directives/guard.js";
+import { cache } from "lit/directives/cache.js";
+import { keyed } from "lit/directives/keyed.js";
 import { HASS_STATES_REDRAW_MS, onlyStatesChanged } from "./helpers/hass-changes";
 import {
-  mdiCheck, mdiCheckboxBlankCircleOutline, mdiChevronDoubleDown, mdiChevronDoubleUp, mdiFolderOutline, mdiMapMarkerOutline,
-  mdiNfcVariant, mdiSkipNext, mdiTagOutline,
+  mdiAccountOutline, mdiCheck, mdiCheckboxBlankCircleOutline, mdiChevronDoubleDown, mdiChevronDoubleUp, mdiCircleMedium, mdiCubeOutline,
+  mdiFolderOutline, mdiMapMarkerOutline, mdiNfcVariant, mdiQrcode, mdiSkipNext, mdiTagOutline,
 } from "@mdi/js";
 import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, currencySymbolOf, t, ensureLocale, isLocaleLoaded, formatDate, formatDayCount, formatDueDays, countText, formatInterval, formatRecurrence, setProfilePrefs, langOf, formatCost, formatNumber, formatQty, formatUnit, syncCurrencyDecimals} from "./styles";
 import { OVERVIEW_TABS, type OverviewTab } from "./helpers/overview-tabs";
@@ -138,8 +140,9 @@ import { renderPeopleChip, type PersonDisplay } from "./helpers/person";
 // The task-detail sub-view as a web component (light-DOM, panel styles apply).
 // Side-effect import: type-only imports get tree-shaken and the element
 // would never register.
+import type { MaintenanceTaskDetailView } from "./components/task-detail-view";
 import "./components/task-detail-view";
-import { computeWindow, RowHeights, VIRTUAL_MIN_ROWS } from "./helpers/virtual-window";
+import { computeWindow, RowHeights, sectionWindow, VIRTUAL_MIN_ROWS } from "./helpers/virtual-window";
 import { INITIAL_STICKY, nextStickyState, stickyStateOnSelect, stickyTop, type StickyState } from "./helpers/sticky-pane";
 import { invalidateSettingsCache, parseSettings, type SettingsWire } from "./helpers/settings-cache";
 import { partCostMode, type PartsCostMode } from "./helpers/parts-cost";
@@ -431,6 +434,22 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _virtTotalRows = 0;
   private _virtScrollAttached = false;
   private _virtRaf = 0;
+  /** The grouped list, windowed like the flat one: each open section's row
+   *  keys in render order, the slice of each that is drawn, and the slices
+   *  the last window pass asked for (by section label). */
+  private _virtGroups: Array<{ key: string; keys: string[] }> = [];
+  private _virtGroupDrawn: Array<readonly [number, number]> = [];
+  @state() private _virtGroupWin: ReadonlyMap<string, readonly [number, number]> = new Map();
+  private _virtGroupHeights = new RowHeights();
+  private _virtGroupSig = "";
+  /** Back on a kept list (see _renderView): where it was scrolled, by view,
+   *  and whether this view change should go back there. */
+  private _listScroll = new Map<View, number>();
+  private _restoreListScroll = false;
+  private _contentScrollTop = 0;
+  /** Bumped on each change of page: the overview's calendar and settings
+   *  are built afresh on a return, as they were before it was kept. */
+  private _viewEntry = 0;
   // Split view (2026-09-02): the docked detail pane is scroll-aware sticky
   // (helpers/sticky-pane) — it never scrolls on its own; a pane taller than
   // the viewport is pinned by its bottom edge while scrolling down and by
@@ -575,6 +594,49 @@ export class MaintenanceSupporterPanel extends LitElement {
     return this._lazyUi;
   }
 
+  /** The first task page after the panel loaded opened at two thirds of the
+   *  speed of every later one: its code ran and Lit prepared its templates
+   *  for the first time, and Home Assistant's buttons and icons in it drew
+   *  for the first time (72 ms against 48 on a phone at half speed, 37
+   *  against 21 on a desktop, perf 2026-11-02). Once the list is up and the
+   *  browser is idle, one task's page is drawn once, hidden, in a shadow root
+   *  of its own that no query of the panel reaches into, then dropped.
+   *  Without an object id its documents block loads nothing. */
+  private _warmedUp = false;
+  private _warmPending = false;
+
+  private _scheduleWarmUp(): void {
+    if (this._warmedUp || this._warmPending) return;
+    this._warmPending = true;
+    const run = () => {
+      this._warmPending = false;
+      this._warmUpTaskPage();
+    };
+    const idle = (window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => void }).requestIdleCallback;
+    if (idle) idle(run, { timeout: 5000 });
+    else window.setTimeout(run, 1500);
+  }
+
+  private _warmUpTaskPage(): void {
+    const root = this.shadowRoot;
+    if (this._warmedUp || !root || !this.isConnected) return;
+    const obj = this._objects.find((o) => o.tasks.length > 0);
+    if (!obj) return; // again when the objects are in (updated)
+    this._warmedUp = true;
+    // A task page on screen already did it.
+    if (root.querySelector("maintenance-task-detail-view")) return;
+    const task = obj.tasks[0];
+    const view = document.createElement("maintenance-task-detail-view") as MaintenanceTaskDetailView;
+    view.task = task;
+    view.ctx = { ...this._taskDetailCtx(obj.entry_id, task.id), entryId: "" };
+    const host = document.createElement("div");
+    host.hidden = true;
+    host.attachShadow({ mode: "open" }).append(view);
+    // Before the content Lit draws, so it stays out of Lit's part.
+    root.prepend(host);
+    void view.updateComplete.then(() => requestAnimationFrame(() => host.remove()));
+  }
+
   /** The requested dialog element, guaranteed upgraded (chunk loaded). */
   private async _ui<T extends Element>(tag: string): Promise<T | null> {
     await this._ensureLazyUi();
@@ -590,7 +652,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     // paint. Deep links and early clicks stay safe either way — every open
     // path awaits _ui().
     const idle = (window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => void }).requestIdleCallback;
-    const kick = () => this._ensureLazyUi();
+    const kick = () => { void this._ensureLazyUi().then(() => this._scheduleWarmUp()); };
     if (idle) idle(kick, { timeout: 3000 });
     else window.setTimeout(kick, 1500);
     window.addEventListener("popstate", this._popstateHandler);
@@ -665,7 +727,10 @@ export class MaintenanceSupporterPanel extends LitElement {
     window.removeEventListener("resize", this._onVirtualScroll);
     this.shadowRoot?.querySelector(".content")?.removeEventListener("scroll", this._onVirtualScroll);
     this._virtScrollAttached = false;
+    // Back to 0 as well: a frame cancelled here left the handle set, and
+    // the list re-attached later never measured again.
     if (this._virtRaf) cancelAnimationFrame(this._virtRaf);
+    this._virtRaf = 0;
     this._detachStickyPane();
     if (this._unsub) {
       this._unsub();
@@ -727,6 +792,13 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (changedProps.has("_groupByMode") && this._collapsedGroups.size > 0) {
       this._collapsedGroups = new Set();
     }
+    if (changedProps.has("_groupByMode")) this._virtGroupWin = new Map();
+    if (changedProps.has("_view")) {
+      this._viewEntry++;
+      // The list leaves the DOM with this update; its offset goes with it.
+      const prev = changedProps.get("_view") as View | undefined;
+      if (prev === "overview" || prev === "all_objects") this._listScroll.set(prev, this._contentScrollTop);
+    }
   }
 
   updated(changedProps: Map<string, unknown>): void {
@@ -785,14 +857,34 @@ export class MaintenanceSupporterPanel extends LitElement {
       content.addEventListener("scroll", this._onVirtualScroll, { passive: true });
       this._virtScrollAttached = true;
     }
+    // Back on a kept list: where it was left. Any other page from Back
+    // starts at its top, as one opened afresh does. In the next frame, not
+    // here: setting the offset lays the page out, and here the HA elements
+    // put back with the list have not drawn yet, so the frame laid it out a
+    // second time (20 ms on a phone, perf 2026-11-02). Before the window
+    // pass, which then measures at the offset restored.
+    if (changedProps.has("_view") && this._restoreListScroll) {
+      this._restoreListScroll = false;
+      const top = this._listScroll.get(this._view) ?? 0;
+      requestAnimationFrame(() => {
+        const el = this.shadowRoot?.querySelector<HTMLElement>(".content");
+        if (el) el.scrollTop = top;
+      });
+    }
     // Measuring forces a layout: not after a `hass` change that drew the
-    // same slice of the same rows again.
+    // same slice of the same rows again. And not here: the HA elements in
+    // fresh rows draw themselves only after this hook, so measuring now
+    // laid out a half-built list and the frame laid it out again (45-115 ms
+    // per list draw on a real home, perf 2026-11-02). The next frame
+    // measures the finished rows once.
     const hassOnly = changedProps.size === 1 && changedProps.has("hass");
     if (!hassOnly || this._virtRenderedSig !== this._virtMeasuredSig) {
       this._virtMeasuredSig = this._virtRenderedSig;
-      this._updateVirtualWindow();
+      this._scheduleVirtualWindow();
     }
     this._syncStickyPane(content);
+    // The warm-up found no task yet: once some arrive.
+    if (changedProps.has("_objects") && this._lazyUi && !this._warmedUp) this._scheduleWarmUp();
   }
 
   /** Split view: (de)attach the scroll-aware docking of the detail pane and
@@ -879,14 +971,23 @@ export class MaintenanceSupporterPanel extends LitElement {
   }
 
   /** rAF-throttled scroll/resize handler for the virtualized task table. */
-  private _onVirtualScroll = (): void => {
+  private _onVirtualScroll = (e?: Event): void => {
+    // The offset as it scrolls: a change of page takes the list's from here.
+    // Reading it then laid the whole list out once more on its way out
+    // (style dirty from the tap), 15 ms on a phone (perf 2026-11-02).
+    if (e?.currentTarget instanceof HTMLElement) this._contentScrollTop = e.currentTarget.scrollTop;
     this._virtPasses = 0;
+    this._scheduleVirtualWindow();
+  };
+
+  /** Reconcile the virtual window in the next frame, once per frame. */
+  private _scheduleVirtualWindow(): void {
     if (this._virtRaf) return;
     this._virtRaf = requestAnimationFrame(() => {
       this._virtRaf = 0;
       this._updateVirtualWindow();
     });
-  };
+  }
 
   /** Recompute the rendered window of the virtualized task table from the
    *  live scroll position. No-op unless the virtual table is in the DOM. */
@@ -894,6 +995,10 @@ export class MaintenanceSupporterPanel extends LitElement {
     const content = this.shadowRoot?.querySelector<HTMLElement>(".content");
     const table = this.shadowRoot?.querySelector<HTMLElement>(".task-table.virtual");
     if (!content || !table) return;
+    if (table.classList.contains("grouped")) {
+      this._updateGroupedWindow(content, table);
+      return;
+    }
     // Every rendered row's height goes into the cache under its key (the
     // hidden sizer row is not a data row). The window then comes from the
     // real offsets of the rows above the scroll position, so scrolling down
@@ -924,6 +1029,43 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._virtPasses++;
     this._virtStart = w.start;
     this._virtEnd = w.end;
+  }
+
+  /** The grouped list's window pass: the same measuring, per section. Each
+   *  section's rows start where its row block sits in the DOM (the cards and
+   *  headers are all there), so a section's window is the flat one's with
+   *  that block as the list top; a section well off screen draws no row. */
+  private _updateGroupedWindow(content: HTMLElement, table: HTMLElement): void {
+    const groups = this._virtGroups;
+    const sections = table.querySelectorAll<HTMLElement>(":scope > .group-section");
+    const blocks = groups.map((_, i) => sections[i]?.querySelector<HTMLElement>(":scope > .group-rows") ?? null);
+    const heights = this._virtGroupHeights;
+    heights.setWidth(table.clientWidth);
+    blocks.forEach((block, i) => {
+      const start = this._virtGroupDrawn[i]?.[0] ?? 0;
+      block?.querySelectorAll<HTMLElement>(":scope > .task-row").forEach((el, j) => {
+        const key = groups[i].keys[start + j];
+        if (key !== undefined) heights.record(key, el.offsetHeight);
+      });
+    });
+    const origin = content.getBoundingClientRect().top - content.scrollTop;
+    const next = new Map<string, readonly [number, number]>();
+    blocks.forEach((block, i) => {
+      const g = groups[i];
+      if (!block || g.keys.length === 0) return;
+      next.set(g.key, sectionWindow({
+        scrollTop: content.scrollTop,
+        viewportHeight: content.clientHeight,
+        listTop: block.getBoundingClientRect().top - origin,
+        offsets: heights.offsets(g.keys),
+        total: g.keys.length,
+      }));
+    });
+    const cur = this._virtGroupWin;
+    if (next.size === cur.size && [...next].every(([k, w]) => cur.get(k)?.[0] === w[0] && cur.get(k)?.[1] === w[1])) return;
+    if (this._virtPasses >= 8) return;
+    this._virtPasses++;
+    this._virtGroupWin = next;
   }
 
   /** Follow `conn`'s reconnects for the version check (and stop following
@@ -1630,6 +1772,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   /** Show the view a history entry describes, without pushing another one
    *  (back / forward, and a reload). */
   private _applyPanelState(s: PanelState): void {
+    if ((s.msp_view ?? "overview") !== this._view) this._restoreListScroll = true;
     this._view = s.msp_view ?? "overview";
     this._selectedEntryId = s.msp_entry || null;
     this._selectedTaskId = s.msp_task || null;
@@ -1647,13 +1790,16 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
   }
 
-  private _showOverview(): void {
+  /** `back`: the page's back arrow, which returns to the list where it was
+   *  left, as the browser's Back does. */
+  private _showOverview(back = false): void {
     this._pushPanelState("overview");
+    if (back && this._view !== "overview") this._restoreListScroll = true;
     this._view = "overview";
     this._selectedEntryId = null;
     this._selectedTaskId = null;
     this._moreMenuOpen = false;
-    this._scrollContentToTop();
+    if (!back) this._scrollContentToTop();
   }
 
   private _showAllObjects(): void {
@@ -1827,7 +1973,10 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _scrollContentToTop(): void {
     requestAnimationFrame(() => {
       const content = this.shadowRoot?.querySelector(".content");
-      if (content) content.scrollTo({ top: 0, behavior: "smooth" });
+      // At once: a smooth glide showed the new page at the old list's
+      // offset first, and over the virtual list every frame of it drew
+      // rows (perf 2026-11-02).
+      if (content) content.scrollTop = 0;
     });
   }
 
@@ -3664,21 +3813,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             `
           : nothing}
         ${this.narrow || this._view !== "overview" ? this._renderHeader() : nothing}
-        <div class="content">
-          ${this._view === "overview"
-            ? this._renderOverview()
-            : this._view === "all_objects"
-            ? this._renderAllObjects()
-            : this._view === "all_parts"
-            ? this._renderAllParts()
-            : this._view === "all_areas"
-            ? this._renderAllAreas()
-            : this._view === "area"
-            ? this._renderArea()
-            : this._view === "object"
-            ? this._renderObjectDetail()
-            : this._renderTaskDetail()}
-        </div>
+        <div class="content">${cache(this._renderView())}</div>
       </div>
       <maintenance-object-dialog
         .hass=${this.hass}
@@ -3761,6 +3896,26 @@ export class MaintenanceSupporterPanel extends LitElement {
     ></ha-icon-button>`;
   }
 
+  /** The page below the header. The overview and All objects are kept while
+   *  another page is open (Lit's cache holds their DOM, detached), so Back
+   *  puts the list back as it was, scrolled where it was, instead of building
+   *  it again: the rows, the stats, the tab bar and the toolbar (perf
+   *  2026-11-02). Any other page comes as an array, which the cache does not
+   *  keep: it is built afresh and its sections load their data, as before. */
+  private _renderView(): unknown {
+    if (this._view === "overview") return this._renderOverview();
+    if (this._view === "all_objects") return this._renderAllObjects();
+    return [this._view === "all_parts"
+      ? this._renderAllParts()
+      : this._view === "all_areas"
+      ? this._renderAllAreas()
+      : this._view === "area"
+      ? this._renderArea()
+      : this._view === "object"
+      ? this._renderObjectDetail()
+      : this._renderTaskDetail()];
+  }
+
   private _renderHeader() {
     const crumbs: { label: string; action?: () => void }[] = [
       { label: t("maintenance", this._lang), action: () => this._showOverview() },
@@ -3800,7 +3955,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                 else if (this._view === "area") this._showAllAreas();
                 // #225: a sub-object's page goes up to the object it is in.
                 else if (this._view === "object" && ancestors.length) this._showObject(ancestors[ancestors.length - 1].entry_id);
-                else this._showOverview();
+                else this._showOverview(true);
               }}
             ></ha-icon-button>`
           : nothing}
@@ -3877,11 +4032,16 @@ export class MaintenanceSupporterPanel extends LitElement {
         { key: "calendar", label: t("tab_calendar", L) },
         isAdmin && { key: "settings", label: t("settings", L) },
       ], this._overviewTab, (tab) => this._setOverviewTab(tab), this.narrow ? nothing : this._renderSearchButton("tab-search"))}
-      ${this._overviewTab === "today"
+      ${/* Today and Tasks are kept too, so going back and forth between
+           them draws neither again. The calendar and the settings are keyed
+           to the visit: they load and subscribe when they attach, so they
+           are built afresh, as before, on every tab switch to them and on
+           every return to the overview. */
+      cache(this._overviewTab === "today"
         ? this._renderToday()
         : this._overviewTab === "dashboard"
         ? this._renderDashboard()
-        : this._overviewTab === "calendar"
+        : keyed(this._viewEntry, this._overviewTab === "calendar"
         ? html`
             <div @ll-custom=${this._onCalendarLlCustom} @maintenance-supporter-open-task=${this._onCalendarOpenTask}>
               <maintenance-supporter-calendar-card
@@ -3894,7 +4054,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             .features=${this._features}
             .budget=${this._budget}
             @settings-changed=${this._onSettingsChanged}
-          ></maintenance-settings-view>`}
+          ></maintenance-settings-view>`))}
     `;
   }
 
@@ -4399,16 +4559,19 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._activeViewId = "";
   }
 
-  /** The flat dashboard task table. Below VIRTUAL_MIN_ROWS (or on narrow
-   *  layouts, where rows aren't uniform-height) every row renders directly.
-   *  Above it, only the scroll window is in the DOM: two grid-spanning
+  /** The flat dashboard task table. Below VIRTUAL_MIN_ROWS every row renders
+   *  directly. Above it, only the scroll window is in the DOM, on phones
+   *  too: they were left out while the window assumed one row height, and
+   *  since rows are measured one by one (RowHeights) nothing keeps them out.
+   *  A 160-task phone list drew every row, ~6,000 elements, on each return
+   *  to it (perf 2026-11-02). Two grid-spanning
    *  spacers keep the scrollbar honest, and a hidden "sizer" row pins the
    *  content-sized badge column to the widest badge set across ALL rows so
    *  the shared subgrid tracks can't jitter as rows enter/leave the window. */
   private _renderTaskTable(rows: TaskRow[]) {
     const bulkCls = this._bulkMode ? " bulk" : "";
     this._virtTotalRows = rows.length;
-    if (this.narrow || rows.length < VIRTUAL_MIN_ROWS) {
+    if (rows.length < VIRTUAL_MIN_ROWS) {
       this._virtRenderedSig = "";
       return html`
         <div class="task-table${bulkCls}">
@@ -4488,10 +4651,10 @@ export class MaintenanceSupporterPanel extends LitElement {
       <div class="task-row virt-sizer" aria-hidden="true">
         ${this._bulkMode ? html`<span></span>` : nothing}
         <span class="cell-badges">
-          <span class="status-badge"><ha-icon icon="mdi:circle-medium"></ha-icon><span class="status-label">${widest}</span></span>
+          <span class="status-badge"><ha-svg-icon .path=${mdiCircleMedium}></ha-svg-icon><span class="status-label">${widest}</span></span>
           ${anyDisabled ? html`<span class="badge-disabled">${t("disabled", L)}</span>` : nothing}
-          ${anyNfc ? html`<span class="nfc-badge"><ha-icon icon="mdi:nfc-variant"></ha-icon></span>` : nothing}
-          ${anyPriority ? html`<span class="priority-badge"><ha-icon icon="mdi:chevron-double-up"></ha-icon></span>` : nothing}
+          ${anyNfc ? html`<span class="nfc-badge"><ha-svg-icon .path=${mdiNfcVariant}></ha-svg-icon></span>` : nothing}
+          ${anyPriority ? html`<span class="priority-badge"><ha-svg-icon .path=${mdiChevronDoubleUp}></ha-svg-icon></span>` : nothing}
         </span>
         <span></span><span></span><span></span><span></span><span></span><span></span>
       </div>
@@ -4570,10 +4733,37 @@ export class MaintenanceSupporterPanel extends LitElement {
       if (b === noneLabel && a !== noneLabel) return -1;
       return a.localeCompare(b);
     });
-    const icon = this._groupByMode === "area" ? "mdi:map-marker-outline"
-      : this._groupByMode === "group" ? "mdi:folder-outline"
-      : this._groupByMode === "object" ? "mdi:cube-outline"
-      : "mdi:account-outline";
+    const icon = this._groupByMode === "area" ? mdiMapMarkerOutline
+      : this._groupByMode === "group" ? mdiFolderOutline
+      : this._groupByMode === "object" ? mdiCubeOutline
+      : mdiAccountOutline;
+    // Windowed like the flat table once the open sections hold
+    // VIRTUAL_MIN_ROWS rows. Every section card and its header stay (a few
+    // dozen, and their own heights keep every position honest); only the
+    // rows inside each card are cut to the scroll window, spacers above and
+    // below them. A 160-task list grouped by area drew every row on each
+    // return to it (perf 2026-11-02).
+    const openRows = sorted.reduce((n, [key, r]) => n + (this._collapsedGroups.has(key) ? 0 : r.length), 0);
+    const virtual = openRows >= VIRTUAL_MIN_ROWS;
+    this._virtGroups = virtual ? sorted.map(([key, r]) => ({ key, keys: this._collapsedGroups.has(key) ? [] : r.map(rowKey) })) : [];
+    const sig = this._virtGroups.map((g) => `${g.key}\u0001${g.keys.join("\u0002")}`).join("\u0003");
+    // A new list (filter, sort, data) may need its own few passes to settle.
+    if (sig !== this._virtGroupSig) this._virtPasses = 0;
+    this._virtGroupSig = sig;
+    // Until a pass has measured a section, the first 40 rows from the top.
+    let budget = 40;
+    this._virtGroupDrawn = this._virtGroups.map((g) => {
+      const n = g.keys.length;
+      const asked = this._virtGroupWin.get(g.key);
+      if (asked) {
+        const start = Math.min(asked[0], n);
+        return [start, Math.max(start, Math.min(asked[1], n))] as const;
+      }
+      const end = Math.min(n, budget);
+      budget -= end;
+      return [0, end] as const;
+    });
+    this._virtRenderedSig = virtual ? `${this._rowsGeneration}:g:${this._virtGroupDrawn.map((w) => w.join("-")).join(",")}` : "";
     // ONE grid owns the column tracks for every section (each section card
     // and its row block are column subgrids), so the badge/object/name
     // columns line up across sections no matter which badges a section
@@ -4582,9 +4772,10 @@ export class MaintenanceSupporterPanel extends LitElement {
     // chain (Chrome's ::details-content box breaks subgrid), hence the
     // div-based disclosure with its own collapsed state.
     return html`
-      <div class="task-table grouped${this._bulkMode ? " bulk" : ""}">
+      <div class="task-table grouped${this._bulkMode ? " bulk" : ""}${virtual ? " virtual" : ""}">
         ${this._renderTaskHead()}
-        ${sorted.map(([key, taskRows]) => {
+        ${virtual ? this._renderVirtSizerRow(rows) : nothing}
+        ${sorted.map(([key, taskRows], i) => {
           const open = !this._collapsedGroups.has(key);
           return html`
             <div class="group-section" ?open=${open}>
@@ -4601,17 +4792,31 @@ export class MaintenanceSupporterPanel extends LitElement {
                   }
                 }}
               >
-                <ha-icon icon="${icon}"></ha-icon>
+                <ha-svg-icon .path=${icon}></ha-svg-icon>
                 <span>${key}</span>
                 <span class="group-section-count">(${taskRows.length})</span>
               </div>
               ${open
-                ? html`<div class="group-rows">${this._renderRows(taskRows)}</div>`
+                ? html`<div class="group-rows">${virtual
+                    ? this._renderGroupWindow(this._virtGroups[i].keys, this._virtGroupDrawn[i], taskRows)
+                    : this._renderRows(taskRows)}</div>`
                 : nothing}
             </div>
           `;
         })}
       </div>
+    `;
+  }
+
+  /** One section's drawn rows, between spacers that stand for the rest. */
+  private _renderGroupWindow(keys: string[], [start, end]: readonly [number, number], rows: TaskRow[]) {
+    const offsets = this._virtGroupHeights.offsets(keys);
+    const padTop = offsets[start];
+    const padBottom = offsets[keys.length] - offsets[end];
+    return html`
+      ${padTop > 0 ? html`<div class="virt-spacer" style="height:${padTop}px"></div>` : nothing}
+      ${this._renderRows(rows.slice(start, end))}
+      ${padBottom > 0 ? html`<div class="virt-spacer" style="height:${padBottom}px"></div>` : nothing}
     `;
   }
 
@@ -4680,7 +4885,7 @@ export class MaintenanceSupporterPanel extends LitElement {
 
     return html`
       <div class="breadcrumb">
-        <ha-icon-button .label=${t("back", L)} @click=${() => this._showOverview()}>
+        <ha-icon-button .label=${t("back", L)} @click=${() => this._showOverview(true)}>
           <ha-icon icon="mdi:arrow-left"></ha-icon>
         </ha-icon-button>
         <span>${t("all_objects", L)}</span>
@@ -5251,9 +5456,8 @@ export class MaintenanceSupporterPanel extends LitElement {
         return html`<td class="oc-ref_no">${objectRef(o) ? `#${objectRef(o)}` : "—"}</td>`;
       case "actions":
         return html`<td class="oc-actions">
-          <ha-icon-button class="obj-table-qr" title="${t("qr_code", L)}" @click=${(e: Event) => { e.stopPropagation(); this._openQrForObject(obj.entry_id, o.name); }}>
-            <ha-icon icon="mdi:qrcode"></ha-icon>
-          </ha-icon-button>
+          <button type="button" class="row-icon-btn obj-table-qr" title="${t("qr_code", L)}" aria-label=${t("qr_code", L)}
+            @click=${(e: Event) => { e.stopPropagation(); this._openQrForObject(obj.entry_id, o.name); }}><ha-svg-icon .path=${mdiQrcode}></ha-svg-icon></button>
         </td>`;
       default:
         return html`<td></td>`;
@@ -5387,9 +5591,13 @@ export class MaintenanceSupporterPanel extends LitElement {
    *  when the row or what every row reads changed: a scroll step draws just
    *  the rows it brings in (perf 2026-11-02). */
   private _renderRows(rows: TaskRow[]) {
+    // The selection marks a row in the split view only: a task opened as a
+    // page and left again redrew every row of the kept list on the way back.
+    const split = this._splitActive();
     const deps = [
-      this._lang, isLocaleLoaded(this._lang), this.hass?.locale, this._bulkMode, this._bulkSelected, this._selectedEntryId, this._selectedTaskId,
-      this._splitActive(), this._miniStatsData, this._actionLoading, this._rowActionStyle, this.narrow, this.tight,
+      this._lang, isLocaleLoaded(this._lang), this.hass?.locale, this._bulkMode, this._bulkSelected,
+      split && this._selectedEntryId, split && this._selectedTaskId,
+      split, this._miniStatsData, this._actionLoading, this._rowActionStyle, this.narrow, this.tight,
     ];
     return repeat(rows, rowKey, (row) => guard([row, ...deps], () => this._renderOverviewRow(row)));
   }
@@ -5493,7 +5701,7 @@ export class MaintenanceSupporterPanel extends LitElement {
    *  idiom) instead of a check that reads as done already. */
   private _renderRowActions(L: string, onComplete: () => void, onSkip?: () => void, allowSkip = true, quick = false): TemplateResult {
     const style = this._actionStyle();
-    const completeIcon = quick ? "mdi:checkbox-blank-circle-outline" : "mdi:check";
+    const completeIcon = quick ? mdiCheckboxBlankCircleOutline : mdiCheck;
     const completeTitle = quick ? t("qr_action_quick_complete", L) : t("complete", L);
     if (style === "buttons" || style === "buttons_compact") {
       const iconOnly = style === "buttons_compact" && (this.narrow || this.tight);
@@ -5505,32 +5713,37 @@ export class MaintenanceSupporterPanel extends LitElement {
         return html`
           <span class="row-actions as-buttons compact">
             <ha-button size="small" appearance="accent" variant="success" title="${completeTitle}" aria-label="${completeTitle}" @click=${(e: Event) => { e.stopPropagation(); onComplete(); }}>
-              <ha-icon icon=${completeIcon}></ha-icon>
+              <ha-svg-icon .path=${completeIcon}></ha-svg-icon>
             </ha-button>
             ${allowSkip ? html`
               <ha-button size="small" appearance="outlined" variant="warning" title="${t("skip", L)}" aria-label="${t("skip", L)}" ?disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip?.(); }}>
-                <ha-icon icon="mdi:skip-next"></ha-icon>
+                <ha-svg-icon .path=${mdiSkipNext}></ha-svg-icon>
               </ha-button>` : nothing}
           </span>`;
       }
       return html`
         <span class="row-actions as-buttons">
           <ha-button size="small" appearance="accent" variant="success" title="${completeTitle}" @click=${(e: Event) => { e.stopPropagation(); onComplete(); }}>
-            <ha-icon slot="start" icon="mdi:check"></ha-icon>${t("complete", L)}
+            <ha-svg-icon slot="start" .path=${mdiCheck}></ha-svg-icon>${t("complete", L)}
           </ha-button>
           ${allowSkip ? html`
             <ha-button size="small" appearance="outlined" variant="warning" title="${t("skip", L)}" ?disabled=${this._actionLoading} @click=${(e: Event) => { e.stopPropagation(); onSkip?.(); }}>
-              <ha-icon slot="start" icon="mdi:skip-next"></ha-icon>${t("skip", L)}
+              <ha-svg-icon slot="start" .path=${mdiSkipNext}></ha-svg-icon>${t("skip", L)}
             </ha-button>` : nothing}
         </span>`;
     }
+    // Plain buttons with the glyph inside, drawn like an ha-icon-button
+    // (.row-icon-btn). One ha-icon-button takes ~2.7 ms to create (three
+    // shadow roots and a form-associated button), and a list draw made 48
+    // of them: ~130 ms of each return to the list on a real home
+    // (perf 2026-11-02).
     return html`
       <span class="row-actions">
-        <ha-icon-button class="btn-complete${quick ? " quick" : ""}" title="${completeTitle}" .label=${completeTitle}
-          .path=${quick ? mdiCheckboxBlankCircleOutline : mdiCheck} @click=${(e: Event) => { e.stopPropagation(); onComplete(); }}></ha-icon-button>
+        <button type="button" class="row-icon-btn btn-complete${quick ? " quick" : ""}" title="${completeTitle}" aria-label=${completeTitle}
+          @click=${(e: Event) => { e.stopPropagation(); onComplete(); }}><ha-svg-icon .path=${quick ? mdiCheckboxBlankCircleOutline : mdiCheck}></ha-svg-icon></button>
         ${allowSkip ? html`
-          <ha-icon-button class="btn-skip" title="${t("skip", L)}" .label=${t("skip", L)} .path=${mdiSkipNext} .disabled=${this._actionLoading}
-            @click=${(e: Event) => { e.stopPropagation(); onSkip?.(); }}></ha-icon-button>` : nothing}
+          <button type="button" class="row-icon-btn btn-skip" title="${t("skip", L)}" aria-label=${t("skip", L)} ?disabled=${this._actionLoading}
+            @click=${(e: Event) => { e.stopPropagation(); onSkip?.(); }}><ha-svg-icon .path=${mdiSkipNext}></ha-svg-icon></button>` : nothing}
       </span>`;
   }
 
@@ -6077,9 +6290,7 @@ export class MaintenanceSupporterPanel extends LitElement {
   /** Build the context the task-detail renderers need from panel state.
    *  Dialog-opening callbacks stay panel-side (the dialogs live in THIS
    *  shadow root), so the extracted module never touches a dialog itself. */
-  private _taskDetailCtx(): TaskDetailContext {
-    const entryId = this._selectedEntryId!;
-    const taskId = this._selectedTaskId!;
+  private _taskDetailCtx(entryId = this._selectedEntryId!, taskId = this._selectedTaskId!): TaskDetailContext {
     const obj = this._getObject(entryId);
     return {
       lang: this._lang,

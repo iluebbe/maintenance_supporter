@@ -67,6 +67,13 @@ export class MaintenanceStorageSectionCard extends LitElement {
     return langOf(this.hass);
   }
 
+  connectedCallback(): void {
+    super.connectedCallback();
+    // The panel keeps its overview while another page is open: back on it,
+    // count again (a document may have been added on that page).
+    if (this._initiallyLoaded) void this._load();
+  }
+
   updated(changed: Map<string, unknown>): void {
     super.updated(changed);
     if (changed.has("hass") && this.hass && !this._initiallyLoaded) {

@@ -1,7 +1,13 @@
 /** A row of tabs: our `.tab-bar` of `.tab`s (classic), or with the beta UI
- *  Home Assistant's ha-tab-group (HA's indicator, keyboard and scroll
- *  controls; it fires `wa-tab-show` with `{ name }` — probed on 2026.7.2 …
- *  2026.11). `trailing` sits at the row's end in both (the search button). */
+ *  Home Assistant's ha-tab-group (HA's indicator and keyboard; it fires
+ *  `wa-tab-show` with `{ name }` — probed on 2026.7.2 … 2026.11). `trailing`
+ *  sits at the row's end in both (the search button).
+ *
+ *  Without its scroll arrows: to decide on them the group reads its width
+ *  whenever it attaches, which laid out the whole page under construction:
+ *  up to 0.3 s of every return to the list on a desktop, 1.3 s on a phone,
+ *  for arrows a few short tabs never need (perf 2026-11-02). Tabs that do
+ *  not fit still scroll sideways. */
 
 import { html, nothing, type TemplateResult } from "lit";
 import { betaWith } from "./beta-ui";
@@ -18,7 +24,7 @@ export function renderTabBar<K extends string>(tabs: Array<TabDef<K> | false | n
   if (betaWith("ha-tab-group")) {
     return html`
       <div class="tab-bar ha-tabs">
-        <ha-tab-group .active=${active} @wa-tab-show=${(e: CustomEvent<{ name: string }>) => {
+        <ha-tab-group without-scroll-controls .active=${active} @wa-tab-show=${(e: CustomEvent<{ name: string }>) => {
           const key = list.find((tab) => tab.key === e.detail?.name)?.key;
           if (key && key !== active) select(key);
         }}>

@@ -110,8 +110,9 @@ describe("#233: one tap in the panel", () => {
     el._rowActionStyle = "icons";
     const host = document.createElement("div");
     render(el._renderRowActions("en", () => undefined, undefined, false, true), host);
-    // The icon is the button's own path (no icon lookup per row, perf 2026-11-02).
-    const pathOf = (sel: string) => (host.querySelector(sel) as HTMLElement & { path?: string }).path;
+    // The glyph is a path inside a plain button (no icon lookup and no
+    // ha-icon-button per row, perf 2026-11-02).
+    const pathOf = (sel: string) => (host.querySelector(`${sel} ha-svg-icon`) as HTMLElement & { path?: string }).path;
     expect(pathOf(".btn-complete.quick")).to.equal(mdiCheckboxBlankCircleOutline);
     render(el._renderRowActions("en", () => undefined, undefined, false, false), host);
     expect(pathOf(".btn-complete")).to.equal(mdiCheck);

@@ -620,7 +620,8 @@ export const panelStyles = css`
   /* Grouped list: the section cards carry a 12px vertical margin that does
      not collapse inside the grid, so the first card sat 12px below the
      pane's top edge and the two cards read as misaligned. Level them. */
-  .split-list .task-table.grouped > .group-section:first-child { margin-top: 0; }
+  .split-list .task-table.grouped > .group-section:first-child,
+  .split-list .task-table.grouped > .virt-sizer:first-child + .group-section { margin-top: 0; }
   /* The pane never scrolls on its own: it is as tall as the detail and
      docks scroll-aware (helpers/sticky-pane sets top/margin-top inline) —
      top edge while scrolling up, bottom edge while scrolling down, so a
@@ -911,6 +912,15 @@ export const panelStyles = css`
     --mdc-icon-size: 14px;
     opacity: 0.75;
   }
+  /* The chip's baseline is its text's, as it was while the glyph was an
+     ha-icon (a line box inside). An ha-svg-icon in front gave it the
+     glyph's bottom edge, and on the baseline-aligned desktop row the chips
+     sat 3 px above the task name (v2.117.0). A zero-width character leads
+     instead, its negative margin taking back the gap. */
+  .sub-chip::before {
+    content: "\\200b";
+    margin-inline-end: -4px;
+  }
   /* #169 follow-up: the member avatar sits inside the pill at chip height */
   .sub-chip .person-avatar { width: 16px; height: 16px; font-size: 8.5px; margin-left: -4px; }
 
@@ -928,7 +938,8 @@ export const panelStyles = css`
     --ha-icon-button-size: 32px;
     --mdc-icon-size: 20px;
   }
-  .row-actions ha-icon-button {
+  .row-actions ha-icon-button,
+  .row-actions .row-icon-btn {
     --ha-icon-button-size: 44px;
     --mdc-icon-button-size: 44px;
     --mdc-icon-size: 26px;
@@ -942,7 +953,8 @@ export const panelStyles = css`
     --ha-button-font-size: 13px;
     white-space: nowrap;
   }
-  .row-actions.as-buttons ha-icon { --mdc-icon-size: 18px; }
+  .row-actions.as-buttons ha-icon,
+  .row-actions.as-buttons ha-svg-icon { --mdc-icon-size: 18px; }
 
   /* Custom elements default to display:inline; the task-detail component
      renders light-DOM and must behave like the block it wraps. */
@@ -2254,7 +2266,8 @@ export const panelStyles = css`
      still carry the state, the label lives in title/aria-label. */
   :host([narrow]) .task-row .status-label { display: none; }
   :host([narrow]) .task-row .status-badge { min-width: 0; padding: 3px; border-radius: 50%; }
-  :host([narrow]) .task-row .status-badge ha-icon { --mdc-icon-size: 16px; margin-left: 0; }
+  :host([narrow]) .task-row .status-badge ha-icon,
+  :host([narrow]) .task-row .status-badge ha-svg-icon { --mdc-icon-size: 16px; margin-left: 0; }
   :host([narrow]) .due-cell {
     grid-column: 3;
     grid-row: 2;
@@ -2288,7 +2301,9 @@ export const panelStyles = css`
   :host([narrow]) .row-actions.compact ha-button,
   :host([tight]) .row-actions.compact ha-button { --ha-button-height: 36px; --wa-form-control-padding-inline: 10px; min-width: 0; }
   :host([narrow]) .row-actions.compact ha-icon,
-  :host([tight]) .row-actions.compact ha-icon { --mdc-icon-size: 20px; }
+  :host([tight]) .row-actions.compact ha-icon,
+  :host([narrow]) .row-actions.compact ha-svg-icon,
+  :host([tight]) .row-actions.compact ha-svg-icon { --mdc-icon-size: 20px; }
 
   /* A TIGHT panel that is not narrow (iPad portrait with HA's sidebar
      docked: 1024 px viewport, ~768 px panel) gets the narrow row layout too —
@@ -2318,7 +2333,8 @@ export const panelStyles = css`
   :host([tight]:not([narrow])) .cell-badges { grid-column: 1; grid-row: 2; flex-direction: column; align-items: flex-start; gap: 4px; }
   :host([tight]:not([narrow])) .task-row .status-label { display: none; }
   :host([tight]:not([narrow])) .task-row .status-badge { min-width: 0; padding: 3px; border-radius: 50%; }
-  :host([tight]:not([narrow])) .task-row .status-badge ha-icon { --mdc-icon-size: 16px; margin-left: 0; }
+  :host([tight]:not([narrow])) .task-row .status-badge ha-icon,
+  :host([tight]:not([narrow])) .task-row .status-badge ha-svg-icon { --mdc-icon-size: 16px; margin-left: 0; }
   :host([tight]:not([narrow])) .due-cell { grid-column: 3; grid-row: 2; align-items: flex-end; min-width: 0; }
   :host([tight]:not([narrow])) .row-actions { grid-column: 4; grid-row: 2; }
   :host([tight]:not([narrow])) .task-sub { grid-column: 2; grid-row: 2; align-self: center; font-size: 11px; gap: 4px; justify-content: flex-start; flex-wrap: wrap; }
@@ -2500,7 +2516,8 @@ export const panelStyles = css`
     .cell-badges { grid-column: 1; grid-row: 2; flex-direction: column; align-items: flex-start; gap: 4px; }
     .task-row .status-label { display: none; }
     .task-row .status-badge { min-width: 0; padding: 3px; border-radius: 50%; }
-    .task-row .status-badge ha-icon { --mdc-icon-size: 16px; margin-left: 0; }
+    .task-row .status-badge ha-icon,
+    .task-row .status-badge ha-svg-icon { --mdc-icon-size: 16px; margin-left: 0; }
     .due-cell { grid-column: 3; grid-row: 2; align-items: flex-end; min-width: 0; }
     .row-actions { grid-column: 4; grid-row: 2; }
     .task-sub { grid-column: 2; grid-row: 2; align-self: center; font-size: 11px; gap: 4px; justify-content: flex-start; flex-wrap: wrap; }
