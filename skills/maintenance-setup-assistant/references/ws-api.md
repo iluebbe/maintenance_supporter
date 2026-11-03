@@ -13,7 +13,7 @@ Every request carries a client-assigned integer `id`.
 
 Payloads below are the `result` object.
 
-All 112 WebSocket commands the integration registers are covered here. Their
+All 114 WebSocket commands the integration registers are covered here. Their
 authorization tiers are frozen in `tests/test_ws_permission_matrix.py` — that
 test is the inventory of record; this file is its prose companion (and
 `tests/test_docs_counts_in_sync.py` keeps the counts quoted here honest).
@@ -35,7 +35,7 @@ through (e.g. free-form maps).
 
 - `@require_write` (admin **or** allowlisted operator): all object/task
   create/update/delete/duplicate/archive/unarchive, `object/{pause,resume,replace}`,
-  `object/from_template`, `task/move`, `tasks/update_many`, `task/set_adaptive`,
+  `object/from_template`, `template_updates/apply`, `task/move`, `tasks/update_many`, `task/set_adaptive`,
   `task/assign_user`, `task/history/update`, `task/history/delete`, `task/apply_suggestion`,
   `task/seasonal_overrides`, `task/set_environmental_entity`, `part/*`,
   `documents/{add_link,update,delete}`, `group/{create,update,delete}`,
@@ -356,6 +356,35 @@ localizes the created object and task names, else the server language;
 `task_names` (2026-10, the beta editor's template preview) creates only those
 tasks, named as `templates` lists them in that `language`; none of them in the
 template → `invalid_input`. `object/duplicate` `{entry_id}` → `{entry_id}`.
+
+### `template_updates` — read (2.118+, D#85)
+`{entry_id (req), language?}` → what the object's template would change now,
+and the template's tasks that came after the object:
+```json
+{ "template_id": "appliance_dishwasher", "template_name": "Dishwasher",
+  "changes": [ {"task_id": "…", "task_name": "Filter Cleaning", "field": "name",
+                "conflict": false, "before": "Filter Cleaning", "after": "Clean Filter"} ],
+  "new_tasks": [ {"key": "Clean Spray Arms", "name": "Clean Spray Arms", "notes": null,
+                  "schedule": {"kind": "interval", "every": 90}, "warning_days": 14} ] }
+```
+`field` is `name`, `notes`, `recurrence` (`before`/`after` are the managed
+part of the nested schedule: kind, every, unit, season window, calendar
+days/months) or `warning_days`. `conflict: true` = the user changed that field
+too. Only fields where the template changed since the task was made are listed
+(each task records what its template gave it, `origin.applied`); a field the
+user changed and the template did not is never listed. An object not made from
+a template → `template_id: null` and empty lists.
+
+### `template_updates/apply` — `@require_write` (2.118+)
+`{entry_id (req), changes?: [{task_id, field, accept}], new_tasks?: [{key, accept}]}`
+→ `{applied, declined, added}`. Offers are recomputed server-side; a decision
+for something no longer offered is ignored. `accept: true` writes the
+template's value (the user's anchor, end and business-day roll stay when the
+recurrence kind is the same) and adds an `updated` history entry per task;
+`accept: false` remembers the declined value (`origin.declined`, the object's
+`template_declined` for new tasks), so only a later, different change is
+offered again. History, completions and photos are never touched. Reloads the
+object.
 
 ---
 

@@ -57,6 +57,7 @@ from .const import (
     CONF_MIRROR_TODO_DEFAULT_ENTITIES,
     CONF_NOTIFICATION_BUNDLE_THRESHOLD,
     CONF_NOTIFICATION_BUNDLING_ENABLED,
+    CONF_NOTIFICATION_TITLE_PREFIX,
     CONF_NOTIFICATION_TITLE_STYLE,
     CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_COMPLETED,
@@ -112,7 +113,7 @@ from .helpers.parts import valid_search_template
 from .helpers.region import regions_of
 from .helpers.sanitize import sanitize_group, sanitize_mirror_todo_entities
 from .helpers.settings_registry import ALLOWED_SETTING_KEYS, float_range, int_range, setting_default
-from .helpers.settings_sanitize import sanitize_settings_input
+from .helpers.settings_sanitize import clean_title_prefix, sanitize_settings_input
 from .helpers.todo_mirror import mirror_todo_error
 
 _LOGGER = logging.getLogger(__name__)
@@ -1110,6 +1111,8 @@ class GlobalOptionsFlow(OptionsFlow):
             # otherwise keep the old template (bug audit 2026-09-26).
             extra = user_input.get(CONF_NOTIFY_EXTRA_DATA)
             user_input[CONF_NOTIFY_EXTRA_DATA] = (extra if isinstance(extra, str) else "")[:MAX_NOTIFY_EXTRA_DATA_LENGTH]
+            # D#248: the same for the title prefix (absent = cleared).
+            user_input[CONF_NOTIFICATION_TITLE_PREFIX] = clean_title_prefix(user_input.get(CONF_NOTIFICATION_TITLE_PREFIX))
             # 2.94: extra reminders "14, 3, 0" days before due (absent = none).
             leads = parse_lead_days(user_input.get(CONF_REMINDER_LEAD_DAYS))
             if leads is None:
@@ -1231,6 +1234,12 @@ class GlobalOptionsFlow(OptionsFlow):
                             translation_key="notification_title_style",
                         )
                     ),
+                    # D#248: suggested_value, not default, so it can be cleared
+                    # (the same trap as the extra-data template below).
+                    vol.Optional(
+                        CONF_NOTIFICATION_TITLE_PREFIX,
+                        description={"suggested_value": self._opt(CONF_NOTIFICATION_TITLE_PREFIX)},
+                    ): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
                     # #173 follow-up: completion notifications (activity kind).
                     vol.Optional(
                         CONF_NOTIFY_COMPLETED,

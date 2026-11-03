@@ -25,7 +25,9 @@ else
   pht=$(curl -sf --retry 3 https://pypi.org/pypi/pytest-homeassistant-custom-component/json \
     | python -c 'import json, sys; print(json.load(sys.stdin)["info"]["version"])')
 fi
-python -m pip install --quiet uv
+# uv is the installer, so it sees every job: pinned to a release that has been
+# out for a week, bumped by hand (Dependabot does not read this script).
+python -m pip install --quiet uv==0.13.5
 uv pip install --system pytest pytest-cov pytest-xdist "pytest-homeassistant-custom-component==$pht" \
   mypy types-PyYAML babel pypdf holidays voluptuous_serialize
 # hassil + home-assistant-intents: the Assist collision tests run our

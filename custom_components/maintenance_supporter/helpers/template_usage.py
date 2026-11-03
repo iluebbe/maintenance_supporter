@@ -54,7 +54,8 @@ def _index() -> tuple[dict[str, str | None], dict[str, list[set[str]]]]:
     for template in TEMPLATES:
         for name in _localizations(template.name):
             names[name] = template.id if names.get(name, template.id) == template.id else None
-        tasks[template.id] = [_localizations(tt.name) for tt in template.tasks]
+        # A task's name today and the one it had (renamed in 2.118, its key).
+        tasks[template.id] = [_localizations(tt.name) | _localizations(tt.key) for tt in template.tasks]
     return names, tasks
 
 

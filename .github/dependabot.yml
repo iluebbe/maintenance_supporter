@@ -1,14 +1,23 @@
 version: 2
+
+# Supply chain: a version update is only proposed once the release has been
+# out for a week. Compromised releases (hijacked maintainer tokens, repointed
+# action tags) are usually found and pulled within days. Security updates are
+# not held back by the cooldown.
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: "npm"
     directory: "/custom_components/maintenance_supporter/frontend-src"
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 7
     ignore:
       # pdf.js 6.x needs Map.getOrInsertComputed (too new for many HA-user
       # browsers) — the worksheet deliberately vendors the v4 LEGACY build.
@@ -22,3 +31,5 @@ updates:
     directory: "/e2e"
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 7

@@ -147,14 +147,14 @@ def test_australia_is_bushfire_country_with_termites_but_in_tasmania(place: str,
 
 
 def test_country_notes_are_added_for_that_country_only() -> None:
-    annual = next(tt for t in TEMPLATES if t.id == "home_heating" for tt in t.tasks if tt.name == "Annual Inspection")
+    annual = next(tt for t in TEMPLATES if t.id == "home_heating" for tt in t.tasks if tt.key == "Annual Inspection")
     assert "France" in build_template_task(annual, "en", country="FR")["notes"]
     assert "Gas Safe" in build_template_task(annual, "en", country="GB")["notes"]
     assert "Feuerstättenbescheid" in build_template_task(annual, "en", country="DE")["notes"]
     assert "notes" not in build_template_task(annual, "en", country="US")
     assert "notes" not in build_template_task(annual, "en")
     # Appended below a template's own note, and localized.
-    sweep = next(tt for t in TEMPLATES if t.id == "home_fireplace" for tt in t.tasks if tt.name == "Chimney Sweep Appointment")
+    sweep = next(tt for t in TEMPLATES if t.id == "home_fireplace" for tt in t.tasks if tt.key == "Chimney Sweep Appointment")
     notes = build_template_task(sweep, "en", country="PL")["notes"]
     assert notes.startswith("Legally regulated") and notes.endswith("inspection every year.") and "\n\n" in notes
     assert "DIN 14676" in build_template_task(_tt("Test Detectors"), "de", country="DE")["notes"]
@@ -248,9 +248,10 @@ async def test_profile_from_registries_location_and_setting(hass: HomeAssistant)
 
 
 def _tt(name: str) -> TaskTemplate:
+    """A template task by its key (the name it had before 2.118's verb-first names)."""
     for t in TEMPLATES:
         for tt in t.tasks:
-            if tt.name == name:
+            if tt.key == name:
                 return tt
     raise AssertionError(name)
 
@@ -276,8 +277,8 @@ def test_calendar_task_months_follow_the_hemisphere() -> None:
 
 def test_plain_task_keeps_the_flat_interval_and_localizes() -> None:
     task = build_template_task(_tt("Oil Change"), "de")
-    assert task["name"] == "Ölwechsel"
-    oil = next(tt for t in TEMPLATES if t.id == "vehicle_car" for tt in t.tasks if tt.name == "Oil Change")
+    assert task["name"] == "Öl wechseln"
+    oil = next(tt for t in TEMPLATES if t.id == "vehicle_car" for tt in t.tasks if tt.key == "Oil Change")
     car = build_template_task(oil, "de")
     assert car["schedule_type"] == "time_based" and car["interval_days"] == 365 and "schedule" not in car
 
@@ -338,7 +339,7 @@ def test_country_interval_and_winter_only_tasks() -> None:
     car = get_template_by_id("vehicle_car")
     pool = get_template_by_id("pool_water")
     assert car and pool
-    test = next(tt for tt in car.tasks if tt.name == "Roadworthiness Test")
+    test = next(tt for tt in car.tasks if tt.key == "Roadworthiness Test")
     assert build_template_task(test, "en")["interval_days"] == 730
     uk = build_template_task(test, "en", country="GB")
     assert uk["interval_days"] == 365 and "MOT" in uk["notes"]
@@ -351,8 +352,8 @@ def test_country_interval_and_winter_only_tasks() -> None:
     assert build_template_task(rcd, "en", country="AU")["interval_days"] == 91
     assert build_template_task(rcd, "en", country="US")["interval_days"] == 30
     assert build_template_task(rcd, "en", country="DE")["interval_days"] == 182
-    winter = {tt.name for tt in template_tasks(pool)}
-    tropics = {tt.name for tt in template_tasks(pool, has_winter=False)}
+    winter = {tt.key for tt in template_tasks(pool)}
+    tropics = {tt.key for tt in template_tasks(pool, has_winter=False)}
     assert {"Close Pool for Winter", "Open Pool for the Season"} <= winter
     assert not {"Close Pool for Winter", "Open Pool for the Season"} & tropics
     assert "Water Test" in tropics and "Check Pool Safety Barrier or Alarm" in tropics
@@ -365,10 +366,10 @@ def test_a_task_that_exists_in_one_country_only() -> None:
     ev = get_template_by_id("vehicle_ev")
     assert ev
     thg = "GHG Quota (THG-Quote)"
-    assert thg in {tt.name for tt in template_tasks(ev, country="DE")}
-    assert thg not in {tt.name for tt in template_tasks(ev, country="AT")}
-    assert thg not in {tt.name for tt in template_tasks(ev)}
-    task = next(tt for tt in ev.tasks if tt.name == thg)
+    assert thg in {tt.key for tt in template_tasks(ev, country="DE")}
+    assert thg not in {tt.key for tt in template_tasks(ev, country="AT")}
+    assert thg not in {tt.key for tt in template_tasks(ev)}
+    task = next(tt for tt in ev.tasks if tt.key == thg)
     built = build_template_task(task, "de", country="DE")
     assert built["name"] == "THG-Quote beantragen"
     assert "Zulassungsbescheinigung" in built["notes"]
@@ -468,7 +469,7 @@ async def test_templates_ws_lists_what_creating_it_here_makes(hass: HomeAssistan
     assert "Close Pool for Winter" not in [t["name"] for t in brisbane["pool_water"]["tasks"]]
     london = await templates(51.51, -0.13, "GB")
     assert "Close Pool for Winter" in [t["name"] for t in london["pool_water"]["tasks"]]
-    mot = next(t for t in london["vehicle_car"]["tasks"] if t["name"] == "Roadworthiness Test")
+    mot = next(t for t in london["vehicle_car"]["tasks"] if t["name"] == "Book Roadworthiness Test")
     assert mot["interval_days"] == 365
 
 
@@ -486,6 +487,6 @@ async def test_from_template_writes_hemisphere_aware_schedules(hass: HomeAssista
     entry_id = assert_ws_success(conn)["entry_id"]
     await hass.async_block_till_done()
     tasks = {t["name"]: t for t in hass.config_entries.async_get_entry(entry_id).data[CONF_TASKS].values()}
-    assert tasks["Mowing"]["schedule"]["season_months"] == [1, 2, 3, 4, 10, 11, 12]
-    assert tasks["Scarifying"]["schedule"] == {"kind": "day_of_month", "day": 15, "months": [10]}
-    assert tasks["Mowing"].get("interval_days") is None and tasks["Mowing"].get("schedule_type") is None
+    assert tasks["Mow Lawn"]["schedule"]["season_months"] == [1, 2, 3, 4, 10, 11, 12]
+    assert tasks["Scarify Lawn"]["schedule"] == {"kind": "day_of_month", "day": 15, "months": [10]}
+    assert tasks["Mow Lawn"].get("interval_days") is None and tasks["Mow Lawn"].get("schedule_type") is None

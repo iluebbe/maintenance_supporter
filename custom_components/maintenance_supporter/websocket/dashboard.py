@@ -60,6 +60,7 @@ from ..const import (
     CONF_MIRROR_TODO_DEFAULT_ENTITIES,
     CONF_NOTIFICATION_BUNDLE_THRESHOLD,
     CONF_NOTIFICATION_BUNDLING_ENABLED,
+    CONF_NOTIFICATION_TITLE_PREFIX,
     CONF_NOTIFICATION_TITLE_STYLE,
     CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_COMPLETED,
@@ -275,6 +276,8 @@ def _build_full_settings(
             "bundle_threshold": _opt(options, CONF_NOTIFICATION_BUNDLE_THRESHOLD),
             # v1.4.0 (#44): default keeps backwards-compatible per-status titles
             "title_style": _opt(options, CONF_NOTIFICATION_TITLE_STYLE),
+            # D#248: in front of every title, any style ("" = none).
+            "title_prefix": _opt(options, CONF_NOTIFICATION_TITLE_PREFIX),
             # #173 follow-up: completion notifications (off | automatic | all).
             "completed": _opt(options, CONF_NOTIFY_COMPLETED),
             # Multiple lead-time reminders (days before due); [] = off.

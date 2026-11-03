@@ -18,6 +18,7 @@ from .helpers.climate import flip_months
 from .helpers.global_options import get_global_options
 from .helpers.home_profile import async_climate, async_home_place
 from .helpers.task_origin import ORIGIN_KEY, template_origin
+from .helpers.template_fingerprint import applied_fingerprints
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -63,6 +64,19 @@ class TaskTemplate:
     # duty that exists in one place alone — the THG quota of an electric car
     # is German. Empty: everywhere.
     only_in: frozenset[str] = frozenset()
+    # 2.118: the task's identity in the template, recorded in every task made
+    # from it (helpers/task_origin) and in templates_history.py. Its English
+    # name at the time; set it when renaming a task, so the tasks already
+    # made from it are still recognised. Empty: the name.
+    key: str = ""
+    # 2.118: the day a task was added to an existing template (ISO date) —
+    # objects made before it are offered the task (helpers/template_updates).
+    # Tasks from before 2.118 have their day in templates_history.py.
+    added: str | None = None
+
+    def __post_init__(self) -> None:
+        if not self.key:
+            self.key = self.name
 
 
 @dataclass
@@ -457,15 +471,15 @@ TEMPLATES: list[ObjectTemplate] = [
         name="Car",
         category="vehicle",
         tasks=[
-            TaskTemplate("Oil Change", "service", "time_based", 365, 30, "Change engine oil and filter."),
-            TaskTemplate("Tire Rotation", "service", "time_based", 180, 14),
-            TaskTemplate("Brake Inspection", "inspection", "time_based", 365, 30),
-            TaskTemplate("Air Filter", "replacement", "time_based", 730, 60),
-            TaskTemplate("Cabin Air Filter", "replacement", "time_based", 365, 30),
-            TaskTemplate("Brake Fluid", "replacement", "time_based", 730, 60),
-            TaskTemplate("Wiper Blades", "replacement", "time_based", 365, 30),
+            TaskTemplate("Change Oil", "service", "time_based", 365, 30, "Change engine oil and filter.", key="Oil Change"),
+            TaskTemplate("Rotate Tires", "service", "time_based", 180, 14, key="Tire Rotation"),
+            TaskTemplate("Inspect Brakes", "inspection", "time_based", 365, 30, key="Brake Inspection"),
+            TaskTemplate("Replace Air Filter", "replacement", "time_based", 730, 60, key="Air Filter"),
+            TaskTemplate("Replace Cabin Air Filter", "replacement", "time_based", 365, 30, key="Cabin Air Filter"),
+            TaskTemplate("Change Brake Fluid", "replacement", "time_based", 730, 60, key="Brake Fluid"),
+            TaskTemplate("Replace Wiper Blades", "replacement", "time_based", 365, 30, key="Wiper Blades"),
             TaskTemplate(
-                "Roadworthiness Test",
+                "Book Roadworthiness Test",
                 "inspection",
                 "time_based",
                 730,
@@ -473,6 +487,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 _TEST_NOTE,
                 country_notes=_CAR_TEST_NOTES,
                 country_intervals={"AT": 365, "AU": 365, "ES": 365, "GB": 365, "NL": 365, "NZ": 365, "PL": 365, "SE": 426, "BE": 365, "BG": 365, "EE": 365, "FI": 365, "HR": 365, "IE": 365, "IS": 365, "LU": 365, "LV": 365, "PT": 365, "RO": 365, "SI": 365, "US-DE": 365, "US-HI": 365, "US-MA": 365, "US-ME": 365, "US-NC": 365, "US-NY": 365, "US-PA": 365, "US-TX": 365, "US-VA": 365, "US-VT": 365, "US-AK": 0, "US-AL": 0, "US-AR": 0, "US-FL": 0, "US-IA": 0, "US-ID": 0, "US-KS": 0, "US-KY": 0, "US-MI": 0, "US-MN": 0, "US-MS": 0, "US-MT": 0, "US-ND": 0, "US-NE": 0, "US-OK": 0, "US-SC": 0, "US-SD": 0, "US-TN": 0, "US-WA": 0, "US-WY": 0, "CA-PE": 365, "CA-AB": 0, "CA-BC": 0, "CA-MB": 0, "CA-NL": 0, "CA-ON": 0, "CA-QC": 0, "CA-SK": 0, "AU-QLD": 0, "AU-SA": 0, "AU-TAS": 0, "AU-VIC": 0, "AU-WA": 0, "BE-VLG": 730},
+                key="Roadworthiness Test",
             ),
         ],
     ),
@@ -481,20 +496,21 @@ TEMPLATES: list[ObjectTemplate] = [
         name="Electric Car",
         category="vehicle",
         tasks=[
-            TaskTemplate("Tire Rotation", "service", "time_based", 180, 14),
-            TaskTemplate("Cabin Air Filter", "replacement", "time_based", 365, 30),
+            TaskTemplate("Rotate Tires", "service", "time_based", 180, 14, key="Tire Rotation"),
+            TaskTemplate("Replace Cabin Air Filter", "replacement", "time_based", 365, 30, key="Cabin Air Filter"),
             TaskTemplate(
-                "Brake Service",
+                "Service Brakes",
                 "service",
                 "time_based",
                 365,
                 30,
                 "Regenerative braking leaves the discs underused — have them cleaned and exercised.",
+                key="Brake Service",
             ),
-            TaskTemplate("Brake Fluid", "replacement", "time_based", 730, 60),
-            TaskTemplate("12V Battery Check", "inspection", "time_based", 365, 30),
+            TaskTemplate("Change Brake Fluid", "replacement", "time_based", 730, 60, key="Brake Fluid"),
+            TaskTemplate("Check 12V Battery", "inspection", "time_based", 365, 30, key="12V Battery Check"),
             TaskTemplate(
-                "Roadworthiness Test",
+                "Book Roadworthiness Test",
                 "inspection",
                 "time_based",
                 730,
@@ -502,10 +518,11 @@ TEMPLATES: list[ObjectTemplate] = [
                 _TEST_NOTE,
                 country_notes=_CAR_TEST_NOTES,
                 country_intervals={"GB": 365, "BE": 365, "HR": 365, "US-DE": 365, "US-HI": 365, "US-MA": 365, "US-ME": 365, "US-NC": 365, "US-NY": 365, "US-PA": 365, "US-VA": 365, "US-VT": 365, "US-AK": 0, "US-AL": 0, "US-AR": 0, "US-FL": 0, "US-IA": 0, "US-ID": 0, "US-KS": 0, "US-KY": 0, "US-MI": 0, "US-MN": 0, "US-MS": 0, "US-MT": 0, "US-ND": 0, "US-NE": 0, "US-OK": 0, "US-SC": 0, "US-SD": 0, "US-TN": 0, "US-WA": 0, "US-WY": 0, "US-CA": 0, "US-CT": 0, "US-DC": 0, "US-NJ": 0, "US-TX": 0, "CA-PE": 365, "CA-AB": 0, "CA-BC": 0, "CA-MB": 0, "CA-NL": 0, "CA-ON": 0, "CA-QC": 0, "CA-SK": 0, "AU-QLD": 0, "AU-SA": 0, "AU-TAS": 0, "AU-VIC": 0, "AU-WA": 0, "BE-VLG": 730},
+                key="Roadworthiness Test",
             ),
             # D#85: the quota year is the calendar year — a reminder early in it.
             TaskTemplate(
-                "GHG Quota (THG-Quote)",
+                "Claim GHG Quota (THG-Quote)",
                 "custom",
                 "time_based",
                 365,
@@ -513,6 +530,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 "Germany: the greenhouse-gas savings of a fully electric car (THG-Quote) can be certified and sold once per calendar year — usually through a quota service, with a copy of the registration certificate (Part I). Quota services set their own deadlines — check yours.",
                 schedule={"kind": "day_of_month", "day": 15, "months": [1]},
                 only_in=frozenset({"DE"}),
+                key="GHG Quota (THG-Quote)",
             ),
         ],
     ),
@@ -521,10 +539,10 @@ TEMPLATES: list[ObjectTemplate] = [
         name="Bicycle",
         category="vehicle",
         tasks=[
-            TaskTemplate("Chain Lubrication", "service", "time_based", 30, 7),
-            TaskTemplate("Tire Pressure Check", "inspection", "time_based", 14, 3),
-            TaskTemplate("Brake Adjustment", "inspection", "time_based", 90, 14),
-            TaskTemplate("Annual Service", "service", "time_based", 365, 30),
+            TaskTemplate("Lubricate Chain", "service", "time_based", 30, 7, key="Chain Lubrication"),
+            TaskTemplate("Check Tire Pressure", "inspection", "time_based", 14, 3, key="Tire Pressure Check"),
+            TaskTemplate("Adjust Brakes", "inspection", "time_based", 90, 14, key="Brake Adjustment"),
+            TaskTemplate("Book Annual Service", "service", "time_based", 365, 30, key="Annual Service"),
         ],
     ),
     ObjectTemplate(
@@ -532,12 +550,12 @@ TEMPLATES: list[ObjectTemplate] = [
         name="Motorcycle",
         category="vehicle",
         tasks=[
-            TaskTemplate("Oil Change", "service", "time_based", 365, 30),
-            TaskTemplate("Chain Maintenance", "service", "time_based", 30, 7),
-            TaskTemplate("Tire Inspection", "inspection", "time_based", 90, 14),
-            TaskTemplate("Brake Fluid", "replacement", "time_based", 730, 60),
+            TaskTemplate("Change Oil", "service", "time_based", 365, 30, key="Oil Change"),
+            TaskTemplate("Clean and Lubricate Chain", "service", "time_based", 30, 7, key="Chain Maintenance"),
+            TaskTemplate("Inspect Tires", "inspection", "time_based", 90, 14, key="Tire Inspection"),
+            TaskTemplate("Change Brake Fluid", "replacement", "time_based", 730, 60, key="Brake Fluid"),
             TaskTemplate(
-                "Roadworthiness Test",
+                "Book Roadworthiness Test",
                 "inspection",
                 "time_based",
                 730,
@@ -545,6 +563,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 _TEST_NOTE,
                 country_notes=_MOTORCYCLE_TEST_NOTES,
                 country_intervals={"AT": 365, "AU": 365, "FR": 1095, "GB": 365, "NZ": 365, "PL": 365, "CZ": 1461, "SK": 1461, "HR": 365, "LU": 365, "US-HI": 365, "US-MA": 365, "US-ME": 365, "US-NY": 365, "US-PA": 365, "US-VA": 365, "US-VT": 365, "US-AK": 0, "US-AL": 0, "US-AR": 0, "US-FL": 0, "US-IA": 0, "US-ID": 0, "US-KS": 0, "US-KY": 0, "US-MI": 0, "US-MN": 0, "US-MS": 0, "US-MT": 0, "US-ND": 0, "US-NE": 0, "US-OK": 0, "US-SC": 0, "US-SD": 0, "US-TN": 0, "US-WA": 0, "US-WY": 0, "US-CA": 0, "US-CT": 0, "US-NJ": 0, "US-TX": 0, "CA-PE": 365, "CA-AB": 0, "CA-BC": 0, "CA-MB": 0, "CA-NL": 0, "CA-ON": 0, "CA-QC": 0, "CA-SK": 0, "AU-QLD": 0, "AU-SA": 0, "AU-TAS": 0, "AU-VIC": 0, "AU-WA": 0},
+                key="Roadworthiness Test",
             ),
         ],
     ),
@@ -554,17 +573,18 @@ TEMPLATES: list[ObjectTemplate] = [
         category="vehicle",
         tasks=[
             TaskTemplate(
-                "Battery Care Check",
+                "Check Battery Charge for Storage",
                 "inspection",
                 "time_based",
                 30,
                 7,
                 "Store the battery at 30–80% charge and away from frost — long-term storage full or empty ages the cells.",
+                key="Battery Care Check",
             ),
-            TaskTemplate("Chain Lubrication", "service", "time_based", 30, 7),
-            TaskTemplate("Tire Pressure Check", "inspection", "time_based", 14, 3),
-            TaskTemplate("Brake Adjustment", "inspection", "time_based", 90, 14),
-            TaskTemplate("Annual Service", "service", "time_based", 365, 30),
+            TaskTemplate("Lubricate Chain", "service", "time_based", 30, 7, key="Chain Lubrication"),
+            TaskTemplate("Check Tire Pressure", "inspection", "time_based", 14, 3, key="Tire Pressure Check"),
+            TaskTemplate("Adjust Brakes", "inspection", "time_based", 90, 14, key="Brake Adjustment"),
+            TaskTemplate("Book Annual Service", "service", "time_based", 365, 30, key="Annual Service"),
         ],
     ),
     # --- Home & HVAC ---
@@ -574,8 +594,8 @@ TEMPLATES: list[ObjectTemplate] = [
         category="home",
         countries=frozenset({"US", "CA"}),
         tasks=[
-            TaskTemplate("Filter Replacement", "replacement", "time_based", 90, 14),
-            TaskTemplate("Annual Service", "service", "time_based", 365, 30),
+            TaskTemplate("Replace Filter", "replacement", "time_based", 90, 14, key="Filter Replacement"),
+            TaskTemplate("Book Annual Service", "service", "time_based", 365, 30, key="Annual Service"),
             TaskTemplate(
                 "Flush Condensate Drain",
                 "cleaning",
@@ -585,7 +605,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 "Hot and humid climates: monthly, with a cup of white vinegar, so algae cannot clog the line.",
             ),
             TaskTemplate("Clean Outdoor Unit Coil", "cleaning", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [4]}),
-            TaskTemplate("Duct Cleaning", "cleaning", "time_based", 1095, 60),
+            TaskTemplate("Clean Ducts", "cleaning", "time_based", 1095, 60, key="Duct Cleaning"),
         ],
     ),
     ObjectTemplate(
@@ -594,10 +614,10 @@ TEMPLATES: list[ObjectTemplate] = [
         category="home",
         countries=frozenset({"AU", "CA", "CH", "CY", "ES", "FR", "GB", "GR", "IE", "IN", "IT", "MT", "NZ", "PT", "US", "ZA"}),
         tasks=[
-            TaskTemplate("Anode Rod Inspection", "inspection", "time_based", 365, 30),
+            TaskTemplate("Inspect Anode Rod", "inspection", "time_based", 365, 30, key="Anode Rod Inspection"),
             TaskTemplate("Flush Tank", "cleaning", "time_based", 365, 30),
             TaskTemplate(
-                "Pressure Relief Valve Test",
+                "Test Pressure Relief Valve",
                 "inspection",
                 "time_based",
                 365,
@@ -609,6 +629,7 @@ TEMPLATES: list[ObjectTemplate] = [
                     "GB": "UK: have an unvented cylinder serviced every year by a G3-qualified installer, including its safety valves.",
                 },
                 country_intervals={"FR": 30, "AU": 182, "NZ": 182},
+                key="Pressure Relief Valve Test",
             ),
         ],
     ),
@@ -637,15 +658,16 @@ TEMPLATES: list[ObjectTemplate] = [
                 30,
                 "Look for leaks, cracked glass and pipe insulation damaged by the sun.",
             ),
-            TaskTemplate("Anode Rod Inspection", "inspection", "time_based", 365, 30),
+            TaskTemplate("Inspect Anode Rod", "inspection", "time_based", 365, 30, key="Anode Rod Inspection"),
             TaskTemplate(
-                "Annual Service",
+                "Book Annual Service",
                 "service",
                 "time_based",
                 365,
                 30,
                 "Heat-transfer fluid, pressure, valves and the backup heater — before winter where it freezes.",
                 country_notes={"ES": "Spain: solar thermal systems up to 14 kW must be serviced by an authorised company every year (RITE)."},
+                key="Annual Service",
             ),
         ],
     ),
@@ -654,9 +676,9 @@ TEMPLATES: list[ObjectTemplate] = [
         name="Water Softener",
         category="home",
         tasks=[
-            TaskTemplate("Salt Refill", "service", "time_based", 30, 7),
-            TaskTemplate("Resin Cleaning", "cleaning", "time_based", 180, 14),
-            TaskTemplate("Annual Service", "service", "time_based", 365, 30),
+            TaskTemplate("Refill Salt", "service", "time_based", 30, 7, key="Salt Refill"),
+            TaskTemplate("Clean Resin", "cleaning", "time_based", 180, 14, key="Resin Cleaning"),
+            TaskTemplate("Book Annual Service", "service", "time_based", 365, 30, key="Annual Service"),
         ],
     ),
     ObjectTemplate(
@@ -665,9 +687,9 @@ TEMPLATES: list[ObjectTemplate] = [
         category="home",
         traits=frozenset({"freeze"}),
         tasks=[
-            TaskTemplate("Annual Inspection", "inspection", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [9]}, country_notes={"FR": "France: annual boiler maintenance is mandatory for 4–400 kW; keep the certificate for at least two years.", "GB": "UK: have it serviced by a Gas Safe registered engineer (oil boilers: an OFTEC technician); landlords need a gas safety check every year.", "IT": "Italy: flue-gas check every 4 years for gas boilers of 10–100 kW, every 2 years for oil, wood or pellet boilers; some regions are stricter (e.g. Lombardy and Emilia-Romagna: gas every 2 years).", "DE": "Germany: the chimney sweep's measuring and inspection dates are set in your Feuerstättenbescheid — oil and gas boilers are measured every 3rd year, every 2nd once they are older than 12 years; every heating appliance is also inspected twice in seven years (Feuerstättenschau).", "AT": "Austria: each state sets the inspection intervals — oil and solid-fuel heating every 2 years almost everywhere, small gas units under 26 kW every 3–4 years (Lower Austria: 6–50 kW every 3 years for all fuels; Vorarlberg: every 2 years).", "CH": "Switzerland: the Clean Air Ordinance (LRV) requires an emissions check every 2 years for oil and every 4 years for gas and for wood boilers up to 70 kW; the canton or municipality carries it out.", "BE": "Belgium: oil and solid-fuel boilers every year; gas boilers every 2 years in Flanders and Brussels (there gas water heaters too), every 3 years in Wallonia (up to 100 kW).", "ES": "Spain: gas boilers up to 70 kW must be serviced by an authorised company every 2 years (RITE); the gas installation is inspected every 5 years.", "CZ": "Czechia: solid-fuel central-heating boilers of 10–300 kW need an inspection by a certified technician every 3 years.", "PL": "Poland: the gas installation and the chimneys must be checked every year, single-family homes included (Building Law, Art. 62).", "RU": "Russia: in-house gas equipment must be serviced under a maintenance contract at least once a year.", "AU": "Australia: Energy Safe Victoria recommends servicing gas heaters at least every 2 years, including a carbon-monoxide test.", "LI": "Liechtenstein: oil and gas heating needs a yearly firing control; gas appliances also need a service contract.", "RO": "Romania: boilers up to 400 kW need an ISCIR technical check every 2 years; the gas installation is verified every 2 years and revised every 10 years.", "IE": "Ireland: have gas boilers serviced every year by a Registered Gas Installer (RGI) and fit a CO alarm in every room with a fuel-burning appliance.", "NL": "Netherlands: servicing is not mandatory for owners, but since April 2023 only CO-certified companies may install or maintain gas appliances; the fire service advises a yearly check.", "LV": "Latvia: gas appliances must be serviced every year.", "SI": "Slovenia: a licensed chimney sweep of your choice measures the emissions of oil and open-flue gas heating every year."}),
+            TaskTemplate("Book Annual Inspection", "inspection", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [9]}, country_notes={"FR": "France: annual boiler maintenance is mandatory for 4–400 kW; keep the certificate for at least two years.", "GB": "UK: have it serviced by a Gas Safe registered engineer (oil boilers: an OFTEC technician); landlords need a gas safety check every year.", "IT": "Italy: flue-gas check every 4 years for gas boilers of 10–100 kW, every 2 years for oil, wood or pellet boilers; some regions are stricter (e.g. Lombardy and Emilia-Romagna: gas every 2 years).", "DE": "Germany: the chimney sweep's measuring and inspection dates are set in your Feuerstättenbescheid — oil and gas boilers are measured every 3rd year, every 2nd once they are older than 12 years; every heating appliance is also inspected twice in seven years (Feuerstättenschau).", "AT": "Austria: each state sets the inspection intervals — oil and solid-fuel heating every 2 years almost everywhere, small gas units under 26 kW every 3–4 years (Lower Austria: 6–50 kW every 3 years for all fuels; Vorarlberg: every 2 years).", "CH": "Switzerland: the Clean Air Ordinance (LRV) requires an emissions check every 2 years for oil and every 4 years for gas and for wood boilers up to 70 kW; the canton or municipality carries it out.", "BE": "Belgium: oil and solid-fuel boilers every year; gas boilers every 2 years in Flanders and Brussels (there gas water heaters too), every 3 years in Wallonia (up to 100 kW).", "ES": "Spain: gas boilers up to 70 kW must be serviced by an authorised company every 2 years (RITE); the gas installation is inspected every 5 years.", "CZ": "Czechia: solid-fuel central-heating boilers of 10–300 kW need an inspection by a certified technician every 3 years.", "PL": "Poland: the gas installation and the chimneys must be checked every year, single-family homes included (Building Law, Art. 62).", "RU": "Russia: in-house gas equipment must be serviced under a maintenance contract at least once a year.", "AU": "Australia: Energy Safe Victoria recommends servicing gas heaters at least every 2 years, including a carbon-monoxide test.", "LI": "Liechtenstein: oil and gas heating needs a yearly firing control; gas appliances also need a service contract.", "RO": "Romania: boilers up to 400 kW need an ISCIR technical check every 2 years; the gas installation is verified every 2 years and revised every 10 years.", "IE": "Ireland: have gas boilers serviced every year by a Registered Gas Installer (RGI) and fit a CO alarm in every room with a fuel-burning appliance.", "NL": "Netherlands: servicing is not mandatory for owners, but since April 2023 only CO-certified companies may install or maintain gas appliances; the fire service advises a yearly check.", "LV": "Latvia: gas appliances must be serviced every year.", "SI": "Slovenia: a licensed chimney sweep of your choice measures the emissions of oil and open-flue gas heating every year."}, key="Annual Inspection"),
             TaskTemplate("Bleed Radiators", "service", "time_based", 365, 14, schedule={"kind": "day_of_month", "day": 1, "months": [10]}),
-            TaskTemplate("Filter Replacement", "replacement", "time_based", 180, 14),
+            TaskTemplate("Replace Filter", "replacement", "time_based", 180, 14, key="Filter Replacement"),
         ],
     ),
     # v2.55: heat-recovery ventilation + fireplace. Intervals: filters checked
@@ -707,7 +729,7 @@ TEMPLATES: list[ObjectTemplate] = [
         dwellings=HOUSE_ONLY,
         tasks=[
             TaskTemplate(
-                "Chimney Sweep Appointment",
+                "Book Chimney Sweep",
                 "service",
                 "time_based",
                 365,
@@ -737,15 +759,17 @@ TEMPLATES: list[ObjectTemplate] = [
                     "CA": "Canada (Ontario): the Fire Code requires chimneys, flues and flue pipes to be inspected at least every 12 months and after a chimney fire; insurers often ask for a WETT inspection of wood stoves.",
                 },
                 country_intervals={"PL": 91, "GB": 182},
+                key="Chimney Sweep Appointment",
             ),
             TaskTemplate(
-                "Stove Service",
+                "Service Stove",
                 "service",
                 "time_based",
                 365,
                 30,
                 "Have a qualified technician service the stove or insert — seals, baffle plates, flue connection and combustion air.",
                 country_notes={"FR": "France: since October 2023 stoves, inserts and closed fireplaces must be serviced by a professional every year (décret 2023-641); keep the certificate."},
+                key="Stove Service",
             ),
             TaskTemplate("Inspect Door Gasket", "inspection", "time_based", 365, 21),
             TaskTemplate(
@@ -777,10 +801,10 @@ TEMPLATES: list[ObjectTemplate] = [
         category="home",
         countries=frozenset({"CN", "TW", "IN"}),
         tasks=[
-            TaskTemplate("Sediment Pre-Filter", "replacement", "time_based", 180, 14),
-            TaskTemplate("Carbon Pre-Filter", "replacement", "time_based", 270, 21),
-            TaskTemplate("RO Membrane", "replacement", "time_based", 730, 30),
-            TaskTemplate("Post-Carbon Filter", "replacement", "time_based", 365, 30),
+            TaskTemplate("Replace Sediment Pre-Filter", "replacement", "time_based", 180, 14, key="Sediment Pre-Filter"),
+            TaskTemplate("Replace Carbon Pre-Filter", "replacement", "time_based", 270, 21, key="Carbon Pre-Filter"),
+            TaskTemplate("Replace RO Membrane", "replacement", "time_based", 730, 30, key="RO Membrane"),
+            TaskTemplate("Replace Post-Carbon Filter", "replacement", "time_based", 365, 30, key="Post-Carbon Filter"),
             TaskTemplate("Sanitize Filter Housings", "cleaning", "time_based", 365, 14),
         ],
     ),
@@ -789,9 +813,9 @@ TEMPLATES: list[ObjectTemplate] = [
         name="Houseplants",
         category="household",
         tasks=[
-            TaskTemplate("Watering", "service", "time_based", 7, 1),
-            TaskTemplate("Fertilizing", "service", "time_based", 30, 7),
-            TaskTemplate("Repotting Check", "inspection", "time_based", 365, 30),
+            TaskTemplate("Water Plants", "service", "time_based", 7, 1, key="Watering"),
+            TaskTemplate("Fertilize Plants", "service", "time_based", 30, 7, key="Fertilizing"),
+            TaskTemplate("Check If Repotting Is Needed", "inspection", "time_based", 365, 30, key="Repotting Check"),
         ],
     ),
     ObjectTemplate(
@@ -884,8 +908,8 @@ TEMPLATES: list[ObjectTemplate] = [
         tasks=[
             TaskTemplate("Clean Refrigerator", "cleaning", "time_based", 90, 14),
             TaskTemplate("Defrost Freezer", "cleaning", "time_based", 180, 21),
-            TaskTemplate("Range Hood Filter", "cleaning", "time_based", 90, 14),
-            TaskTemplate("Oven Cleaning", "cleaning", "time_based", 90, 14),
+            TaskTemplate("Clean Range Hood Filter", "cleaning", "time_based", 90, 14, key="Range Hood Filter"),
+            TaskTemplate("Clean Oven", "cleaning", "time_based", 90, 14, key="Oven Cleaning"),
         ],
     ),
     # A template cannot know the pickup day: weekly works out of the box, and
@@ -912,8 +936,8 @@ TEMPLATES: list[ObjectTemplate] = [
         name="Kitchen Knives",
         category="household",
         tasks=[
-            TaskTemplate("Knife Sharpening", "service", "time_based", 75, 7),
-            TaskTemplate("Honing", "service", "time_based", 14, 3),
+            TaskTemplate("Sharpen Knives", "service", "time_based", 75, 7, key="Knife Sharpening"),
+            TaskTemplate("Hone Knives", "service", "time_based", 14, 3, key="Honing"),
         ],
     ),
     # --- Pool & Garden ---
@@ -923,10 +947,10 @@ TEMPLATES: list[ObjectTemplate] = [
         category="pool",
         dwellings=HOUSE_ONLY,
         tasks=[
-            TaskTemplate("Filter Cleaning", "cleaning", "time_based", 14, 3, season_months=(5, 6, 7, 8, 9)),
-            TaskTemplate("Basket Cleaning", "cleaning", "time_based", 7, 2, season_months=(5, 6, 7, 8, 9)),
-            TaskTemplate("Seal Inspection", "inspection", "time_based", 180, 14),
-            TaskTemplate("Annual Service", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [4]}),
+            TaskTemplate("Clean Filter", "cleaning", "time_based", 14, 3, season_months=(5, 6, 7, 8, 9), key="Filter Cleaning"),
+            TaskTemplate("Clean Pump Basket", "cleaning", "time_based", 7, 2, season_months=(5, 6, 7, 8, 9), key="Basket Cleaning"),
+            TaskTemplate("Inspect Seals", "inspection", "time_based", 180, 14, key="Seal Inspection"),
+            TaskTemplate("Book Annual Service", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [4]}, key="Annual Service"),
         ],
     ),
     ObjectTemplate(
@@ -935,9 +959,9 @@ TEMPLATES: list[ObjectTemplate] = [
         category="pool",
         dwellings=HOUSE_ONLY,
         tasks=[
-            TaskTemplate("Water Test", "inspection", "time_based", 7, 2, season_months=(5, 6, 7, 8, 9)),
-            TaskTemplate("Shock Treatment", "cleaning", "time_based", 14, 3, season_months=(5, 6, 7, 8, 9)),
-            TaskTemplate("Filter Backwash", "cleaning", "time_based", 7, 2, season_months=(5, 6, 7, 8, 9)),
+            TaskTemplate("Test Water", "inspection", "time_based", 7, 2, season_months=(5, 6, 7, 8, 9), key="Water Test"),
+            TaskTemplate("Shock Pool Water", "cleaning", "time_based", 14, 3, season_months=(5, 6, 7, 8, 9), key="Shock Treatment"),
+            TaskTemplate("Backwash Filter", "cleaning", "time_based", 7, 2, season_months=(5, 6, 7, 8, 9), key="Filter Backwash"),
             TaskTemplate(
                 "Check Pool Safety Barrier or Alarm",
                 "inspection",
@@ -987,10 +1011,10 @@ TEMPLATES: list[ObjectTemplate] = [
         category="garden",
         dwellings=HOUSE_ONLY,
         tasks=[
-            TaskTemplate("Blade Sharpening", "service", "time_based", 90, 14, season_months=(3, 4, 5, 6, 7, 8, 9, 10)),
-            TaskTemplate("Oil Change", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [3]}),
-            TaskTemplate("Air Filter", "replacement", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [3]}),
-            TaskTemplate("Spark Plug", "replacement", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [3]}),
+            TaskTemplate("Sharpen Blade", "service", "time_based", 90, 14, season_months=(3, 4, 5, 6, 7, 8, 9, 10), key="Blade Sharpening"),
+            TaskTemplate("Change Oil", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [3]}, key="Oil Change"),
+            TaskTemplate("Replace Air Filter", "replacement", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [3]}, key="Air Filter"),
+            TaskTemplate("Replace Spark Plug", "replacement", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [3]}, key="Spark Plug"),
         ],
     ),
     ObjectTemplate(
@@ -1009,8 +1033,8 @@ TEMPLATES: list[ObjectTemplate] = [
                 schedule={"kind": "day_of_month", "day": 15, "months": [10]},
                 winter_only=True,
             ),
-            TaskTemplate("Spring Startup and Leak Check", "inspection", "time_based", 365, 21, schedule={"kind": "day_of_month", "day": 15, "months": [4]}, winter_only=True),
-            TaskTemplate("Sprinkler Head Inspection", "inspection", "time_based", 180, 14),
+            TaskTemplate("Start Up for Spring and Check for Leaks", "inspection", "time_based", 365, 21, schedule={"kind": "day_of_month", "day": 15, "months": [4]}, winter_only=True, key="Spring Startup and Leak Check"),
+            TaskTemplate("Inspect Sprinkler Heads", "inspection", "time_based", 180, 14, key="Sprinkler Head Inspection"),
         ],
     ),
     ObjectTemplate(
@@ -1019,7 +1043,7 @@ TEMPLATES: list[ObjectTemplate] = [
         category="garden",
         tasks=[
             TaskTemplate(
-                "Winter Storage",
+                "Store for Winter",
                 "service",
                 "time_based",
                 365,
@@ -1027,9 +1051,10 @@ TEMPLATES: list[ObjectTemplate] = [
                 "Move to a frost-free spot before the first frost — trapped water cracks the pump. Tip: a sensor-based threshold trigger (below 3 °C) makes this reminder frost-aware.",
                 schedule={"kind": "day_of_month", "day": 1, "months": [11]},
                 winter_only=True,
+                key="Winter Storage",
             ),
-            TaskTemplate("Nozzle and Filter Cleaning", "cleaning", "time_based", 180, 14),
-            TaskTemplate("Pump Oil Check", "inspection", "time_based", 365, 30),
+            TaskTemplate("Clean Nozzles and Filter", "cleaning", "time_based", 180, 14, key="Nozzle and Filter Cleaning"),
+            TaskTemplate("Check Pump Oil", "inspection", "time_based", 365, 30, key="Pump Oil Check"),
         ],
     ),
     ObjectTemplate(
@@ -1050,7 +1075,7 @@ TEMPLATES: list[ObjectTemplate] = [
             TaskTemplate("Clean Undercarriage", "cleaning", "time_based", 30, 7, season_months=(4, 5, 6, 7, 8, 9, 10)),
             TaskTemplate("Clean Charging Contacts", "cleaning", "time_based", 90, 14),
             TaskTemplate(
-                "Winter Storage",
+                "Store for Winter",
                 "service",
                 "time_based",
                 365,
@@ -1058,6 +1083,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 "Store indoors over winter with the battery at partial charge — frost and a fully drained battery both age the cells.",
                 schedule={"kind": "day_of_month", "day": 1, "months": [11]},
                 winter_only=True,
+                key="Winter Storage",
             ),
         ],
     ),
@@ -1069,28 +1095,30 @@ TEMPLATES: list[ObjectTemplate] = [
         requires=frozenset({"garden"}),
         tasks=[
             TaskTemplate(
-                "Mowing",
+                "Mow Lawn",
                 "service",
                 "time_based",
                 10,
                 2,
                 "During the growing season — preset to April–October (mirrored in the southern hemisphere, all year where there is no winter); adjust it in the task dialog.",
                 season_months=(4, 5, 6, 7, 8, 9, 10),
+                key="Mowing",
             ),
             TaskTemplate(
-                "Watering",
+                "Water Lawn",
                 "service",
                 "time_based",
                 7,
                 1,
                 "In dry periods — a soil-moisture or rain sensor makes a good sensor trigger instead of the fixed interval.",
                 season_months=(5, 6, 7, 8, 9),
+                key="Watering",
             ),
-            TaskTemplate("Fertilising", "service", "time_based", 120, 14, season_months=(3, 4, 5, 6, 7, 8, 9, 10)),
-            TaskTemplate("Scarifying", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [4]}),
-            TaskTemplate("Aerating", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [9]}),
-            TaskTemplate("Overseeding", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [9]}),
-            TaskTemplate("Weeding", "service", "time_based", 90, 14, season_months=(4, 5, 6, 7, 8, 9)),
+            TaskTemplate("Fertilize Lawn", "service", "time_based", 120, 14, season_months=(3, 4, 5, 6, 7, 8, 9, 10), key="Fertilising"),
+            TaskTemplate("Scarify Lawn", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [4]}, key="Scarifying"),
+            TaskTemplate("Aerate Lawn", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [9]}, key="Aerating"),
+            TaskTemplate("Overseed Lawn", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [9]}, key="Overseeding"),
+            TaskTemplate("Weed Lawn", "service", "time_based", 90, 14, season_months=(4, 5, 6, 7, 8, 9), key="Weeding"),
         ],
     ),
     ObjectTemplate(
@@ -1100,17 +1128,18 @@ TEMPLATES: list[ObjectTemplate] = [
         dwellings=HOUSE_ONLY,
         tasks=[
             TaskTemplate(
-                "Trimming",
+                "Trim Hedge",
                 "service",
                 "time_based",
                 180,
                 21,
                 "1–3 times per year depending on the species — mind local rules protecting nesting birds in spring.",
                 schedule={"kind": "day_of_month", "day": 15, "months": [6, 9]},
+                key="Trimming",
             ),
-            TaskTemplate("Watering", "service", "time_based", 7, 1, season_months=(5, 6, 7, 8, 9)),
-            TaskTemplate("Fertilising", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [4]}),
-            TaskTemplate("Mulching", "service", "time_based", 365, 30),
+            TaskTemplate("Water Hedge", "service", "time_based", 7, 1, season_months=(5, 6, 7, 8, 9), key="Watering"),
+            TaskTemplate("Fertilize Hedge", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [4]}, key="Fertilising"),
+            TaskTemplate("Mulch Hedge", "service", "time_based", 365, 30, key="Mulching"),
         ],
     ),
     ObjectTemplate(
@@ -1121,7 +1150,7 @@ TEMPLATES: list[ObjectTemplate] = [
         starter=frozenset({HOUSE}),
         tasks=[
             TaskTemplate("Clean Gutters", "cleaning", "time_based", 180, 21, schedule={"kind": "day_of_month", "day": 1, "months": [4, 11]}),
-            TaskTemplate("Roof Inspection", "inspection", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [4]}),
+            TaskTemplate("Inspect Roof", "inspection", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [4]}, key="Roof Inspection"),
             TaskTemplate("Clean Windows", "cleaning", "time_based", 90, 14),
         ],
     ),
@@ -1132,10 +1161,10 @@ TEMPLATES: list[ObjectTemplate] = [
         category="appliance",
         starter=ANY_DWELLING,
         tasks=[
-            TaskTemplate("Drum Cleaning", "cleaning", "time_based", 30, 7),
-            TaskTemplate("Filter Cleaning", "cleaning", "time_based", 30, 7),
-            TaskTemplate("Descaling", "cleaning", "time_based", 90, 14),
-            TaskTemplate("Door Seal Inspection", "inspection", "time_based", 180, 14),
+            TaskTemplate("Clean Drum", "cleaning", "time_based", 30, 7, key="Drum Cleaning"),
+            TaskTemplate("Clean Filter", "cleaning", "time_based", 30, 7, key="Filter Cleaning"),
+            TaskTemplate("Descale", "cleaning", "time_based", 90, 14, key="Descaling"),
+            TaskTemplate("Inspect Door Seal", "inspection", "time_based", 180, 14, key="Door Seal Inspection"),
         ],
     ),
     ObjectTemplate(
@@ -1144,9 +1173,9 @@ TEMPLATES: list[ObjectTemplate] = [
         category="appliance",
         starter=ANY_DWELLING,
         tasks=[
-            TaskTemplate("Filter Cleaning", "cleaning", "time_based", 30, 7),
-            TaskTemplate("Spray Arm Cleaning", "cleaning", "time_based", 90, 14),
-            TaskTemplate("Descaling", "cleaning", "time_based", 90, 14),
+            TaskTemplate("Clean Filter", "cleaning", "time_based", 30, 7, key="Filter Cleaning"),
+            TaskTemplate("Clean Spray Arms", "cleaning", "time_based", 90, 14, key="Spray Arm Cleaning"),
+            TaskTemplate("Descale", "cleaning", "time_based", 90, 14, key="Descaling"),
         ],
     ),
     ObjectTemplate(
@@ -1155,9 +1184,9 @@ TEMPLATES: list[ObjectTemplate] = [
         category="appliance",
         countries=frozenset({"US", "CA"}),
         tasks=[
-            TaskTemplate("Lint Filter Cleaning", "cleaning", "time_based", 1, 0),
-            TaskTemplate("Condenser Cleaning", "cleaning", "time_based", 30, 7),
-            TaskTemplate("Vent Inspection", "inspection", "time_based", 365, 30),
+            TaskTemplate("Clean Lint Filter", "cleaning", "time_based", 1, 0, key="Lint Filter Cleaning"),
+            TaskTemplate("Clean Condenser", "cleaning", "time_based", 30, 7, key="Condenser Cleaning"),
+            TaskTemplate("Inspect Vents", "inspection", "time_based", 365, 30, key="Vent Inspection"),
         ],
     ),
     ObjectTemplate(
@@ -1166,16 +1195,17 @@ TEMPLATES: list[ObjectTemplate] = [
         category="appliance",
         tasks=[
             TaskTemplate(
-                "Descaling",
+                "Descale",
                 "cleaning",
                 "time_based",
                 90,
                 14,
                 "Interval depends on water hardness — descale more often with hard water.",
+                key="Descaling",
             ),
             TaskTemplate("Backflush Brew Group", "cleaning", "time_based", 14, 3),
-            TaskTemplate("Water Filter", "replacement", "time_based", 60, 7),
-            TaskTemplate("Group Gasket", "replacement", "time_based", 365, 30),
+            TaskTemplate("Replace Water Filter", "replacement", "time_based", 60, 7, key="Water Filter"),
+            TaskTemplate("Replace Group Gasket", "replacement", "time_based", 365, 30, key="Group Gasket"),
         ],
     ),
     ObjectTemplate(
@@ -1184,7 +1214,7 @@ TEMPLATES: list[ObjectTemplate] = [
         category="appliance",
         tasks=[
             TaskTemplate("Clean Main Brush", "cleaning", "time_based", 14, 3),
-            TaskTemplate("Filter Cleaning", "cleaning", "time_based", 14, 3),
+            TaskTemplate("Clean Filter", "cleaning", "time_based", 14, 3, key="Filter Cleaning"),
             TaskTemplate(
                 "Replace Dust Bag",
                 "replacement",
@@ -1201,7 +1231,7 @@ TEMPLATES: list[ObjectTemplate] = [
         name="Mopping Robot Vacuum",
         category="appliance",
         tasks=[
-            TaskTemplate("Filter Cleaning", "cleaning", "time_based", 14, 3),
+            TaskTemplate("Clean Filter", "cleaning", "time_based", 14, 3, key="Filter Cleaning"),
             TaskTemplate("Empty Dirty Water Tank", "cleaning", "time_based", 7, 2),
             TaskTemplate("Clean Mop Tray", "cleaning", "time_based", 30, 7),
             TaskTemplate("Wash Mop Pads", "cleaning", "time_based", 60, 7),
@@ -1229,12 +1259,13 @@ TEMPLATES: list[ObjectTemplate] = [
                 "Lukewarm water and a damp cloth; let it dry completely before it goes back in.",
             ),
             TaskTemplate(
-                "Filter Cleaning",
+                "Clean Filter",
                 "cleaning",
                 "time_based",
                 30,
                 7,
                 "Tap it out, rinse it if it is washable, and let it dry for at least 24 hours.",
+                key="Filter Cleaning",
             ),
             TaskTemplate("Clean Pre-Filter, Cyclone and Mesh", "cleaning", "time_based", 60, 7),
             TaskTemplate("Check Nozzles and Tube for Blockages", "inspection", "time_based", 30, 7),
@@ -1264,12 +1295,13 @@ TEMPLATES: list[ObjectTemplate] = [
         category="tech",
         tasks=[
             TaskTemplate(
-                "Nozzle Check",
+                "Run Nozzle Check",
                 "inspection",
                 "time_based",
                 30,
                 7,
                 "A monthly test print keeps inkjet nozzles from drying out — supported printers also report ink/toner levels for automatic triggers.",
+                key="Nozzle Check",
             ),
             TaskTemplate("Replace Maintenance Box", "replacement", "time_based", 365, 30),
             TaskTemplate("Clean Printer", "cleaning", "time_based", 180, 14),
@@ -1323,7 +1355,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 "A backup only exists once a restore has been proven to work.",
             ),
             TaskTemplate("Check Disk Health", "inspection", "time_based", 30, 7),
-            TaskTemplate("Storage Cleanup", "cleaning", "time_based", 90, 14),
+            TaskTemplate("Free Up Disk Space", "cleaning", "time_based", 90, 14, key="Storage Cleanup"),
             TaskTemplate("Update Firmware", "service", "time_based", 60, 7),
             TaskTemplate("Dust Out Device", "cleaning", "time_based", 365, 30),
         ],
@@ -1362,7 +1394,7 @@ TEMPLATES: list[ObjectTemplate] = [
         dwellings=HOUSE_ONLY,
         tasks=[
             TaskTemplate("Clean Pond Filter", "cleaning", "time_based", 30, 7, season_months=(4, 5, 6, 7, 8, 9, 10)),
-            TaskTemplate("Water Test", "inspection", "time_based", 30, 7, season_months=(4, 5, 6, 7, 8, 9, 10)),
+            TaskTemplate("Test Water", "inspection", "time_based", 30, 7, season_months=(4, 5, 6, 7, 8, 9, 10), key="Water Test"),
             TaskTemplate(
                 "Install Leaf Net",
                 "service",
@@ -1430,17 +1462,18 @@ TEMPLATES: list[ObjectTemplate] = [
             ),
             TaskTemplate("Replace Mask Cushion", "replacement", "time_based", 30, 7),
             TaskTemplate(
-                "Air Filter",
+                "Replace Air Filter",
                 "replacement",
                 "time_based",
                 30,
                 7,
                 "Replace sooner if it looks discolored or dusty.",
+                key="Air Filter",
             ),
             TaskTemplate("Replace Tubing", "replacement", "time_based", 90, 14),
             TaskTemplate("Replace Humidifier Tub", "replacement", "time_based", 180, 21),
             TaskTemplate("Replace Headgear & Frame", "replacement", "time_based", 180, 21),
-            TaskTemplate("Annual Service", "inspection", "time_based", 365, 30),
+            TaskTemplate("Book Annual Service", "inspection", "time_based", 365, 30, key="Annual Service"),
         ],
     ),
     ObjectTemplate(
@@ -1458,7 +1491,7 @@ TEMPLATES: list[ObjectTemplate] = [
             ),
             TaskTemplate("Replace Wax Guards", "replacement", "time_based", 30, 7),
             TaskTemplate("Replace Domes", "replacement", "time_based", 90, 14),
-            TaskTemplate("Professional Check & Adjustment", "inspection", "time_based", 365, 30),
+            TaskTemplate("Book Professional Check & Adjustment", "inspection", "time_based", 365, 30, key="Professional Check & Adjustment"),
         ],
     ),
     # --- Template-worthiness lens (roadmap 3b): device classes with real,
@@ -1479,7 +1512,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 country_notes={"NO": "Norway: every home must have a fire hose or an extinguisher; check it yourself every 6 months."},
             ),
             TaskTemplate(
-                "Fire Extinguisher Service",
+                "Service Fire Extinguisher",
                 "service",
                 "time_based",
                 730,
@@ -1487,6 +1520,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 "Professional inspection per the label — commonly every 2 years; replace the unit after 10-15 years.",
                 country_intervals={"NO": 1826, "LV": 1826},
                 country_notes={"NO": "Norway: an expert check every 5 years is advised.", "LV": "Latvia: every house must have an extinguisher — check it yourself every year and have it serviced every 5 years."},
+                key="Fire Extinguisher Service",
             ),
             TaskTemplate(
                 "Check First-Aid Kit",
@@ -1504,12 +1538,13 @@ TEMPLATES: list[ObjectTemplate] = [
         category="pets",
         tasks=[
             TaskTemplate(
-                "Partial Water Change",
+                "Do a Partial Water Change",
                 "cleaning",
                 "time_based",
                 14,
                 3,
                 "Change 20-30 % of the water; match temperature and treat tap water with conditioner.",
+                key="Partial Water Change",
             ),
             TaskTemplate("Test Water Values", "inspection", "time_based", 14, 3),
             TaskTemplate(
@@ -1542,14 +1577,15 @@ TEMPLATES: list[ObjectTemplate] = [
                 "Leaves, snow and plants must not block the outdoor unit — the air has to flow freely.",
                 season_months=(10, 11, 12, 1, 2, 3),
             ),
-            TaskTemplate("Annual Service", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [9]}, country_notes={"FR": "France: heat pumps of 4–70 kW must be serviced every 2 years; the EU F-gas rules add a yearly leak check from 5 t CO₂-equivalent of refrigerant (every 2 years with leak detection).", "IT": "Italy: heat pumps and air conditioners over 12 kW need an efficiency check every 4 years and a system logbook (libretto di impianto).", "ES": "Spain: heat pumps and air conditioners up to 12 kW must be serviced by an authorised company every 4 years (RITE).", "AT": "Austria: Vienna and Burgenland require a check of heat pumps and air conditioners from 12 kW every 3 years.", "CH": "Switzerland: units with more than 3 kg of refrigerant need a leak check at every service and a logbook."}),
+            TaskTemplate("Book Annual Service", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [9]}, country_notes={"FR": "France: heat pumps of 4–70 kW must be serviced every 2 years; the EU F-gas rules add a yearly leak check from 5 t CO₂-equivalent of refrigerant (every 2 years with leak detection).", "IT": "Italy: heat pumps and air conditioners over 12 kW need an efficiency check every 4 years and a system logbook (libretto di impianto).", "ES": "Spain: heat pumps and air conditioners up to 12 kW must be serviced by an authorised company every 4 years (RITE).", "AT": "Austria: Vienna and Burgenland require a check of heat pumps and air conditioners from 12 kW every 3 years.", "CH": "Switzerland: units with more than 3 kg of refrigerant need a leak check at every service and a logbook."}, key="Annual Service"),
             TaskTemplate(
-                "Refrigerant Leak Check",
+                "Check for Refrigerant Leaks",
                 "inspection",
                 "time_based",
                 365,
                 30,
                 "EU F-gas rules (2024/573): units from 5 t CO₂-equivalent of refrigerant (about 2.4 kg of R410A; hermetically sealed units from 10 t) need a leak check by certified staff every 12 months, every 24 with leak detection — a typical R32 split unit stays below that.",
+                key="Refrigerant Leak Check",
             ),
             TaskTemplate("Check Heating Water Pressure", "inspection", "time_based", 90, 7),
         ],
@@ -1561,7 +1597,7 @@ TEMPLATES: list[ObjectTemplate] = [
         dwellings=HOUSE_ONLY,
         tasks=[
             TaskTemplate("Check Yield and Inverter Errors", "inspection", "time_based", 30, 7),
-            TaskTemplate("Visual Inspection", "inspection", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [4]}),
+            TaskTemplate("Visually Inspect Panels", "inspection", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [4]}, key="Visual Inspection"),
             TaskTemplate(
                 "Clean Panels",
                 "cleaning",
@@ -1571,12 +1607,13 @@ TEMPLATES: list[ObjectTemplate] = [
                 "Only when the yield drops — rain usually does the job; dusty or desert sites need it 2–4 times a year.",
             ),
             TaskTemplate(
-                "Electrical Safety Inspection",
+                "Book Electrical Safety Inspection",
                 "inspection",
                 "time_based",
                 1461,
                 60,
                 "An electrician's inspection every 4 years is common practice (DIN VDE 0105-100 in Germany) and often asked for by insurers.",
+                key="Electrical Safety Inspection",
             ),
         ],
     ),
@@ -1603,7 +1640,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 30,
                 "Silicone spray or white lithium grease; leave a belt drive dry.",
             ),
-            TaskTemplate("Professional Service", "service", "time_based", 365, 30),
+            TaskTemplate("Book Professional Service", "service", "time_based", 365, 30, key="Professional Service"),
         ],
     ),
     ObjectTemplate(
@@ -1621,7 +1658,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 1,
                 "Most standby units run a short self-test every week — check that it actually ran.",
             ),
-            TaskTemplate("Annual Service", "service", "time_based", 365, 30),
+            TaskTemplate("Book Annual Service", "service", "time_based", 365, 30, key="Annual Service"),
             TaskTemplate("Check Starter Battery", "inspection", "time_based", 180, 14),
         ],
     ),
@@ -1631,7 +1668,7 @@ TEMPLATES: list[ObjectTemplate] = [
         category="pool",
         dwellings=HOUSE_ONLY,
         tasks=[
-            TaskTemplate("Water Test", "inspection", "time_based", 7, 2),
+            TaskTemplate("Test Water", "inspection", "time_based", 7, 2, key="Water Test"),
             TaskTemplate("Rinse Filter", "cleaning", "time_based", 7, 2),
             TaskTemplate("Deep Clean Filter", "cleaning", "time_based", 30, 7),
             TaskTemplate("Drain and Refill", "service", "time_based", 90, 14, "Every 3–4 months, sooner with heavy use."),
@@ -1655,20 +1692,22 @@ TEMPLATES: list[ObjectTemplate] = [
                 "DIN 1986-3: look at the valve once a month and operate the emergency closure.",
             ),
             TaskTemplate(
-                "Backflow Valve Service",
+                "Service Backflow Valve",
                 "service",
                 "time_based",
                 182,
                 21,
                 "DIN 1986-3: service by a qualified person twice a year.",
+                key="Backflow Valve Service",
             ),
             TaskTemplate(
-                "Lifting Station Service",
+                "Service Lifting Station",
                 "service",
                 "time_based",
                 365,
                 30,
                 "DIN EN 12056-4: by a qualified person every 12 months in a single-family home, every 6 months in a multi-family building.",
+                key="Lifting Station Service",
             ),
         ],
     ),
@@ -1679,13 +1718,14 @@ TEMPLATES: list[ObjectTemplate] = [
         dwellings=HOUSE_ONLY,
         tasks=[
             TaskTemplate(
-                "Septic Inspection",
+                "Book Septic Inspection",
                 "inspection",
                 "time_based",
                 1095,
                 60,
                 "Every 1–3 years; systems with pumps or float switches every year (US EPA).",
                 country_notes={"FR": "France: the SPANC inspects non-collective sanitation at most every 10 years (often every 4–8).", "US": "US: Washington requires an inspection every 3 years for gravity systems and every year for all others, Wisconsin a visual inspection at least every 3 years; Massachusetts (Title 5) and Delaware inspect when the house is sold."},
+                key="Septic Inspection",
             ),
             TaskTemplate("Pump Out Tank", "service", "time_based", 1095, 60, "Typically every 3–5 years, depending on tank size and household.", country_intervals={"GB": 365, "CA": 730, "GB-SCT": 1095, "GB-WLS": 1095, "GB-NIR": 1095}, country_notes={"GB": "UK: in England the tank must be emptied at least once a year, or as the manufacturer says, by a registered waste carrier (General Binding Rules); in Scotland it must be registered with SEPA.", "IE": "Ireland: septic tanks must be registered and emptied by an authorised collector — keep the receipts for 5 years; how often depends on tank size and household (e.g. 3.5 m³ with 3 people: every 4 years).", "PL": "Poland: you need a contract with an emptying company and must keep the receipts; the municipality sets how often.", "CZ": "Czechia: keep the receipts of the emptying for 2 years.", "FR": "France: empty the tank when the sludge reaches half of its useful volume.", "CA": "Canada (Quebec): pump out at least every 2 years for a home lived in all year, every 4 years for a seasonal one."}),
             TaskTemplate("Check Drain Field", "inspection", "time_based", 365, 30),
@@ -1698,15 +1738,16 @@ TEMPLATES: list[ObjectTemplate] = [
         dwellings=HOUSE_ONLY,
         tasks=[
             TaskTemplate(
-                "Operator Check",
+                "Run Operator Check",
                 "inspection",
                 "time_based",
                 30,
                 7,
                 "The visual checks the plant's approval asks of the owner — note them in the operator log.",
+                key="Operator Check",
             ),
             TaskTemplate(
-                "Maintenance by a Specialist Company",
+                "Book Specialist Maintenance",
                 "service",
                 "time_based",
                 182,
@@ -1720,6 +1761,7 @@ TEMPLATES: list[ObjectTemplate] = [
                     "US": "US: aerobic treatment units need a maintenance contract — Texas: a service report every 4 months (6 with remote monitoring), Florida: an inspection twice a year; Maryland: nitrogen-removal units every year.",
                 },
                 country_intervals={"AU": 91, "US-TX": 122, "US-MD": 365},
+                key="Maintenance by a Specialist Company",
             ),
         ],
     ),
@@ -1731,7 +1773,7 @@ TEMPLATES: list[ObjectTemplate] = [
         traits=frozenset({"radon"}),
         tasks=[
             TaskTemplate(
-                "Radon Test",
+                "Test for Radon",
                 "reading",
                 "time_based",
                 730,
@@ -1739,6 +1781,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 "Retest after renovations or when you start using a lower floor; with a mitigation system, every two years (US EPA).",
                 country_notes={"DE": "Germany: the reference level is 300 Bq/m³; there is no duty to measure in existing homes.", "CH": "Switzerland: above 300 Bq/m³ the owner must remediate at their own cost.", "FI": "Finland: measure for at least 2 months between September and May; the reference level is 300 Bq/m³.", "FR": "France: in radon zone 3 buyers and tenants must be informed; measure for at least 2 months between mid-September and April; the reference level is 300 Bq/m³.", "IE": "Ireland: testing is recommended in High Radon Areas; retest after remediation.", "GB": "UK: in radon-affected areas a 3-month test is advised; retest after remediation.", "NO": "Norway: rented homes must stay below 200 Bq/m³.", "BE": "Belgium: radon is mainly found in the province of Luxembourg; test for 3 months between October and April.", "CA": "Canada (Health Canada): test for at least 3 months in the heating season on the lowest lived-in floor; reduce the level if it is above 200 Bq/m³; with a mitigation system retest every 5 years."},
                 country_intervals={"CA": 1826},
+                key="Radon Test",
             ),
             TaskTemplate("Check Mitigation Fan and Manometer", "inspection", "time_based", 90, 7),
         ],
@@ -1824,22 +1867,24 @@ TEMPLATES: list[ObjectTemplate] = [
         only_countries=frozenset({"US", "CA", "SE", "NO", "FI", "RU"}),
         tasks=[
             TaskTemplate(
-                "Pre-Season Service",
+                "Service Before the Season",
                 "service",
                 "time_based",
                 365,
                 30,
                 "Change the oil and check spark plug, shear pins and belts before the first snow.",
                 schedule={"kind": "day_of_month", "day": 15, "months": [10]},
+                key="Pre-Season Service",
             ),
             TaskTemplate(
-                "Summer Storage",
+                "Store for Summer",
                 "service",
                 "time_based",
                 365,
                 21,
                 "Run the tank dry or add fuel stabilizer before storing.",
                 schedule={"kind": "day_of_month", "day": 15, "months": [4]},
+                key="Summer Storage",
             ),
         ],
     ),
@@ -1977,16 +2022,17 @@ TEMPLATES: list[ObjectTemplate] = [
         traits=frozenset({"termites"}),
         tasks=[
             TaskTemplate(
-                "Professional Termite Inspection",
+                "Book Termite Inspection",
                 "inspection",
                 "time_based",
                 365,
                 30,
                 "Once a year by a licensed pest professional — before the spring swarming season.",
                 schedule={"kind": "day_of_month", "day": 1, "months": [3]},
+                key="Professional Termite Inspection",
             ),
             TaskTemplate("Check Foundation for Mud Tubes", "inspection", "time_based", 90, 7),
-            TaskTemplate("Pest Perimeter Treatment", "service", "time_based", 90, 7),
+            TaskTemplate("Book Perimeter Pest Treatment", "service", "time_based", 90, 7, key="Pest Perimeter Treatment"),
         ],
     ),
     ObjectTemplate(
@@ -2016,7 +2062,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 "Hot and humid climates: monthly, with a cup of white vinegar, so algae cannot clog the line.",
             ),
             TaskTemplate("Clean Outdoor Unit Coil", "cleaning", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 15, "months": [4]}),
-            TaskTemplate("Annual Service", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [5]}, country_notes={"IT": "Italy: heat pumps and air conditioners over 12 kW need an efficiency check every 4 years and a system logbook (libretto di impianto).", "ES": "Spain: heat pumps and air conditioners up to 12 kW must be serviced by an authorised company every 4 years (RITE).", "AT": "Austria: Vienna and Burgenland require a check of heat pumps and air conditioners from 12 kW every 3 years.", "CH": "Switzerland: units with more than 3 kg of refrigerant need a leak check at every service and a logbook."}),
+            TaskTemplate("Book Annual Service", "service", "time_based", 365, 30, schedule={"kind": "day_of_month", "day": 1, "months": [5]}, country_notes={"IT": "Italy: heat pumps and air conditioners over 12 kW need an efficiency check every 4 years and a system logbook (libretto di impianto).", "ES": "Spain: heat pumps and air conditioners up to 12 kW must be serviced by an authorised company every 4 years (RITE).", "AT": "Austria: Vienna and Burgenland require a check of heat pumps and air conditioners from 12 kW every 3 years.", "CH": "Switzerland: units with more than 3 kg of refrigerant need a leak check at every service and a logbook."}, key="Annual Service"),
         ],
     ),
     ObjectTemplate(
@@ -2027,13 +2073,14 @@ TEMPLATES: list[ObjectTemplate] = [
         traits=frozenset({"hot_dry"}),
         tasks=[
             TaskTemplate(
-                "Spring Startup",
+                "Start Up for Spring",
                 "service",
                 "time_based",
                 365,
                 21,
                 "Clean the reservoir, test the pump and float valve, check the belt and open the winter damper.",
                 schedule={"kind": "day_of_month", "day": 15, "months": [4]},
+                key="Spring Startup",
             ),
             TaskTemplate(
                 "Replace Cooler Pads",
@@ -2044,15 +2091,16 @@ TEMPLATES: list[ObjectTemplate] = [
                 "Aspen pads every season; rigid media pads last 3–5 years.",
                 schedule={"kind": "day_of_month", "day": 15, "months": [4]},
             ),
-            TaskTemplate("Mid-Season Check", "inspection", "time_based", 30, 7, season_months=(5, 6, 7, 8, 9)),
+            TaskTemplate("Run Mid-Season Check", "inspection", "time_based", 30, 7, season_months=(5, 6, 7, 8, 9), key="Mid-Season Check"),
             TaskTemplate(
-                "Fall Shutdown and Drain",
+                "Shut Down and Drain for Fall",
                 "service",
                 "time_based",
                 365,
                 21,
                 "Drain and dry the pan, disconnect the water line and close the damper — prevents scale and frost damage.",
                 schedule={"kind": "day_of_month", "day": 1, "months": [10]},
+                key="Fall Shutdown and Drain",
             ),
         ],
     ),
@@ -2074,7 +2122,7 @@ TEMPLATES: list[ObjectTemplate] = [
         tasks=[
             TaskTemplate("Clean Tank", "cleaning", "time_based", 7, 1, season_months=(11, 12, 1, 2, 3)),
             TaskTemplate("Replace Wick Filter", "replacement", "time_based", 60, 7, season_months=(11, 12, 1, 2, 3)),
-            TaskTemplate("Descaling", "cleaning", "time_based", 30, 7, season_months=(11, 12, 1, 2, 3)),
+            TaskTemplate("Descale", "cleaning", "time_based", 30, 7, season_months=(11, 12, 1, 2, 3), key="Descaling"),
         ],
     ),
     ObjectTemplate(
@@ -2107,7 +2155,7 @@ TEMPLATES: list[ObjectTemplate] = [
             TaskTemplate("Check Tank and Collecting Tray", "inspection", "time_based", 90, 7),
             TaskTemplate("Check Leak Detector and Level Gauge", "inspection", "time_based", 365, 30),
             TaskTemplate(
-                "Expert Inspection",
+                "Book Expert Inspection",
                 "inspection",
                 "time_based",
                 1826,
@@ -2115,6 +2163,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 "Inspection duties depend on the country, the tank size and the location (water protection or flood areas) — see the note for your country.",
                 country_notes={"DE": "Germany (AwSV): every 5 years for underground tanks and above-ground tanks over 10,000 l — in water protection and flood areas from 1,000 l. A typical cellar tank below that is exempt.", "AT": "Austria: the rules differ by state — e.g. Tyrol: tanks over 1,000 l need their overfill device and leak detector checked at least every 6 years (every 3 with a liquid leak detector).", "BE": "Belgium: in Flanders buried tanks under 5,000 kg are checked every 5 years, above-ground ones not at all; in Wallonia buried single-wall tanks of 3,000–25,000 l are checked every 10, 5 or 3 years depending on their age.", "CH": "Switzerland: tanks that need a permit (over 2,000 l in endangered areas, over 450 l in groundwater zones) must be checked at least every 10 years.", "DK": "Denmark: tanks have a legal lifetime — above-ground steel tanks under 6,000 l 30 years (40 if type-approved), plastic ones 25 (40), buried tanks 40–50 years; a tank of unknown age must be taken out of use.", "NO": "Norway: heating with fossil oil is banned since 2020; buried steel tanks over 3,200 l are checked from 15 years of age, then every 5 years.", "FI": "Finland: tanks in groundwater areas are first inspected at 10 years, then every 2–10 years depending on their condition.", "SE": "Sweden: tanks over 1 m³ — in water-protection areas from 150 l — fall under the Environmental Protection Agency's rules (NFS 2021:10).", "GB": "UK: tanks over 3,500 l (Scotland: 2,500 l) need a bund; OFTEC advises a yearly service of the boiler and the tank.", "FR": "France: there is no periodic re-test, but an overfill device is required and a disused tank must be decommissioned by a professional.", "CA": "Canada: Newfoundland and Labrador limit the life of single-wall steel tanks to 10–25 years, Prince Edward Island stops deliveries after the expiry year on the tank tag, and in Ontario the fuel distributor inspects the tank at least every 10 years."},
                 country_intervals={"AT-7": 2191, "CA-ON": 3652},
+                key="Expert Inspection",
             ),
         ],
     ),
@@ -2417,13 +2466,14 @@ TEMPLATES: list[ObjectTemplate] = [
             ),
             TaskTemplate("Vacuum Tatami Along the Grain", "cleaning", "time_based", 7, 1),
             TaskTemplate(
-                "Mould Check in the Rainy Season",
+                "Check for Mould in the Rainy Season",
                 "inspection",
                 "time_based",
                 14,
                 3,
                 "During tsuyu keep the humidity below 60 % — a dehumidifier helps in tatami rooms.",
                 season_months=(6, 7),
+                key="Mould Check in the Rainy Season",
             ),
         ],
     ),
@@ -2495,7 +2545,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 "Look for scorch marks, loose or warm sockets, damaged cables and power strips plugged into each other.",
             ),
             TaskTemplate(
-                "Electrical Installation Inspection",
+                "Book Electrical Installation Inspection",
                 "inspection",
                 "time_based",
                 3650,
@@ -2509,6 +2559,7 @@ TEMPLATES: list[ObjectTemplate] = [
                     "LV": "Latvia: the electrical installation must be checked every 10 years.",
                 },
                 country_intervals={"DE": 1461, "PL": 1826},
+                key="Electrical Installation Inspection",
             ),
         ],
     ),
@@ -2529,12 +2580,13 @@ TEMPLATES: list[ObjectTemplate] = [
                 "DIN EN 806-5: at least every 6 months — manufacturers recommend about every 2 months. A filter without backwash: replace the cartridge every 6 months.",
             ),
             TaskTemplate(
-                "Pressure Reducer Maintenance",
+                "Service Pressure Reducer",
                 "service",
                 "time_based",
                 365,
                 30,
                 "DIN EN 806-5: inspect and service it once a year — check the outlet pressure on the gauge and clean the strainer.",
+                key="Pressure Reducer Maintenance",
             ),
             TaskTemplate(
                 "Operate Shut-Off Valves",
@@ -2604,21 +2656,23 @@ TEMPLATES: list[ObjectTemplate] = [
         category="vehicle",
         tasks=[
             TaskTemplate(
-                "LPG System Test",
+                "Test LPG System",
                 "inspection",
                 "time_based",
                 730,
                 60,
                 "Have hoses, regulator and appliances checked by an expert; replace hoses and the regulator by the date printed on them.",
                 country_notes={"DE": "Germany: the gas test (DVGW G 607) is mandatory every 2 years since 19 June 2025 — separately from the HU."},
+                key="LPG System Test",
             ),
             TaskTemplate(
-                "Damp and Habitation Check",
+                "Book Damp and Habitation Check",
                 "inspection",
                 "time_based",
                 365,
                 30,
                 "Moisture readings along roof seams, windows and floor — most manufacturers require a yearly check to keep the water-ingress warranty.",
+                key="Damp and Habitation Check",
             ),
             TaskTemplate("Check Roof Seals and Windows", "inspection", "time_based", 182, 14),
             TaskTemplate(
@@ -2650,7 +2704,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 country_notes={"DE": "Germany: the 100 km/h approval for trailers requires tires younger than 6 years."},
             ),
             TaskTemplate(
-                "Roadworthiness Test",
+                "Book Roadworthiness Test",
                 "inspection",
                 "time_based",
                 730,
@@ -2658,6 +2712,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 _TEST_NOTE,
                 country_notes=_CARAVAN_TEST_NOTES,
                 country_intervals={"AT": 365, "BG": 365, "EE": 365, "LU": 365, "RO": 1095, "SK": 1461},
+                key="Roadworthiness Test",
             ),
         ],
     ),
@@ -2719,7 +2774,7 @@ TEMPLATES: list[ObjectTemplate] = [
                 country_intervals={"BR": 1826},
             ),
             TaskTemplate(
-                "Gas Installation Inspection",
+                "Book Gas Installation Inspection",
                 "inspection",
                 "time_based",
                 1826,
@@ -2734,6 +2789,7 @@ TEMPLATES: list[ObjectTemplate] = [
                     "AT": "Austria: gas installation checks are set by state law — e.g. Tyrol every 2 years, Vorarlberg every 6; Upper Austria every 15 years for natural gas and every 6 for LPG.",
                 },
                 country_intervals={"RO": 730, "PL": 365, "AT-2": 1826, "AT-4": 2191, "AT-5": 1826, "AT-7": 730, "AT-8": 2191},
+                key="Gas Installation Inspection",
             ),
         ],
     ),
@@ -2870,13 +2926,16 @@ async def async_build_template_tasks(
     tasks: dict[str, dict[str, Any]] = {}
     for tt in template_tasks(template, has_winter=has_winter, country=country, region=region):
         task_id = uuid4().hex
+        built = build_template_task(tt, lang, hemisphere=hemisphere, has_winter=has_winter, country=country, region=region)
         tasks[task_id] = {
             "id": task_id,
             "object_id": object_id,
-            **build_template_task(tt, lang, hemisphere=hemisphere, has_winter=has_winter, country=country, region=region),
+            **built,
             # 2.95: the fingerprint — which template task this is, whatever
-            # the user renames it to (helpers/task_origin.py).
-            ORIGIN_KEY: template_origin(template.id, tt.name),
+            # the user renames it to (helpers/task_origin.py); 2.118: in which
+            # language, and what the template gave it, so a later template
+            # change is told from the user's own (helpers/template_updates.py).
+            ORIGIN_KEY: template_origin(template.id, tt.key, lang=lang, applied=applied_fingerprints(built)),
         }
     return tasks
 

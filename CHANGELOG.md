@@ -2,6 +2,68 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.118.0] - 2026-11-03
+
+### ✨ New
+
+- **Template improvements reach your objects** (discussion #85). When a template improves after you made an object
+  from it, the object page says so: *The template "Lawn Care" has 3 changes for this object*. *Review* lists the
+  changes task by task, before and after: a new name, a seasonal window, a corrected note, other warning days, and
+  the tasks the template gained since (the car's cabin air filter, the electric car's GHG quota).
+  - Each task now remembers what its template gave it, so a change is only offered where the template changed.
+    What you changed yourself stays yours. Where both of you changed a field, the change is shown unticked with
+    *You changed this too*.
+  - Tasks made before this release are compared with everything the templates ever said, in all 22 languages. So
+    the lawn, hedge and pool tasks that got real seasons in September are offered them now.
+  - Ticked changes are taken over, keeping your anchor, end date and business-day setting. The others are not
+    offered again, and a task you deleted or left out is never offered back.
+  - A taken-over change adds an *Updated* entry to the task's history. Completions, costs and photos are not touched.
+- **Task names say what to do** (discussion #85). The template tasks are named as actions in all 22 languages:
+  *Inspect Anode Rod* instead of *Anode Rod Inspection*, *Change Oil*, *Mow Lawn*, and *Book Annual Service* for
+  the visits a professional makes. Objects you already have are offered the new names through the review above. A
+  task you renamed yourself keeps your name.
+- **Notification title prefix** (discussion #248). *Settings → Notifications → Title prefix* (also in Configure →
+  Notification settings) puts a name in front of every notification's title, for every kind and with every title
+  style: *Rental · Maintenance Overdue!*. A phone that hears from more than one Home Assistant can then tell them
+  apart. The field suggests your home's name. The `maintenance_supporter_notification` event and the extra-data
+  template see the prefixed title too.
+
+### 🔒 Security
+
+- **pypdf 6.21.4 or newer.** Seven more flaws were published for pypdf on 30 October (CVE-2026-119203 to
+  CVE-2026-119209): a crafted PDF could make reading it loop forever or use a lot of memory. The integration reads
+  the text of every PDF you upload to an object, so it now asks for 6.21.4, the first version without them. Home
+  Assistant installs it on the next restart after the update.
+
+### ⚡ Performance
+
+- **The first object you open opens faster.** The From and To date fields of the object's history made the
+  browser lay out the whole half-built page while it was being drawn. They are drawn a frame later now, in a row
+  that keeps its height (it used to grow when Home Assistant's date picker arrived). Once the panel is idle it also
+  draws one object page once, hidden, as it already did for a task page. First object click on a phone 81 → 44 ms,
+  on desktop 30 → 23 ms.
+- **The task editor opens at once.** It waited for the full object list from Home Assistant (764 KB on a home with
+  160 tasks). It now takes the list the panel already has and only asks when that is missing. Opening it: 146 →
+  46 ms on desktop, 205 → 65 ms on a phone.
+
+### 🔧 Developer
+
+- Two WebSocket commands, `template_updates` (read) and `template_updates/apply` (write tier); 114 in all.
+- A new history entry type, `updated`.
+- `origin` of a template task gains `lang`, `applied` and `declined`; `TaskTemplate` gains `key` (its identity,
+  the English name it had) and `added` (the day a task joins an existing template).
+- `templates_history.py`, built once from the git history by `scripts/build_template_history.py` and frozen.
+- Weekly signature drift check (#249): nest_protect (0.6.0 reports the replace-by date as a date) and unifi_unas
+  (0.10.0 names its pool sensors by the translation key `pool_usage`, which the catalog now also matches, so a
+  renamed or fifth pool is found) re-checked against their sources. A fetch that fails for a passing reason (rate
+  limit, server error, timeout) is tried twice more and then reported as not verified this week instead of as
+  drift; a file that is gone is still drift.
+- Supply chain: every GitHub Action is pinned to the full commit SHA of its release (checked to be on the action's
+  main branch), Dependabot proposes a version only after it has been out for 7 days, the test and timelapse
+  workflows state read-only token permissions, and the CI installer uv is pinned (0.13.5). ruff 0.17.3.
+  Frontend dev dependencies updated within their ranges (lit-html 3.3.3, axe-core 4.14, @types/sinon 22, ...);
+  releases younger than a week (rollup 4.67, semver 7.8.6, ws 8.22.1, @types/node 26) wait for the next round.
+
 ## [2.117.1] - 2026-11-02
 
 ### ⚡ Performance

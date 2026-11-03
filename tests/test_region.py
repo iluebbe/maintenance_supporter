@@ -124,7 +124,7 @@ def test_every_region_the_templates_name_exists() -> None:
 def _task(template_id: str, name: str):  # type: ignore[no-untyped-def]
     template = get_template_by_id(template_id)
     assert template
-    return template, next(tt for tt in template.tasks if tt.name == name)
+    return template, next(tt for tt in template.tasks if tt.key == name)
 
 
 def test_the_region_wins_over_its_country() -> None:
@@ -197,8 +197,8 @@ async def test_created_tasks_follow_the_region(hass: HomeAssistant) -> None:
     car = get_template_by_id("vehicle_car")
     assert car
     names = {t["name"] for t in (await async_build_template_tasks(hass, car, "en", "obj")).values()}
-    assert "Oil Change" in names and "Roadworthiness Test" not in names
+    assert "Change Oil" in names and "Book Roadworthiness Test" not in names
     hass.config_entries.async_update_entry(g, options={**g.options, CONF_HOME_REGION: "US-NY"})
     tasks = (await async_build_template_tasks(hass, car, "en", "obj")).values()
-    test = next(t for t in tasks if t["name"] == "Roadworthiness Test")
+    test = next(t for t in tasks if t["name"] == "Book Roadworthiness Test")
     assert test["interval_days"] == 365

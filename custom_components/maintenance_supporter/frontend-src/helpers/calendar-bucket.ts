@@ -264,6 +264,7 @@ const HISTORY_TYPE_TO_STATUS: Record<string, string> = {
   triggered: "triggered",
   trigger_replaced: "triggered",
   trigger_removed: "ok", // config change, not a due/triggered event
+  updated: "ok", // 2.118: took changes from its template, a config change too
 };
 
 export interface HistoryEntryShape {
@@ -399,6 +400,7 @@ export function buildPastBuckets(
     skipped: 2,
     triggered: 3,
     trigger_replaced: 4,
+    updated: 5,
   };
   for (const [, evs] of byDate) {
     evs.sort((a, b) => {

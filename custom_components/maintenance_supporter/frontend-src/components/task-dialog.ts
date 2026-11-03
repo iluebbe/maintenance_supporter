@@ -231,6 +231,13 @@ function attributePreview(value: unknown): string {
   return text.length > 40 ? `${text.slice(0, 39)}…` : text;
 }
 
+/** What the dialog reads of an object: its name and its spare parts. */
+interface PartsOwner {
+  entry_id: string;
+  object?: { name?: string };
+  parts?: Array<{ id: string; name: string; unit?: string }>;
+}
+
 export class MaintenanceTaskDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property({ type: Boolean, attribute: "checklists-enabled" }) public checklistsEnabled = false;
@@ -1243,6 +1250,20 @@ export class MaintenanceTaskDialog extends LitElement {
     `;
   }
 
+  /** The opener's live object list (the panel passes its own). The object's
+   *  parts and the other objects' pools are read from it: every opening
+   *  waited on two requests, one object with its whole history and the
+   *  whole list (764 KB in a home with 160 tasks; 80-200 ms, once 1.2 s,
+   *  perf 2026-11-02), for the same parts the list holds. Not reactive, it
+   *  is read on opening. Without it (the card), or without the object in it
+   *  yet, the dialog fetches as before. */
+  public objects?: ReadonlyArray<PartsOwner>;
+
+  /** The opener's list, when it holds the object the dialog is for. */
+  private _knownObjects(entryId: string) {
+    return this.objects?.some((o) => o.entry_id === entryId) ? this.objects : undefined;
+  }
+
   private async _loadParts(): Promise<void> {
     // The object's parts back the "consumes parts" checkboxes. Self-loaded so
     // every dialog opener (panel, card, task detail) gets them without
@@ -1253,6 +1274,12 @@ export class MaintenanceTaskDialog extends LitElement {
     // own-part link of the new object (audit 2026-10-17, P-8).
     const entryId = this._entryId;
     if (!entryId) return;
+    const known = this._knownObjects(entryId)?.find((o) => o.entry_id === entryId);
+    if (known) {
+      this.parts = known.parts || [];
+      this._partsLoadFailed = false;
+      return;
+    }
     try {
       const result = (await this.hass.connection.sendMessagePromise({
         type: "maintenance_supporter/object",
@@ -1283,17 +1310,11 @@ export class MaintenanceTaskDialog extends LitElement {
     const entryId = this._entryId; // P-8, see _loadParts
     if (!entryId) return;
     try {
-      const result = (await this.hass.connection.sendMessagePromise({
+      const objects = this._knownObjects(entryId) ?? ((await this.hass.connection.sendMessagePromise({
         type: "maintenance_supporter/objects",
-      })) as {
-        objects?: Array<{
-          entry_id: string;
-          object?: { name?: string };
-          parts?: Array<{ id: string; name: string; unit?: string }>;
-        }>;
-      };
+      })) as { objects?: PartsOwner[] }).objects;
       if (entryId !== this._entryId) return;
-      this._foreignOwners = (result.objects || [])
+      this._foreignOwners = (objects || [])
         .filter((o) => o.entry_id !== entryId && (o.parts || []).length > 0)
         .map((o) => ({
           entry_id: o.entry_id,

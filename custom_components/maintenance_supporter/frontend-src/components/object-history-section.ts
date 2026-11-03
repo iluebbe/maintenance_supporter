@@ -69,6 +69,12 @@ export class MaintenanceObjectHistorySection extends LitElement {
    *  history list wipe the window (DRY audit 2026-10-12). */
   private readonly _histories = new FullHistoryLoader(this);
   private _localeReady = false;
+  /** HA's date picker measures its field when it first draws (ha-input
+   *  `_syncStartSlotWidth`): a forced layout of the whole object page while
+   *  it was still being built, 12-15 ms per page on a phone at half speed
+   *  (perf 2026-11-02). From and To come one frame after the page, in boxes
+   *  of their size, and measure a page that is laid out already. */
+  @state() private _datePickers = false;
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -106,6 +112,10 @@ export class MaintenanceObjectHistorySection extends LitElement {
     if (this.entryId && (changed.has("entryId") || changed.has("tasks") || (changed.has("hass") && changed.get("hass") === undefined))) {
       void this._histories.sync(this.hass, this.tasks.map((task) => ({ entryId: this.entryId, task })));
     }
+  }
+
+  firstUpdated(): void {
+    requestAnimationFrame(() => { this._datePickers = true; });
   }
 
   updated(changed: Map<string, unknown>): void {
@@ -346,24 +356,25 @@ export class MaintenanceObjectHistorySection extends LitElement {
             <option value="">${t("object_history_all_tasks", L)}</option>
             ${this.tasks.map((task) => html`<option value=${task.id} ?selected=${task.id === this._filterTask}>${task.name}</option>`)}
           </select>
-          <ms-date-field
-            kind="date"
-            clearable
-            .hass=${this.hass}
-            .lang=${L}
-            .label=${t("date_from", L)}
-            .value=${this._from}
-            @value-changed=${(e: CustomEvent) => { this._from = e.detail.value as string; }}
-          ></ms-date-field>
-          <ms-date-field
-            kind="date"
-            clearable
-            .hass=${this.hass}
-            .lang=${L}
-            .label=${t("date_to", L)}
-            .value=${this._to}
-            @value-changed=${(e: CustomEvent) => { this._to = e.detail.value as string; }}
-          ></ms-date-field>
+          ${this._datePickers ? html`
+            <ms-date-field
+              kind="date"
+              clearable
+              .hass=${this.hass}
+              .lang=${L}
+              .label=${t("date_from", L)}
+              .value=${this._from}
+              @value-changed=${(e: CustomEvent) => { this._from = e.detail.value as string; }}
+            ></ms-date-field>
+            <ms-date-field
+              kind="date"
+              clearable
+              .hass=${this.hass}
+              .lang=${L}
+              .label=${t("date_to", L)}
+              .value=${this._to}
+              @value-changed=${(e: CustomEvent) => { this._to = e.detail.value as string; }}
+            ></ms-date-field>` : html`<span class="date-slot"></span><span class="date-slot"></span>`}
         </div>
 
         ${filtered.length === 0
@@ -445,11 +456,15 @@ export class MaintenanceObjectHistorySection extends LitElement {
     }
     /* HA's date picker is about 286 px at its narrowest: on a 320 px phone the
        From/To fields stuck out of the section. They may shrink in the row. */
-    .filters ms-date-field {
+    .filters ms-date-field, .filters .date-slot {
       flex: 1 1 140px;
       min-width: 0;
       max-width: 100%;
     }
+    /* A From/To field's height (label and HA's date picker, HA 2026.10).
+       HA loads the picker a few frames after the field: without the floor
+       the row grew by 28 px under the reader's eyes (56 on a phone). */
+    .filters ms-date-field, .filters .date-slot { min-height: 82px; }
     .filters label { display: inline-flex; align-items: center; gap: 6px; }
     .rows { display: flex; flex-direction: column; }
     .row {

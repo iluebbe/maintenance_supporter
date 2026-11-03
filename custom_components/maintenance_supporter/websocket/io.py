@@ -1096,6 +1096,12 @@ async def ws_import_json(
             # 2.94: the source template, when the backup names one we know.
             if obj_data.get("template_id") in KNOWN_TEMPLATE_IDS:
                 import_obj["template_id"] = obj_data["template_id"]
+                # 2.118: the template's later tasks declined (keys, capped).
+                declined = obj_data.get("template_declined")
+                if isinstance(declined, list):
+                    keys = [k[:255] for k in declined if isinstance(k, str) and k][:200]
+                    if keys:
+                        import_obj["template_declined"] = keys
             # parent / predecessor / replaced_by → the NEW entry ids.
             lineage_pending = lineage.apply(import_obj, obj_data)
             own_old_entry_id = str(obj_entry.get("entry_id") or "")

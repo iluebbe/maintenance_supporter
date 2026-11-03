@@ -16,6 +16,8 @@ Every notification the integration sends passes through
    the automation is the whole delivery.
 
 Both are opt-in; with neither configured the send is exactly what it was.
+The same goes for the **title prefix** (D#248, ``notification_title_prefix``),
+put in front of every title here, so no kind or title style is left out.
 """
 
 from __future__ import annotations
@@ -35,6 +37,7 @@ from homeassistant.util import dt as dt_util
 from homeassistant.util.yaml import parse_yaml
 
 from ..const import (
+    CONF_NOTIFICATION_TITLE_PREFIX,
     CONF_NOTIFY_EVENT_ONLY,
     CONF_NOTIFY_EXTRA_DATA,
     CONF_OBJECT,
@@ -339,6 +342,22 @@ def render_extra_data(hass: HomeAssistant, template_text: str, variables: Mappin
     return {str(k): v for k, v in rendered.items()}
 
 
+#: D#248: a prefix that already ends in a separator ("Rental:", "[Rental]")
+#: joins the title with a space only.
+_PREFIX_SEPARATORS = ("·", ":", "|", "-", "–", "—", "»", ">", "]", ")")
+
+
+def prefixed_title(prefix: str, title: str) -> str:
+    """``title`` with the user's prefix in front ("Rental · Maintenance
+    Overdue!"); unchanged without one."""
+    prefix = prefix.strip()
+    if not prefix:
+        return title
+    if not title:
+        return prefix
+    return f"{prefix}{' ' if prefix.endswith(_PREFIX_SEPARATORS) else ' · '}{title}"
+
+
 async def async_emit_and_dispatch(
     hass: HomeAssistant,
     target: str,
@@ -352,6 +371,11 @@ async def async_emit_and_dispatch(
     from .notification_manager import async_dispatch_notify
 
     payload = dict(service_data)
+    # D#248: before the template and the event, so both see the title the
+    # phone shows.
+    prefix = global_option(hass, CONF_NOTIFICATION_TITLE_PREFIX)
+    if isinstance(prefix, str) and prefix.strip():
+        payload["title"] = prefixed_title(prefix, str(payload.get("title") or ""))
     data = dict(payload.get("data") or {})
     # #185: every notification carries an icon (Companion app on Android
     # renders data.notification_icon; iOS ignores it) — the task's override,

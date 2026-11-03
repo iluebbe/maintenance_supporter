@@ -390,6 +390,8 @@ When your phone stacks multiple HA notifications, only the title is visible with
 
 Bundled notifications (multiple due tasks for the same object) honour `object_name`. `task_name` doesn't map cleanly for multi-task bundles, so those keep the count-based default.
 
+**Title prefix** (2.118+): with more than one Home Assistant sending to the same phone (a home and a rental, say), put a name in **Settings → Notifications → Title prefix** (also Configure → Notification Settings). It goes in front of every title, with every style and for every kind of notification: *"Rental · Maintenance Overdue!"*, *"Rental · Pool Pump"*. The field suggests the home's name from *Settings → System → General*. A prefix that already ends in a separator (`Rental:`, `[Rental]`) is joined with a space only. The `maintenance_supporter_notification` event and the extra-data template see the prefixed title, the message stays as it was.
+
 
 ## Examples
 

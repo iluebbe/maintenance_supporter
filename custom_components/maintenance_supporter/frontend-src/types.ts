@@ -7,7 +7,7 @@
 /** const.MaintenanceStatus — `paused` is coordinator-injected for a paused object. */
 export type MaintenanceStatus = "ok" | "due_soon" | "overdue" | "triggered" | "archived" | "paused";
 /** const.HistoryEntryType */
-export type HistoryEntryType = "completed" | "skipped" | "missed" | "reset" | "triggered" | "trigger_removed" | "trigger_replaced";
+export type HistoryEntryType = "completed" | "skipped" | "missed" | "reset" | "triggered" | "trigger_removed" | "trigger_replaced" | "updated";
 /** const.MaintenanceTypeEnum */
 export type MaintenanceType = "cleaning" | "inspection" | "replacement" | "calibration" | "service" | "reading" | "custom";
 /** The nested calendar recurrence kinds (schedule-model v2); `calendar` (#187)
@@ -37,6 +37,9 @@ export interface MaintenanceObject {
   installation_date?: string | null;
   /** (#67): warranty expiry date (ISO YYYY-MM-DD) for asset tracking */
   warranty_expiry?: string | null;
+  /** 2.94: the template the object was made from; 2.118 asks it what it has
+   *  learned since (components/template-updates). */
+  template_id?: string | null;
   // 2.19: attach to an existing HA device / nest under another object
   ha_device_id?: string | null;
   parent_entry_id?: string | null;
@@ -750,8 +753,9 @@ export interface HomeAssistant {
   locale?: { language: string; number_format?: string; date_format?: string; time_format?: string; time_zone?: string };
   /** Server config — country (#140) feeds the "language"-default date
    *  format ("en" + AU → en-AU → DD/MM/YYYY); time_zone is HA's own zone,
-   *  the one next_due / days_until_due count in (helpers/ha-time). */
-  config?: { country?: string | null; time_zone?: string | null };
+   *  the one next_due / days_until_due count in (helpers/ha-time).
+   *  location_name: the home's name, offered as the title prefix (D#248). */
+  config?: { country?: string | null; time_zone?: string | null; location_name?: string | null };
   localize(key: string, ...args: unknown[]): string;
   user?: { id: string; name: string; is_admin: boolean; is_owner: boolean };
   /** HA's registered panels; a custom panel carries its module URL under

@@ -99,7 +99,7 @@ describe("object-history-section", () => {
         ></maintenance-object-history-section>
       </div>
     `).then((wrap) => wrap.querySelector("maintenance-object-history-section") as MaintenanceObjectHistorySection);
-    await waitUntil(() => el.shadowRoot!.querySelector(".filters select"), "filter renders");
+    await waitUntil(() => el.shadowRoot!.querySelectorAll(".filters ms-date-field").length === 2, "filters render");
     const filters = el.shadowRoot!.querySelector(".filters") as HTMLElement;
     const select = filters.querySelector("select") as HTMLSelectElement;
     expect(select.getBoundingClientRect().right).to.be.at.most(filters.getBoundingClientRect().right + 1);
@@ -108,6 +108,38 @@ describe("object-history-section", () => {
     for (const field of filters.querySelectorAll("ms-date-field")) {
       expect(getComputedStyle(field).minWidth).to.equal("0px");
       expect(getComputedStyle(field).flexShrink).to.equal("1");
+    }
+  });
+
+  it("From and To come a frame after the section, in boxes of their size", async () => {
+    // HA's date picker measured itself while the object page was still being
+    // built: one forced layout of the whole page (perf 2026-11-02).
+    const { hass } = createMockHass({ handlers: { "maintenance_supporter/task/history": () => ({ history: FULL.t_oil }) } });
+    const el = document.createElement("maintenance-object-history-section") as MaintenanceObjectHistorySection;
+    Object.assign(el, {
+      hass, entryId: "e1", object: { name: "Family Car" }, currencySymbol: "€",
+      tasks: [{ id: "t_oil", name: "Oil change", history: FULL.t_oil }],
+    });
+    document.body.append(el);
+    try {
+      await el.updateComplete;
+      const q = (s: string) => [...el.shadowRoot!.querySelectorAll<HTMLElement>(`.filters ${s}`)];
+      expect(q("ms-date-field").length, "no picker in the first frame").to.equal(0);
+      const slots = q(".date-slot");
+      expect(slots.length, "two boxes instead").to.equal(2);
+      for (const slot of slots) {
+        expect(slot.getBoundingClientRect().height, "a field's height").to.equal(82);
+        expect(getComputedStyle(slot).flexBasis, "a field's width rule").to.equal("140px");
+      }
+      await new Promise((res) => requestAnimationFrame(() => res(null)));
+      await el.updateComplete;
+      expect(q("ms-date-field").length, "the pickers, one frame later").to.equal(2);
+      expect(q(".date-slot").length, "in place of the boxes").to.equal(0);
+      // HA loads the picker a few frames later still: the row keeps its
+      // height meanwhile (it grew by 28 px on prod, 56 on a phone).
+      for (const field of q("ms-date-field")) expect(getComputedStyle(field).minHeight, "a height floor").to.equal("82px");
+    } finally {
+      el.remove();
     }
   });
 });

@@ -69,6 +69,7 @@ from ..const import (
     CONF_MIRROR_TODO_DEFAULT_ENTITIES,
     CONF_NOTIFICATION_BUNDLE_THRESHOLD,
     CONF_NOTIFICATION_BUNDLING_ENABLED,
+    CONF_NOTIFICATION_TITLE_PREFIX,
     CONF_NOTIFICATION_TITLE_STYLE,
     CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_COMPLETED,
@@ -221,6 +222,9 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     # title_style is enum-validated by a bespoke rule in the handler
     # (v1.4.0 / #44: "default" keeps the per-status titles).
     SettingSpec(CONF_NOTIFICATION_TITLE_STYLE, str, "default"),
+    # D#248: trimmed + capped by the sanitiser like the panel title (no
+    # max_len here: that would drop an over-long value instead).
+    SettingSpec(CONF_NOTIFICATION_TITLE_PREFIX, str, ""),
     # #173 follow-up: completion notifications off / automatic / all (enum-checked in dashboard.py).
     SettingSpec(CONF_NOTIFY_COMPLETED, str, "off", max_len=16),
     SettingSpec(CONF_NOTIFY_SCOPE_VIEW_ID, str, "", max_len=64),

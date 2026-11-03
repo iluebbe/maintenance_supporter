@@ -125,6 +125,7 @@ async def _seed(hass: HomeAssistant, global_entry: MockConfigEntry) -> dict[str,
         {"timestamp": "2026-01-20T09:00:00+00:00", "type": "triggered", "trigger_value": 81.5},
         {"timestamp": "2026-01-21T09:00:00+00:00", "type": "trigger_replaced"},
         {"timestamp": "2026-01-22T09:00:00+00:00", "type": "trigger_removed"},
+        {"timestamp": "2026-01-23T09:00:00+00:00", "type": "updated", "notes": "From the template: name"},
     ]
     # Adaptive, seasonal and environmental settings live in adaptive_config.
     task["adaptive_config"] = {

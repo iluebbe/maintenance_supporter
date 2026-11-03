@@ -132,6 +132,8 @@ interface SettingsResponse {
     extra_data?: string;
     /** #44: default | object_name | task_name — was only in the Configure dialog. */
     title_style?: string;
+    /** D#248: in front of every title, any style ("" = none). */
+    title_prefix?: string;
   };
   actions: {
     complete_enabled: boolean;
@@ -1346,6 +1348,16 @@ export class MaintenanceSettingsView extends LitElement {
           `)}
         </label>
         <div class="setting-hint">${t("settings_title_style_hint", L)}</div>
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_title_prefix", L)}</span>
+          <!-- D#248: the home's name (Settings → System → General) as a suggestion. -->
+          <input class="notify-title-prefix" type="text" list="ms-title-prefix" maxlength="40" .value=${n.title_prefix ?? ""}
+            @change=${(e: Event) => this._updateSetting("notification_title_prefix", (e.target as HTMLInputElement).value.trim())} />
+          <datalist id="ms-title-prefix">
+            ${this.hass?.config?.location_name ? html`<option value=${this.hass.config.location_name}></option>` : nothing}
+          </datalist>
+        </label>
+        <div class="setting-hint">${t("settings_title_prefix_hint", L)}</div>
 
         <div class="notify-rule">
         <h4 style="margin: 16px 0 8px; font-size: 14px;">${t("settings_notify_rule", L)}</h4>

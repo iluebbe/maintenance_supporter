@@ -174,6 +174,9 @@ async def test_nest_protect_replace_by_date(hass: HomeAssistant, global_entry: M
     assert tc["auto_complete_on_recovery"] is True
     # The DATE sensor's ISO datetime is a due instant the trigger can read.
     assert due_instant(hass.states.get("sensor.nest_protect_hallway_replace_by").state) is not None
+    # nest_protect 0.6.0 (#249): utc_secs_to_date, the state is a plain date.
+    hass.states.async_set("sensor.nest_protect_hallway_replace_by", (dt_util.now().date() + timedelta(days=900)).isoformat())
+    assert due_instant(hass.states.get("sensor.nest_protect_hallway_replace_by").state) is not None
     assert thermo not in setups
 
 
@@ -711,7 +714,8 @@ def test_round16ha_entries_cite_the_hacs_default_branch() -> None:
     )
     for domain in domains:
         catalog = SIGNATURES[domain]
-        assert catalog.verified.startswith("2026-10-03 @ "), domain
+        # Verified in round 16, or later by a re-dive (nest_protect, #249).
+        assert catalog.verified[:10] >= "2026-10-03" and catalog.verified[10:13] == " @ ", domain
         assert "(" in catalog.verified and catalog.source.startswith("HACS "), domain
     assert {pair for s in SIGNATURES["ambientika"].tasks for pair in s.resets} == {("filter_status", "filter_reset")}
     assert {pair for s in SIGNATURES["siku"].tasks for pair in s.resets} == {("filter_timer_countdown", "reset_filter_alarm")}

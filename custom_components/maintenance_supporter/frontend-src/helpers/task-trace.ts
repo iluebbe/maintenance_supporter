@@ -101,6 +101,7 @@ const HISTORY_ICONS: Record<string, string> = {
   triggered: "mdi:alert-circle-outline",
   trigger_removed: "mdi:link-off",
   trigger_replaced: "mdi:swap-horizontal",
+  updated: "mdi:file-replace-outline",
 };
 
 /** The history entries that end a cycle. */

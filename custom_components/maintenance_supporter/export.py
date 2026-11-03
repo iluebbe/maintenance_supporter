@@ -248,6 +248,9 @@ def _build_export_object(
     # gallery) — only emitted when set, like the fleet flag below.
     if obj_data.get("template_id"):
         export_obj["template_id"] = obj_data["template_id"]
+        # 2.118: the template's later tasks the user said no to.
+        if obj_data.get("template_declined"):
+            export_obj["template_declined"] = list(obj_data["template_declined"])
     # 2026-10 places — only when set, so an object at home exports as before.
     # A zone id is instance-specific: on another instance without that zone
     # the object behaves as at home and the panel says the zone is missing.

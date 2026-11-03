@@ -78,6 +78,7 @@ export const DEFAULT_SETTINGS_RESPONSE = {
     quiet_hours_enabled: true, quiet_hours_start: "22:00", quiet_hours_end: "08:00",
     max_per_day: 0, bundling_enabled: false, bundle_threshold: 2,
     title_style: "default",
+    title_prefix: "",
   },
   actions: {
     complete_enabled: false, skip_enabled: false,

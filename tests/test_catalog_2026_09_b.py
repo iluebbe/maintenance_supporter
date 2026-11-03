@@ -712,6 +712,34 @@ async def test_nas_storage_cleanup_unraid_unas_mos(hass: HomeAssistant, global_e
     ]
 
 
+async def test_unas_0_10_names_its_pools_by_translation_key(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+    """#249: unifi_unas 0.10.0 gives the pool sensors translation_key
+    'pool_usage' ('Storage Pool {pool} Usage', so the ids keep their suffix).
+    The key also finds a pool whose id the user renamed and a fifth pool; the
+    shares' 'share_usage' (space used, not a percentage) stays out."""
+    await setup_integration(hass, global_entry)
+    unas = await _seed(
+        hass,
+        "unifi_unas",
+        "u3",
+        "UNAS 0.10",
+        [
+            ("storage_pool_1_usage", "pool_usage", "%", "40", None),
+            ("storage_pool_5_usage", "pool_usage", "%", "91", None),
+            ("big_pool", "pool_usage", "%", "12", None),
+            ("share_media_usage", "share_usage", "TB", "1.2", None),
+            ("cpu_usage", "cpu_usage", "%", "3", None),
+        ],
+    )
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+    (u,) = setups[unas]["tasks"]
+    assert sorted(u["entity_ids"]) == [
+        "sensor.unifi_unas_u3_big_pool",
+        "sensor.unifi_unas_u3_storage_pool_1_usage",
+        "sensor.unifi_unas_u3_storage_pool_5_usage",
+    ]
+
+
 # ─── Engine: opt-in authoritative translation keys ──────────────────────────
 
 

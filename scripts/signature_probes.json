@@ -1621,12 +1621,13 @@
  },
  "unifi_unas": {
   "urls": [
-   "https://raw.githubusercontent.com/cardouken/homeassistant-unifi-unas/main/custom_components/unifi_unas/sensor.py"
+   "https://raw.githubusercontent.com/cardouken/homeassistant-unifi-unas/main/custom_components/unifi_unas/sensor.py",
+   "https://raw.githubusercontent.com/cardouken/homeassistant-unifi-unas/main/custom_components/unifi_unas/translations/en.json"
   ],
   "strings": [
-   "STORAGE_POOL_SENSORS",
-   "f\"Storage Pool {pool_num} {name}\"",
-   "\"Usage\""
+   "POOL_SENSORS = (",
+   "_sensor(\"usage\", \"pool_usage\"",
+   "\"name\": \"Storage Pool {pool} Usage\""
   ]
  },
  "mos": {
@@ -2688,7 +2689,7 @@
   "strings": [
    "key=\"replace_by_date_utc_secs\"",
    "translation_key=\"replace_by_date_utc_secs\"",
-   "value_fn=datetime.datetime.utcfromtimestamp",
+   "value_fn=utc_secs_to_date",
    "device_class=SensorDeviceClass.DATE"
   ]
  },

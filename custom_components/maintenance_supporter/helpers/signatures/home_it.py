@@ -84,17 +84,21 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "unifi_unas": IntegrationSignature(
         name="UniFi UNAS (MQTT)",
-        verified="2026-09-25 @ cardouken/homeassistant-unifi-unas main (0.9.4, HACS default)",
+        verified="2026-11-02 @ cardouken/homeassistant-unifi-unas main (985a270, 0.10.0, HACS default)",
         source=(
-            "HACS unifi_unas sensor.py: no translation_key — pool sensors are "
-            "named f'Storage Pool {pool_num} {name}' (STORAGE_POOL_SENSORS "
-            "'usage' → 'Usage', PERCENTAGE; pools numbered from 1 by "
-            "scripts/unas_monitor.py) on the one NAS device → entity-id "
-            "suffix _storage_pool_<n>_usage, pools 1-4 cataloged (any-high)."
+            "HACS unifi_unas sensor.py: pool sensors POOL_SENSORS 'usage' with "
+            "translation_key 'pool_usage' (since 0.10.0; translations/en.json "
+            "'Storage Pool {pool} Usage', PERCENTAGE; pools numbered from 1 by "
+            "scripts/unas_monitor.py) on the one NAS device. Before 0.10.0 no "
+            "translation_key and the name f'Storage Pool {pool_num} {name}' — "
+            "the same entity-id suffix _storage_pool_<n>_usage either way: "
+            "pools 1-4 by suffix, every pool by the key (any-high). The "
+            "share sensors' 'share_usage' is space used, not a percentage."
         ),
         tasks=(
             ConsumableSignature(
                 (
+                    "pool_usage",
                     "storage_pool_1_usage",
                     "storage_pool_2_usage",
                     "storage_pool_3_usage",
@@ -125,15 +129,16 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     # ─── their own end of life ───────────────────────────────────────────
     "nest_protect": IntegrationSignature(
         name="Google Nest Protect",
-        verified="2026-10-03 @ iMicknl/ha-nest-protect main (8b58fc1)",
+        verified="2026-11-02 @ iMicknl/ha-nest-protect main (b20fcb5, 0.6.0b2)",
         source=(
             "HACS nest_protect sensor.py SENSOR_DESCRIPTIONS: key = "
             "translation_key 'replace_by_date_utc_secs' (strings.json 'Replace "
             "by'; device_class DATE, DIAGNOSTIC, enabled; created only when the "
-            "device reports the key) = datetime.utcfromtimestamp of the "
-            "alarm's replace-by date, the end of its service life → due_date 30 "
-            "days ahead, time to buy the successor. Core renders the naive "
-            "datetime under DATE as an ISO datetime, which the due_date trigger "
+            "device reports the key) = utc_secs_to_date of the alarm's "
+            "replace-by date (a date since 0.6.0; before, a naive datetime from "
+            "datetime.utcfromtimestamp), the end of its service life → due_date "
+            "30 days ahead, time to buy the successor. Core renders it as an ISO "
+            "date (an ISO datetime before), both of which the due_date trigger "
             "parses. The replacement is a new device, so the task is completed "
             "by hand. 'last_audio_self_test_end_utc_secs' / "
             "'latest_manual_test_end_utc_secs' are LAST-done dates (no due "

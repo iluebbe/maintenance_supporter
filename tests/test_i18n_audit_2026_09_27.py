@@ -98,6 +98,7 @@ def test_every_backend_history_note_is_translated_by_the_frontend() -> None:
         r"^Trigger entity replaced: (",
         r"^Sensor trigger removed \(entity was: (",
         r"removed from compound trigger; (",
+        r"^From the template: (",
     ):
         assert fragment in table, fragment
     for rel, needle in (
@@ -107,6 +108,7 @@ def test_every_backend_history_note_is_translated_by_the_frontend() -> None:
         ("repairs.py", 'f"Trigger entity replaced: {'),
         ("repairs.py", 'f"Sensor trigger removed (entity was: {'),
         ("repairs.py", 'f"Entity {'),
+        ("websocket/template_updates.py", 'f"From the template: {'),
     ):
         assert needle in (COMPONENT / rel).read_text(encoding="utf-8"), (rel, needle)
 

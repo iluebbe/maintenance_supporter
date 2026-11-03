@@ -1,6 +1,6 @@
 /** Maintenance Supporter Sidebar Panel. */
 
-import { LitElement, html, nothing, type TemplateResult } from "lit";
+import { LitElement, html, nothing, render, type TemplateResult } from "lit";
 import { isSafeLink } from "./helpers/url";
 import { clickOnActivationKey } from "./helpers/keyboard";
 import { matchesQuery, queryTokens, scoreFields } from "./helpers/search-match";
@@ -103,6 +103,7 @@ import type { DeviceSwap, MaintenanceObjectDialog } from "./components/object-di
 import "./components/documents-section";
 import "./components/parts-section";
 import "./components/object-history-section";
+import "./components/template-updates";
 import "./components/task-documents";
 import type { MaintenanceTaskDialog } from "./components/task-dialog";
 import type { MaintenanceCompleteDialog, TaskCompletedDetail } from "./components/complete-dialog";
@@ -603,14 +604,24 @@ export class MaintenanceSupporterPanel extends LitElement {
    *  of its own that no query of the panel reaches into, then dropped.
    *  Without an object id its documents block loads nothing. */
   private _warmedUp = false;
+  /** The object page the same way, in the next idle slice (both in one made
+   *  one long task): the first one opened at about half the speed of later
+   *  ones (52-76 ms against 26-50 on a phone at half speed, up to 81 against
+   *  13-19 on a desktop, prod 2026-11-02). */
+  private _objectWarmedUp = false;
   private _warmPending = false;
 
   private _scheduleWarmUp(): void {
-    if (this._warmedUp || this._warmPending) return;
+    if ((this._warmedUp && this._objectWarmedUp) || this._warmPending) return;
     this._warmPending = true;
     const run = () => {
       this._warmPending = false;
+      if (this._warmedUp) {
+        this._warmUpObjectPage();
+        return;
+      }
       this._warmUpTaskPage();
+      if (this._warmedUp) this._scheduleWarmUp();
     };
     const idle = (window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => void }).requestIdleCallback;
     if (idle) idle(run, { timeout: 5000 });
@@ -635,6 +646,29 @@ export class MaintenanceSupporterPanel extends LitElement {
     // Before the content Lit draws, so it stays out of Lit's part.
     root.prepend(host);
     void view.updateComplete.then(() => requestAnimationFrame(() => host.remove()));
+  }
+
+  /** The page of the object with the most kinds of section, drawn hidden and
+   *  dropped. Without an object id its documents, parts and history sections
+   *  fetch nothing. */
+  private _warmUpObjectPage(): void {
+    const root = this.shadowRoot;
+    if (this._objectWarmedUp || !root || !this.isConnected) return;
+    const kinds = (o: MaintenanceObjectResponse) => Number(o.tasks.length > 0) + Number((o.parts || []).length > 0)
+      + Number(o.tasks.some((tk) => (tk.history || []).length > 0));
+    const obj = this._objects.reduce<MaintenanceObjectResponse | undefined>((best, o) => (!best || kinds(o) > kinds(best) ? o : best), undefined);
+    if (!obj) return;
+    this._objectWarmedUp = true;
+    const host = document.createElement("div");
+    host.hidden = true;
+    const box = host.attachShadow({ mode: "open" });
+    root.prepend(host);
+    render(this._renderObjectPage(obj, true), box, { host: this });
+    // Cleared first, so the sections and HA's elements in it disconnect.
+    requestAnimationFrame(() => {
+      render(nothing, box);
+      host.remove();
+    });
   }
 
   /** The requested dialog element, guaranteed upgraded (chunk loaded). */
@@ -884,7 +918,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     }
     this._syncStickyPane(content);
     // The warm-up found no task yet: once some arrive.
-    if (changedProps.has("_objects") && this._lazyUi && !this._warmedUp) this._scheduleWarmUp();
+    if (changedProps.has("_objects") && this._lazyUi && !(this._warmedUp && this._objectWarmedUp)) this._scheduleWarmUp();
   }
 
   /** Split view: (de)attach the scroll-aware docking of the detail pane and
@@ -3824,6 +3858,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       ></maintenance-object-dialog>
       <maintenance-task-dialog
         .hass=${this.hass}
+        .objects=${this._objects}
         .checklistsEnabled=${this._features.checklists}
         .scheduleTimeEnabled=${this._features.schedule_time}
         .completionActionsEnabled=${this._features.completion_actions}
@@ -5770,7 +5805,28 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (!this._selectedEntryId) return nothing;
     const obj = this._getObject(this._selectedEntryId);
     if (!obj) return html`<p>Object not found.</p>`;
+    // Drawn for real: nothing left for the idle warm-up.
+    this._objectWarmedUp = true;
+    const content = this._renderObjectPage(obj);
+    if (!this._objectSplitActive()) return content;
+    const docked = this._selectedTaskId && this._getTask(obj.entry_id, this._selectedTaskId);
+    return html`
+      <div class="split-layout object-split">
+        <div class="split-list">${content}</div>
+        <div class="split-pane">
+          ${docked
+            ? this._renderTaskDetail()
+            : html`<div class="split-pane-empty"><ha-icon icon="mdi:cursor-default-click-outline"></ha-icon><p>${t("split_select_hint", this._lang)}</p></div>`}
+        </div>
+      </div>
+    `;
+  }
+
+  /** The object page itself. `warm`: the idle warm-up's hidden copy, whose
+   *  sections get no object id. */
+  private _renderObjectPage(obj: MaintenanceObjectResponse, warm = false) {
     const o = obj.object;
+    const sectionId = warm ? "" : obj.entry_id;
     const L = this._lang;
 
     const isOperator = this._isOperator;
@@ -5935,7 +5991,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         ${this._renderObjectSection("documents", t("documents", L), typeof o.document_count === "number" ? o.document_count : null, () => html`
         <maintenance-documents-section
           .hass=${this.hass}
-          .entryId=${obj.entry_id}
+          .entryId=${sectionId}
           .canWrite=${!isOperator}
         ></maintenance-documents-section>
         `)}
@@ -5944,7 +6000,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         ${(obj.parts || []).length || !isOperator ? this._renderObjectSection("parts", t("parts_section", L), (obj.parts || []).length, () => html`
         <maintenance-parts-section
           .hass=${this.hass}
-          .entryId=${obj.entry_id}
+          .entryId=${sectionId}
           .parts=${obj.parts || []}
           .canWrite=${!isOperator}
           .currencySymbol=${this._currencySymbol}
@@ -5958,7 +6014,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         ${obj.tasks.some((tk) => (tk.times_performed || 0) > 0 || (tk.history || []).length > 0) ? this._renderObjectSection("history", t("object_history_section", L), null, () => html`
         <maintenance-object-history-section
           .hass=${this.hass}
-          .entryId=${obj.entry_id}
+          .entryId=${sectionId}
           .object=${o}
           .tasks=${obj.tasks}
           .currencySymbol=${this._currencySymbol}
@@ -5972,26 +6028,20 @@ export class MaintenanceSupporterPanel extends LitElement {
     // the object is and has on the right (its data, documents, parts).
     const hasMeta = !!(o.manufacturer || o.model || o.serial_number || o.predecessor_entry_id || o.replaced_by_entry_id || o.area_id
       || o.place || isSafeLink(o.documentation_url) || (o.manual_docs || []).length || o.installation_date || o.warranty_expiry || o.notes);
+    // 2.118 (D#85): what the object's template has learned since — asked
+    // only for the real page (the warm-up copy has no entry id).
+    const templatePart = o.template_id && !isOperator
+      ? html`<maintenance-template-updates .hass=${this.hass} .entryId=${sectionId}
+          @template-updates-applied=${() => this._loadData()}></maintenance-template-updates>`
+      : nothing;
     const page = this.wide && betaUi()
-      ? html`${headerPart}
+      ? html`${headerPart}${templatePart}
           <div class="object-columns">
             <div class="object-col">${childrenPart}${tasksPart}${historyPart}</div>
             <div class="object-col">${hasMeta ? html`<div class="object-meta">${metaPart}</div>` : nothing}${docsPart}${partsPart}</div>
           </div>`
-      : html`${headerPart}${metaPart}${childrenPart}${tasksPart}${docsPart}${partsPart}${historyPart}`;
-    const content = html`<div class="detail-section">${page}</div>`;
-    if (!this._objectSplitActive()) return content;
-    const docked = this._selectedTaskId && this._getTask(obj.entry_id, this._selectedTaskId);
-    return html`
-      <div class="split-layout object-split">
-        <div class="split-list">${content}</div>
-        <div class="split-pane">
-          ${docked
-            ? this._renderTaskDetail()
-            : html`<div class="split-pane-empty"><ha-icon icon="mdi:cursor-default-click-outline"></ha-icon><p>${t("split_select_hint", L)}</p></div>`}
-        </div>
-      </div>
-    `;
+      : html`${headerPart}${templatePart}${metaPart}${childrenPart}${tasksPart}${docsPart}${partsPart}${historyPart}`;
+    return html`<div class="detail-section">${page}</div>`;
   }
 
   /** #179: one foldable block of the object page. Open = the section renders

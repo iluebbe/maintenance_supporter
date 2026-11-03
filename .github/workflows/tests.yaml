@@ -10,6 +10,9 @@ concurrency:
   group: tests-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 env:
   # pytest-homeassistant-custom-component 0.13.375 == homeassistant 2026.10.4
   HA_STABLE_PHT: "0.13.375"
@@ -22,8 +25,8 @@ jobs:
   syntax-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.14"
       - name: Validate Python syntax
@@ -34,8 +37,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.14"
       - name: Install ruff
@@ -44,15 +47,15 @@ jobs:
         # '# noqa: BLE001' on such a handler turned into RUF100 unused-noqa.
         # Keep in sync with the ha-maint container; upgrade deliberately
         # together with a noqa sweep.
-        run: pip install ruff==0.17.2
+        run: pip install ruff==0.17.3
       - name: Ruff check
         run: ruff check custom_components/maintenance_supporter/ tests/
 
   frontend-build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
           cache: npm
@@ -104,7 +107,7 @@ jobs:
       # system libraries it needs still come from apt on every run.
       - name: Cache Playwright Chromium
         id: pw-cache
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('custom_components/maintenance_supporter/frontend-src/package-lock.json') }}
@@ -130,8 +133,8 @@ jobs:
       matrix:
         ha: ["latest", "stable", "minimum"]
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.14"
       - name: Install dependencies
@@ -162,8 +165,8 @@ jobs:
         # `minimum` is the oldest core hacs.json declares.
         ha: ["latest", "stable", "minimum"]
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
@@ -190,8 +193,8 @@ jobs:
     env:
       HA_IMAGE: ghcr.io/home-assistant/home-assistant:2026.10.4
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
           cache: npm
@@ -331,8 +334,8 @@ jobs:
     env:
       MIGRATION_IMAGE: ghcr.io/home-assistant/home-assistant:2026.10.4
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
       - name: Pull Home Assistant
@@ -343,7 +346,7 @@ jobs:
         run: ORDER=objects-first node e2e/migration/run.mjs
       - name: Snapshots on failure
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: migration-roundtrip
           path: |
@@ -363,8 +366,8 @@ jobs:
     needs: [frontend-build]
     timeout-minutes: 14
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
           cache: npm
@@ -402,7 +405,7 @@ jobs:
 
       - name: Cache Playwright Chromium
         id: pw-cache
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-e2e-${{ hashFiles('e2e/package-lock.json') }}
@@ -430,7 +433,7 @@ jobs:
 
       - name: Upload Playwright report + traces on failure
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: e2e-lifecycle-report
           path: |

@@ -133,7 +133,7 @@ def test_localize_falls_back_to_english() -> None:
 def test_ev_template_has_no_combustion_tasks() -> None:
     ev = get_template_by_id("vehicle_ev")
     assert ev is not None and ev.category == "vehicle"
-    names = [tt.name for tt in ev.tasks]
+    names = [tt.key for tt in ev.tasks]
     assert "Oil Change" not in names and "Spark Plug" not in names
     assert "12V Battery Check" in names
 
@@ -178,7 +178,7 @@ async def test_templates_ws_localizes_names(hass: HomeAssistant, global_entry: M
     assert by_id["vehicle_car"]["name"] == "Auto"
     assert by_id["vehicle_ev"]["name"] == "Elektroauto"
     task_names = [t["name"] for t in by_id["vehicle_car"]["tasks"]]
-    assert "Ölwechsel" in task_names
+    assert "Öl wechseln" in task_names
 
 
 async def test_from_template_creates_localized_tasks(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
@@ -200,6 +200,6 @@ async def test_from_template_creates_localized_tasks(hass: HomeAssistant, global
     entry = hass.config_entries.async_get_entry(entry_id)
     assert entry.data["object"]["name"] == "Elektroauto"
     names = [t["name"] for t in entry.data[CONF_TASKS].values()]
-    assert "Innenraumfilter" in names and "Bremsenservice" in names
+    assert "Innenraumfilter ersetzen" in names and "Bremsen warten" in names
     notes = [t.get("notes") for t in entry.data[CONF_TASKS].values() if t.get("notes")]
     assert any("Rekuperation" in n for n in notes)

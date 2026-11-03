@@ -392,7 +392,7 @@ async def test_config_flow_template_summary_is_localized_and_stores_the_id(hass:
     lawn = get_template_by_id("garden_lawn")
     assert lawn is not None
     assert ph["template_name"] == localize_template_text(lawn.name, "de") != lawn.name
-    assert localize_template_text("Mowing", "de") in ph["task_list"] and "Mowing" not in ph["task_list"]
+    assert localize_template_text("Mow Lawn", "de") in ph["task_list"] and "Mow Lawn" not in ph["task_list"]
     result = await hass.config_entries.flow.async_configure(result["flow_id"], {"name": "Rasen vorne"})
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert result["data"][CONF_OBJECT]["template_id"] == "garden_lawn"

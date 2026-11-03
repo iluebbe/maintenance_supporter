@@ -34,6 +34,7 @@ export const HISTORY_TYPE_COLORS: Record<string, string> = {
   triggered: STATUS_COLORS.triggered,
   trigger_replaced: STATUS_COLORS.triggered,
   trigger_removed: "var(--secondary-text-color)",
+  updated: "var(--secondary-text-color)",
 };
 
 /** v2.2.0: only "lifecycle + cost-bearing" entries are user-editable.

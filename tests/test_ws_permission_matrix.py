@@ -117,6 +117,7 @@ _EXPECTED_TIERS: dict[str, str] = {
     # D#199: several tasks in one call — write tier, like task/update.
     "maintenance_supporter/tasks/update_many": "write",
     "maintenance_supporter/task/update": "write",
+    "maintenance_supporter/template_updates/apply": "write",
     # ── read (any authenticated user; actions deliberately household-open) ──
     "maintenance_supporter/budget_status": "read",
     "maintenance_supporter/schedule/preview": "read",
@@ -166,6 +167,8 @@ _EXPECTED_TIERS: dict[str, str] = {
     "maintenance_supporter/task/snooze": "read",
     "maintenance_supporter/tasks/by_user": "read",
     "maintenance_supporter/templates": "read",
+    # 2.118 (D#85): what an object's template has learned since.
+    "maintenance_supporter/template_updates": "read",
     "maintenance_supporter/users/list": "read",
     "maintenance_supporter/vacation/preview": "read",
     "maintenance_supporter/vacation/state": "read",

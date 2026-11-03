@@ -322,7 +322,7 @@ async def test_template_builder_follows_the_home_country(hass: HomeAssistant) ->
     assert len(tasks) == len(template.tasks)
     for task_id, task in tasks.items():
         assert task["id"] == task_id and task["object_id"] == "obj1"
-    test = next(t for t in tasks.values() if t["name"] == "Roadworthiness Test")
+    test = next(t for t in tasks.values() if t["name"] == "Book Roadworthiness Test")
     assert test["interval_days"] == 365  # the GB interval, not the 730-day default
 
 

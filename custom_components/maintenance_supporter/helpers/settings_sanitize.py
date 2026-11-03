@@ -20,6 +20,7 @@ from ..const import (
     CONF_HOME_TYPE,
     CONF_MEMBER_DISPLAY,
     CONF_MIRROR_TODO_DEFAULT_ENTITIES,
+    CONF_NOTIFICATION_TITLE_PREFIX,
     CONF_NOTIFICATION_TITLE_STYLE,
     CONF_NOTIFY_COMPLETED,
     CONF_NOTIFY_SERVICE,
@@ -36,6 +37,7 @@ from ..const import (
     DEFAULT_OBJECTS_TABLE_COLUMNS,
     HOME_TYPES,
     KNOWN_OBJECT_TABLE_COLUMNS,
+    MAX_NOTIFICATION_TITLE_PREFIX_LENGTH,
     MAX_PANEL_TITLE_LENGTH,
     MAX_REMINDER_LEADS,
     NOTIFICATION_TITLE_STYLES,
@@ -74,6 +76,13 @@ def settings_error_field(error: str) -> str:
         "invalid_shopping_list_entity": CONF_SHOPPING_LIST_ENTITY,
         "invalid_search_template": CONF_PART_SEARCH_URL_TEMPLATE,
     }.get(error, CONF_NOTIFY_SERVICE)
+
+
+def clean_title_prefix(raw: Any) -> str:
+    """D#248: the notification title prefix as stored — one line (a pasted
+    line break or tab would split the phone's title), trimmed and capped.
+    Anything that is not text clears it."""
+    return " ".join(raw.split())[:MAX_NOTIFICATION_TITLE_PREFIX_LENGTH].strip() if isinstance(raw, str) else ""
 
 
 def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, Any], str | None]:
@@ -127,6 +136,9 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
             filtered[CONF_PANEL_TITLE] = raw_title.strip()[:MAX_PANEL_TITLE_LENGTH]
         else:
             del filtered[CONF_PANEL_TITLE]
+    # D#248: the same for the notification title prefix ("" clears it).
+    if CONF_NOTIFICATION_TITLE_PREFIX in filtered:
+        filtered[CONF_NOTIFICATION_TITLE_PREFIX] = clean_title_prefix(filtered[CONF_NOTIFICATION_TITLE_PREFIX])
 
     # v1.4.0 (#44): enum-validate notification_title_style. Anything outside
     # the known set is dropped silently so a bogus value can't get into the

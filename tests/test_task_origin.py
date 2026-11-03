@@ -164,15 +164,20 @@ async def test_template_tasks_carry_their_template_task(hass: HomeAssistant) -> 
     entry_id = conn.send_result.call_args[0][1]["entry_id"]
     await hass.async_block_till_done()
     entry = hass.config_entries.async_get_entry(entry_id)
-    names = {tt.name for tt in get_template_by_id("pool_pump").tasks}
+    keys = {tt.key for tt in get_template_by_id("pool_pump").tasks}
     origins = [t[ORIGIN_KEY] for t in entry.data[CONF_TASKS].values()]
-    assert origins and all(o["kind"] == "template" and o["template"] == "pool_pump" and o["task"] in names for o in origins)
+    assert origins and all(o["kind"] == "template" and o["template"] == "pool_pump" and o["task"] in keys for o in origins)
 
     # an older object of that template: the backfill finds each task by name
     stripped = {tid: {k: v for k, v in t.items() if k != ORIGIN_KEY} for tid, t in entry.data[CONF_TASKS].items()}
     healed = backfill_origins(hass, {**entry.data, CONF_TASKS: stripped})
     assert healed is not None
-    assert {tid: t[ORIGIN_KEY] for tid, t in healed[CONF_TASKS].items()} == {tid: t[ORIGIN_KEY] for tid, t in entry.data[CONF_TASKS].items()}
+    # The same template task; what it was given (lang, applied) is the
+    # base sync's to add (helpers/template_updates.sync_bases), not the backfill's.
+    keep = ("kind", "template", "task")
+    assert {tid: t[ORIGIN_KEY] for tid, t in healed[CONF_TASKS].items()} == {
+        tid: {k: t[ORIGIN_KEY][k] for k in keep} for tid, t in entry.data[CONF_TASKS].items()
+    }
 
 
 async def test_problem_sensor_adoption_records_the_sensor(hass: HomeAssistant) -> None:

@@ -312,6 +312,11 @@ CONF_NOTIFICATION_BUNDLE_THRESHOLD: Final = "notification_bundle_threshold"
 #   "object_name" — use the object name as the title (helps when phone stacks notifications).
 #   "task_name"   — use the task name as the title.
 CONF_NOTIFICATION_TITLE_STYLE: Final = "notification_title_style"
+# D#248: free text put in front of every notification's title ("Rental ·
+# Maintenance Overdue!"), so a phone that hears from two Home Assistant
+# instances can tell them apart. "" = no prefix.
+CONF_NOTIFICATION_TITLE_PREFIX: Final = "notification_title_prefix"
+MAX_NOTIFICATION_TITLE_PREFIX_LENGTH: Final = 40
 
 # v2.26: notification routing — id of a saved filter view; when set, only tasks
 # MATCHING that view's task-selecting filters (label + responsible user) send
@@ -860,6 +865,8 @@ class HistoryEntryType(StrEnum):
     TRIGGERED = "triggered"
     TRIGGER_REMOVED = "trigger_removed"
     TRIGGER_REPLACED = "trigger_replaced"
+    # 2.118: the task took changes from its template (helpers/template_updates).
+    UPDATED = "updated"
 
 
 # Entry types that reset the maintenance cycle — the ``last_performed`` anchor

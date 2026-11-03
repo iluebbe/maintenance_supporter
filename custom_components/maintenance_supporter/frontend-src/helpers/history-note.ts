@@ -28,12 +28,23 @@ const EXACT: Record<string, string> = {
 };
 
 type Fill = (m: RegExpMatchArray, lang: string) => Record<string, string>;
+/** websocket/template_updates.py's English field words → the panel's labels. */
+const TEMPLATE_FIELD_LABELS: Record<string, string> = {
+  name: "name",
+  notes: "notes_label",
+  recurrence: "task_section_schedule",
+  "warning days": "warning_days",
+};
 const PATTERNS: Array<[RegExp, string, Fill]> = [
   [/^Auto-completed: sensor recovered \((.+)\)$/, "hist_note_auto_recovered", (m) => ({ value: m[1] })],
   // D#229: the task's complete_when entity changed to its state.
   [/^Auto-completed: (.+) changed to (.+)$/, "hist_note_auto_entity", (m) => ({ entity: m[1], state: m[2] })],
   [/^Reset to (\d{4}-\d{2}-\d{2})$/, "hist_note_reset", (m, lang) => ({ date: formatDate(m[1], lang) })],
   [/^Trigger entity replaced: (.+) → (.+)$/, "hist_note_trigger_replaced", (m) => ({ old: m[1], new: m[2] })],
+  // 2.118 (D#85): the fields a task took from its template, as the panel names them.
+  [/^From the template: (.+)$/, "hist_note_template_updated", (m, lang) => ({
+    fields: m[1].split(", ").map((w) => (TEMPLATE_FIELD_LABELS[w] ? t(TEMPLATE_FIELD_LABELS[w], lang) : w)).join(", "),
+  })],
   [
     /^Sensor trigger removed \(entity was: (.+)\)\. Schedule converted to (\w+)\.$/,
     "hist_note_trigger_removed",

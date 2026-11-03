@@ -39,6 +39,10 @@ const content = (el: HTMLElement) => sr(el).querySelector<HTMLElement>(".content
 const rowOf = (el: HTMLElement, name: string) =>
   [...sr(el).querySelectorAll<HTMLElement>(".task-row:not(.virt-sizer)")]
     .find((r) => r.querySelector(".cell.task-name")?.textContent?.trim() === name);
+// The warm-up's hidden hosts, direct children of the panel's shadow root
+// (`:scope` matches nothing in a shadow root's querySelectorAll).
+const hiddenHosts = (el: HTMLElement) =>
+  [...sr(el).children].filter((c): c is HTMLDivElement => c instanceof HTMLDivElement && c.hidden === true);
 const back = (view: string) =>
   window.dispatchEvent(new PopStateEvent("popstate", { state: { msp_view: view, msp_entry: null, msp_task: null, msp_area: null } }));
 
@@ -180,7 +184,95 @@ describe("perf 2026-11-02: the task page is drawn once while idle", () => {
     await settle(el);
     el._warmedUp = false;
     el._warmUpTaskPage();
-    expect(sr(el).querySelectorAll(":scope > div[hidden]").length, "no hidden copy").to.equal(0);
+    expect(hiddenHosts(el).length, "no hidden copy").to.equal(0);
+    expect(el._warmedUp, "and none later").to.equal(true);
+  });
+});
+
+describe("perf 2026-11-02: the object page is drawn once while idle", () => {
+  type WarmEl = PanelEl & { _warmUpObjectPage: () => void; _scheduleWarmUp: () => void; _objectWarmedUp: boolean; _warmedUp: boolean };
+  type Section = HTMLElement & { entryId: string; updateComplete: Promise<unknown> };
+  const SECTIONS = ["maintenance-documents-section", "maintenance-parts-section", "maintenance-object-history-section"];
+  // Tasks only, and tasks with history and a part: the warm-up takes the second.
+  const objects = () => [
+    obj("e1", [task({ name: "Plain" })], "Plain object"),
+    { ...obj("e2", [task({ name: "Filter", times_performed: 2, history: [{ type: "completed", timestamp: "2026-10-01T08:00:00" }] })], "Full object"),
+      parts: [{ id: "p1", name: "Filter cartridge", stock: 2 }], document_count: 1 },
+  ];
+  const frame = async () => {
+    await new Promise((res) => requestAnimationFrame(() => res(null)));
+    await new Promise((res) => setTimeout(res, 20));
+  };
+
+  beforeEach(() => {
+    resetTaskSeq();
+    localStorage.clear();
+    localStorage.setItem("msp-overview-tab", "dashboard");
+  });
+  afterEach(() => localStorage.clear());
+
+  it("hidden, out of the panel's reach, its sections loading nothing, then gone", async () => {
+    const r = await mountPanel(objects());
+    const el = r.el as WarmEl;
+    await settle(el);
+    el._objectWarmedUp = false;
+    const before = r.sent.length;
+    el._warmUpObjectPage();
+    const host = sr(el).firstElementChild as HTMLElement;
+    expect(host.hidden, "a hidden host first in the panel").to.equal(true);
+    const box = host.shadowRoot!;
+    expect(box.querySelector(".detail-section h2")?.textContent, "the fullest object's page").to.contain("Full object");
+    const sections = SECTIONS.map((tag) => box.querySelector(tag) as Section | null);
+    expect(sections.map((s) => s !== null), "every section drew").to.deep.equal([true, true, true]);
+    await Promise.all(sections.map((s) => s!.updateComplete));
+    expect(sections.map((s) => s!.entryId), "no object id").to.deep.equal(["", "", ""]);
+    expect(sr(el).querySelector(".detail-section"), "no query of the panel finds it").to.equal(null);
+    await frame();
+    expect(host.isConnected, "dropped after a frame").to.equal(false);
+    expect(sections.map((s) => s!.isConnected), "the sections went with it").to.deep.equal([false, false, false]);
+    expect(r.sent.slice(before).map((m) => (m as { type?: string }).type), "nothing loaded").to.deep.equal([]);
+    expect(el._objectWarmedUp, "once per load").to.equal(true);
+  });
+
+  it("not after an object page was drawn for real", async () => {
+    const r = await mountPanel(objects());
+    const el = r.el as WarmEl;
+    await settle(el);
+    // The idle warm-up may have run during the mount already.
+    el._objectWarmedUp = false;
+    el._showObject("e1");
+    await settle(el);
+    el._showOverview(true);
+    await settle(el);
+    expect(el._objectWarmedUp, "the real page counts").to.equal(true);
+    el._warmUpObjectPage();
+    expect(hiddenHosts(el).length, "no hidden copy").to.equal(0);
+  });
+
+  it("the task page and the object page in idle slices of their own", async () => {
+    const r = await mountPanel(objects());
+    const el = r.el as WarmEl;
+    await settle(el);
+    const queued: (() => void)[] = [];
+    const w = window as unknown as { requestIdleCallback?: unknown };
+    const saved = w.requestIdleCallback;
+    w.requestIdleCallback = (cb: () => void) => { queued.push(cb); };
+    try {
+      el._warmedUp = false;
+      el._objectWarmedUp = false;
+      el._scheduleWarmUp();
+      expect(queued.length, "one slice asked for").to.equal(1);
+      queued.shift()!();
+      const hosts = () => hiddenHosts(el);
+      expect(hosts().map((h) => h.shadowRoot!.firstElementChild?.localName), "the task page first").to.deep.equal(["maintenance-task-detail-view"]);
+      expect(queued.length, "the object page in the next slice").to.equal(1);
+      await frame();
+      queued.shift()!();
+      expect(hosts().some((h) => h.shadowRoot!.querySelector(".detail-section") !== null), "then the object page").to.equal(true);
+      expect(queued.length, "and nothing more").to.equal(0);
+    } finally {
+      w.requestIdleCallback = saved;
+    }
   });
 });
 

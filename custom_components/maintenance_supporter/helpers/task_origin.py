@@ -7,13 +7,17 @@ an object template records its origin in the top-level ``origin`` field::
      "duty": "Replace Main Brush", "direction": "duration_left",
      "device_id": "…", "entity_label": "Cyan"}      # label: per-entity duties
     {"kind": "problem_sensor", "entity_id": "binary_sensor.…"}
-    {"kind": "template", "template": "robot_vacuum", "task": "Replace Filter"}
+    {"kind": "template", "template": "robot_vacuum", "task": "Replace Filter",
+     "lang": "de", "applied": {"name": "1a2b3c4d", ...}, "declined": {...}}
 
 The name is not part of it, so a renamed task is still recognised: discovery
 treats it as the duty it came from (no duplicate proposal, "already there"),
 and it is offered its counter reset. Integration duties are keyed by
 (integration, EN task name, direction) — the catalog's own identity; template
-tasks by (template id, EN task name).
+tasks by (template id, task key: the EN name at the time, TaskTemplate.key).
+Since 2.118 a template task also records the language it was made in and a
+fingerprint per field of what the template gave it (``applied``), and the
+template values the user declined (``declined``) — helpers/template_updates.
 
 Tasks created before 2.95 get their origin once at setup when it is certain
 (``backfill_origins``): named as the catalog duty (any language) and watching
@@ -40,8 +44,11 @@ from .template_usage import OBJECT_TEMPLATE_ID
 ORIGIN_KEY = "origin"
 
 _KINDS = frozenset({"integration", "problem_sensor", "template"})
-_FIELDS = frozenset({"kind", "integration", "duty", "direction", "device_id", "entity_label", "entity_id", "template", "task"})
+_FIELDS = frozenset({"kind", "integration", "duty", "direction", "device_id", "entity_label", "entity_id", "template", "task", "lang"})
 _MAX_LEN = 255
+# 2.118: field → 8-hex fingerprint (helpers/template_fingerprint).
+_FINGERPRINT_MAPS = frozenset({"applied", "declined"})
+_FINGERPRINT_FIELDS = frozenset({"name", "notes", "recurrence", "warning_days"})
 
 
 def integration_origin(integration: str, duty: str, direction: str, device_id: str | None, entity_label: str | None = None) -> dict[str, str]:
@@ -59,20 +66,37 @@ def problem_sensor_origin(entity_id: str) -> dict[str, str]:
     return {"kind": "problem_sensor", "entity_id": entity_id}
 
 
-def template_origin(template_id: str, task_name: str) -> dict[str, str]:
+def template_origin(template_id: str, task_key: str, *, lang: str | None = None, applied: Mapping[str, str] | None = None) -> dict[str, Any]:
     """The origin of a task created from an object template."""
-    return {"kind": "template", "template": template_id, "task": task_name}
+    origin: dict[str, Any] = {"kind": "template", "template": template_id, "task": task_key}
+    if lang:
+        origin["lang"] = lang
+    if applied:
+        origin["applied"] = dict(applied)
+    return origin
 
 
-def sanitize_origin(value: Any) -> dict[str, str] | None:
-    """A stored or imported origin reduced to known string fields, or None
-    when it is not one (an import is untrusted input)."""
+def _fingerprint_map(value: Any) -> dict[str, str] | None:
+    if not isinstance(value, Mapping):
+        return None
+    clean = {k: v for k, v in value.items() if k in _FINGERPRINT_FIELDS and isinstance(v, str) and len(v) == 8}
+    return clean or None
+
+
+def sanitize_origin(value: Any) -> dict[str, Any] | None:
+    """A stored or imported origin reduced to known fields (strings, and the
+    fingerprint maps of a template task), or None when it is not one (an
+    import is untrusted input)."""
     if not isinstance(value, Mapping) or value.get("kind") not in _KINDS:
         return None
-    return {k: v[:_MAX_LEN] for k, v in value.items() if k in _FIELDS and isinstance(v, str) and v}
+    origin: dict[str, Any] = {k: v[:_MAX_LEN] for k, v in value.items() if k in _FIELDS and isinstance(v, str) and v}
+    for key in _FINGERPRINT_MAPS:
+        if (clean := _fingerprint_map(value.get(key))) is not None:
+            origin[key] = clean
+    return origin
 
 
-def task_origin(task: Mapping[str, Any]) -> dict[str, str] | None:
+def task_origin(task: Mapping[str, Any]) -> dict[str, Any] | None:
     """The task's origin, if it has a valid one."""
     return sanitize_origin(task.get(ORIGIN_KEY))
 
@@ -136,7 +160,8 @@ def _template_task_for(template_id: str, task: Mapping[str, Any]) -> dict[str, s
     if template is None:
         return None
     name = str(task.get("name", "")).lower()
-    hits = [tt.name for tt in template.tasks if name in task_name_variants(tt.name)]
+    # Its name today or the one it had (a renamed template task, 2.118).
+    hits = [tt.key for tt in template.tasks if name in task_name_variants(tt.name) | task_name_variants(tt.key)]
     return template_origin(template_id, hits[0]) if len(hits) == 1 else None
 
 

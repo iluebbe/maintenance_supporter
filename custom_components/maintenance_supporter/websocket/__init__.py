@@ -806,6 +806,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_update_task,
     )
     from .tasks_bulk import ws_update_many_tasks
+    from .template_updates import ws_apply_template_updates, ws_template_updates
     from .users import ws_assign_user, ws_list_users, ws_tasks_by_user
     from .vacation import (
         ws_vacation_end_now,
@@ -928,3 +929,6 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_documents_search)
     websocket_api.async_register_command(hass, ws_search)
     websocket_api.async_register_command(hass, ws_compact_reference_numbers)
+    # 2.118 (D#85): what an object's template has learned since.
+    websocket_api.async_register_command(hass, ws_template_updates)
+    websocket_api.async_register_command(hass, ws_apply_template_updates)

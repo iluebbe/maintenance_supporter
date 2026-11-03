@@ -96,7 +96,7 @@ export interface HistoryEntryOptions {
 // types were missing, so their entries could not be isolated). Chips only
 // render for types present in the task's history, so the two rare ones cost
 // nothing on normal tasks.
-const _FILTER_TYPES = ["completed", "skipped", "missed", "reset", "triggered", "trigger_replaced", "trigger_removed"] as const;
+const _FILTER_TYPES = ["completed", "skipped", "missed", "reset", "triggered", "trigger_replaced", "trigger_removed", "updated"] as const;
 
 export function renderHistoryFilters(task: MaintenanceTask, ctx: HistoryContext) {
   const L = ctx.lang;
