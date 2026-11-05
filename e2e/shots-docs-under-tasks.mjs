@@ -28,7 +28,7 @@ if (!obj) {
   const svc = await fetch(REST + "/api/services/maintenance_supporter/add_object?return_response", { method: "POST", headers: { ...auth, "Content-Type": "application/json" }, body: JSON.stringify({ name: NAME, manufacturer: "ECM", model: "Synchronika" }) }).then(j);
   const entryId = (svc.service_response ?? svc).entry_id;
   await api.send({ type: "maintenance_supporter/task/create", entry_id: entryId, name: "Descale", task_type: "cleaning", interval_days: 60, last_performed: "2026-06-20", warning_days: 7 });
-  await api.send({ type: "maintenance_supporter/task/create", entry_id: entryId, name: "Backflush", task_type: "cleaning", interval_days: 7, last_performed: "2026-07-10", warning_days: 2 });
+  await api.send({ type: "maintenance_supporter/task/create", entry_id: entryId, name: "Backflush Brew Group", task_type: "cleaning", interval_days: 7, last_performed: "2026-07-10", warning_days: 2 });
   await api.send({ type: "maintenance_supporter/part/create", entry_id: entryId, name: "Descaling tablets", vendor: "ECM", mpn: "62535", unit: "pcs", stock: 6, reorder_threshold: 1, restock_quantity: 6, auto_buy_task: true });
   list = (await api.send({ type: "maintenance_supporter/objects" })).objects || [];
   obj = list.find((o) => o.object.name === NAME);

@@ -37,7 +37,7 @@ const clicked = await p.evaluate(() => {
   const sr = window.__panel.shadowRoot;
   for (const row of sr.querySelectorAll(".task-row")) {
     const name = row.querySelector(".cell.task-name");
-    if (name?.textContent?.includes("Filter Replacement")) { name.click(); return true; }
+    if (name?.textContent?.includes("Replace Filter")) { name.click(); return true; }
   }
   const first = sr.querySelector(".task-row .cell.task-name");
   if (first) { first.click(); return true; }

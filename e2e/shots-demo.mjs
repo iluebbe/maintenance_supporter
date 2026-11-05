@@ -101,12 +101,12 @@ const IMPORT = {
       object: { name: "HVAC System", manufacturer: "Daikin", model: "Altherma 3", area_id: null,
         installation_date: iso(-900), warranty_expiry: iso(500), notes: "Filter size: 500x300mm, MERV 13" },
       tasks: [
-        { name: "Filter Replacement", type: "replacement", schedule_type: "sensor_based",
+        { name: "Replace Filter", type: "replacement", schedule_type: "sensor_based",
           warning_days: 14, last_performed: iso(-84),
           trigger_config: { type: "threshold", entity_id: "sensor.hvac_airflow", trigger_below: 60 },
           checklist: ["Turn off the unit", "Vacuum the filter compartment", "Insert new filter (airflow arrow up)", "Reset the filter counter"],
           history: history(90, 6, { cost: [18, 30], dur: [10, 20], lastDaysAgo: 84 }) },
-        { name: "Duct Inspection", type: "inspection", schedule_type: "time_based", interval_days: 365,
+        { name: "Inspect Ducts", type: "inspection", schedule_type: "time_based", interval_days: 365,
           warning_days: 30, last_performed: iso(-300),
           history: history(365, 2, { cost: [120, 180], dur: [60, 90], lastDaysAgo: 300 }) },
       ],
@@ -115,29 +115,29 @@ const IMPORT = {
       object: { name: "Family Car", manufacturer: "Skoda", model: "Octavia Combi",
         installation_date: iso(-1400), warranty_expiry: iso(210), notes: "Plate: HH-MS 2170" },
       tasks: [
-        { name: "Oil Change", type: "service", schedule_type: "time_based", interval_days: 365,
+        { name: "Change Oil", type: "service", schedule_type: "time_based", interval_days: 365,
           warning_days: 21, last_performed: iso(-352),
           history: history(365, 4, { cost: [95, 140], dur: [45, 60], lastDaysAgo: 352 }) },
-        { name: "Tire Rotation", type: "service", schedule_type: "time_based", interval_days: 180,
+        { name: "Rotate Tires", type: "service", schedule_type: "time_based", interval_days: 180,
           warning_days: 14, last_performed: iso(-40),
           history: history(180, 4, { cost: [25, 40], dur: [30, 40], lastDaysAgo: 40 }) },
-        { name: "Annual Inspection (TUV)", type: "inspection", schedule_type: "one_time", due_date: iso(18), warning_days: 21 },
+        { name: "Book Roadworthiness Test", type: "inspection", schedule_type: "one_time", due_date: iso(18), warning_days: 21 },
       ],
     },
     {
       object: { name: "Pool Pump", manufacturer: "Speck", model: "BADU 90",
         installation_date: iso(-700), notes: "Impeller spare in garage shelf B3" },
       tasks: [
-        { name: "Impeller Cleaning", type: "cleaning", schedule_type: "time_based", interval_days: 30,
+        { name: "Clean Impeller", type: "cleaning", schedule_type: "time_based", interval_days: 30,
           warning_days: 7, last_performed: iso(-44),
           history: history(30, 8, { cost: [0, 5], dur: [15, 25], lastDaysAgo: 44 }) },
-        { name: "Pressure Check", type: "inspection", schedule_type: "time_based", interval_days: 7,
+        { name: "Check Pressure", type: "inspection", schedule_type: "time_based", interval_days: 7,
           warning_days: 2, last_performed: iso(-3),
           trigger_config: { type: "threshold", entity_id: "sensor.pump_pressure", trigger_above: 1.5 },
           history: history(7, 10, { cost: [0, 2], dur: [5, 8], lastDaysAgo: 3 }) },
         // Compound trigger demo: service when EITHER 200h runtime is reached
         // OR the filter pressure climbs past 1.5 bar.
-        { name: "Pump Service", type: "service", schedule_type: "sensor_based",
+        { name: "Book Pump Service", type: "service", schedule_type: "sensor_based",
           warning_days: 7, last_performed: iso(-120),
           trigger_config: { type: "compound", compound_logic: "OR", conditions: [
             { type: "runtime", entity_id: "sensor.pump_runtime", entity_ids: ["sensor.pump_runtime"], trigger_runtime_hours: 200 },
@@ -150,10 +150,10 @@ const IMPORT = {
       object: { name: "Washing Machine", manufacturer: "Miele", model: "WWD 320",
         installation_date: iso(-400), warranty_expiry: iso(26) },
       tasks: [
-        { name: "Descaling", type: "cleaning", schedule_type: "time_based", interval_days: 90,
+        { name: "Descale", type: "cleaning", schedule_type: "time_based", interval_days: 90,
           warning_days: 10, last_performed: iso(-86),
           history: history(90, 4, { cost: [6, 9], dur: [10, 15], lastDaysAgo: 86 }) },
-        { name: "Door Seal Wipe", type: "cleaning", schedule_type: "time_based", interval_days: 14,
+        { name: "Wipe Door Seal", type: "cleaning", schedule_type: "time_based", interval_days: 14,
           warning_days: 3, last_performed: iso(-5),
           history: history(14, 6, { cost: [0, 1], dur: [3, 5], lastDaysAgo: 5 }) },
       ],
@@ -162,10 +162,10 @@ const IMPORT = {
       object: { name: "Espresso Machine", manufacturer: "ECM", model: "Synchronika",
         installation_date: iso(-600), warranty_expiry: iso(-40), notes: "Use only descaler approved for E61 groups" },
       tasks: [
-        { name: "Descaling", type: "cleaning", schedule_type: "time_based", interval_days: 60,
+        { name: "Descale", type: "cleaning", schedule_type: "time_based", interval_days: 60,
           warning_days: 7, last_performed: iso(-71),
           history: history(60, 9, { cost: [7, 11], dur: [25, 35], lastDaysAgo: 71 }) },
-        { name: "Backflush", type: "cleaning", schedule_type: "time_based", interval_days: 7,
+        { name: "Backflush Brew Group", type: "cleaning", schedule_type: "time_based", interval_days: 7,
           warning_days: 2, last_performed: iso(-4),
           history: history(7, 12, { cost: [0, 2], dur: [5, 10], lastDaysAgo: 4 }) },
       ],
@@ -175,10 +175,10 @@ const IMPORT = {
         notes: "Water + electricity readings go into the utility spreadsheet" },
       tasks: [
         // Reading task type + end-of-month scheduling (last business day).
-        { name: "Water Meter Reading", type: "reading",
+        { name: "Read Water Meter", type: "reading",
           schedule: { kind: "day_of_month", day: -1, business: true }, warning_days: 3,
           last_performed: iso(-28) },
-        { name: "Electricity Meter Reading", type: "reading",
+        { name: "Read Electricity Meter", type: "reading",
           schedule: { kind: "day_of_month", day: -1 }, warning_days: 3,
           last_performed: iso(-28) },
       ],
@@ -186,13 +186,13 @@ const IMPORT = {
     {
       object: { name: "Smoke Detectors", manufacturer: "Ei Electronics", model: "Ei650 x6" },
       tasks: [
-        { name: "Test Buttons", type: "inspection",
+        { name: "Press Test Buttons", type: "inspection",
           schedule: { kind: "nth_weekday", nth: 1, weekday: 5 }, warning_days: 2,
           last_performed: iso(-26),
           history: history(30, 5, { cost: [0, 1], dur: [10, 12], lastDaysAgo: 26 }) },
         // Multi-entity threshold demo: replace batteries when ANY detector
         // battery drops below 15 %.
-        { name: "Battery Replacement", type: "replacement", schedule_type: "sensor_based",
+        { name: "Replace Batteries", type: "replacement", schedule_type: "sensor_based",
           warning_days: 30, last_performed: iso(-340),
           trigger_config: { type: "threshold",
             entity_id: "sensor.smoke_detector_hall_battery",
@@ -207,15 +207,15 @@ const IMPORT = {
 // Post-import patches: priority/labels/actions aren't part of the import
 // whitelist — applied via task/update after import.
 const PATCHES = [
-  { object: "HVAC System", task: "Filter Replacement", set: { priority: "high", labels: ["air quality", "seasonal"],
+  { object: "HVAC System", task: "Replace Filter", set: { priority: "high", labels: ["air quality", "seasonal"],
     quick_complete_defaults: { notes: "Standard filter swap", cost: 24.9, duration: 15 } } },
-  { object: "Smoke Detectors", task: "Test Buttons", set: { priority: "high", labels: ["safety"] } },
-  { object: "Smoke Detectors", task: "Battery Replacement", set: { priority: "high", labels: ["safety"] } },
-  { object: "Pool Pump", task: "Impeller Cleaning", set: { labels: ["summer"],
+  { object: "Smoke Detectors", task: "Press Test Buttons", set: { priority: "high", labels: ["safety"] } },
+  { object: "Smoke Detectors", task: "Replace Batteries", set: { priority: "high", labels: ["safety"] } },
+  { object: "Pool Pump", task: "Clean Impeller", set: { labels: ["summer"],
     on_complete_action: { service: "input_boolean.turn_on", target: { entity_id: "input_boolean.pool_pump_power" } } } },
-  { object: "Espresso Machine", task: "Descaling", set: { labels: ["kitchen"] } },
-  { object: "Family Car", task: "Oil Change", set: { priority: "high" } },
-  { object: "Washing Machine", task: "Door Seal Wipe", set: { priority: "low" } },
+  { object: "Espresso Machine", task: "Descale", set: { labels: ["kitchen"] } },
+  { object: "Family Car", task: "Change Oil", set: { priority: "high" } },
+  { object: "Washing Machine", task: "Wipe Door Seal", set: { priority: "low" } },
 ];
 
 // ── Main ─────────────────────────────────────────────────────────────────────
@@ -278,12 +278,12 @@ const seed = preSeeded ? null : await (async () => {
 
   // Route user assignments through the patch list (ids only known now).
   patches.push(
-    { object: "HVAC System", task: "Filter Replacement", set: { responsible_user_id: annaId } },
-    { object: "Family Car", task: "Oil Change", set: { responsible_user_id: benId } },
-    { object: "Smoke Detectors", task: "Test Buttons", set: { responsible_user_id: annaId } },
-    { object: "Washing Machine", task: "Door Seal Wipe", set: {
+    { object: "HVAC System", task: "Replace Filter", set: { responsible_user_id: annaId } },
+    { object: "Family Car", task: "Change Oil", set: { responsible_user_id: benId } },
+    { object: "Smoke Detectors", task: "Press Test Buttons", set: { responsible_user_id: annaId } },
+    { object: "Washing Machine", task: "Wipe Door Seal", set: {
       responsible_user_id: annaId, assignee_pool: [annaId, benId], rotation_strategy: "round_robin" } },
-    { object: "Espresso Machine", task: "Descaling", set: { responsible_user_id: benId } },
+    { object: "Espresso Machine", task: "Descale", set: { responsible_user_id: benId } },
   );
 
   const imp = await send({ type: "maintenance_supporter/json/import", json_content: JSON.stringify(importPayload) });
@@ -307,7 +307,7 @@ const seed = preSeeded ? null : await (async () => {
     patched++;
   }
   const car = objs.objects.find((x) => x.object.name === "Family Car");
-  const oil = car && car.tasks.find((x) => x.name === "Oil Change");
+  const oil = car && car.tasks.find((x) => x.name === "Change Oil");
 
   // (v2.22) Showcase the new scheduling markings in the docs shots:
   //  - postpone a single occurrence → "postponed" indicator on the card row
@@ -318,7 +318,7 @@ const seed = preSeeded ? null : await (async () => {
       await send({ type: "maintenance_supporter/task/postpone", entry_id: car.entry_id, task_id: oil.id, until: iso(21) });
     }
     const um = objs.objects.find((x) => x.object.name === "Utility Meters");
-    const wm = um && um.tasks.find((x) => x.name === "Water Meter Reading");
+    const wm = um && um.tasks.find((x) => x.name === "Read Water Meter");
     if (um && wm) {
       const sched = wm.schedule && typeof wm.schedule === "object" ? wm.schedule : { kind: "interval", every: 30, unit: "days" };
       await send({ type: "maintenance_supporter/task/update", entry_id: um.entry_id, task_id: wm.id,
@@ -350,7 +350,7 @@ const seed = preSeeded ? null : await (async () => {
         name: "Brew group seal", vendor: "Jura", mpn: "63308",
         product_url: "https://www.jura.com/en/customer-care",
       });
-      const descTask = em.tasks.find((x) => x.name === "Descaling");
+      const descTask = em.tasks.find((x) => x.name === "Descale");
       if (descTask) {
         await send({
           type: "maintenance_supporter/task/update", entry_id: em.entry_id,
@@ -367,7 +367,7 @@ const seed = preSeeded ? null : await (async () => {
   } catch (e) { log("parts seed skipped:", String(e && e.message || e)); }
 
   // A pool-pump cartridge sitting ONE above its reorder threshold, consumed by
-  // the overdue Impeller Cleaning. Completing that task therefore crosses the
+  // the overdue Clean Impeller task. Completing that task therefore crosses the
   // threshold live and the "Buy ..." reminder appears on its own — which is
   // the whole point of the parts-auto-buy GIF. It has to be its own part:
   // the Espresso Machine's stock feeds parts-section.png, and dropping that
@@ -442,11 +442,11 @@ log("SEED OK", JSON.stringify(seed));
   try {
     const objs3 = await api.send({ type: "maintenance_supporter/objects" });
     const sd = (objs3.objects || []).find((x) => x.object.name === "Smoke Detectors");
-    const tb = sd && sd.tasks.find((x) => x.name === "Test Buttons");
+    const tb = sd && sd.tasks.find((x) => x.name === "Press Test Buttons");
     if (sd && tb && !tb.notify_icon) {
       await api.send({ type: "maintenance_supporter/task/update", entry_id: sd.entry_id, task_id: tb.id,
         name: tb.name, task_type: tb.type, notify_icon: "mdi:fire-alert" });
-      log("v2.89 seed: notify_icon on Test Buttons");
+      log("v2.89 seed: notify_icon on Press Test Buttons");
     }
   } catch (e) { log("v2.89 icon seed skipped:", String(e && e.message || e)); }
 }
@@ -465,16 +465,16 @@ log("SEED OK", JSON.stringify(seed));
   // a) Proof of presence: the smoke-detector test can only be ticked off AT
   //    the detector (NFC sticker on the hall unit).
   try {
-    const { o, t } = find("Smoke Detectors", "Test Buttons");
+    const { o, t } = find("Smoke Detectors", "Press Test Buttons");
     if (o && t && !t.require_tag_scan) {
       await api.send({ type: "maintenance_supporter/task/update", entry_id: o.entry_id, task_id: t.id,
         name: t.name, task_type: t.type, nfc_tag_id: "smoke-hall-01", require_tag_scan: true });
-      log("v2.67 seed: require_tag_scan on Test Buttons");
+      log("v2.67 seed: require_tag_scan on Press Test Buttons");
     }
   } catch (e) { log("v2.67 tag-scan seed skipped:", String(e && e.message || e)); }
   // b) Markdown notes on the car and its oil change.
   try {
-    const { o, t } = find("Family Car", "Oil Change");
+    const { o, t } = find("Family Car", "Change Oil");
     if (o && !/\*\*/.test(o.object.notes || "")) {
       await api.send({ type: "maintenance_supporter/object/update", entry_id: o.entry_id,
         notes: "**Plate:** HH-MS 2170\n\n- Spare key: garage drawer\n- Winter tyres: [tyre hotel](https://example.com/tyres), rack 12\n- Insurance claim hotline: 0800 1234567" });
@@ -518,7 +518,7 @@ log("SEED OK", JSON.stringify(seed));
   //    plus three months of readings, so the history shows per-slot deltas
   //    and the complete dialog its "last: …" hints.
   try {
-    const { o, t } = find("Utility Meters", "Water Meter Reading");
+    const { o, t } = find("Utility Meters", "Read Water Meter");
     if (o && t && !(t.readings || []).length) {
       await api.send({ type: "maintenance_supporter/task/update", entry_id: o.entry_id, task_id: t.id,
         name: t.name, task_type: t.type,
@@ -687,7 +687,7 @@ log("SEED OK", JSON.stringify(seed));
     };
     const groups = (await send({ type: "maintenance_supporter/groups" })).groups || {};
     if (!Object.values(groups).some((g) => g.name === "Weekly chores")) {
-      const refs = [ref("Washing Machine", "Door Seal Wipe"), ref("Espresso Machine", "Backflush"), ref("Pool Pump", "Pressure Check")].filter(Boolean);
+      const refs = [ref("Washing Machine", "Wipe Door Seal"), ref("Espresso Machine", "Backflush Brew Group"), ref("Pool Pump", "Check Pressure")].filter(Boolean);
       await send({ type: "maintenance_supporter/group/create", name: "Weekly chores", description: "The quick ones", task_refs: refs });
       log("v2.96 seed: group Weekly chores");
     }
@@ -724,7 +724,7 @@ log("SEED OK", JSON.stringify(seed));
   try {
     const all = (await send({ type: "maintenance_supporter/objects" })).objects || [];
     const car = all.find((x) => x.object.name === "Family Car");
-    const tyres = car && car.tasks.find((x) => x.name === "Tire Rotation");
+    const tyres = car && car.tasks.find((x) => x.name === "Rotate Tires");
     if (tyres) {
       const { history } = await send({ type: "maintenance_supporter/task/history", entry_id: car.entry_id, task_id: tyres.id });
       if (!history.some((h) => typeof h.cost === "number" && h.cost < 0)) {
@@ -771,7 +771,7 @@ log("SEED OK", JSON.stringify(seed));
 }
 
 // Documents: upload a PDF manual to the Family Car + add a web link, and
-// link the manual to the Oil Change task (page 12).
+// link the manual to the Change Oil task (page 12).
 if (seed) {
 log("DOCUMENTS");
 const fd = new FormData();
@@ -1010,27 +1010,27 @@ await step("parts-buy-dialog.png", async () => {
   await closeDialogs();
 });
 
-// 5. Task detail (HVAC Filter Replacement — TRIGGERED, sparkline, checklist)
+// 5. Task detail (HVAC Replace Filter — TRIGGERED, sparkline, checklist)
 await step("task-detail.png", async () => {
   await openPanel("dashboard");
   await p.evaluate(({ finder }) => {
     eval(finder);
     const panel = window.__panel;
     const o = panel._objects.find((x) => x.object.name === "HVAC System");
-    const t2 = o.tasks.find((x) => x.name === "Filter Replacement");
+    const t2 = o.tasks.find((x) => x.name === "Replace Filter");
     panel._showTask(o.entry_id, t2.id);
   }, { finder: deepFindPanel });
   await p.waitForTimeout(3000);
   await shot("task-detail.png");
 });
 
-// 6. Task history tab (Espresso Descaling — rich cost history + chart)
+// 6. Task history tab (the espresso machine's Descale — rich cost history + chart)
 await step("task-history.png", async () => {
   await p.evaluate(({ finder }) => {
     eval(finder);
     const panel = window.__panel;
     const o = panel._objects.find((x) => x.object.name === "Espresso Machine");
-    const t2 = o.tasks.find((x) => x.name === "Descaling");
+    const t2 = o.tasks.find((x) => x.name === "Descale");
     panel._showTask(o.entry_id, t2.id);
   }, { finder: deepFindPanel });
   await p.waitForTimeout(2000);
@@ -1039,7 +1039,7 @@ await step("task-history.png", async () => {
   await shot("task-history.png");
 });
 
-// 7. Complete dialog (Espresso Descaling — required notes+cost, the ticked
+// 7. Complete dialog (the espresso machine's Descale — required notes+cost, the ticked
 // "parts used" section, and the one-click cost suggestion from the priced
 // descaler tablets under the cost field).
 await step("complete-dialog.png", async () => {
@@ -1048,7 +1048,7 @@ await step("complete-dialog.png", async () => {
     eval(finder);
     const panel = window.__panel;
     const o = panel._objects.find((x) => x.object.name === "Espresso Machine");
-    const t2 = o.tasks.find((x) => x.name === "Descaling");
+    const t2 = o.tasks.find((x) => x.name === "Descale");
     panel._openCompleteDialog(o.entry_id, t2.id, t2.name, t2.checklist, false);
   }, { finder: deepFindPanel });
   await p.waitForTimeout(2500); // lazy dialog chunk + parts render
@@ -1066,7 +1066,7 @@ async function showWaterMeter(tab) {
     eval(finder);
     const panel = window.__panel;
     const o = panel._objects.find((x) => x.object.name === "Utility Meters");
-    const t2 = o.tasks.find((x) => x.name === "Water Meter Reading");
+    const t2 = o.tasks.find((x) => x.name === "Read Water Meter");
     panel._showTask(o.entry_id, t2.id);
   }, { finder: deepFindPanel });
   await p.waitForTimeout(2500);
@@ -1081,7 +1081,7 @@ await step("task-history-readings.png", async () => {
     eval(finder);
     const panel = window.__panel;
     const o = panel._objects.find((x) => x.object.name === "Utility Meters");
-    const t2 = o.tasks.find((x) => x.name === "Water Meter Reading");
+    const t2 = o.tasks.find((x) => x.name === "Read Water Meter");
     const full = await panel.hass.connection.sendMessagePromise({ type: "maintenance_supporter/object", entry_id: o.entry_id });
     const task = (full.tasks || []).find((x) => x.id === t2.id);
     const done = (task.history || []).filter((h) => h.type === "completed").sort((a, b) => a.timestamp.localeCompare(b.timestamp));
@@ -1141,7 +1141,7 @@ await step("complete-dialog-readings.png", async () => {
     eval(finder);
     const panel = window.__panel;
     const o = panel._objects.find((x) => x.object.name === "Utility Meters");
-    const t2 = o.tasks.find((x) => x.name === "Water Meter Reading");
+    const t2 = o.tasks.find((x) => x.name === "Read Water Meter");
     panel._openCompleteDialog(o.entry_id, t2.id, t2.name, undefined, false);
   }, { finder: deepFindPanel });
   await p.waitForTimeout(2500);
@@ -1258,7 +1258,7 @@ await step("task-dialog-calendar.png", async () => {
 // 8e. (2.89, #185) Task dialog — notification icon override with preview + type default
 await step("task-dialog-notify-icon.png", async () => {
   await openPanel("dashboard");
-  await openTaskDialog("Smoke Detectors", "Test Buttons", null, false, "notifications");
+  await openTaskDialog("Smoke Detectors", "Press Test Buttons", null, false, "notifications");
   await p.evaluate(({ finder }) => {
     eval(finder);
     const dlg = window.__panel.shadowRoot.querySelector("maintenance-task-dialog");
@@ -1280,7 +1280,7 @@ await step("settings-view.png", async () => {
 // 10. Task dialog — Reading type + end-of-month schedule (last business day)
 await step("task-dialog-schedule.png", async () => {
   await openPanel("dashboard");
-  await openTaskDialog("Utility Meters", "Water Meter Reading", null, false, "schedule");
+  await openTaskDialog("Utility Meters", "Read Water Meter", null, false, "schedule");
   await shot("task-dialog-schedule.png");
   await closeDialogs();
 });
@@ -1288,31 +1288,31 @@ await step("task-dialog-schedule.png", async () => {
 // 11. Multi-entity trigger (Smoke Detectors battery — ANY-of-two threshold)
 await step("multi-entity-trigger.png", async () => {
   await openPanel("dashboard");
-  await openTaskDialog("Smoke Detectors", "Battery Replacement", "sensor trigger", false, "trigger");
+  await openTaskDialog("Smoke Detectors", "Replace Batteries", "sensor trigger", false, "trigger");
   await shot("multi-entity-trigger.png");
   await closeDialogs();
 });
 
-// 12. Compound trigger (Pump Service — runtime OR pressure)
+// 12. Compound trigger (Book Pump Service — runtime OR pressure)
 await step("compound-trigger.png", async () => {
-  await openTaskDialog("Pool Pump", "Pump Service", "sensor trigger", false, "trigger");
+  await openTaskDialog("Pool Pump", "Book Pump Service", "sensor trigger", false, "trigger");
   await shot("compound-trigger.png");
   await closeDialogs();
 });
 
-// 13. Completion action editor (Impeller Cleaning — turn pump back on)
+// 13. Completion action editor (Clean Impeller — turn pump back on)
 await step("task-dialog-action.png", async () => {
-  await openTaskDialog("Pool Pump", "Impeller Cleaning", "on complete", false, "completion");
+  await openTaskDialog("Pool Pump", "Clean Impeller", "on complete", false, "completion");
   await shot("task-dialog-action.png");
   await closeDialogs();
 });
 
-// 14. Quick complete (Filter Replacement): since #233 a switch in the
+// 14. Quick complete (Replace Filter): since #233 a switch in the
 // Completion section with its prefill fold below it, no longer a <details>
 // of its own, so scroll to the switch instead of a summary text.
 await step("task-dialog-quick-complete.png", async () => {
   await openPanel("dashboard");
-  await openTaskDialog("HVAC System", "Filter Replacement", null, false, "completion");
+  await openTaskDialog("HVAC System", "Replace Filter", null, false, "completion");
   const found = await p.evaluate(({ finder }) => {
     eval(finder);
     const dlg = window.__panel.shadowRoot.querySelector("maintenance-task-dialog");
@@ -1326,13 +1326,13 @@ await step("task-dialog-quick-complete.png", async () => {
     sw.scrollIntoView({ block: "start" });
     return (sw.querySelector("ha-checkbox") ?? sw.querySelector("input"))?.checked === true;
   }, { finder: deepFindPanel });
-  if (!found) throw new Error("the Quick complete switch is not on for Filter Replacement");
+  if (!found) throw new Error("the Quick complete switch is not on for Replace Filter");
   await p.waitForTimeout(800);
   await shot("task-dialog-quick-complete.png");
   await closeDialogs();
 });
 
-// 15. QR dialog (Family Car Oil Change)
+// 15. QR dialog (Family Car Change Oil)
 await step("qr-dialog.png", async () => {
   await p.evaluate(({ finder }) => {
     eval(finder);
@@ -1340,7 +1340,7 @@ await step("qr-dialog.png", async () => {
     // 2.95 (#192): a task with quick-complete defaults — the dialog adds
     // the lightning-bolt code next to Info and Complete.
     const o = panel._objects.find((x) => x.object.name === "HVAC System");
-    const t2 = o.tasks.find((x) => x.name === "Filter Replacement");
+    const t2 = o.tasks.find((x) => x.name === "Replace Filter");
     panel._openQrForTask(o.entry_id, t2.id, "HVAC System", t2.name);
   }, { finder: deepFindPanel });
   await p.waitForTimeout(2500);
@@ -1535,7 +1535,7 @@ await step("settings-shopping-list.png", async () => {
 // (next to the NFC tag field) and the complete dialog's up-front notice.
 await step("task-dialog-tag-scan.png", async () => {
   await openPanel("dashboard");
-  await openTaskDialog("Smoke Detectors", "Test Buttons", null, false, "completion");
+  await openTaskDialog("Smoke Detectors", "Press Test Buttons", null, false, "completion");
   await p.evaluate(({ finder }) => {
     eval(finder);
     const dlg = window.__panel.shadowRoot.querySelector("maintenance-task-dialog");
@@ -1553,7 +1553,7 @@ await step("complete-dialog-tag-scan.png", async () => {
     eval(finder);
     const panel = window.__panel;
     const o = panel._objects.find((x) => x.object.name === "Smoke Detectors");
-    const t2 = o.tasks.find((x) => x.name === "Test Buttons");
+    const t2 = o.tasks.find((x) => x.name === "Press Test Buttons");
     panel._openCompleteDialog(o.entry_id, t2.id, t2.name, t2.checklist, false);
   }, { finder: deepFindPanel });
   await p.waitForTimeout(2500);
@@ -1568,7 +1568,7 @@ await step("task-notes-markdown.png", async () => {
     eval(finder);
     const panel = window.__panel;
     const o = panel._objects.find((x) => x.object.name === "Family Car");
-    const t2 = o.tasks.find((x) => x.name === "Oil Change");
+    const t2 = o.tasks.find((x) => x.name === "Change Oil");
     panel._showTask(o.entry_id, t2.id);
   }, { finder: deepFindPanel });
   await p.waitForTimeout(3000);
@@ -1625,7 +1625,7 @@ await step("mobile-task.png", async () => {
     eval(finder);
     const panel = window.__panel;
     const o = panel._objects.find((x) => x.object.name === "HVAC System");
-    const t2 = o.tasks.find((x) => x.name === "Filter Replacement");
+    const t2 = o.tasks.find((x) => x.name === "Replace Filter");
     panel._showTask(o.entry_id, t2.id);
   }, { finder: deepFindPanel });
   await mp.waitForTimeout(3000);

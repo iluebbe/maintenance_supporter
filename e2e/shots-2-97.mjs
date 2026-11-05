@@ -79,7 +79,7 @@ await shoot("complete-dialog-credit.png", async ({ d }) => {
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const panel = window.__panel;
   const o = panel._objects.find((x) => x.object.name === "Family Car");
-  const t = o.tasks.find((x) => x.name === "Tire Rotation");
+  const t = o.tasks.find((x) => x.name === "Rotate Tires");
   panel._openCompleteDialog(o.entry_id, t.id, t.name, undefined, false);
   let dlg = null;
   for (let i = 0; i < 20 && !dlg?.shadowRoot?.querySelector("ms-cost-input"); i++) {
@@ -112,7 +112,7 @@ await shoot("task-history-credit.png", async ({ d }) => {
   eval(d);
   const panel = window.__panel;
   const o = panel._objects.find((x) => x.object.name === "Family Car");
-  const t = o.tasks.find((x) => x.name === "Tire Rotation");
+  const t = o.tasks.find((x) => x.name === "Rotate Tires");
   panel._showTask(o.entry_id, t.id);
   await new Promise((r) => setTimeout(r, 1500));
   const card = panel.shadowRoot.querySelector(".cost-duration-card");

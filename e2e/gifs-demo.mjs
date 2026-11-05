@@ -271,7 +271,7 @@ const flowComplete = async (p, mark) => {
     // A task this clip can finish in one click, decided from the task data:
     // not one only a tag scan may complete (the clip showed the refusal),
     // none that demands details (the button stays disabled), no meter
-    // reading, no shopping reminder, not the impeller cleaning the parts
+    // reading, no shopping reminder, not the impeller task the parts
     // clip needs. Overdue first, else due soon (a re-record after the other
     // clips has no overdue one left).
     const plain = [];
@@ -282,7 +282,7 @@ const flowComplete = async (p, mark) => {
         plain.push([o.object.name, t.name]);
       }
     }
-    // Names repeat across objects (two "Descaling" tasks) — match both.
+    // Names repeat across objects (two "Descale" tasks) — match both.
     const isPlain = (el) => {
       const task = (el.querySelector(".task-name")?.textContent || "").split("·")[0].trim();
       return plain.some(([obj, name]) => name === task && (el.textContent || "").includes(obj));
@@ -297,7 +297,7 @@ const flowComplete = async (p, mark) => {
   }, panelOf.toString());
   log("  " + r);
   await p.waitForTimeout(2500);
-  await clickInPanel(p, "^complete");
+  await clickInPanel(p, "^complete$");
   await p.waitForTimeout(2200);
   const submitted = await p.evaluate((fnStr) => {
     const panel = eval(`(${fnStr})`)();
@@ -546,9 +546,9 @@ const flowSensorTrigger = async (p, mark) => {
   // out light against a dark panel. Give it a moment.
   await p.waitForTimeout(4000);
   mark();
-  await onRow(p, "filter replacement");
+  await onRow(p, "replace filter");
   await p.waitForTimeout(2200);           // let the reader see "Triggered"
-  await openTaskEditor(p, "HVAC", "filter replacement");
+  await openTaskEditor(p, "HVAC", "replace filter");
   await p.waitForTimeout(2500);
   // The trigger configuration is what explains the Triggered badge. Anchor on
   // its heading, NOT on .select-row — that matched "Maintenance type", the
@@ -563,9 +563,9 @@ const flowSensorTrigger = async (p, mark) => {
 const flowPartsAutoBuy = async (p, mark) => {
   await openPanel(p);
   mark();
-  await onRow(p, "impeller cleaning");
+  await onRow(p, "clean impeller");
   await p.waitForTimeout(1400);
-  await onRow(p, "impeller cleaning", "complete");
+  await onRow(p, "clean impeller", "complete");
   await p.waitForTimeout(2200);
   await submitComplete(p);
   await p.waitForTimeout(4500);           // reconcile + list refresh
@@ -578,7 +578,7 @@ const flowPartsAutoBuy = async (p, mark) => {
 const flowRequiredDetails = async (p, mark) => {
   await openPanel(p);
   mark();
-  await onRow(p, "descaling", "complete");
+  await onRow(p, "descale", "complete");
   await p.waitForTimeout(2400);
   log("  complete disabled before filling: " + (await completeDisabled(p)));
   await fillCompleteField(p, "notes", "Ran two descaling cycles, rinsed twice");
@@ -596,7 +596,7 @@ const flowSchedulePreview = async (p, mark) => {
   await openPanel(p);
   await p.waitForTimeout(4000);           // theme settle — see flowSensorTrigger
   mark();
-  await openTaskEditor(p, "Family Car", "oil change");
+  await openTaskEditor(p, "Family Car", "change oil");
   await p.waitForTimeout(2500);
   await revealInTaskDialog(p, ".schedule-preview");
   await p.waitForTimeout(1800);
@@ -676,13 +676,13 @@ const flowObjectReport = async (p, mark) => {
 const flowDutyRotation = async (p, mark) => {
   await openPanel(p);
   mark();
-  await onRow(p, "door seal wipe");
+  await onRow(p, "wipe door seal");
   await p.waitForTimeout(2400);           // the current duty badge is readable
-  await onRow(p, "door seal wipe", "complete");
+  await onRow(p, "wipe door seal", "complete");
   await p.waitForTimeout(2000);
   await submitComplete(p);
   await p.waitForTimeout(4000);
-  await onRow(p, "door seal wipe");       // badge now names the next person
+  await onRow(p, "wipe door seal");       // badge now names the next person
   await p.waitForTimeout(3000);
 };
 
@@ -774,9 +774,9 @@ const flowQrQuickComplete = async (p, mark) => {
 const flowTagScanRequired = async (p, mark) => {
   await openPanel(p);
   mark();
-  await onRow(p, "test buttons");
+  await onRow(p, "press test buttons");
   await p.waitForTimeout(1400);
-  await onRow(p, "test buttons", "complete");
+  await onRow(p, "press test buttons", "complete");
   await p.waitForTimeout(2800);          // read the notice
   await submitComplete(p);
   await p.waitForTimeout(3500);          // the refusal lands in the dialog

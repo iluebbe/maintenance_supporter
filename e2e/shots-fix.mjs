@@ -104,7 +104,7 @@ await step("mobile-task.png", async () => {
     eval(finder);
     const panel = window.__panel;
     const o = panel._objects.find((x) => x.object.name === "HVAC System");
-    const t2 = o.tasks.find((x) => x.name === "Filter Replacement");
+    const t2 = o.tasks.find((x) => x.name === "Replace Filter");
     panel._showTask(o.entry_id, t2.id);
   }, { finder: deepFindPanel });
   await mp.waitForTimeout(3000);
@@ -149,10 +149,10 @@ async function dialogSection(objName, taskName, summaryMatch, file) {
 }
 
 await step("task-dialog-action.png", () =>
-  dialogSection("Pool Pump", "Impeller Cleaning", "on complete", "task-dialog-action.png"));
+  dialogSection("Pool Pump", "Clean Impeller", "on complete", "task-dialog-action.png"));
 
 await step("task-dialog-quick-complete.png", () =>
-  dialogSection("HVAC System", "Filter Replacement", "quick-complete", "task-dialog-quick-complete.png"));
+  dialogSection("HVAC System", "Replace Filter", "quick-complete", "task-dialog-quick-complete.png"));
 
 // Entity attributes: more-info dialog with the Attributes panel expanded.
 await step("entity-attributes.png", async () => {

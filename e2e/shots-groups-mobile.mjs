@@ -38,12 +38,12 @@ try {
     {
       name: "Before winter",
       description: "Everything that has to be done before the first frost",
-      task_refs: [ref("Pool Pump", "Pump Service"), ref("Lawn Mower", "Clean the deck"), ref("Lawn Mower", "Mower blades"), ref("Bicycle", "Annual Service")],
+      task_refs: [ref("Pool Pump", "Book Pump Service"), ref("Lawn Mower", "Clean the deck"), ref("Lawn Mower", "Mower blades"), ref("Bicycle", "Book Annual Service")],
     },
     {
       name: "Safety checks",
       description: "",
-      task_refs: [ref("Smoke Detectors", "Test Buttons"), ref("Smoke Detectors", "Battery Replacement"), ref("Family Car", "Annual Inspection (TUV)")],
+      task_refs: [ref("Smoke Detectors", "Press Test Buttons"), ref("Smoke Detectors", "Replace Batteries"), ref("Family Car", "Book Roadworthiness Test")],
     },
   ];
   for (const g of groups) {
