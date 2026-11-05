@@ -48,6 +48,7 @@ from .schedule import (
     KIND_ONE_TIME,
     Schedule,
 )
+from .task_apply import async_apply_task_edits, edited_fields
 from .task_trace import forget_task as forget_task_trace
 
 _TIME_BASED = "time_based"
@@ -368,7 +369,9 @@ async def async_update_task_simple(
     # 2026-09-27).
     cap_task_fields(task, keep_action_owner=True)
     write_task(hass, entry, task_id, task)
-    await hass.config_entries.async_reload(entry_id)
+    # A new interval or note is a refresh; a name or enabled reloads the
+    # object (helpers/task_apply).
+    await async_apply_task_edits(hass, entry, {task_id: edited_fields(new_tasks[task_id], task)})
 
 
 class TaskMoveRefused(ValueError):

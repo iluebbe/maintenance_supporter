@@ -40,6 +40,7 @@ from ..const import (
     CONF_VACATION_START,
     DOCUMENT_STORE_KEY,
     DOMAIN,
+    HISTORY_DETAIL_CHARS,
     MAX_COST,
     MAX_ENTITY_SLUG_LENGTH,
     MAX_ID_LENGTH,
@@ -145,6 +146,9 @@ _TASK_FIELD_TYPES: dict[str, type | tuple[type, ...]] = {
 }
 
 
+_TRIGGER_CHANGE_KEYS = frozenset({"from", "to", "installed", "latest"})
+
+
 def _sanitize_history(history: Any) -> list[dict[str, Any]]:
     """Scrub imported history entries: drop a non-finite or out-of-range ``cost``
     (a credit — #200 — is negative and stays).
@@ -199,6 +203,18 @@ def _sanitize_history(history: Any) -> list[dict[str, Any]]:
         # The day a reset restarted the cycle on (anchors the history edit).
         if "reset_date" in clean and (not isinstance(clean["reset_date"], str) or parse_iso_date(clean["reset_date"]) is None):
             clean.pop("reset_date", None)
+        # A state rule's firing: short texts under known keys, or nothing.
+        if "trigger_change" in clean:
+            change = clean["trigger_change"]
+            kept = (
+                {k: v[:HISTORY_DETAIL_CHARS] for k, v in change.items() if k in _TRIGGER_CHANGE_KEYS and isinstance(v, str)}
+                if isinstance(change, dict)
+                else {}
+            )
+            if kept:
+                clean["trigger_change"] = kept
+            else:
+                clean.pop("trigger_change")
         # Readings (#83 / #161 phase 2): same NaN/Infinity hole — a poisoned
         # value would break every delta after it. Malformed slot snapshots
         # are dropped item-wise, the completion itself is kept.

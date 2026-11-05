@@ -48,8 +48,11 @@ KIND_REMINDER_CLEARED = "reminder_cleared"  # {"reason": "done"|"status_left"|"i
 KIND_SNOOZED = "snoozed"  # {"until", "hours"}
 KIND_DONE_WHEN = "done_when"  # {"entity", "state", "result", "minutes"?, "status"?}
 KIND_EDITED = "edited"  # {"fields": [...], "changes"?: {field: [old, new]}}
+# The sensor rule let go of the task by itself (the update got installed, the
+# pressure came back): {"entity"?, "state"?, "value"?, "installed"?, "latest"?}.
+KIND_TRIGGER_CLEARED = "trigger_cleared"
 TRACE_KINDS = frozenset(
-    {KIND_STATUS, KIND_REMINDER, KIND_REMINDER_CLEARED, KIND_SNOOZED, KIND_DONE_WHEN, KIND_EDITED}
+    {KIND_STATUS, KIND_REMINDER, KIND_REMINDER_CLEARED, KIND_SNOOZED, KIND_DONE_WHEN, KIND_EDITED, KIND_TRIGGER_CLEARED}
 )
 
 # KIND_DONE_WHEN results: counted (completes the task), waiting (the state

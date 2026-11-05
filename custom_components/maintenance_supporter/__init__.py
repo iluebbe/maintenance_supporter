@@ -90,7 +90,7 @@ from .helpers.schedule import normalize_task_storage, set_calendar_occurrence_pr
 from .helpers.task_origin import backfill_origins
 from .helpers.task_trace import TASK_TRACE_KEY, TaskTrace
 from .helpers.task_trace import forget_entry as forget_trace_entry
-from .helpers.template_updates import async_home, has_template_tasks, sync_bases
+from .helpers.template_updates import async_sync_entry_bases
 from .helpers.todo_mirror import TODO_MIRROR_KEY, TodoMirror
 from .helpers.todo_mirror import settings_changed as _todo_mirror_settings_changed
 from .helpers.update_state import async_remember_running_version
@@ -499,10 +499,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         # the user made the template's change themselves.
         # Only an object with template tasks waits for the home (the climate
         # grids load once per run): the others set up exactly as before.
-        if has_template_tasks(entry.data) and (
-            base_data := sync_bases(entry.data, await async_home(hass), normalize_language(hass))
-        ) is not None:
-            hass.config_entries.async_update_entry(entry, data=base_data)
+        await async_sync_entry_bases(hass, entry)
 
         # Every write path validates spare parts, but ~27 readers assume a dict
         # with an "id" — a hand-edited / damaged record crashed the sensor

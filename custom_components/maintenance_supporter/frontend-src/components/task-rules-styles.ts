@@ -20,12 +20,18 @@ export const rulesStyles = css`
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
     column-gap: 16px;
-    row-gap: 8px;
     align-items: start;
   }
   .rules-layout > * {
     grid-column: 1;
     min-width: 0;
+  }
+  /* The rows' spacing is a margin, not a row-gap: the sidebar spans 60 grid
+     rows, and every empty one kept its 8 px gap. That was 470 px of nothing
+     under the rows, and the dialog's body scrolled beside the sidebar's own
+     scrollbar. */
+  .rules-layout > :not(.rules-sidebar) {
+    margin-bottom: 8px;
   }
   .rules-layout > .rules-sidebar {
     grid-column: 2;
@@ -38,6 +44,10 @@ export const rulesStyles = css`
       display: flex;
       flex-direction: column;
       align-items: stretch;
+      row-gap: 8px;
+    }
+    .rules-layout > :not(.rules-sidebar) {
+      margin-bottom: 0;
     }
     /* Below its row it scrolls with the rows: stuck to the top, it covered
        the rows under it (tablet portrait, phone held sideways). */

@@ -14,6 +14,7 @@
 import { countText, formatDate, formatDateTime, formatNumber, formatRecurrence, formatUnit, t } from "../styles";
 import { historyNoteText } from "./history-note";
 import { conditionText } from "./task-rules";
+import { triggerValueText } from "./trigger-value";
 import { triggerEntityIds } from "./trigger-entities";
 import { URGENT_STATUSES } from "../status-constants";
 import type { HistoryEntry, TriggerConfig } from "../types";
@@ -82,6 +83,8 @@ export interface TraceCycle {
 export interface TraceOptions {
   /** The trigger sensor's unit, for the values its firings recorded. */
   triggerUnit?: string;
+  /** The rule is a state rule: its firings' value is only a count. */
+  stateRule?: boolean;
 }
 
 const STATUS_ICONS: Record<string, string> = {
@@ -248,6 +251,30 @@ export function eventItem(e: TraceEvent, lang: string): TraceItem {
       }
       // Two edits never fold: each has its own values.
       return { at: e.at, icon: "mdi:pencil-outline", text, tone: "info", details: [], group: `edited:${e.at}`, changes };
+    }
+    case "trigger_cleared": {
+      // The rule let go of the task by itself: what the sensor reads now
+      // (an update entity: the version now installed).
+      const installed = str(e.installed);
+      const state = str(e.state);
+      const value = typeof e.value === "number" && Number.isFinite(e.value) ? e.value : null;
+      const text = installed
+        ? fill(t("beta_trace_trigger_cleared_update", L), { installed })
+        : state
+          ? fill(t("beta_trace_trigger_cleared_state", L), { state })
+          : value !== null
+            ? fill(t("beta_trace_trigger_cleared_value", L), { value: formatNumber(value, L, { maximumFractionDigits: 3 }) })
+            : t("beta_trace_trigger_cleared", L);
+      const details: TraceDetail[] = str(e.entity) ? [{ label: t("beta_sensor_rule", L), value: str(e.entity) }] : [];
+      return {
+        at: e.at,
+        icon: "mdi:alert-circle-check-outline",
+        text,
+        tone: "status",
+        details,
+        group: `trigger_cleared:${str(e.entity)}:${state || installed}`,
+        watch: "rule",
+      };
     }
     default:
       return { at: e.at, icon: "mdi:information-outline", text: e.kind, tone: "info", details: [], group: `kind:${e.kind}` };
@@ -473,13 +500,11 @@ export function historyItem(h: HistoryEntry, lang: string, opts: TraceOptions = 
   const notes = ownNote ? "" : historyNoteText(rawNote, lang).trim();
   const short = notes.length > 80 ? `${notes.slice(0, 79)}…` : notes;
   const base = short ? `${t(type, lang)} · ${short}` : t(type, lang);
-  const value = type === "triggered" && typeof h.trigger_value === "number" && Number.isFinite(h.trigger_value)
-    ? `${formatNumber(h.trigger_value, lang, { maximumFractionDigits: 3 })}${opts.triggerUnit ? ` ${opts.triggerUnit}` : ""}`
-    : "";
+  const fired = type === "triggered" ? triggerValueText(h, lang, { unit: opts.triggerUnit, stateRule: opts.stateRule }) : "";
   return {
     at: str(h.timestamp),
     icon: HISTORY_ICONS[type] ?? "mdi:history",
-    text: value ? `${base} · ${t("trigger_val", lang)}: ${value}` : base,
+    text: fired ? `${base} · ${fired}` : base,
     tone: CYCLE_ENDS.has(type) ? "done" : type === "triggered" ? "status" : "info",
     details: historyDetails(h, lang),
     // Firings and misses fold (same note); one completion is never another.
@@ -505,6 +530,11 @@ function instant(at: string): number {
  *  reminder off the phones) belongs to the cycle it ended. */
 const AFTERMATH_KINDS = new Set(["status", "reminder_cleared"]);
 const AFTERMATH_MS = 60_000;
+
+/** The end of a cycle the rule closed by itself (no history entry). */
+export const SELF_ENDED = "self_ended";
+/** The statuses a triggered task goes back to when its rule lets go. */
+const SELF_END_STATUSES = new Set(["ok", "due_soon"]);
 
 /** Same-shape steps in a row as one step, and each step's distance to the
  *  one before it (from the last of a folded run). */
@@ -556,12 +586,29 @@ export function buildCycles(events: TraceEvent[], history: HistoryEntry[], lang:
   const cycles: TraceCycle[] = [];
   let current: TraceItem[] = [];
   let dueSince: string | undefined;
+  let historyAt = -Infinity;
+  let clearedAt = -Infinity;
   for (const s of steps) {
+    const at = instant(s.item.at);
+    // The rule letting go of a triggered task (back to OK or due soon) ends
+    // its cycle as well: the update got installed, the pressure came back.
+    // Without it the cycle ran on, "still running", from one firing to the
+    // next months later. Not when a history entry set the status off (a
+    // missed occurrence), unless the journal says the rule let go.
+    let selfEnded = false;
+    let wasDueSince = dueSince;
+    if (s.kind === "trigger_cleared") clearedAt = at;
     if (s.kind === "status") {
-      const to = s.item.group.slice(s.item.group.indexOf(">") + 1);
+      const g = s.item.group;
+      const from = g.slice("status:".length, g.indexOf(">"));
+      const to = g.slice(g.indexOf(">") + 1);
+      selfEnded = from === "triggered" && SELF_END_STATUSES.has(to)
+        && (at - clearedAt <= AFTERMATH_MS || at - historyAt > AFTERMATH_MS);
+      wasDueSince = dueSince;
       if (!DUE_STATUSES.has(to)) dueSince = undefined;
       else dueSince ??= s.item.at;
     }
+    if (s.kind.startsWith("history:")) historyAt = at;
     const last = cycles[cycles.length - 1];
     if (
       !current.length && last && AFTERMATH_KINDS.has(s.kind)
@@ -571,8 +618,16 @@ export function buildCycles(events: TraceEvent[], history: HistoryEntry[], lang:
       continue;
     }
     current.push(s.item);
-    if (s.ends) {
-      cycles.push({ start: current[0].at, end: s.item.at, closed: true, items: current, endType: s.type, since: last?.end, dueAt: dueSince });
+    if (s.ends || selfEnded) {
+      cycles.push({
+        start: current[0].at,
+        end: s.item.at,
+        closed: true,
+        items: current,
+        endType: s.ends ? s.type : SELF_ENDED,
+        since: last?.end,
+        dueAt: s.ends ? dueSince : wasDueSince,
+      });
       current = [];
     }
   }
@@ -603,6 +658,9 @@ export function cycleResult(cycle: TraceCycle, lang: string, nowMs: number = Dat
   const dueAt = cycle.dueAt;
   const facts: string[] = [];
   if (cycle.closed) {
+    if (cycle.endType === SELF_ENDED && dueAt) {
+      facts.push(fill(t("beta_trace_triggered_for", L), { span: spanText(instant(cycle.end) - instant(dueAt), L) }));
+    }
     if (cycle.endType === "completed") {
       // Within a minute (a Done-when rule, a firing done at once) says nothing.
       const late = dueAt ? instant(cycle.end) - instant(dueAt) : 0;
@@ -618,6 +676,9 @@ export function cycleResult(cycle: TraceCycle, lang: string, nowMs: number = Dat
   const snoozes = count(cycle, "snoozed:");
   if (snoozes) facts.push(countText("beta_trace_snoozes", "beta_trace_snoozes_one", snoozes, L));
   if (!cycle.closed) return { text: t("beta_trace_running", L), icon: "mdi:progress-clock", tone: "info", facts };
+  if (cycle.endType === SELF_ENDED) {
+    return { text: `${t("beta_trace_cycle_self_ended", L)} · ${formatDateTime(cycle.end, L)}`, icon: "mdi:alert-circle-check-outline", tone: "status", facts };
+  }
   const type = cycle.endType ?? "completed";
   return { text: `${t(type, L)} · ${formatDateTime(cycle.end, L)}`, icon: HISTORY_ICONS[type] ?? "mdi:check-circle", tone: "done", facts };
 }

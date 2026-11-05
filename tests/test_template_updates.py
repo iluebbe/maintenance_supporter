@@ -253,7 +253,7 @@ def _home_north():
     # The test home is San Diego (no winter, so no season windows): build
     # for a German home everywhere, setup included.
     with patch("custom_components.maintenance_supporter.websocket.template_updates.async_home", return_value=NORTH), patch(
-        "custom_components.maintenance_supporter.async_home", return_value=NORTH
+        "custom_components.maintenance_supporter.helpers.template_updates.async_home", return_value=NORTH
     ):
         yield
 

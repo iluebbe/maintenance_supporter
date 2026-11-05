@@ -593,6 +593,7 @@ class MaintenanceTask:
         cost: float | None = None,
         duration: int | None = None,
         trigger_value: float | None = None,
+        trigger_change: dict[str, str] | None = None,
         checklist_state: dict[str, bool] | None = None,
         feedback: str | None = None,
         completed_by: str | None = None,
@@ -630,6 +631,10 @@ class MaintenanceTask:
             entry["duration"] = duration
         if trigger_value is not None:
             entry["trigger_value"] = trigger_value
+        # A state rule's firing: the transition it counted ("off" → "on")
+        # and an update entity's versions; its trigger_value is only a count.
+        if trigger_change:
+            entry["trigger_change"] = dict(trigger_change)
         if checklist_state is not None:
             entry["checklist_state"] = checklist_state
         if feedback is not None:

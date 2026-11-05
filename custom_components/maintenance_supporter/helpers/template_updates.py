@@ -39,6 +39,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any, Final
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from ..const import CONF_OBJECT, CONF_TASKS
@@ -46,6 +47,7 @@ from ..templates import TaskTemplate, build_template_task, get_template_by_id, t
 from ..templates_history import HISTORY
 from ..templates_i18n import _T, localize_template_text
 from .home_profile import async_climate, async_home_place
+from .i18n import normalize_language
 from .schedule import Schedule, normalize_task_storage
 from .task_origin import ORIGIN_KEY, task_origin
 from .template_fingerprint import FIELDS, MANAGED_SCHEDULE_KEYS, fingerprint, fingerprints, task_values
@@ -164,6 +166,16 @@ def has_template_tasks(data: Mapping[str, Any]) -> bool:
     return any(
         isinstance(task, Mapping) and (task_origin(task) or {}).get("kind") == "template" for task in (data.get(CONF_TASKS) or {}).values()
     )
+
+
+async def async_sync_entry_bases(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """:func:`sync_bases` on an object entry, written back when a base moved
+    (at setup, and after an edit that needs no reload). Only an object with
+    template tasks waits for the home (the climate grids load once per run)."""
+    if has_template_tasks(entry.data) and (
+        base_data := sync_bases(entry.data, await async_home(hass), normalize_language(hass))
+    ) is not None:
+        hass.config_entries.async_update_entry(entry, data=base_data)
 
 
 def sync_bases(data: Mapping[str, Any], home: Home, fallback_lang: str) -> dict[str, Any] | None:

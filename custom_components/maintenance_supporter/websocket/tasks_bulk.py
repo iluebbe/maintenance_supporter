@@ -24,6 +24,7 @@ from ..helpers.completion_requirements import quick_complete_on
 from ..helpers.entry_tasks import write_tasks
 from ..helpers.permissions import require_write
 from ..helpers.sanitize import cap_quick_complete_defaults_field, normalize_people, sanitize_labels
+from ..helpers.task_apply import async_apply_task_edits, edited_fields
 from . import ID_FIELD
 from .tasks_crud import _TASK_FIELDS
 
@@ -173,7 +174,10 @@ async def ws_update_many_tasks(
             updated.append({"entry_id": entry_id, "task_id": task_id})
             previous.append({"entry_id": entry_id, "task_id": task_id, "changes": replaced})
         if new_tasks:
+            edits = {task_id: edited_fields(stored_tasks[task_id], task) for task_id, task in new_tasks.items()}
             write_tasks(hass, entry, new_tasks)
-            await hass.config_entries.async_reload(entry.entry_id)
+            # A priority or a person for many tasks is a refresh, not a
+            # reload of the object (helpers/task_apply).
+            await async_apply_task_edits(hass, entry, edits)
 
     connection.send_result(msg["id"], {"updated": updated, "failed": failed, "previous": previous})

@@ -2,6 +2,54 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.119.0] - 2026-11-05
+
+### ⚡ Performance
+
+- **Saving a task no longer reloads its object.** Every save took the whole object down and set it up again: each
+  of its sensors, binary sensors and buttons went unavailable and came back, and every trigger was rebuilt. On one
+  home something blocked Home Assistant for a second on every button state change, and saving one task of an object
+  with 27 buttons froze it for a minute. Now a new schedule, note, warning time, priority or person is a refresh of
+  the object (milliseconds, and no entity flickers), a new sensor rule rebuilds that task's triggers only, and just
+  the edits that change the entities or what their setup wired (a name, enabled, *Done when*, the mirror lists, the
+  parts, the phases) still reload. The same for bulk edits and the `update_task` service.
+- **The battery fleet sensor reads the fleet once per update.** Its state and its attributes each read every
+  sensor and binary sensor of the home, on every 30-second poll; they now share one read.
+
+### 🐛 Fixed
+
+- **A sensor rule that lets go by itself ends its cycle in the trace.** An update task (a state rule on an update
+  entity) fired when an update was offered and went back to OK when it was installed, but its trace kept one cycle
+  *still running* from the first firing in July to today's. Now the cycle ends there, *Ended by itself*, with how long
+  the task was triggered, and the step says what ended it: *Trigger ended: v2026.11.0 installed*, *now off* or *at
+  41.2*.
+- **A state rule's firing says what changed.** The history and the trace said *Trigger value: 1* for every firing of a
+  state rule (the count of changes). They now say *off → on*, and for an update entity *v2026.11.0 available,
+  v0.9.74 installed*. Firings from before this release show no value instead of the count. Readings show with
+  thousands separators and at most three decimals (*77,408.449 km*, it was *77408.44860672*).
+- **One scrollbar in the task editor.** With a section open in the sidebar, the dialog's body scrolled as well,
+  beside the sidebar's own scrollbar: the sidebar spans the rows of the layout, and every empty row kept its 8 px
+  gap, some 470 px of nothing under the rows.
+- **Saving a task without a change is no edit in its trace.** An older task stored with an empty *Shared with*
+  showed *Task changed: Shared with* on its first save.
+
+### ✨ New
+
+- **An update entity's rule records the install as done.** A new state rule on an `update.*` entity starts as
+  *off → on*, and *When the state ends* is *Record the task as done*: installing the update completes the task. With
+  *The task goes back to OK*, as before, the install left nothing in the history. The device suggestions offer a
+  state rule for an update entity.
+
+### 🔧 Developer
+
+- `helpers/task_apply.py`: `LIVE_FIELDS` (what every refresh reads), `edited_fields`, `needs_reload` and
+  `async_apply_task_edits`, used by `task/update`, `tasks/update_many` and `update_task`. The coordinator keeps the
+  task sensors as trigger hosts (`register_trigger_host`, `async_rebuild_triggers`).
+- History entries of a state rule's firing carry `trigger_change` (`from`, `to`, and an update entity's `installed`
+  and `latest`); the import keeps those keys as short texts and drops anything else.
+- A new trace event, `trigger_cleared` (`entity`, `state` or `value`, `installed`, `latest`): the task's rule let go
+  by itself. A completion, skip or reset is no such event.
+
 ## [2.118.0] - 2026-11-03
 
 ### ✨ New

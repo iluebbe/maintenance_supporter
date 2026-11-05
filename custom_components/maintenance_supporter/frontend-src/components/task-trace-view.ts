@@ -31,7 +31,7 @@ import {
 } from "../helpers/task-trace";
 import { downloadTextFile } from "../helpers/download";
 import { haToday } from "../helpers/ha-time";
-import { entityName, ruleSensors, triggerUnit } from "../helpers/trigger-entities";
+import { entityName, isStateRule, ruleSensors, triggerUnit } from "../helpers/trigger-entities";
 import { renderHistoryEntry } from "../renderers/history";
 
 const OLDER_PATH = "M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z";
@@ -97,6 +97,7 @@ export class MaintenanceTaskTrace extends LitElement {
       this._enabled = res?.enabled !== false;
       this._cycles = buildCycles(res?.events ?? [], res?.history ?? [], langOf(this.hass), {
         triggerUnit: triggerUnit(this.hass, this.task) || undefined,
+        stateRule: isStateRule(this.task),
       });
     } catch {
       this._failed = true;
@@ -293,6 +294,7 @@ export class MaintenanceTaskTrace extends LitElement {
                 currencySymbol: this.currencySymbol,
                 taskRef: this.taskRef,
                 triggerUnit: triggerUnit(this.hass, this.task) || null,
+                stateRule: isStateRule(this.task),
               }, { compact: true, showEdit: false, showHead: false })
             : nothing}
         ${this._renderActivity(key, L)}

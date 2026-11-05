@@ -66,7 +66,10 @@ def _items(*pairs: tuple[MockConfigEntry, str]) -> list[dict[str, str]]:
     return [{"entry_id": entry.entry_id, "task_id": task_id} for entry, task_id in pairs]
 
 
-async def test_one_change_reaches_every_task_with_one_reload_per_object(hass: HomeAssistant) -> None:
+async def test_one_change_reaches_every_task_without_reloading_the_objects(hass: HomeAssistant) -> None:
+    """People and warning days are read on every refresh: the objects are
+    refreshed, not reloaded (helpers/task_apply; a reload took one home a
+    minute, 2026-11-04)."""
     kitchen, garden = await _setup(hass)
     alice = await hass.auth.async_create_user("Alice")
     reloads: list[str] = []
@@ -86,10 +89,12 @@ async def test_one_change_reaches_every_task_with_one_reload_per_object(hass: Ho
         )
     assert error is None
     assert len(result["updated"]) == 3 and result["failed"] == []
-    assert sorted(reloads) == sorted([kitchen.entry_id, garden.entry_id]), "one reload per object, not per task"
+    assert reloads == [], "no reload for fields every refresh reads"
     for entry, task_id in ((kitchen, "descale"), (kitchen, "filter"), (garden, "blades")):
         task = _task(entry, task_id)
         assert task["responsible_user_id"] == alice.id and task["warning_days"] == 3
+        published = entry.runtime_data.coordinator.data[CONF_TASKS][task_id].task
+        assert published["warning_days"] == 3, "the refresh published the edit"
     assert _task(kitchen, "descale")["labels"] == ["kitchen"], "fields not named stay as they were"
 
 

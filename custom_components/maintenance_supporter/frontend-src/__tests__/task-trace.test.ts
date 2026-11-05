@@ -12,6 +12,7 @@ import {
   activityRows, buildCycles, changeDetails, changeValue, completedByDetail, cycleResult, detailEntry, editedFieldsText, eventItem, spanText,
   type ChangeContext, type TraceEvent,
 } from "../helpers/task-trace";
+import { triggerValueText } from "../helpers/trigger-value";
 import { formatDayCount, setLocale } from "../styles";
 import type { HistoryEntry } from "../types";
 import { createMockHass } from "./_test-utils.js";
@@ -412,5 +413,68 @@ describe("task trace: before and after, activity, download (2026-11-02)", () => 
     expect(json).to.deep.include({ entry_id: "e1", task_id: "t1", enabled: true });
     expect(json.events).to.have.length(JOURNAL.length);
     expect(json.task).to.deep.equal({ name: "Wäsche aufhängen", interval_days: 7 });
+  });
+});
+
+describe("task trace: a rule that lets go by itself (update task, found live 2026-11-04)", () => {
+  // A state rule on an update entity: July's firing from before the journal,
+  // today's firing with its versions, the install three hours later.
+  const july = { ...H("2026-07-23T12:27:29+00:00", "triggered", "Sensor trigger activated"), trigger_value: 1 } as HistoryEntry;
+  const today = {
+    ...H("2026-11-04T12:28:24.300+00:00", "triggered", "Sensor trigger activated"),
+    trigger_value: 1,
+    trigger_change: { from: "off", to: "on", installed: "v0.9.74", latest: "v2026.11.0" },
+  } as HistoryEntry;
+  const journal = [
+    E("2026-11-04T12:28:24.400+00:00", "status", { from: "ok", to: "triggered" }),
+    E("2026-11-04T12:28:24.500+00:00", "reminder", { reminder: "status", status: "triggered" }),
+    E("2026-11-04T15:28:37.000+00:00", "trigger_cleared", { entity: "update.wallbox", state: "off", installed: "v2026.11.0", latest: "v2026.11.0" }),
+    E("2026-11-04T15:28:37.600+00:00", "status", { from: "triggered", to: "ok" }),
+    E("2026-11-04T15:28:37.700+00:00", "reminder_cleared", { reason: "status_left" }),
+  ];
+
+  it("ends the cycle instead of running on from one firing to the next", () => {
+    const cycles = buildCycles(journal, [july, today], "en", { stateRule: true });
+    expect(cycles).to.have.length(1);
+    expect(cycles[0].closed).to.equal(true);
+    expect(cycles[0].items.at(-1)!.text, "the reminder taken off the phones stays with it").to.equal("Reminder taken off the phones: no longer needed");
+    const result = cycleResult(cycles[0], "en");
+    expect(result.text).to.match(/^Ended by itself · /);
+    expect(result.facts).to.deep.equal(["Triggered for 3 hours", "1 reminder"]);
+    // The next firing starts a new cycle.
+    const next = buildCycles([...journal, E("2026-11-20T08:00:00+00:00", "status", { from: "ok", to: "triggered" })], [july, today], "en");
+    expect(next.map((c) => c.closed)).to.deep.equal([true, false]);
+  });
+
+  it("the firings say what changed, the end what is installed now", () => {
+    const items = buildCycles(journal, [july, today], "en", { stateRule: true })[0].items;
+    // July's firing has only the count: no "Trigger value: 1" any more.
+    expect(items[0].repeats!.map((r) => r.text)).to.deep.equal(["Triggered", "Triggered · v2026.11.0 available, v0.9.74 installed"]);
+    expect(items.map((i) => i.text)).to.include("Trigger ended: v2026.11.0 installed");
+  });
+
+  it("a rule ending without a journal entry (from before 2.119) still ends the cycle, a missed occurrence does not", () => {
+    const old = buildCycles([E("2026-11-04T12:28:24+00:00", "status", { from: "ok", to: "triggered" }), E("2026-11-04T15:28:37+00:00", "status", { from: "triggered", to: "ok" })], [], "en");
+    expect(old.map((c) => c.endType)).to.deep.equal(["self_ended"]);
+    const paused = buildCycles([E("2026-11-04T12:28:24+00:00", "status", { from: "ok", to: "triggered" }), E("2026-11-04T15:28:37+00:00", "status", { from: "triggered", to: "paused" })], [], "en");
+    expect(paused.map((c) => c.closed), "a pause is no end").to.deep.equal([false]);
+  });
+
+  it("the end of a rule in words: the state, the reading, or just that it ended", () => {
+    expect(eventItem(E("2026-11-04T15:28:37+00:00", "trigger_cleared", { entity: "binary_sensor.door", state: "off" }), "en").text).to.equal("Trigger ended: now off");
+    expect(eventItem(E("2026-11-04T15:28:37+00:00", "trigger_cleared", { entity: "sensor.tpms", value: 41.25 }), "en").text).to.equal("Trigger ended at 41.25");
+    const plain = eventItem(E("2026-11-04T15:28:37+00:00", "trigger_cleared"), "en");
+    expect([plain.text, plain.details]).to.deep.equal(["Trigger ended", []]);
+  });
+
+  it("a firing's value: the reading with its unit, a state rule's transition, never the bare count", () => {
+    const at = "2026-11-04T12:00:00+00:00";
+    const reading = { ...H(at, "triggered"), trigger_value: 77408.44860672 } as HistoryEntry;
+    expect(triggerValueText(reading, "en", { unit: "km" })).to.equal("Trigger value: 77,408.449 km");
+    expect(triggerValueText({ ...H(at, "triggered"), trigger_value: 1 } as HistoryEntry, "en", { stateRule: true })).to.equal("");
+    const door = { ...H(at, "triggered"), trigger_value: 1, trigger_change: { from: "off", to: "on" } } as HistoryEntry;
+    expect(triggerValueText(door, "en", { stateRule: true })).to.equal("Trigger value: off → on");
+    const same = { ...H(at, "triggered"), trigger_change: { to: "on", installed: "v1", latest: "v1" } } as HistoryEntry;
+    expect(triggerValueText(same, "en")).to.equal("Trigger value: on");
   });
 });

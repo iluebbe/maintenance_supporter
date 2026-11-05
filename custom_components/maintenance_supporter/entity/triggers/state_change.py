@@ -13,14 +13,14 @@ from homeassistant.helpers.event import (
 )
 from homeassistant.util import dt as dt_util
 
-from ...const import UNAVAILABLE_STATES
+from ...const import HISTORY_DETAIL_CHARS, UNAVAILABLE_STATES
 from ...helpers.managed_timer import ManagedTimer
 
 if TYPE_CHECKING:
     from .base_trigger import TriggerHost
 
 from ...helpers.dates import parse_persisted_utc
-from .base_trigger import BaseTrigger
+from .base_trigger import BaseTrigger, update_versions
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -45,6 +45,10 @@ class StateChangeTrigger(BaseTrigger):
     _pending_state: str | None = None
     _pending_since: str | None = None
     _interrupted_pending: str | None = None
+    # The state the entity left for the one waiting out the hold window, and
+    # the transition the last counted change was (for the history entry).
+    _pending_from: str | None = None
+    _counted_transition: tuple[str | None, str] | None = None
 
     def __init__(
         self,
@@ -258,7 +262,7 @@ class StateChangeTrigger(BaseTrigger):
             pending,
             self._for_minutes,
         )
-        self._commit_transition(pending, None)
+        self._commit_transition(pending, self._pending_from)
 
     def _clear_pending(self) -> None:
         """Abandon the hold window (state moved on before it elapsed)."""
@@ -275,6 +279,7 @@ class StateChangeTrigger(BaseTrigger):
         self._pending_since = None
         self._change_count += 1
         self._current_value = float(self._change_count)
+        self._counted_transition = (old_val if old_val not in UNAVAILABLE_STATES else None, new_val)
         self._persist_runtime_soon()
         _LOGGER.debug(
             "State change counted: %s (%s -> %s) count=%d/%d",
@@ -416,9 +421,10 @@ class StateChangeTrigger(BaseTrigger):
         if matches and effective_old != new_val:
             if self._for_minutes > 0:
                 # #136: the transition only counts once new_val has held.
+                self._pending_from = effective_old
                 self._start_pending(new_val)
             else:
-                self._commit_transition(new_val, old_val)
+                self._commit_transition(new_val, effective_old)
 
         # Latch recovery: a single-shot state alarm (target_changes == 1 — an
         # adopted problem sensor or an appliance event) clears when the entity
@@ -441,6 +447,28 @@ class StateChangeTrigger(BaseTrigger):
         """The value is the reset change count, not a reading — the
         auto-completion's note said "sensor recovered (0)"."""
         return None
+
+    def _trigger_change(self) -> dict[str, str] | None:
+        """The transition the firing counted ("off" → "on"), with an update
+        entity's versions: the trigger value is only the change count, and
+        the history said "Trigger value: 1"."""
+        if self._counted_transition is None:
+            return None
+        old, new = self._counted_transition
+        change = {"to": new[:HISTORY_DETAIL_CHARS]}
+        if old is not None:
+            change["from"] = old[:HISTORY_DETAIL_CHARS]
+        change.update(update_versions(self.hass.states.get(self.entity_id)))
+        return change
+
+    def _cleared_detail(self, value: float) -> dict[str, Any]:
+        """The state the entity is in now, instead of the reset count."""
+        live = self.hass.states.get(self.entity_id)
+        detail: dict[str, Any] = {"entity": self.entity_id}
+        if live is not None:
+            detail["state"] = live.state[:HISTORY_DETAIL_CHARS]
+        detail.update(update_versions(live))
+        return detail
 
     def evaluate(self, value: float) -> bool:
         """Evaluate is handled by _handle_state_transition directly."""

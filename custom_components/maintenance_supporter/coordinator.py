@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import logging
 import time
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import replace
 from datetime import date, datetime, timedelta
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Protocol
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -180,6 +180,12 @@ def _inert_task_result(task: MaintenanceTask, status: str, *, paused: bool = Fal
     )
 
 
+class TriggerRebuildHost(Protocol):
+    """The task sensor as the coordinator rebuilds its triggers."""
+
+    async def async_rebuild_triggers(self) -> None: ...
+
+
 def _degraded_task_result(task: MaintenanceTask) -> TaskResult:
     """Payload for an active task whose status computation raised (bug audit
     2026-09-27): no due date, the trigger latch as far as it is known, and
@@ -256,6 +262,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # note_live_trigger_state / _overlay_live_trigger_flips.
         self._trigger_seq = 0
         self._live_trigger_flips: dict[str, tuple[int, bool, float | None]] = {}
+        # The task sensors that run each task's triggers: a changed sensor
+        # rule is rebuilt on its sensor instead of reloading the object
+        # (helpers/task_apply).
+        self._trigger_hosts: dict[str, TriggerRebuildHost] = {}
         # The post-completion cooldown is re-derived from the history once
         # per instance (_seed_cooldown_from_history).
         self._cooldown_seeded = False
@@ -1213,8 +1223,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         self,
         task_id: str,
         trigger_value: float | None = None,
+        trigger_change: dict[str, str] | None = None,
     ) -> None:
-        """Add a TRIGGERED history entry to a task and persist."""
+        """Add a TRIGGERED history entry to a task and persist (with the
+        transition a state rule fired on, ``trigger_change``)."""
         merged = self._get_merged_tasks_data()
         if task_id not in merged:
             return
@@ -1229,6 +1241,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
             entry_type=HistoryEntryType.TRIGGERED,
             notes="Sensor trigger activated",
             trigger_value=trigger_value,
+            trigger_change=trigger_change,
         )
 
         self._persist_dynamic_state(task_id, task)
@@ -2155,6 +2168,27 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         cooldown seeded after a reload honours it too."""
         self._completion_cooldown.discard(task_id)
         self.note_trigger_cleared(task_id)
+
+    def register_trigger_host(self, task_id: str, host: TriggerRebuildHost) -> Callable[[], None]:
+        """The task sensor that runs the task's triggers; returns its
+        unregistration (for the sensor's removal)."""
+        self._trigger_hosts[task_id] = host
+
+        def _unregister() -> None:
+            if self._trigger_hosts.get(task_id) is host:
+                del self._trigger_hosts[task_id]
+
+        return _unregister
+
+    async def async_rebuild_triggers(self, task_id: str) -> bool:
+        """Set up the task's triggers again from its stored rule; False when
+        no sensor runs them (disabled in the registry, not added yet): the
+        caller reloads the object then."""
+        host = self._trigger_hosts.get(task_id)
+        if host is None:
+            return False
+        await host.async_rebuild_triggers()
+        return True
 
     def note_live_trigger_state(self, task_id: str, active: bool, current_value: float | None) -> None:
         """The task sensor's live trigger latch changed (a trigger flip, or a

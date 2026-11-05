@@ -45,6 +45,12 @@ export function triggerUnit(
   return (typeof own === "string" ? own : undefined) ?? task?.trigger_entity_info?.unit_of_measurement ?? "";
 }
 
+/** Whether the task's rule counts state changes: its firings' value is
+ *  the count, not a reading (the history and the trace leave it out). */
+export function isStateRule(task: { trigger_config?: TriggerConfig | null } | null | undefined): boolean {
+  return task?.trigger_config?.type === "state_change";
+}
+
 /** One sensor of the rule: the entity and the condition it answers. */
 export interface RuleSensor {
   entityId: string;

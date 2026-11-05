@@ -386,6 +386,9 @@ MIRROR_TODO_ENTITY_PATTERN: Final = r"^todo\.[a-z0-9_]+$"
 # as {"entity_id", "to_state"}; the state is capped like an attribute name.
 CONF_TASK_COMPLETE_WHEN: Final = "complete_when"
 MAX_COMPLETE_WHEN_STATE_LENGTH: Final = 255
+# How much of a state or a version a trigger firing's history entry and the
+# trace keep (an update entity's versions, a state rule's transition).
+HISTORY_DETAIL_CHARS: Final = 100
 
 # --- Config Keys: Notification Actions ---
 CONF_ACTION_COMPLETE_ENABLED: Final = "action_complete_enabled"

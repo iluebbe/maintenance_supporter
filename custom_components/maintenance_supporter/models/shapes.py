@@ -55,6 +55,8 @@ class HistoryEntry(TypedDict):
     cost: NotRequired[float | None]
     duration: NotRequired[float | None]
     trigger_value: NotRequired[float | None]
+    # A state rule's firing: {"from"?, "to", "installed"?, "latest"?}.
+    trigger_change: NotRequired[dict[str, str] | None]
     checklist_state: NotRequired[dict[str, bool] | None]
     feedback: NotRequired[str | None]
     completed_by: NotRequired[str | None]

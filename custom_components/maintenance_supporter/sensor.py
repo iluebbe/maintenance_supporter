@@ -355,16 +355,39 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
         """When entity is added to hass, set up triggers if configured."""
         await super().async_added_to_hass()
 
-        # Use merged data (static config + Store runtime) so that persisted
-        # trigger state (_trigger_state) survives HA restarts.
-        task_data = self.coordinator.merged_task(self._task_id) or {}
-        trigger_config = task_data.get("trigger_config")
-
         # Listen for task reset signals (completion/skip/reset) —
         # registered for ALL tasks (not just trigger-based) so that
         # status updates propagate immediately to the UI.
         signal = SIGNAL_TASK_RESET.format(entry_id=self.coordinator.entry.entry_id, task_id=self._task_id)
         self.async_on_remove(async_dispatcher_connect(self.hass, signal, self._handle_task_reset))
+        # A changed sensor rule is rebuilt here, without reloading the object.
+        self.async_on_remove(self.coordinator.register_trigger_host(self._task_id, self))
+
+        await self._async_setup_triggers()
+
+    async def async_rebuild_triggers(self) -> None:
+        """Tear the triggers down and set them up from the stored rule (an
+        edit changed it): the latch of the old rule goes, the new one reads
+        its sensors afresh."""
+        for trigger in self._triggers:
+            await trigger.async_teardown()
+        self._triggers = []
+        self._trigger_states = {}
+        self._trigger_values = {}
+        self.coordinator.note_live_trigger_state(self._task_id, False, None)
+        result = self._task_result
+        if result is not None:
+            result.trigger_active = False
+            result.trigger_current_value = None
+            result.status = compute_live_status(result)
+        await self._async_setup_triggers()
+
+    async def _async_setup_triggers(self) -> None:
+        """The task's triggers from its rule, unless the task is inert."""
+        # Use merged data (static config + Store runtime) so that persisted
+        # trigger state (_trigger_state) survives HA restarts.
+        task_data = self.coordinator.merged_task(self._task_id) or {}
+        trigger_config = task_data.get("trigger_config")
 
         # An inert task — archived (v2.10.0), disabled, or its object
         # seasonally paused (v2.20, N3) — keeps the status listener above (so
@@ -989,13 +1012,21 @@ class BatteryFleetLowSensor(SensorEntity):
                 sticky.pop(eid, None)
         return len(low_ids | set(sticky))
 
+    # The overview native_value read for the attributes Home Assistant reads
+    # right after it, in the same write: both used to read the whole fleet
+    # (every sensor and binary sensor, twice per write, every 30-s poll).
+    _ov_for_attributes: BatteryOverview | None = None
+
     @property
     def native_value(self) -> int:
-        return self._low_count(self._overview())
+        ov = self._overview()
+        self._ov_for_attributes = ov
+        return self._low_count(ov)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        ov = self._overview()
+        ov = self._ov_for_attributes or self._overview()
+        self._ov_for_attributes = None
 
         def _due_label(row: dict[str, Any]) -> str:
             # #135: dashboard-ready per-device lines. Rechargeables are

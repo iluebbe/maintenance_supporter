@@ -16,6 +16,10 @@ import { createMockHass, type CreateMockHassOptions } from "./_test-utils.js";
 
 interface Priv {
   _save(): Promise<void>;
+  _setSensorRule(type: string, entityId?: string): void;
+  _triggerFromState: string;
+  _triggerToState: string;
+  _autoCompleteOnRecovery: boolean;
   _scheduleType: string;
   _intervalDays: string;
   _triggerType: string;
@@ -402,6 +406,39 @@ describe("beta task editor: a new task", () => {
     await el.updateComplete;
     expect(root().querySelector(".chooser")).to.equal(null);
     expect(root().querySelector(".content > section.schedule-section")).to.exist;
+  });
+});
+
+describe("beta task editor: update entities and the sidebar's height (2026-11-04)", () => {
+  it("a new state rule on an update entity starts off → on, recorded as done when it ends", async () => {
+    const { el, p, sent } = await edit({ schedule_type: "time_based", interval_days: 30 });
+    p._setSensorRule("state_change", "update.wallbox_firmware");
+    await el.updateComplete;
+    expect([p._triggerFromState, p._triggerToState, p._autoCompleteOnRecovery]).to.deep.equal(["off", "on", true]);
+    await p._save();
+    const tc = lastSave(sent)!.trigger_config as Record<string, unknown>;
+    expect(tc).to.include({ type: "state_change", trigger_from_state: "off", trigger_to_state: "on", auto_complete_on_recovery: true });
+  });
+
+  it("a stored rule keeps its own end; other entities get no seed", async () => {
+    const { p } = await edit({
+      schedule_type: "sensor_based",
+      trigger_config: { type: "state_change", entity_id: "update.wallbox_firmware", entity_ids: ["update.wallbox_firmware"], trigger_from_state: "off", trigger_to_state: "on" },
+    });
+    expect(p._autoCompleteOnRecovery, "opening a task changes nothing").to.equal(false);
+    p._setSensorRule("state_change", "binary_sensor.door");
+    expect([p._triggerFromState, p._triggerToState, p._autoCompleteOnRecovery]).to.deep.equal(["", "", false]);
+  });
+
+  it("the sidebar spanning the rows adds no empty space under them (two scrollbars, found live)", async () => {
+    await setViewport({ width: 1280, height: 1000 });
+    const { el, root } = await edit({ schedule_type: "sensor_based", trigger_config: { type: "threshold", entity_id: "sensor.x", entity_ids: ["sensor.x"], trigger_above: 5 } });
+    await click(el, root().querySelector('.rule-row[data-row="trigger"] .rule-main'));
+    const layout = root().querySelector(".rules-layout")!.getBoundingClientRect();
+    const side = root().querySelector(".rules-sidebar")!.getBoundingClientRect();
+    const rows = [...root().querySelectorAll(".rules-layout > :not(.rules-sidebar)")].map((r) => r.getBoundingClientRect().bottom);
+    // Its 60-row span gave every empty row an 8 px gap: ~470 px under the rows.
+    expect(layout.height).to.be.at.most(Math.max(side.height, Math.max(...rows) - layout.top) + 9);
   });
 });
 

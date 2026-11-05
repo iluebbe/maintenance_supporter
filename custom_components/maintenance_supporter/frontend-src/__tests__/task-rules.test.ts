@@ -178,6 +178,8 @@ describe("beta editor: device suggestions", () => {
     expect(kinds({ ...base, domain: "switch", numeric: false })).to.deep.equal(["state_change", "runtime", "done_when"]);
     expect(kinds({ ...base, domain: "counter", numeric: true })).to.deep.equal(["counter"]);
     expect(kinds({ ...base, domain: "vacuum", numeric: false })).to.deep.equal(["state_change", "done_when"]);
+    // An update entity: on while an update waits; installing it ends the rule.
+    expect(kinds({ ...base, domain: "update", numeric: false })).to.deep.equal(["state_change"]);
     expect(kinds({ ...base, domain: "button", numeric: false })).to.deep.equal([]);
   });
 

@@ -54,6 +54,7 @@ import type {
   AdvancedFeatures,
 } from "../types";
 import { notice } from "../helpers/notice";
+import { isStateRule, triggerUnit } from "../helpers/trigger-entities";
 
 interface MaintenanceObjectFull {
   entry_id: string;
@@ -589,6 +590,8 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                   readingUnit: task.reading_unit,
                   readingSlotDelta: (e, slotId) => readingSlotDelta(history, e, slotId),
                   taskRef: this._taskRef,
+                  triggerUnit: triggerUnit(this.hass, task) || null,
+                  stateRule: isStateRule(task),
                 }, { compact: true }))}
                 ${totalEntries > recent.length
                   ? html`<div class="history-more">… +${totalEntries - recent.length} ${t("older_entries", L)}</div>`

@@ -22,6 +22,8 @@ from ...const import (
     UNAVAILABLE_STATES,
 )
 from ...helpers.managed_timer import ManagedTimer
+from ...helpers.task_trace import KIND_TRIGGER_CLEARED
+from ...helpers.task_trace import record as record_trace
 from .base_trigger import BaseTrigger
 
 _LOGGER = logging.getLogger(__name__)
@@ -160,7 +162,12 @@ class _CompoundCoordinatorProxy:
     # trigger_already_announced, it did so again on every reload and restart
     # (bug audit 2026-09-27, R SCH-10). The compound records the activation.
 
-    async def async_add_trigger_history_entry(self, task_id: str, trigger_value: float | None = None) -> None:
+    async def async_add_trigger_history_entry(
+        self,
+        task_id: str,
+        trigger_value: float | None = None,
+        trigger_change: dict[str, str] | None = None,
+    ) -> None:
         """No-op for a condition — see the class comment above."""
 
     def note_trigger_edge(self, task_id: str, *, recovered: bool = True) -> None:
@@ -527,6 +534,11 @@ class CompoundTrigger(BaseTrigger):
                 "condition_states": list(self._condition_states),
             },
         )
+        # The trace notes the rule letting go of the task (see BaseTrigger);
+        # a compound has no single sensor to name.
+        if task_recovered is not False and (entry_id := self._event_ids()["entry_id"]):
+            record_trace(self.hass, entry_id, self._task_id, KIND_TRIGGER_CLEARED)
+
         # The opt-in the dialog offers for every trigger kind (#53). The
         # conditions' sub-triggers leave it to the compound (they are not the
         # task's trigger), and the compound never ran it: "complete when it

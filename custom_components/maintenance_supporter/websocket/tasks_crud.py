@@ -73,6 +73,7 @@ from ..helpers.schedule import (
     normalize_task_storage,
 )
 from ..helpers.shared_parts import foreign_part_resolver
+from ..helpers.task_apply import async_apply_task_edits
 from ..helpers.task_fields import (
     EARLIEST_COMPLETION_RANGE,
     INTERVAL_ANCHORS,
@@ -902,9 +903,13 @@ async def ws_update_task(
     # The task trace notes which settings changed, and from what to what
     # where the values are short (the new look only). Both sides as they are
     # stored: the dialog sends the interval flat and a missing rule as null,
-    # the store keeps the nested schedule and no rule.
+    # the store keeps the nested schedule and no rule. And both with who it
+    # is for in its one shape: a task stored before normalize_people kept an
+    # empty pool, and its first save read as "Shared with: — → —".
     before, after = normalize_task_storage(stored_task), normalize_task_storage(task)
-    changed = sorted(k for k in {*after, *before} if not k.startswith("_") and after.get(k) != before.get(k))[:20]
+    normalize_people(before)
+    edited = {k for k in {*after, *before} if not k.startswith("_") and after.get(k) != before.get(k)}
+    changed = sorted(edited)[:20]
     if changed:
         record_trace(hass, entry.entry_id, task_id, KIND_EDITED, fields=changed, changes=changed_values(before, after, changed))
 
@@ -912,8 +917,10 @@ async def ws_update_task(
     # back a whole-map snapshot taken before the store awaits above.
     write_task(hass, entry, task_id, task)
 
-    # Reload entry to pick up changed task config (triggers, schedule, etc.)
-    await hass.config_entries.async_reload(entry.entry_id)
+    # A reload only where the edit changes the entities or a listener the
+    # setup wired; a new schedule or note is a refresh, a new sensor rule a
+    # rebuild of the task's triggers (helpers/task_apply).
+    await async_apply_task_edits(hass, entry, {task_id: edited})
 
     result: dict[str, Any] = {"success": True}
     if tc_warnings:

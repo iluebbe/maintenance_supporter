@@ -154,7 +154,7 @@ import "./components/ms-part-purchase";
 import { ancestorsOf, buildObjectTree, nests, objectPath, sortTree, subtreeOf, treeRows, type ObjectTree } from "./helpers/object-tree";
 import { renderStatusBadge, statusKey, statusLabel, type StatusLike } from "./renderers/status";
 import { TOAST_MS, ACTION_TOAST_MS, haToast } from "./helpers/toast";
-import { isCounterTrigger, primaryTriggerEntity, triggerUnit } from "./helpers/trigger-entities";
+import { isCounterTrigger, isStateRule, primaryTriggerEntity, triggerUnit } from "./helpers/trigger-entities";
 import { TASK_PRIORITIES_HIGH_FIRST } from "./helpers/task-choices";
 import { fetchTaskHistory } from "./helpers/task-history-fetch";
 import { budgetLevel } from "./helpers/budget-level";
@@ -6321,6 +6321,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       openEdit: this._isOperator ? undefined : (entry) => this._openHistoryEdit(entry),
       readingUnit: task?.reading_unit ?? null,
       triggerUnit: triggerUnit(this.hass, task) || null,
+      stateRule: isStateRule(task),
       taskRef: taskRef(this._selectedEntryId ? this._getObject(this._selectedEntryId)?.object : null, task),
       // #139: name the phase badge on entries stamped with a phase_id.
       phaseNames: Object.fromEntries(

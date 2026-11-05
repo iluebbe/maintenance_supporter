@@ -20,6 +20,7 @@ import { renderRefChip } from "../helpers/reference";
 import { entryReadingValues } from "../helpers/reading-slots";
 import { matchesQuery } from "../helpers/search-match";
 import { historyNoteText } from "../helpers/history-note";
+import { triggerValueText } from "../helpers/trigger-value";
 import { stampMs } from "../helpers/ha-time";
 import { EDITABLE_HISTORY_TYPES } from "../status-constants";
 
@@ -67,6 +68,8 @@ export interface HistoryEntryContext {
   taskRef?: string | null;
   /** The trigger sensor's unit, after a firing's recorded value. */
   triggerUnit?: string | null;
+  /** The task's rule is a state rule (its firings' value is only a count). */
+  stateRule?: boolean;
 }
 
 export interface HistoryContext extends HistoryEntryContext {
@@ -207,6 +210,7 @@ export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryEntryContext
   const partsCost = typeof entry.parts_cost === "number" ? entry.parts_cost : null;
   const partsCounted = entry.cost_basis === "use";
   const stockPurchase = partsCounted && !!entry.purchase;
+  const fired = triggerValueText(entry, L, { unit: ctx.triggerUnit, stateRule: ctx.stateRule });
   return html`
     <div class="history-entry${compact ? " compact" : ""}">
       ${compact
@@ -232,7 +236,7 @@ export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryEntryContext
         ${entry.notes ? html`<div class="history-notes">${historyNoteText(entry.notes, L)}</div>` : nothing}
         ${renderHistoryPhotos(ctx.hass, entry)}
         ${renderHistoryReadings(entry, ctx)}
-        ${entry.cost != null || entry.duration != null || entry.trigger_value != null || partsCost != null
+        ${entry.cost != null || entry.duration != null || fired || partsCost != null
           ? html`<div class="history-details">
               ${entry.cost != null
                 ? stockPurchase
@@ -245,7 +249,7 @@ export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryEntryContext
                 ? html`<span title=${t(partsCounted ? "history_parts_counted_hint" : "history_parts_info_hint", L)}>${t(partsCounted ? "history_parts_counted" : "history_parts_info", L).replace("{amount}", formatCost(partsCost, ctx.currencySymbol, L))}</span>`
                 : nothing}
               ${entry.duration != null ? html`<span>${t("duration", L)}: ${formatDuration(entry.duration, L)}</span>` : nothing}
-              ${entry.trigger_value != null ? html`<span>${t("trigger_val", L)}: ${entry.trigger_value}${ctx.triggerUnit ? ` ${ctx.triggerUnit}` : ""}</span>` : nothing}
+              ${fired ? html`<span>${fired}</span>` : nothing}
             </div>`
           : nothing}
       </div>

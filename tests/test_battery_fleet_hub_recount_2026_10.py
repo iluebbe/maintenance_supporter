@@ -89,3 +89,30 @@ async def test_changed_percentages_are_counted_at_once(hass: HomeAssistant) -> N
     hass.config_entries.async_update_entry(g, options={**g.options, "battery_low_percent": 40})
     await hass.async_block_till_done()
     assert hass.states.get(LOW_COUNT_ENTITY_ID).state == "1", "no wait for the next poll"
+
+async def test_one_write_reads_the_fleet_once(hass: HomeAssistant) -> None:
+    """The state and its attributes shared nothing: every write read the
+    whole fleet twice (every sensor and binary sensor), on every 30-s poll.
+    Now the attributes take the overview the state just read (2026-11-04)."""
+    from unittest.mock import patch
+
+    from custom_components.maintenance_supporter.helpers import battery_fleet
+    from custom_components.maintenance_supporter.sensor import BatteryFleetLowSensor
+
+    _batteries(hass)
+    sensor = BatteryFleetLowSensor(hass)
+    calls: list[int] = []
+    real = battery_fleet.compute_overview
+
+    def counting(h: HomeAssistant) -> object:
+        calls.append(1)
+        return real(h)
+
+    with patch.object(battery_fleet, "compute_overview", side_effect=counting):
+        assert sensor.native_value == 0
+        assert sensor.extra_state_attributes["total_batteries"] == 2
+        assert len(calls) == 1, "one write, one read of the fleet"
+        hass.states.async_set(GARAGE, "5", {"device_class": "battery", "unit_of_measurement": "%"})
+        assert sensor.native_value == 1, "the next write reads the fleet afresh"
+        assert sensor.extra_state_attributes["batteries_due"], "and its attributes the same overview"
+        assert len(calls) == 2

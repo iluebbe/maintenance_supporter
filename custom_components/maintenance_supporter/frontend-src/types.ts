@@ -165,6 +165,9 @@ export interface HistoryEntry {
   cost?: number | null;
   duration?: number | null;
   trigger_value?: number | null;
+  /** A state rule's firing: the transition it counted, an update entity's
+   *  versions (trigger_value is only the count of changes). */
+  trigger_change?: { from?: string; to?: string; installed?: string; latest?: string } | null;
   checklist_state?: Record<string, boolean> | null;
   feedback?: string | null;
   completed_by?: string | null;

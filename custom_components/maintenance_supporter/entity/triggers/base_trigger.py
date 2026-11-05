@@ -19,18 +19,40 @@ from homeassistant.helpers.start import async_at_started
 from ...const import (
     EVENT_TRIGGER_ACTIVATED,
     EVENT_TRIGGER_DEACTIVATED,
+    HISTORY_DETAIL_CHARS,
     UNAVAILABLE_STATES,
 )
 from ...helpers.managed_timer import ManagedTimer
+from ...helpers.task_trace import KIND_TRIGGER_CLEARED
+from ...helpers.task_trace import record as record_trace
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def update_versions(state: State | None) -> dict[str, str]:
+    """An update entity's installed and offered version, for the history and
+    the trace ("v2026.11.0 available, v0.9.74 installed"); {} for any other
+    entity."""
+    if state is None or not state.entity_id.startswith("update."):
+        return {}
+    versions: dict[str, str] = {}
+    for key, attr in (("installed", "installed_version"), ("latest", "latest_version")):
+        value = state.attributes.get(attr)
+        if isinstance(value, str) and value.strip():
+            versions[key] = value.strip()[:HISTORY_DETAIL_CHARS]
+    return versions
 
 
 class TriggerCoordinator(Protocol):
     """What a trigger needs from its coordinator: the object's, or a compound
     condition's proxy that routes these per condition."""
 
-    async def async_add_trigger_history_entry(self, task_id: str, trigger_value: float | None = None) -> None: ...
+    async def async_add_trigger_history_entry(
+        self,
+        task_id: str,
+        trigger_value: float | None = None,
+        trigger_change: dict[str, str] | None = None,
+    ) -> None: ...
 
     async def async_auto_complete_on_recovery(self, task_id: str, trigger_value: float | None) -> None: ...
 
@@ -448,8 +470,14 @@ class BaseTrigger(ABC):
             self._request_coordinator_refresh()
             return
 
-        # Add history entry for the trigger activation
-        self._track(self._coordinator.async_add_trigger_history_entry(self._task_id, trigger_value=value))
+        # Add history entry for the trigger activation (with the transition a
+        # state rule fired on: its value is only a count)
+        change = self._trigger_change()
+        self._track(
+            self._coordinator.async_add_trigger_history_entry(
+                self._task_id, trigger_value=value, **({"trigger_change": change} if change else {})
+            )
+        )
         self._coordinator.note_trigger_edge(self._task_id, recovered=self._recovered_since_reset)
         self._request_coordinator_refresh()
 
@@ -506,6 +534,12 @@ class BaseTrigger(ABC):
             },
         )
 
+        # The trace says what ended the task's due state by itself: which
+        # sensor, at what reading or state (the history only knew it fired).
+        # Like the opt-in below, only on the task's own recovery.
+        if task_recovered is not False and (entry_id := self._event_ids()["entry_id"]):
+            record_trace(self.hass, entry_id, self._task_id, KIND_TRIGGER_CLEARED, **self._cleared_detail(value))
+
         # Opt-in (#53): the sensor recovering IS the maintenance being done
         # (salt refilled, filter swapped) — record the completion so
         # last_performed and the time-between-services statistics stay real.
@@ -526,6 +560,22 @@ class BaseTrigger(ABC):
     def _recovery_reading(self, value: float) -> float | None:
         """The reading a recovery records in its auto-completion note."""
         return value
+
+    def _trigger_change(self) -> dict[str, str] | None:
+        """What a firing changed beyond its value, for its history entry:
+        nothing here (the value is the reading); the state rule names its
+        transition."""
+        return None
+
+    def _cleared_detail(self, value: float) -> dict[str, Any]:
+        """The trace's words for the rule letting go of the task: the sensor
+        and its reading (an update entity's versions with it)."""
+        detail: dict[str, Any] = {"entity": self.entity_id}
+        reading = self._recovery_reading(value)
+        if isinstance(reading, (int, float)) and math.isfinite(reading):
+            detail["value"] = reading
+        detail.update(update_versions(self.hass.states.get(self.entity_id)))
+        return detail
 
     def _get_numeric_value(self, state: State) -> float | None:
         """Extract numeric value from state or attribute."""

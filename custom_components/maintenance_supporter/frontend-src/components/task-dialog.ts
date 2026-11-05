@@ -2051,7 +2051,10 @@ export class MaintenanceTaskDialog extends LitElement {
     return html`
       <div class="select-row">
         ${selectIsHa() ? nothing : html`<label>${t("trigger_type", L)}</label>`}
-        ${selectField({ label: t("trigger_type", L), value: this._triggerType, onChange: (e: Event) => (this._triggerType = (e.target as HTMLSelectElement).value as TriggerType) }, html`
+        ${selectField({ label: t("trigger_type", L), value: this._triggerType, onChange: (e: Event) => {
+          this._triggerType = (e.target as HTMLSelectElement).value as TriggerType;
+          this._seedUpdateRule();
+        } }, html`
           ${TRIGGER_TYPE_KEYS_WITH_COMPOUND.map(
             (key) => html`<option value=${key} ?selected=${key === this._triggerType}>${triggerTypeLabel(key, L)}</option>`
           )}
@@ -2067,6 +2070,7 @@ export class MaintenanceTaskDialog extends LitElement {
               const ids = raw.split(",").map((s: string) => s.trim()).filter(Boolean);
               this._triggerEntityId = ids[0] || "";
               this._triggerEntityIds = ids;
+              this._seedUpdateRule();
               if (ids[0]) this._fetchEntityAttributes(ids[0]);
             }}
           ></ms-textfield>
@@ -2088,6 +2092,7 @@ export class MaintenanceTaskDialog extends LitElement {
             const ids = ((e.detail.value as { trigger_entities?: string[] }).trigger_entities || []).filter(Boolean);
             this._triggerEntityId = ids[0] || "";
             this._triggerEntityIds = ids;
+            this._seedUpdateRule();
             if (ids[0]) this._fetchEntityAttributes(ids[0]);
             else this._fetchEntityAttributes("");
           }}
@@ -3819,8 +3824,22 @@ export class MaintenanceTaskDialog extends LitElement {
     if (entityId) {
       this._triggerEntityId = entityId;
       this._triggerEntityIds = [entityId];
+      this._seedUpdateRule();
       void this._fetchEntityAttributes(entityId);
     }
+  }
+
+  /** An update entity is on while an update waits and goes back to off once
+   *  it is installed, and installing it is the task. A fresh state rule on
+   *  one starts as off → on, recorded as done when it ends: with "back to
+   *  OK" the install left nothing in the history. */
+  private _seedUpdateRule(): void {
+    if (this._triggerType !== "state_change" || this._triggerEntityIds.length !== 1 || !this._triggerEntityId.startsWith("update.")) return;
+    if (this._triggerFromState.trim() || this._triggerToState.trim()) return;
+    this._triggerFromState = "off";
+    this._triggerToState = "on";
+    this._autoCompleteOnRecovery = true;
+    this._holdUntilDone = false;
   }
 
   private _applyChoice(c: RuleChoice): void {

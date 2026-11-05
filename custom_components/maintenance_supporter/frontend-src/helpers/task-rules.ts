@@ -461,6 +461,8 @@ export function suggestionsFor(e: EntityFacts): RuleSuggestion[] {
     return [rule("state_change"), doneWhen];
   }
   if (e.domain === "counter") return [rule("counter")];
+  // An update entity: on while an update waits (the rule's end is the install).
+  if (e.domain === "update") return [rule("state_change")];
   if (e.domain === "number" || e.domain === "input_number") return [rule("threshold")];
   if (ON_OFF_DOMAINS.has(e.domain)) {
     const out: RuleSuggestion[] = [];
