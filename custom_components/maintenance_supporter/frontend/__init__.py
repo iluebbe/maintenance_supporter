@@ -11,6 +11,7 @@ from homeassistant.core import HomeAssistant
 
 from ..const import (
     CALENDAR_CARD_URL,
+    CARD_CHUNKS_URL,
     CARD_URL,
     DOMAIN,
     LOCALES_URL,
@@ -87,6 +88,13 @@ async def async_register_card(hass: HomeAssistant) -> None:
         StaticPathConfig(
             PANEL_CHUNKS_URL,
             str(frontend_dir / "panel-chunks"),
+            False,
+        ),
+        # The cards' shared code and their dialogs (loaded on first use),
+        # content-hashed like the panel's chunks.
+        StaticPathConfig(
+            CARD_CHUNKS_URL,
+            str(frontend_dir / "card-chunks"),
             False,
         ),
         # Runtime-loaded UI translations: a directory of <lang>.json fetched by

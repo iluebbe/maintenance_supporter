@@ -149,7 +149,7 @@ describe("#233: the card and the dialog", () => {
     await waitUntil(() => el.shadowRoot!.querySelector(".complete-btn"), "row renders", { timeout: 2000 });
     const btn = el.shadowRoot!.querySelector<HTMLElement>(".complete-btn")!;
     expect(btn.classList.contains("quick")).to.equal(true);
-    expect(btn.querySelector("ha-icon")!.getAttribute("icon")).to.equal("mdi:checkbox-blank-circle-outline");
+    expect((btn.querySelector("ha-svg-icon") as HTMLElement & { path?: string }).path).to.equal(mdiCheckboxBlankCircleOutline);
     btn.click();
     await waitUntil(() => quickMsgs(sent).length === 1, "quick sent", { timeout: 2000 });
     const dlg = el.shadowRoot!.querySelector<Priv>("maintenance-complete-dialog")!;

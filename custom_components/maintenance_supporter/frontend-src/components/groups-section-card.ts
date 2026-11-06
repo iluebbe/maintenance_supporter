@@ -7,6 +7,7 @@
  */
 
 import { LitElement, html, css, nothing } from "lit";
+import { StatesRedrawGate } from "../helpers/hass-changes";
 import { property, state } from "lit/decorators.js";
 import { t, ensureLocale, langOf } from "../styles";
 import { registerCustomCard } from "../helpers/register-card";
@@ -32,6 +33,20 @@ interface CardConfig { type: string; title?: string; }
 
 export class MaintenanceGroupsSectionCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
+  /** A change of only `states` redraws at most once a second, as in the
+   *  panel (helpers/hass-changes): each card redrew on every state change
+   *  in the home, 15 to 27 times in 10 s on one (perf 2026-11-05). */
+  private readonly _statesGate = new StatesRedrawGate(this);
+
+  protected shouldUpdate(changedProps: Map<string, unknown>): boolean {
+    return !this._statesGate.hold(changedProps);
+  }
+
+  willUpdate(changedProps: Map<string, unknown>): void {
+    super.willUpdate(changedProps);
+    this._statesGate.release(changedProps);
+  }
+
   @state() private _config: CardConfig = { type: "" };
   @state() private _groups: Record<string, GroupEntry> = {};
   @state() private _loaded = false;

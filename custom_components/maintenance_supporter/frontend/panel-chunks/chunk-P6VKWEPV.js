@@ -1,0 +1,2 @@
+/*! maintenance_supporter frontend 2.120.0 */
+var l=class{constructor(){this._handle=null}schedule(t,e=4e3){this.clear(),this._handle=setTimeout(()=>{this._handle=null,t()},e)}clear(){this._handle!==null&&(clearTimeout(this._handle),this._handle=null)}get pending(){return this._handle!==null}};function i(n,t,e){n.dispatchEvent(new CustomEvent("hass-notification",{detail:{message:t,...e?{action:e}:{},duration:e?7e3:4e3},bubbles:!0,composed:!0}))}export{l as a,i as b};

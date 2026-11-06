@@ -12,7 +12,7 @@ import { repeat } from "lit/directives/repeat.js";
 import { guard } from "lit/directives/guard.js";
 import { cache } from "lit/directives/cache.js";
 import { keyed } from "lit/directives/keyed.js";
-import { HASS_STATES_REDRAW_MS, onlyStatesChanged } from "./helpers/hass-changes";
+import { StatesRedrawGate } from "./helpers/hass-changes";
 import {
   mdiAccountOutline, mdiCheck, mdiCheckboxBlankCircleOutline, mdiChevronDoubleDown, mdiChevronDoubleUp, mdiCircleMedium, mdiCubeOutline,
   mdiFolderOutline, mdiMapMarkerOutline, mdiNfcVariant, mdiQrcode, mdiSkipNext, mdiTagOutline,
@@ -26,6 +26,7 @@ import { askDeleteTask } from "./helpers/delete-task";
 import { hydrateObjects } from "./helpers/hydrate-objects";
 import { taskIsFor, taskUserIds } from "./helpers/assignees";
 import { quickCompleteOn } from "./helpers/quick-complete";
+import { completesItself } from "./helpers/completes-itself";
 import { daysProgress } from "./helpers/interval";
 import { buildObjectReportHtml, type ReportLabels } from "./helpers/report";
 import { warrantyStatus } from "./helpers/warranty";
@@ -533,11 +534,8 @@ export class MaintenanceSupporterPanel extends LitElement {
   /** The virtual table's rendered slice, and the one last measured. */
   private _virtRenderedSig = "";
   private _virtMeasuredSig = "";
-  /** A `hass` whose only change was `states`, held back (see shouldUpdate):
-   *  its predecessor, handed to the next update as the changed value. */
-  private _hassHeld: HomeAssistant | null = null;
-  private _hassTimer = 0;
-  private _lastRender = 0;
+  /** A `hass` whose only change was `states` waits (see shouldUpdate). */
+  private readonly _statesGate = new StatesRedrawGate(this);
   private _dataLoaded = false;
   private _lastConnection: HomeAssistant["connection"] | null = null;
 
@@ -793,34 +791,12 @@ export class MaintenanceSupporterPanel extends LitElement {
    *  other change (a click, areas, the user, the language …) at once, with
    *  the newest `hass` (perf 2026-11-02). */
   protected shouldUpdate(changedProps: Map<string, unknown>): boolean {
-    if (this.hasUpdated && changedProps.size === 1 && changedProps.has("hass")) {
-      const old = changedProps.get("hass") as HomeAssistant | undefined;
-      const wait = HASS_STATES_REDRAW_MS - (performance.now() - this._lastRender);
-      if (old && this.hass && wait > 0 && onlyStatesChanged(old, this.hass)) {
-        this._hassHeld ??= old;
-        if (!this._hassTimer) {
-          this._hassTimer = window.setTimeout(() => {
-            this._hassTimer = 0;
-            this.requestUpdate();
-          }, wait);
-        }
-        return false;
-      }
-    }
-    return true;
+    return !this._statesGate.hold(changedProps);
   }
 
   willUpdate(changedProps: Map<string, unknown>): void {
     super.willUpdate(changedProps);
-    // A held `hass` change goes with this update, whatever started it.
-    if (this._hassHeld) {
-      if (!changedProps.has("hass")) changedProps.set("hass", this._hassHeld);
-      this._hassHeld = null;
-    }
-    if (this._hassTimer) {
-      clearTimeout(this._hassTimer);
-      this._hassTimer = 0;
-    }
+    this._statesGate.release(changedProps);
     // Section labels are mode-specific ("Kitchen" vs "Family Car"): a
     // collapsed set from the previous mode would fold random new sections.
     if (changedProps.has("_groupByMode") && this._collapsedGroups.size > 0) {
@@ -837,7 +813,6 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   updated(changedProps: Map<string, unknown>): void {
     super.updated(changedProps);
-    this._lastRender = performance.now();
     syncLocaleFromHass(this, changedProps);
     if (changedProps.has("hass") && this.hass) {
       if (!this._dataLoaded) {
@@ -4069,9 +4044,9 @@ export class MaintenanceSupporterPanel extends LitElement {
       ], this._overviewTab, (tab) => this._setOverviewTab(tab), this.narrow ? nothing : this._renderSearchButton("tab-search"))}
       ${/* Today and Tasks are kept too, so going back and forth between
            them draws neither again. The calendar and the settings are keyed
-           to the visit: they load and subscribe when they attach, so they
-           are built afresh, as before, on every tab switch to them and on
-           every return to the overview. */
+           to the visit, built afresh on every tab switch to them and on
+           every return to the overview. The calendar draws the panel's
+           own objects; the settings load theirs when they attach. */
       cache(this._overviewTab === "today"
         ? this._renderToday()
         : this._overviewTab === "dashboard"
@@ -4081,6 +4056,8 @@ export class MaintenanceSupporterPanel extends LitElement {
             <div @ll-custom=${this._onCalendarLlCustom} @maintenance-supporter-open-task=${this._onCalendarOpenTask}>
               <maintenance-supporter-calendar-card
                 .hass=${this.hass}
+                .objects=${this._objects}
+                .stats=${this._stats}
               ></maintenance-supporter-calendar-card>
             </div>
           `
@@ -4213,7 +4190,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                 ${renderPeopleChip(peopleOf(row), "today-person")}
               </div>
             </div>
-            ${this._renderRowActions(L, () => this._openCompleteDialogForRow(row), undefined, false, this._isQuick(row))}
+            ${this._renderRowActions(L, () => this._openCompleteDialogForRow(row), undefined, false, this._isQuick(row), completesItself(row))}
           </div>
         `)}
       </div>
@@ -5703,7 +5680,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             : nothing}
           ${renderMiniSparkline(row, this._miniStatsData, this._lang)}
         </span>
-        ${this._renderRowActions(L, () => this._openCompleteDialogForRow(row), () => this._promptSkipTask(row.entry_id, row.task_id), row.allow_skip, this._isQuick(row))}
+        ${this._renderRowActions(L, () => this._openCompleteDialogForRow(row), () => this._promptSkipTask(row.entry_id, row.task_id), row.allow_skip, this._isQuick(row), completesItself(row))}
       </div>
     `;
   }
@@ -5733,8 +5710,13 @@ export class MaintenanceSupporterPanel extends LitElement {
    *  icon-only — or the classic icon pair when the household chose "icons". */
   /** A row's Complete (+ Skip). `quick` (#233): the task completes in one
    *  tap, and the icon forms show an open circle to tick off (the to-do
-   *  idiom) instead of a check that reads as done already. */
-  private _renderRowActions(L: string, onComplete: () => void, onSkip?: () => void, allowSkip = true, quick = false): TemplateResult {
+   *  idiom) instead of a check that reads as done already. `selfCompleting`
+   *  (D#250): only its sensor completes the task now, and the row says so
+   *  instead (helpers/completes-itself); its page still has Complete. */
+  private _renderRowActions(L: string, onComplete: () => void, onSkip?: () => void, allowSkip = true, quick = false, selfCompleting = false): TemplateResult {
+    if (selfCompleting) {
+      return html`<span class="row-actions"><span class="self-completing" title=${t("completes_itself_help", L)}>${t("completes_itself", L)}</span></span>`;
+    }
     const style = this._actionStyle();
     const completeIcon = quick ? mdiCheckboxBlankCircleOutline : mdiCheck;
     const completeTitle = quick ? t("qr_action_quick_complete", L) : t("complete", L);
@@ -5982,6 +5964,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                   () => this._promptSkipTask(obj.entry_id, task.id),
                   task.allow_skip,
                   quickCompleteOn(task),
+                  completesItself(task),
                 )}
               </div>
             `)}</div>`}

@@ -51,11 +51,24 @@ await build({
   publicPath: "/maintenance_supporter_panelfiles",
 });
 
-// Lovelace Card
+// Lovelace cards: the task card and the calendar card, built together and
+// code-split (perf 2026-11-05). Home Assistant loads both on every page (they
+// are extra module URLs), and each carried its own copy of all seven dialogs:
+// 592 + 537 KB, evaluated before anything was clicked. Now the code both use
+// is one shared chunk, and the dialogs, the card editor and the battery
+// section are chunks loaded on first use. The entries keep their files and
+// URLs (CARD_URL, CALENDAR_CARD_URL); like the panel, they import the chunks
+// by ABSOLUTE url (publicPath), since an entry url has no directory of its
+// own. Content-hashed chunk names, hash-busted entry urls (#124).
+rmSync("../frontend/card-chunks", { recursive: true, force: true });
 await build({
   ...common,
-  entryPoints: ["maintenance-card.ts"],
-  outfile: "../frontend/maintenance-card.js",
+  entryPoints: ["maintenance-card.ts", "maintenance-calendar-card.ts"],
+  outdir: "../frontend",
+  splitting: true,
+  entryNames: "[name]",
+  chunkNames: "card-chunks/[name]-[hash]",
+  publicPath: "/maintenance_supporter_cardfiles",
 });
 
 // Dashboard Strategy (HA 2026.5+ — silent no-op on older HA)
@@ -96,13 +109,6 @@ await build({
   ...common,
   entryPoints: ["maintenance-strategy-shim.ts"],
   outfile: "../frontend/maintenance-strategy-shim.js",
-});
-
-// Calendar Card (v1.9.0+ — Lovelace card extracted from panel's Calendar tab)
-await build({
-  ...common,
-  entryPoints: ["maintenance-calendar-card.ts"],
-  outfile: "../frontend/maintenance-calendar-card.js",
 });
 
 // Copy the runtime-loaded locale tables into the served frontend dir. Only EN

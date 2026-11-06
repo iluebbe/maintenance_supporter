@@ -324,7 +324,16 @@ def _vacation_summary(options: Mapping[str, Any]) -> dict[str, Any]:
     return VacationState.from_options(options).as_wire_dict()
 
 
-@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/settings"})
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/settings",
+        # The cards and the dialogs on dashboards: without what only the
+        # Settings page shows (notify targets, Battery Notes hint, battery
+        # lifetime table), each a scan of the whole home that every card
+        # load on every dashboard paid for (perf 2026-11-06).
+        vol.Optional("lite", default=False): bool,
+    }
+)
 @websocket_api.async_response
 async def ws_get_settings(
     hass: HomeAssistant,
@@ -332,30 +341,16 @@ async def ws_get_settings(
     msg: dict[str, Any],
 ) -> None:
     """Return all global settings."""
-    bn = battery_notes_summary(hass)
+    lite = msg.get("lite", False)
     global_entry = _get_global_entry(hass)
-    if global_entry is None:
-        connection.send_result(
-            msg["id"],
-            _build_full_settings(
-                {},
-                notify_targets=build_notify_targets(hass),
-                battery_notes=bn,
-                battery_lifetimes=fleet_lifetime_catalog(hass),
-                part_search_url_default=_search_url_default(hass),
-                panel_title_default=default_panel_title(hass),
-            ),
-        )
-        return
-
-    options = global_entry.options or global_entry.data
+    options = (global_entry.options or global_entry.data) if global_entry is not None else {}
     connection.send_result(
         msg["id"],
         _build_full_settings(
             options,
-            notify_targets=build_notify_targets(hass, current=options.get(CONF_NOTIFY_SERVICE, "")),
-            battery_notes=bn,
-            battery_lifetimes=fleet_lifetime_catalog(hass),
+            notify_targets=None if lite else build_notify_targets(hass, current=options.get(CONF_NOTIFY_SERVICE, "")),
+            battery_notes=None if lite else battery_notes_summary(hass),
+            battery_lifetimes=None if lite else fleet_lifetime_catalog(hass),
             part_search_url_default=_search_url_default(hass),
             panel_title_default=default_panel_title(hass),
         ),

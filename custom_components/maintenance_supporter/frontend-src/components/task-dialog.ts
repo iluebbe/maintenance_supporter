@@ -1950,7 +1950,7 @@ export class MaintenanceTaskDialog extends LitElement {
       // The per-type fields: the same rules a compound condition uses.
       applyTypeFields(triggerConfig, this._typeFields());
       // D#229: holding until done and completing on recovery are one choice.
-      if (this._holdUntilDone && this._isStateLatch()) triggerConfig.trigger_hold_until_done = true;
+      if (this._holdUntilDone && this._endsByItself()) triggerConfig.trigger_hold_until_done = true;
       else if (this._autoCompleteOnRecovery) triggerConfig.auto_complete_on_recovery = true;
       if (this._triggerCombinator === "all") triggerConfig.trigger_combinator = "all";
       if (this._triggerDetailAttribute) triggerConfig.detail_attribute = this._triggerDetailAttribute;
@@ -2117,7 +2117,7 @@ export class MaintenanceTaskDialog extends LitElement {
         ${this._renderTriggerLiveHint()}
       `}
       ${this._renderDetailAttributeSelect(L)}
-      ${this._isStateLatch() ? this._renderTriggerEnd(L) : html`
+      ${this._endsByItself() ? this._renderTriggerEnd(L) : html`
         ${checkField({ checked: this._autoCompleteOnRecovery, onChange: (e: Event) => (this._autoCompleteOnRecovery = (e.target as HTMLInputElement).checked) }, html`${t("auto_complete_on_recovery", L)}`)}
         <div class="field-help">${t("auto_complete_on_recovery_help", L)}</div>
       `}
@@ -2252,10 +2252,18 @@ export class MaintenanceTaskDialog extends LitElement {
       && !!(this._triggerFromState.trim() || this._triggerToState.trim());
   }
 
-  /** D#229: what happens when the latch's state ends — the task goes back to
-   *  OK, is recorded as done (#53), or stays triggered until someone (or its
-   *  Done when entity) completes it. One choice: the last two exclude each
-   *  other, the server refuses both. */
+  /** D#229: the triggers that end by themselves and so may instead hold
+   *  until the task is done: the state latch, a threshold (the value back in
+   *  range) and a date from a sensor (a later date reported). A counter and
+   *  a runtime only end with a completion. */
+  private _endsByItself(): boolean {
+    return this._isStateLatch() || this._triggerType === "threshold" || this._triggerType === "due_date";
+  }
+
+  /** D#229: what happens when the trigger ends by itself — the task goes back
+   *  to OK, is recorded as done (#53), or stays triggered until someone (or
+   *  its Done when entity) completes it. One choice: the last two exclude
+   *  each other, the server refuses both. */
   private _renderTriggerEnd(L: string) {
     const end = this._holdUntilDone ? "hold" : this._autoCompleteOnRecovery ? "done" : "ok";
     const labels = { ok: "trigger_end_ok", done: "trigger_end_done", hold: "trigger_end_hold" } as const;
@@ -2263,9 +2271,11 @@ export class MaintenanceTaskDialog extends LitElement {
       this._autoCompleteOnRecovery = v === "done";
       this._holdUntilDone = v === "hold";
     };
+    const latch = this._isStateLatch();
+    const title = t(latch ? "trigger_end" : this._triggerType === "due_date" ? "trigger_end_date" : "trigger_end_value", L);
     return html`
-      <div class="trigger-end" role="radiogroup" aria-label=${t("trigger_end", L)}>
-        <div class="field-label">${t("trigger_end", L)}</div>
+      <div class="trigger-end" role="radiogroup" aria-label=${title}>
+        <div class="field-label">${title}</div>
         ${(Object.keys(labels) as Array<keyof typeof labels>).map((v) => html`
           <label class="trigger-end-option">
             <input type="radio" name="trigger-end" value=${v} .checked=${end === v} @change=${() => choose(v)} />
@@ -2273,7 +2283,7 @@ export class MaintenanceTaskDialog extends LitElement {
           </label>
         `)}
         ${end === "done" ? html`<div class="field-help">${t("auto_complete_on_recovery_help", L)}</div>` : nothing}
-        ${end === "hold" ? html`<div class="field-help">${t("trigger_end_hold_help", L)}</div>` : nothing}
+        ${end === "hold" ? html`<div class="field-help">${t(latch ? "trigger_end_hold_help" : "trigger_end_hold_help_level", L)}</div>` : nothing}
       </div>
     `;
   }

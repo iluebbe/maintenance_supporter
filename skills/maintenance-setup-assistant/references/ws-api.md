@@ -655,9 +655,10 @@ default 0) makes a transition count only once the new state has HELD that long
 survives restarts; an unavailability blip restarts it.
 `trigger_hold_until_done: true` (D#229, 2.110+) keeps a single-shot latch
 (`trigger_target_changes` 1 with a from- or to-state) triggered after the entity
-leaves its alert state, until the task is completed, skipped or reset; refused
-together with `auto_complete_on_recovery`, ignored on other triggers, dropped
-inside a compound.
+leaves its alert state, until the task is completed, skipped or reset; since
+2.120 a threshold (back in range) and a due date (a later date) too. Refused
+together with `auto_complete_on_recovery` on those, ignored on a counter and a
+runtime, dropped inside a compound.
 
 ### `runtime`
 `{"type":"runtime","entity_ids":["switch.pump"],"trigger_runtime_hours":500,"trigger_on_states":["on"]}`
@@ -789,7 +790,9 @@ flag every field is always present — assistants should simply omit it.
 person to `responsible_user_id`.
 
 ### `settings` (read) / `global/update` (admin-only write)
-`settings` → full nested settings. `global/update` `{settings:{key:value}}`
+`settings` `{lite?}` → full nested settings (`lite: true` leaves
+`notify_targets`, `battery_notes` and `battery_lifetimes` empty: what only the
+Settings page shows). `global/update` `{settings:{key:value}}`
 accepts only whitelisted keys (unknown silently ignored); out-of-range/typed
 values dropped. Keys relevant to setup:
 - `notifications_enabled` (bool), `notify_service` (str; validated `notify.*`),
@@ -977,7 +980,8 @@ are open, mutations are `@require_write` — documents are object content, not
 global config.
 
 ### `documents/list` — read
-`{entry_id}` → `{documents:[…]}` — one object's documents, newest first.
+`{entry_id}` or `{entry_ids:[…]}` → `{documents:[…]}` — one object's documents, or
+those of several objects in one answer (an unknown id is left out), newest first.
 
 ### `documents/search` — read
 `{query (req, ≤200)}` → `{results:[{id,entry_id,object_name,kind,title,filename,

@@ -449,6 +449,12 @@ CALENDAR_CARD_URL: Final = "/maintenance_supporter_calendar_card"
 # its chunk imports to ABSOLUTE urls under this prefix (publicPath in
 # esbuild.mjs; the two values must stay in sync).
 PANEL_CHUNKS_URL: Final = "/maintenance_supporter_panelfiles/panel-chunks"
+# The task card and the calendar card are built together and code-split
+# (perf 2026-11-05): Home Assistant loads both on every page, and each carried
+# its own copy of every dialog. Their shared code and the dialogs, loaded on
+# first use, are chunks under this prefix; the two entry URLs above stay as
+# they were, so the import is absolute like the panel's (publicPath).
+CARD_CHUNKS_URL: Final = "/maintenance_supporter_cardfiles/card-chunks"
 # Runtime-loaded UI translations (frontend/locales/<lang>.json), served as a
 # directory so the panel/card fetch the active language on demand. Mirrors
 # LOCALES_BASE in frontend-src/styles.ts: only EN is bundled into the JS (as the

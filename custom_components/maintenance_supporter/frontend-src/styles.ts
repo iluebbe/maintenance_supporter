@@ -1345,6 +1345,14 @@ export const sharedStyles = css`
 
   .row-actions .btn-complete { color: var(--maint-ok-color); }
   .row-actions .btn-skip { color: var(--secondary-text-color); }
+  /* D#250: only its sensor completes the task — a word instead of buttons. */
+  .row-actions .self-completing {
+    align-self: center;
+    padding: 0 8px;
+    font-size: 12px;
+    color: var(--secondary-text-color);
+    white-space: nowrap;
+  }
 
   /* Days bar for overview */
   .due-cell {

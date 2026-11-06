@@ -294,12 +294,14 @@ def test_hold_only_on_a_single_shot_state_change() -> None:
     errors, _ = _validate_trigger_config(hass, tc)
     assert any("trigger_hold_until_done" in e for e in errors)
 
-    # Inert anywhere else, kept like the other type-specific keys — and no
-    # conflict there: a counter or a threshold recovers as before.
+    # Inert where nothing ends by itself, kept like the other type-specific
+    # keys, and no conflict there: a counter, or a state change that counts.
+    # (A threshold and a date hold too since the follow-up:
+    # test_hold_until_done_levels.)
     for other in (
         {**latch, "trigger_target_changes": 3},
         {"type": "state_change", "entity_id": WASHER},
-        {"type": "threshold", "entity_id": WASHER, "trigger_below": 3},
+        {"type": "counter", "entity_id": WASHER, "trigger_target_value": 30},
     ):
         tc = {**other, "trigger_hold_until_done": True, "auto_complete_on_recovery": True}
         errors, _ = _validate_trigger_config(hass, tc)

@@ -204,21 +204,22 @@ def _validate_trigger_config(
 def _normalize_hold_until_done(trigger_type: str, trigger_config: dict[str, Any], errors: list[str]) -> None:
     """D#229: ``trigger_hold_until_done`` as a real True, or absent (off).
 
-    It acts on a single-shot state change only (one transition, with a from-
-    or to-state) — the one latch that recovers by itself; on any other
-    trigger the engine ignores it, kept like the other type-specific keys.
-    A held latch never recovers, so there it cannot also auto-complete on
-    recovery."""
+    It acts on the triggers that recover by themselves: a single-shot state
+    change (one transition, with a from- or to-state), a threshold and a date
+    from a sensor (the follow-up); on a counter or a runtime, which only a
+    completion resets, the engine ignores it, kept like the other
+    type-specific keys. A held trigger never recovers, so there it cannot
+    also auto-complete on recovery."""
     if not trigger_config.get("trigger_hold_until_done"):
         trigger_config.pop("trigger_hold_until_done", None)
         return
     trigger_config["trigger_hold_until_done"] = True
-    latch = (
+    holds = trigger_type in ("threshold", "due_date") or (
         trigger_type == "state_change"
         and trigger_config.get("trigger_target_changes", 1) == 1
         and bool(trigger_config.get("trigger_from_state") or trigger_config.get("trigger_to_state"))
     )
-    if latch and trigger_config.get("auto_complete_on_recovery"):
+    if holds and trigger_config.get("auto_complete_on_recovery"):
         errors.append(
             "trigger_config.trigger_hold_until_done and auto_complete_on_recovery exclude each other: "
             "a trigger held until the task is done never recovers by itself"

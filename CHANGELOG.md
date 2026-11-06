@@ -2,6 +2,61 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.120.0] - 2026-11-06
+
+### ✨ New
+
+- **A threshold or a date can keep its task until it is done** (D#229, thanks @pkolbus). The choice a single-shot
+  state change offers when its state ends is now there for a threshold (*When the value is back in range*) and a date
+  from a sensor (*When the device reports a later date*): the task goes back to OK, it is recorded as done, or it
+  stays triggered until someone completes it. For a reading that can go back before the job is done: a Litter-Robot's
+  waste drawer that reads lower by measurement error, a frost forecast that turns milder before the faucets are
+  drained. The held task survives a restart, and going back and over the limit again is the same episode.
+- **Tasks that only their sensor completes say so** (D#250, thanks @tracymckibben). While the trigger of a task that
+  is recorded as done when the sensor recovers is active (a robot vacuum's empty water tank), the rows of the panel
+  and the card show *Completes itself* instead of Complete and Skip: filling the tank is the completion. The task's
+  page and menu still complete it by hand, for a sensor that fails, and a task due by its safety interval keeps its
+  buttons.
+
+### ⚡ Performance
+
+- **The first save of a task no longer reloads its object either.** 2.119.0 made a new schedule or note a refresh,
+  but the task editor sends the task's parts list on every save, and a task that had never stored one counted it as
+  changed: its first save still reloaded the whole object. On one home that was 133 of 163 tasks, and Home Assistant
+  did not answer for 13 seconds on the first save of a task of a small object. The parts a completion uses are now
+  read when it consumes them, like the schedule, so changing them is a refresh too.
+- **The cards load less on every page of Home Assistant.** Home Assistant loads the task card and the calendar card
+  on every page, also where neither is shown, and each brought its own copy of every dialog: 1.1 MB, evaluated
+  before anything was clicked. The two now share their code, and the dialogs, the card editor and the battery
+  section load when first used: 252 KB up front.
+- **The calendar card subscribes to what changed.** It received every object on every refresh (13 MB in ten
+  minutes on a home of 36 objects, for each open calendar); it now receives the objects that changed, as the
+  panel and the task card do. In the panel's Calendar tab it draws the panel's own objects and asks for none.
+- **The task card asks once for its documents.** It asked once per object with a document, 28 requests on every
+  card shown and on every switch of a dashboard view; now one request answers for all.
+- **The dashboard loads its data at once, and once.** The dashboard strategy loaded the language, then the objects,
+  then the counts, one after the other, and each card on a view fetched the objects and the counts again before it
+  drew. They now load together, and the cards' first loads take the strategy's answers: on one home the dashboard
+  stood in 1.1 s instead of 1.7 s.
+- **The cards on a page share one subscription.** The task card and the calendar card subscribed each, and every
+  switch of a dashboard view subscribed anew; the server built every object for each. The cards on a page now share
+  one subscription, kept for 15 seconds after the last card leaves, so the card of the next view draws at once
+  (0.18 s instead of 0.52 s on a phone).
+- **The cards read the settings without what only the Settings page shows.** Each card load made the server scan
+  the whole home for the notify targets, the Battery Notes hint and the battery lifetime table; the cards now ask
+  without them.
+- **The task card asks for the names and documents sooner.** The assignee names go out with its first requests and
+  the documents as soon as the objects are in, instead of a round trip after the rows.
+- **The cards redraw less often.** Every card redrew on each state change anywhere in the home (15 to 27 times in
+  ten seconds on one); like the panel, they now redraw for a change of states at most once a second.
+- **Lighter task card rows.** The rows draw their Complete and icons with plain buttons and static icons instead
+  of Home Assistant's heavier icon buttons: a card of 163 tasks made 165 of those and 616 icons.
+
+### 🐛 Fixed
+
+- **The first save of a task tells what was edited.** Its trace read *Task changed: Labels, Parts, Required
+  fields, Notes* when only the notes were changed: the lists the editor sends went from nothing to empty.
+
 ## [2.119.0] - 2026-11-05
 
 ### ⚡ Performance

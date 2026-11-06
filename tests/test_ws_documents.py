@@ -129,6 +129,40 @@ async def test_ws_list_returns_docs(
     assert documents[0]["kind"] == "file"
 
 
+async def test_ws_list_several_objects_in_one_answer(
+    hass: HomeAssistant,
+    global_entry: MockConfigEntry,
+    object_entry: MockConfigEntry,
+) -> None:
+    """The task card asked once per object (28 requests on every mount on one
+    home); entry_ids answers for all of them at once."""
+    other = MockConfigEntry(
+        version=1,
+        minor_version=1,
+        domain=DOMAIN,
+        title="Heat Pump",
+        data=build_object_entry_data(object_data=build_object_data(name="Heat Pump", object_id="heat_pump")),
+        source="user",
+        unique_id="ms_docs_obj_2",
+    )
+    other.add_to_hass(hass)
+    await setup_integration(hass, global_entry, object_entry, other)
+    pump = await _store(hass).async_add_weblink(OBJECT_ID_1, url="https://example.com/pump", title="Pump manual")
+    heat = await _store(hass).async_add_weblink("heat_pump", url="https://example.com/heat", title="Heat pump manual")
+
+    async def listed(**params: object) -> object:
+        conn = _conn()
+        await call_ws_handler(ws_documents_list, hass, conn, {"id": 1, "type": _LIST, **params})
+        if conn.send_error.called:
+            return conn.send_error.call_args[0][1]
+        return sorted(d["id"] for d in conn.send_result.call_args[0][1]["documents"])
+
+    assert await listed(entry_ids=[object_entry.entry_id, other.entry_id, "gone"]) == sorted([pump["id"], heat["id"]])
+    assert await listed(entry_ids=[other.entry_id]) == [heat["id"]]
+    assert await listed(entry_ids=[]) == []
+    assert await listed() == "invalid_format"
+
+
 async def test_object_response_includes_document_count(
     hass: HomeAssistant,
     global_entry: MockConfigEntry,

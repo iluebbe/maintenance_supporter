@@ -6,7 +6,7 @@
  * entry exists, and a card without hass renders nothing instead of throwing.
  */
 
-import { expect, fixture, html } from "@open-wc/testing";
+import { expect, fixture, html, waitUntil } from "@open-wc/testing";
 import { MaintenanceBatteryFleetCard } from "../components/battery-fleet-card.js";
 import { createMockHass } from "./_test-utils.js";
 
@@ -46,10 +46,11 @@ describe("battery fleet card", () => {
     expect(section, "the section is the card's content").to.exist;
     expect(section!.hasAttribute("flat"), "flat mode: no doubled card chrome").to.equal(true);
     expect(el.shadowRoot!.querySelector("ha-card")).to.exist;
-    // The section actually loaded — its own header (title + count) rendered.
+    // The section actually loaded (on the card's first showing, perf
+    // 2026-11-05) — its own header (title + count) rendered.
+    await waitUntil(() => customElements.get("maintenance-battery-fleet-section"), "the section loaded");
     await (section as MaintenanceBatteryFleetCard).updateComplete;
-    await new Promise((r) => setTimeout(r, 0));
-    expect(section!.shadowRoot!.querySelector(".bf-head")).to.exist;
+    await waitUntil(() => section!.shadowRoot?.querySelector(".bf-head"), "its header");
   });
 
   it("passes an optional title through to ha-card", async () => {

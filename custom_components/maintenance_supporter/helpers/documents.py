@@ -21,7 +21,7 @@ import logging
 import math
 import os
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Collection
 from pathlib import Path
 from typing import IO, TYPE_CHECKING, Any
 from uuid import uuid4
@@ -364,7 +364,11 @@ class DocumentStore:
 
     def for_object(self, object_id: str) -> list[dict[str, Any]]:
         """All documents attached to an object, newest first."""
-        docs = [{"id": did, **d} for did, d in self.documents.items() if d.get("object_id") == object_id]
+        return self.for_objects({object_id})
+
+    def for_objects(self, object_ids: Collection[str]) -> list[dict[str, Any]]:
+        """All documents attached to any of these objects, newest first."""
+        docs = [{"id": did, **d} for did, d in self.documents.items() if d.get("object_id") in object_ids]
         docs.sort(key=lambda d: d.get("added_at", ""), reverse=True)
         return docs
 

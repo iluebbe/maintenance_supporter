@@ -111,6 +111,10 @@ interface Overview {
   ask_cells?: boolean;
 }
 
+/** The "Add a battery" picker's selector, one object: a new one on every
+ *  draw made the picker set itself up again each time (perf 2026-11-05). */
+const ADD_BATTERY_SELECTOR = { entity: { domain: ["sensor", "binary_sensor"] } };
+
 export class MaintenanceBatteryFleetSection extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
 
@@ -774,7 +778,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
                   <span class="bf-label">${t("battery_fleet_add", L)}</span>
                   <ha-selector
                     .hass=${this.hass}
-                    .selector=${{ entity: { domain: ["sensor", "binary_sensor"] } }}
+                    .selector=${ADD_BATTERY_SELECTOR}
                     .value=${""}
                     @value-changed=${this._addBattery}
                   ></ha-selector>

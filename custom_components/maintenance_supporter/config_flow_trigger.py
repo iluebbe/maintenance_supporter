@@ -451,9 +451,13 @@ class TriggerConfigMixin:
         entity logic (2+ entities), the sensor schedule type and the optional
         safety interval + warning days."""
         _apply_recovery_flag(tc, user_input)
-        # D#229: only a single-shot state change holds until done (the
-        # rebuild carried the flag over whatever type the edit chose).
-        if tc.get("type") != TriggerType.STATE_CHANGE or tc.get(CONF_TRIGGER_TARGET_CHANGES, 1) != 1:
+        # D#229: a single-shot state change, a threshold and a date from a
+        # sensor hold until done (the rebuild carried the flag over whatever
+        # type the edit chose).
+        holds = tc.get("type") in (TriggerType.THRESHOLD, TriggerType.DUE_DATE) or (
+            tc.get("type") == TriggerType.STATE_CHANGE and tc.get(CONF_TRIGGER_TARGET_CHANGES, 1) == 1
+        )
+        if not holds:
             tc.pop("trigger_hold_until_done", None)
         _apply_combinator(tc, user_input)
         if len(tc.get("entity_ids", [])) > 1:

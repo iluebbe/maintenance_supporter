@@ -149,7 +149,9 @@ class ThresholdTrigger(BaseTrigger):
             self._exceeded_since_dt = None
             self._persist_soon(self._persist_exceeded_since)
             return
-        if self._threshold_exceeded:
+        # A task held until done (D#229) is still active: the value went back
+        # and over again, the same episode — no second activation.
+        if self._threshold_exceeded and not self._triggered:
             _LOGGER.debug(
                 "Threshold for-timer fired: %s (%d min)",
                 self.entity_id,

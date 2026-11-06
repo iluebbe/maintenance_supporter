@@ -47,6 +47,10 @@ import { fetchSettingsOnce } from "./helpers/settings-cache";
 import { openHistoryEditDialog, openTaskQuickActions } from "./dialog-mount";
 import { EDITABLE_HISTORY_TYPES } from "./status-constants";
 import { fetchTaskHistory } from "./helpers/task-history-fetch";
+import { fetchStatistics } from "./helpers/objects-fetch";
+import { firstObjects, watchObjects } from "./helpers/objects-hub";
+import { mergeSubscriptionEvent } from "./helpers/subscription-merge";
+import { StatesRedrawGate } from "./helpers/hass-changes";
 import type {
   HomeAssistant,
   MaintenanceObjectResponse,
@@ -73,6 +77,11 @@ interface CalendarCardConfig {
 
 export class MaintenanceCalendarCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
+  /** The objects (and statistics) of a host that has them already, the
+   *  panel's Calendar tab: the card then neither loads nor subscribes; it
+   *  fetched 1.2 MB on every visit to the tab (perf 2026-11-05). */
+  @property({ attribute: false }) public objects?: MaintenanceObjectResponse[];
+  @property({ attribute: false }) public stats?: StatisticsResponse | null;
   @state() private _config: CalendarCardConfig = {
     type: "custom:maintenance-supporter-calendar-card",
   };
@@ -84,7 +93,6 @@ export class MaintenanceCalendarCard extends LitElement {
   @state() private _objectFilter = "";
   // 2+ configured object_filter values — restricts the card to this set.
   private _configuredObjects: string[] = [];
-  @state() private _unsub: (() => void) | null = null;
   /** Past mode: full histories of the tasks whose list payload (last 20
    *  entries) may not reach back over the whole window. */
   @state() private _pastHistory: Record<string, HistoryEntryShape[]> = {};
@@ -93,6 +101,9 @@ export class MaintenanceCalendarCard extends LitElement {
 
   private _dataLoaded = false;
   private _lastConnection: unknown = null;
+  /** The card draws no entity state: a change of only `states` redraws
+   *  at most once a second, as in the panel. */
+  private readonly _statesGate = new StatesRedrawGate(this);
 
   static getConfigElement() {
     return document.createElement("maintenance-supporter-calendar-card-editor");
@@ -165,14 +176,25 @@ export class MaintenanceCalendarCard extends LitElement {
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
-    this._subGen++;
     window.removeEventListener("history-entry-saved", this._onHistorySaved);
-    if (this._unsub) {
-      try { this._unsub(); } catch { /* ignore */ }
-      this._unsub = null;
-    }
+    this._release?.();
+    this._release = null;
     this._dataLoaded = false;
     this._lastConnection = null;
+  }
+
+  protected shouldUpdate(changedProps: Map<string, unknown>): boolean {
+    return !this._statesGate.hold(changedProps);
+  }
+
+  willUpdate(changedProps: Map<string, unknown>): void {
+    super.willUpdate(changedProps);
+    this._statesGate.release(changedProps);
+    if (changedProps.has("objects") && this.objects) this._objects = this.objects;
+    if (changedProps.has("stats") && this.stats) {
+      this._stats = this.stats;
+      syncCurrencyDecimals(this.stats.budget);
+    }
   }
 
   updated(changedProps: Map<string, unknown>): void {
@@ -181,7 +203,7 @@ export class MaintenanceCalendarCard extends LitElement {
     if (this.hass && this._pastDays > 0 && (changedProps.has("_objects") || changedProps.has("_pastDays"))) {
       void this._loadPastHistories();
     }
-    if (changedProps.has("hass") && this.hass) {
+    if (changedProps.has("hass") && this.hass && this.objects === undefined) {
       if (!this._dataLoaded) {
         this._dataLoaded = true;
         this._lastConnection = this.hass.connection;
@@ -189,10 +211,6 @@ export class MaintenanceCalendarCard extends LitElement {
         this._subscribe();
       } else if (this.hass.connection !== this._lastConnection) {
         this._lastConnection = this.hass.connection;
-        if (this._unsub) {
-          try { this._unsub(); } catch { /* ignore */ }
-          this._unsub = null;
-        }
         this._subscribe();
         this._loadData();
       }
@@ -202,15 +220,13 @@ export class MaintenanceCalendarCard extends LitElement {
   private async _loadData(): Promise<void> {
     try {
       const [objResult, statsResult] = await Promise.all([
-        this.hass.connection.sendMessagePromise({
-          type: "maintenance_supporter/objects",
-        }),
-        this.hass.connection.sendMessagePromise({
-          type: "maintenance_supporter/statistics",
-        }),
+        // What the page has: the subscription's list, or the strategy's
+        // (another card's) answers.
+        firstObjects(this.hass),
+        fetchStatistics(this.hass, { first: true }),
       ]);
-      this._objects = (objResult as { objects: MaintenanceObjectResponse[] }).objects;
-      this._stats = statsResult as StatisticsResponse;
+      this._objects = objResult;
+      this._stats = statsResult;
       syncCurrencyDecimals(this._stats.budget);
     } catch {
       // WS not available yet
@@ -239,30 +255,20 @@ export class MaintenanceCalendarCard extends LitElement {
     this._pastHistory = Object.fromEntries(results.filter((r): r is readonly [string, HistoryEntryShape[]] => r !== null));
   }
 
-  /** Each subscribe attempt's number: one still in flight when the element
-   *  was detached and attached again resolved next to the new one, and its
-   *  subscription was never released (bug audit 2026-10-16, FE-7). */
-  private _subGen = 0;
+  /** Releases this card's watch of the page's objects subscription. */
+  private _release: (() => void) | null = null;
 
-  private async _subscribe(): Promise<void> {
-    const gen = ++this._subGen;
-    try {
-      const unsub = await this.hass.connection.subscribeMessage(
-        (msg: unknown) => {
-          const data = msg as { objects: MaintenanceObjectResponse[] };
-          this._objects = data.objects;
-        },
-        { type: "maintenance_supporter/subscribe" },
-      );
-      // Detached mid-subscribe → drop the orphaned subscription.
-      if (!this.isConnected || gen !== this._subGen) {
-        unsub();
-        return;
-      }
-      this._unsub = unsub;
-    } catch {
-      // Subscription failed
-    }
+  /** Follow the page's one objects subscription (helpers/objects-hub): only
+   *  what changed arrives, empty keys stripped (the full payload on every
+   *  refresh was 13 MB in 10 minutes on a home of 36 objects, perf
+   *  2026-11-06). The hub owns it, so a card detached while it is still
+   *  being set up leaves nothing behind (bug audit 2026-10-16, FE-7). */
+  private _subscribe(): void {
+    this._release?.();
+    this._release = watchObjects(this.hass.connection, (event) => {
+      const next = mergeSubscriptionEvent(this._objects, event);
+      if (next !== null) this._objects = next;
+    });
   }
 
   private _onEventClick(ev: CalendarEvent): void {

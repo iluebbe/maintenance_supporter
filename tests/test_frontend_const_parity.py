@@ -472,16 +472,17 @@ def test_settings_view_keys_subset_of_allowed() -> None:
 
 
 def test_panel_chunks_public_path_matches_const() -> None:
-    """esbuild's publicPath and PANEL_CHUNKS_URL must stay in sync (DRY audit
-    2026-08).
+    """esbuild's publicPath and PANEL_CHUNKS_URL / CARD_CHUNKS_URL must stay
+    in sync (DRY audit 2026-08; the cards since perf 2026-11-05).
 
-    The panel entry imports its code-split chunks by ABSOLUTE URL: esbuild
-    rewrites the specifiers to ``<publicPath>/<chunkNames dir>/...`` while the
-    backend mounts the static dir at ``PANEL_CHUNKS_URL``. The build config
-    and the constant live in different files with only a comment tying them
-    together — drift means every dialog chunk 404s in production.
+    The panel entry and the two card entries import their code-split chunks
+    by ABSOLUTE URL: esbuild rewrites the specifiers to ``<publicPath>/
+    <chunkNames dir>/...`` while the backend mounts the static dir at the
+    constant. The build config and the constants live in different files with
+    only a comment tying them together — drift means every dialog chunk
+    404s in production.
     """
-    from custom_components.maintenance_supporter.const import PANEL_CHUNKS_URL
+    from custom_components.maintenance_supporter.const import CARD_CHUNKS_URL, PANEL_CHUNKS_URL
 
     esbuild = (
         Path(__file__).parent.parent
@@ -491,14 +492,9 @@ def test_panel_chunks_public_path_matches_const() -> None:
         / "esbuild.mjs"
     ).read_text(encoding="utf-8")
 
-    public_path = re.search(r'publicPath:\s*"([^"]+)"', esbuild)
-    chunk_names = re.search(r'chunkNames:\s*"([^"]+)/\[name\]-\[hash\]"', esbuild)
-    assert public_path, "publicPath missing from esbuild.mjs panel build"
-    assert chunk_names, "chunkNames missing from esbuild.mjs panel build"
-    expected = f"{public_path.group(1)}/{chunk_names.group(1)}"
-    assert expected == PANEL_CHUNKS_URL, (
-        f"PANEL_CHUNKS_URL ({PANEL_CHUNKS_URL}) != esbuild publicPath+chunk dir ({expected})"
-    )
+    pairs = re.findall(r'chunkNames:\s*"([^"]+)/\[name\]-\[hash\]",\s*publicPath:\s*"([^"]+)"', esbuild)
+    assert len(pairs) == 2, f"two absolute-url builds expected (panel, cards), found {pairs}"
+    assert {f"{public}/{chunks}" for chunks, public in pairs} == {PANEL_CHUNKS_URL, CARD_CHUNKS_URL}
 
 
 def test_ts_trigger_picker_domains_match_config_flow() -> None:

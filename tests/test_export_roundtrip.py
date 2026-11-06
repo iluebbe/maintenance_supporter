@@ -171,8 +171,11 @@ def _full_trigger_config() -> dict:
         _TRIGGER_ALLOWED_KEYS,
     )
 
+    # A counter: every key is kept whatever the type, and on a counter the
+    # hold and the auto-complete below do not exclude each other (on a
+    # threshold the validator refuses the pair, D#229 follow-up).
     dummies: dict = {
-        "type": "threshold",
+        "type": "counter",
         "entity_id": "sensor.probe",
         "entity_ids": ["sensor.probe"],
         "entity_logic": "any",

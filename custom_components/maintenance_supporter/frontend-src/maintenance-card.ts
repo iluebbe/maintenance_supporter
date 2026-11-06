@@ -1,11 +1,17 @@
 /** Maintenance Supporter Lovelace Card. */
 
 import { LitElement, html, css, nothing } from "lit";
-import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
-import { hydrateObjects } from "./helpers/hydrate-objects";
+import { StatesRedrawGate } from "./helpers/hass-changes";
+import { fetchObjects, fetchStatistics } from "./helpers/objects-fetch";
+import { firstObjects, liveObjects, watchObjects } from "./helpers/objects-hub";
+import { mergeSubscriptionEvent } from "./helpers/subscription-merge";
 import { taskIsFor, taskUserIds } from "./helpers/assignees";
 import { quickComplete, quickCompleteOn } from "./helpers/quick-complete";
+import { completesItself } from "./helpers/completes-itself";
 import { property, state } from "lit/decorators.js";
+import {
+  mdiCalendarClock, mdiCheck, mdiCheckboxBlankCircleOutline, mdiFileDocumentOutline, mdiLinkVariant, mdiPlaylistPlus, mdiPlusBox,
+} from "@mdi/js";
 import { syncLocaleFromHass, sharedStyles, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, langOf, currencySymbolOf, syncCurrencyDecimals} from "./styles";
 import { openSignedDocument } from "./helpers/document-url";
 import { isPhotoDocument } from "./helpers/document-categories";
@@ -32,8 +38,6 @@ import { canWrite } from "./helpers/permissions";
 import { statusColor } from "./renderers/status";
 import { renderLastDone } from "./renderers/progress";
 import { ACTIONABLE_STATUSES, isActionableStatus, isInertTask, statusRank } from "./status-constants";
-import "./maintenance-card-editor";
-import "./components/complete-dialog";
 import type { MaintenanceCompleteDialog, TaskCompletedDetail } from "./components/complete-dialog";
 import { offerUndoToast } from "./helpers/undo-completion";
 // The Battery Fleet card ships in this globally-loaded bundle so it is
@@ -52,6 +56,13 @@ interface CardDoc {
   url?: string | null;
 }
 
+/** A document as `documents/list` sends it, as far as the card reads it. */
+interface CardDocument extends CardDoc {
+  object_id?: string;
+  task_ids?: string[];
+  tags?: string[];
+}
+
 /** Document chips on one task row before the rest is counted ("+N"). */
 const MAX_ROW_CHIPS = 2;
 
@@ -63,6 +74,20 @@ interface FlatTask {
 
 export class MaintenanceSupporterCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
+  /** A change of only `states` redraws at most once a second, as in the
+   *  panel (helpers/hass-changes): each card redrew on every state change
+   *  in the home, 15 to 27 times in 10 s on one (perf 2026-11-05). */
+  private readonly _statesGate = new StatesRedrawGate(this);
+
+  protected shouldUpdate(changedProps: Map<string, unknown>): boolean {
+    return !this._statesGate.hold(changedProps);
+  }
+
+  willUpdate(changedProps: Map<string, unknown>): void {
+    super.willUpdate(changedProps);
+    this._statesGate.release(changedProps);
+  }
+
   @state() private _config: CardConfig = { type: "custom:maintenance-supporter-card" };
   /** #145: global "Task row actions" style, resolved once from the settings cache. */
   @state() private _globalRowStyle = "buttons_compact";
@@ -75,7 +100,6 @@ export class MaintenanceSupporterCard extends LitElement {
   @state() private _firstLoadDone = false;
   @state() private _objects: MaintenanceObjectResponse[] = [];
   @state() private _stats: StatisticsResponse | null = null;
-  @state() private _unsub: (() => void) | null = null;
   @state() private _viewFilters: SavedViewFilters | null = null;
   /** id → display name for the assignee badge. Empty until users/list
    *  resolves; the badge stays hidden rather than showing a raw uuid. */
@@ -92,7 +116,10 @@ export class MaintenanceSupporterCard extends LitElement {
     return langOf(this.hass);
   }
 
-  static getConfigElement() {
+  /** Home Assistant awaits the editor; it loads only when a card is edited
+   *  (this bundle loads on every page, perf 2026-11-05). */
+  static async getConfigElement(): Promise<HTMLElement> {
+    await import("./maintenance-card-editor");
     return document.createElement("maintenance-supporter-card-editor");
   }
 
@@ -133,11 +160,8 @@ export class MaintenanceSupporterCard extends LitElement {
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
-    this._subGen++;
-    if (this._unsub) {
-      this._unsub();
-      this._unsub = null;
-    }
+    this._release?.();
+    this._release = null;
     this._dataLoaded = false;
     this._lastConnection = null;
   }
@@ -158,15 +182,7 @@ export class MaintenanceSupporterCard extends LitElement {
     ) {
       this._loadUserNames();
     }
-    // Documents: same shape of guard — fetch per object, once, and only for
-    // objects that actually have a document attached to one of their tasks.
-    if (this.hass && this._config.show_documents !== false) {
-      for (const obj of this._objects) {
-        if (this._docsLoadedFor.has(obj.entry_id)) continue;
-        if (!obj.tasks.some((tk) => (tk.document_count ?? 0) > 0)) continue;
-        this._loadDocuments(obj.entry_id);
-      }
-    }
+    this._loadMissingDocuments();
     if (changedProps.has("hass") && this.hass) {
       if (!this._dataLoaded) {
         this._dataLoaded = true;
@@ -175,10 +191,6 @@ export class MaintenanceSupporterCard extends LitElement {
         this._subscribe();
       } else if (this.hass.connection !== this._lastConnection) {
         this._lastConnection = this.hass.connection;
-        if (this._unsub) {
-          try { this._unsub(); } catch { /* ignore */ }
-          this._unsub = null;
-        }
         this._subscribe();
         this._loadData();
       }
@@ -196,14 +208,25 @@ export class MaintenanceSupporterCard extends LitElement {
     // the first list paint is already scoped — the rows used to flash
     // unfiltered until the view round-trip finished.
     const viewScope = this._loadViewFilters();
+    const first = !this._firstLoadDone;
+    // The names for the assignee badges go out with the first requests, not
+    // a round trip after the rows (cheap; skipped when the badge is off).
+    if (first && this.hass && this._config.show_assignee !== false && !this._userNamesLoaded) {
+      void this._loadUserNames();
+    }
     try {
       const [objResult, statsResult] = await Promise.all([
-        this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/objects", compact: true }),
-        this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/statistics" }),
+        // The first load takes what the page has: the subscription's list,
+        // or the strategy's (another card's) answers.
+        first ? firstObjects(this.hass) : fetchObjects(this.hass),
+        fetchStatistics(this.hass, { first }),
       ]);
       await viewScope;
-      this._objects = hydrateObjects((objResult as { objects: MaintenanceObjectResponse[] }).objects);
-      this._stats = statsResult as StatisticsResponse;
+      // What the subscription brought while the view's scope loaded is newer.
+      this._objects = (first && liveObjects(this.hass.connection)) || objResult;
+      // Before the rows are drawn, not after (updated() would ask then).
+      this._loadMissingDocuments();
+      this._stats = statsResult;
       syncCurrencyDecimals(this._stats.budget);
     } catch {
       // WS not available yet
@@ -246,31 +269,56 @@ export class MaintenanceSupporterCard extends LitElement {
     }
   }
 
-  /** Fetch one object's documents and index them by task.
+  /** Documents: same shape of guard as the names — once per object, and only
+   *  for objects that actually have a document attached to one of their
+   *  tasks; all of them in one request (one per object was 28 on every
+   *  mount on one home, perf 2026-11-05). */
+  private _loadMissingDocuments(): void {
+    if (!this.hass || this._config.show_documents === false) return;
+    const missing = this._objects.filter(
+      (obj) => !this._docsLoadedFor.has(obj.entry_id) && obj.tasks.some((tk) => (tk.document_count ?? 0) > 0),
+    );
+    if (missing.length) void this._loadDocuments(missing);
+  }
+
+  /** Fetch these objects' documents in one request and index them by
+   *  object and task.
    *
    *  `documents/list` is READ tier, like `users/list` — the household members
-   *  this card is for may call it. A failure leaves the row without chips
-   *  rather than breaking the card. */
-  private async _loadDocuments(entryId: string): Promise<void> {
-    this._docsLoadedFor.add(entryId);
-    try {
-      const res = (await this.hass.connection.sendMessagePromise({
-        type: "maintenance_supporter/documents/list",
-        entry_id: entryId,
-      })) as { documents: Array<CardDoc & { task_ids?: string[]; tags?: string[] }> };
-      const byTask: Record<string, CardDoc[]> = {};
-      for (const doc of res.documents || []) {
-        // Completion photos are linked to their task too; a row of
-        // "photo-2026…" chips is no way to the manual.
-        if (isPhotoDocument(doc)) continue;
-        for (const taskId of doc.task_ids || []) {
-          (byTask[taskId] ||= []).push({ id: doc.id, title: doc.title, kind: doc.kind, url: doc.url });
-        }
+   *  this card is for may call it. A server from before `entry_ids` (updated,
+   *  not yet restarted) is asked once per object, as before. A failure leaves
+   *  the rows without chips rather than breaking the card. */
+  private async _loadDocuments(objects: MaintenanceObjectResponse[]): Promise<void> {
+    for (const obj of objects) this._docsLoadedFor.add(obj.entry_id);
+    const ask = (params: Record<string, unknown>) =>
+      this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/documents/list", ...params }) as Promise<{ documents: CardDocument[] }>;
+    const next: Record<string, Record<string, CardDoc[]>> = { ...this._taskDocs };
+    for (const obj of objects) next[obj.entry_id] = {};
+    const file = (entryId: string, doc: CardDocument) => {
+      // Completion photos are linked to their task too; a row of
+      // "photo-2026…" chips is no way to the manual.
+      if (isPhotoDocument(doc)) return;
+      for (const taskId of doc.task_ids || []) {
+        (next[entryId][taskId] ||= []).push({ id: doc.id, title: doc.title, kind: doc.kind, url: doc.url });
       }
-      this._taskDocs = { ...this._taskDocs, [entryId]: byTask };
+    };
+    try {
+      const res = await ask({ entry_ids: objects.map((o) => o.entry_id) });
+      const entryOf = new Map(objects.map((o) => [o.object.id, o.entry_id]));
+      for (const doc of res.documents || []) {
+        const entryId = entryOf.get(doc.object_id ?? "");
+        if (entryId) file(entryId, doc);
+      }
     } catch {
-      // no chips for this object; the card is unaffected otherwise
+      await Promise.all(objects.map(async (obj) => {
+        try {
+          for (const doc of (await ask({ entry_id: obj.entry_id })).documents || []) file(obj.entry_id, doc);
+        } catch {
+          // no chips for this object; the card is unaffected otherwise
+        }
+      }));
     }
+    this._taskDocs = next;
   }
 
   /** Chips to render on a row: linked documents plus the task's own manual
@@ -300,7 +348,7 @@ export class MaintenanceSupporterCard extends LitElement {
           title="${doc.title}"
           @click=${(e: Event) => { e.stopPropagation(); void this._openDoc(doc); }}
         >
-          <ha-icon icon=${doc.kind === "weblink" ? "mdi:link-variant" : "mdi:file-document-outline"}></ha-icon>
+          <ha-svg-icon .path=${doc.kind === "weblink" ? mdiLinkVariant : mdiFileDocumentOutline}></ha-svg-icon>
           <span>${doc.title}</span>
         </button>
       `)}
@@ -346,35 +394,18 @@ export class MaintenanceSupporterCard extends LitElement {
     }
   }
 
-  /** Each subscribe attempt's number: one still in flight when the element
-   *  was detached and attached again resolved next to the new one, and its
-   *  subscription was never released (bug audit 2026-10-16, FE-7). */
-  private _subGen = 0;
+  /** Releases this card's watch of the page's objects subscription. */
+  private _release: (() => void) | null = null;
 
-  private async _subscribe(): Promise<void> {
-    const gen = ++this._subGen;
-    try {
-      const unsub = await this.hass.connection.subscribeMessage(
-        (msg: unknown) => {
-          const next = applySubscriptionEvent(
-            this._objects,
-            msg as SubscriptionEvent<MaintenanceObjectResponse>,
-          );
-          if (next !== null) this._objects = next;
-        },
-        // deltas: only changed entries arrive — see helpers/subscription-merge.
-        // compact: empty keys stripped server-side, hydrated above.
-        { type: "maintenance_supporter/subscribe", deltas: true, compact: true }
-      );
-      // Detached mid-subscribe → drop the orphaned subscription.
-      if (!this.isConnected || gen !== this._subGen) {
-        unsub();
-        return;
-      }
-      this._unsub = unsub;
-    } catch {
-      // Subscription failed
-    }
+  /** Follow the page's one objects subscription (helpers/objects-hub); the
+   *  hub owns it, so a card detached while it is still being set up leaves
+   *  nothing behind (bug audit 2026-10-16, FE-7). */
+  private _subscribe(): void {
+    this._release?.();
+    this._release = watchObjects(this.hass.connection, (event) => {
+      const next = mergeSubscriptionEvent(this._objects, event);
+      if (next !== null) this._objects = next;
+    });
   }
 
   /** Every task the card's filters (and saved view) select, sorted — the
@@ -482,22 +513,28 @@ export class MaintenanceSupporterCard extends LitElement {
       void this._quickComplete(entryId, task);
       return;
     }
-    const dlg = this.shadowRoot!.querySelector<MaintenanceCompleteDialog>("maintenance-complete-dialog")!;
-    fillAndOpenCompleteDialog(
-      dlg,
-      buildCompleteDialogArgs({
-        entryId,
-        taskId: task.id,
-        taskName: task.name,
-        task,
-        objects: this._objects,
-        lang: this._lang,
-        features: this._settings.features,
-        currencySymbol: currencySymbolOf(this._stats?.budget),
-        partsCostMode: this._settings.partsCostMode,
-      }),
-      this._lang,
-    );
+    const open = () => {
+      const dlg = this.shadowRoot!.querySelector<MaintenanceCompleteDialog>("maintenance-complete-dialog")!;
+      fillAndOpenCompleteDialog(
+        dlg,
+        buildCompleteDialogArgs({
+          entryId,
+          taskId: task.id,
+          taskName: task.name,
+          task,
+          objects: this._objects,
+          lang: this._lang,
+          features: this._settings.features,
+          currencySymbol: currencySymbolOf(this._stats?.budget),
+          partsCostMode: this._settings.partsCostMode,
+        }),
+        this._lang,
+      );
+    };
+    // The dialog loads on the first Complete (it upgrades the element the
+    // card already drew); another bundle may have defined it before.
+    if (customElements.get("maintenance-complete-dialog")) open();
+    else void import("./components/complete-dialog").then(open);
   }
 
   /** #233: one tap, then Home Assistant's toast with Undo (the card has no
@@ -577,20 +614,10 @@ export class MaintenanceSupporterCard extends LitElement {
               : nothing}
             ${showCreate
               ? html`
-                  <ha-icon-button
-                    class="hdr-add"
-                    title="${t("new_object", L)}"
-                    @click=${() => openCreateObjectDialog()}
-                  >
-                    <ha-icon icon="mdi:plus-box"></ha-icon>
-                  </ha-icon-button>
-                  <ha-icon-button
-                    class="hdr-add"
-                    title="${t("add_task", L)}"
-                    @click=${() => openCreateTaskDialog("", this._objects)}
-                  >
-                    <ha-icon icon="mdi:playlist-plus"></ha-icon>
-                  </ha-icon-button>
+                  <button type="button" class="row-icon-btn hdr-add" title="${t("new_object", L)}" aria-label=${t("new_object", L)}
+                    @click=${() => openCreateObjectDialog()}><ha-svg-icon .path=${mdiPlusBox}></ha-svg-icon></button>
+                  <button type="button" class="row-icon-btn hdr-add" title="${t("add_task", L)}" aria-label=${t("add_task", L)}
+                    @click=${() => openCreateTaskDialog("", this._objects)}><ha-svg-icon .path=${mdiPlaylistPlus}></ha-svg-icon></button>
                 `
               : nothing}
           </div>
@@ -622,11 +649,11 @@ export class MaintenanceSupporterCard extends LitElement {
                             ? html`<span class="compact-assignee" title="${this._assigneeName(task)}">${this._assigneeAvatars(task)}</span>`
                             : nothing}${task.name}${renderEventTitles(task.next_event_titles)}${renderTriggerDetail(task.trigger_detail)}
                           ${(task as any).due_override
-                            ? html`<ha-icon
+                            ? html`<ha-svg-icon
                                 class="postponed-icon"
-                                icon="mdi:calendar-clock"
+                                .path=${mdiCalendarClock}
                                 title="${t("postponed", L)}"
-                              ></ha-icon>`
+                              ></ha-svg-icon>`
                             : nothing}
                         </div>
                         ${!compact
@@ -651,6 +678,8 @@ export class MaintenanceSupporterCard extends LitElement {
                       </div>
                       ${showActions && isInertTask(task)
                         ? html`<span class="inert-label">${t(task.enabled === false ? "disabled" : "paused", L)}</span>`
+                        : showActions && completesItself(task)
+                        ? html`<span class="inert-label" title=${t("completes_itself_help", L)}>${t("completes_itself", L)}</span>`
                         : showActions && useButtons
                         ? html`
                             <ha-button
@@ -664,23 +693,26 @@ export class MaintenanceSupporterCard extends LitElement {
                                 this._openComplete(entry_id, task);
                               }}
                             >
-                              <ha-icon slot="start" icon="mdi:check"></ha-icon>${t("complete", L)}
+                              <ha-svg-icon slot="start" .path=${mdiCheck}></ha-svg-icon>${t("complete", L)}
                             </ha-button>
                           `
                         : showActions
                         ? html`
-                            <ha-icon-button
-                              class="complete-btn${quickCompleteOn(task) ? " quick" : ""}"
+                            <!-- A plain button drawn like an ha-icon-button, which is
+                                 far too heavy to create per row (perf 2026-11-05: a card
+                                 of 163 tasks made 165 of them and 616 ha-icon). -->
+                            <button
+                              type="button"
+                              class="row-icon-btn complete-btn${quickCompleteOn(task) ? " quick" : ""}"
                               title="${quickCompleteOn(task) ? t("qr_action_quick_complete", L) : t("complete", L)}"
+                              aria-label=${quickCompleteOn(task) ? t("qr_action_quick_complete", L) : t("complete", L)}
                               @click=${(e: Event) => {
                                 // Stop the row's open-task handler from also firing
                                 e.stopPropagation();
                                 this._openComplete(entry_id, task);
                               }}
-                            >
-                              <!-- #233: an open circle to tick off; a check read as done already -->
-                              <ha-icon icon=${quickCompleteOn(task) ? "mdi:checkbox-blank-circle-outline" : "mdi:check"}></ha-icon>
-                            </ha-icon-button>
+                            ><!-- #233: an open circle to tick off; a check read as done already --><ha-svg-icon
+                              .path=${quickCompleteOn(task) ? mdiCheckboxBlankCircleOutline : mdiCheck}></ha-svg-icon></button>
                           `
                         : nothing}
                     </div>
@@ -714,7 +746,6 @@ export class MaintenanceSupporterCard extends LitElement {
       .hdr-add {
         display: inline-flex;
         --ha-icon-button-size: 32px;
-        --mdc-icon-button-size: 32px;
         --mdc-icon-size: 20px;
         color: var(--primary-color);
       }
@@ -790,11 +821,6 @@ export class MaintenanceSupporterCard extends LitElement {
         vertical-align: middle;
       }
       .assignee .person-avatar, .compact-assignee .person-avatar { width: 16px; height: 16px; font-size: 8.5px; }
-      .assignee ha-icon, .compact-assignee ha-icon {
-        --mdc-icon-size: 13px;
-        width: 13px;
-        height: 13px;
-      }
       /* #234: compact rows have no meta line — the person sits before the
          task as their avatar (the name in the tooltip), so a row stays one
          line. */
@@ -804,7 +830,6 @@ export class MaintenanceSupporterCard extends LitElement {
       /* #234: Complete sized to a compact row */
       .task-list.compact .complete-btn {
         --ha-icon-button-size: 28px;
-        --mdc-icon-button-size: 28px;
       }
       .task-list.compact .complete-btn-text {
         --ha-button-height: 28px;
@@ -842,7 +867,7 @@ export class MaintenanceSupporterCard extends LitElement {
       }
       .doc-chip span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
       .doc-chip:hover { color: var(--primary-color); border-color: var(--primary-color); }
-      .doc-chip ha-icon { --mdc-icon-size: 12px; width: 12px; height: 12px; flex: none; }
+      .doc-chip ha-svg-icon { --mdc-icon-size: 12px; width: 12px; height: 12px; flex: none; }
       .doc-more { flex: none; }
       /* Narrow (a phone, a dashboard column): the chips get a line of their
          own under the task. Beside it, three of them left the task's name
@@ -867,13 +892,12 @@ export class MaintenanceSupporterCard extends LitElement {
       .complete-btn {
         display: inline-flex;
         --ha-icon-button-size: 32px;
-        --mdc-icon-button-size: 32px;
         --mdc-icon-size: 18px;
         color: var(--primary-color);
       }
       /* DESIGN PROTOTYPE (#145): action_style: buttons — HA-native labelled button. */
       .complete-btn-text { --ha-button-font-size: 13px; flex: none; white-space: nowrap; }
-      .complete-btn-text ha-icon { --mdc-icon-size: 18px; }
+      .complete-btn-text ha-svg-icon { --mdc-icon-size: 18px; }
       /* In the button's place on a task nothing may be done to (paused, off). */
       .inert-label { font-size: 12px; color: var(--secondary-text-color); white-space: nowrap; flex: none; }
     `,

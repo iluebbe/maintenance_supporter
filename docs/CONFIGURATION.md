@@ -455,7 +455,8 @@ Triggers are configured per task when `schedule_type` is `sensor_based` or when 
 | `attribute` | string | `""` | Monitor a specific attribute instead of the entity state |
 | `type` | enum | *(required)* | Trigger type: `threshold`, `counter`, `state_change`, `runtime`, `compound` |
 | `entity_logic` | enum | `any` | Multi-entity aggregation: `any` (one entity suffices) or `all` (all must match). A sensor without a reading (unavailable, removed) decides nothing: `any` fires as soon as one sensor reaches, `all` ends as soon as one reports not reaching, and otherwise the trigger stays as it is until the sensor reads again |
-| `auto_complete_on_recovery` (#53) | bool | `false` | Opt-in per trigger: when the sensor recovers on its own — salt refilled, filter swapped, water level back up — the recovery **is** the maintenance, so a real completion is recorded (`last_performed` and the time-between-services statistics stay honest) instead of the trigger just clearing. Ticked in the task dialog's trigger section. Only the automatic evaluation path records it; a manual Complete / Skip resets the trigger without double-recording |
+| `auto_complete_on_recovery` (#53) | bool | `false` | Opt-in per trigger: when the sensor recovers on its own — salt refilled, filter swapped, water level back up — the recovery **is** the maintenance, so a real completion is recorded (`last_performed` and the time-between-services statistics stay honest) instead of the trigger just clearing. Ticked in the task dialog's trigger section. Only the automatic evaluation path records it; a manual Complete / Skip resets the trigger without double-recording. While such a trigger is active, the rows of the panel and the card show *Completes itself* instead of Complete and Skip (2.120+, D#250); the task's page and menu still complete it by hand |
+| `trigger_hold_until_done` (D#229) | bool | `false` | The other way out of a trigger that ends by itself: the task stays triggered until it is completed, skipped or reset, whatever the reading does meanwhile. On a single-shot state change (2.110+, see below), a threshold and a due date (2.120+): a waste drawer that reads lower again by measurement error, a frost forecast that turns milder. Survives restarts; *When … → Keep the task triggered until it is done* in the task dialog. Excludes `auto_complete_on_recovery`; ignored on a counter and a runtime, which only a completion resets, and dropped inside a compound |
 | `detail_attribute` (2.109+, #228) | string | *(none)* | An attribute of the watched entity (any entity of a multi-entity or compound trigger) whose value says what the trigger is about, e.g. the `low` list of a medication sensor. While the trigger is active it follows the task's name in the panel and the card, ends the triggered reminder (a bundle line too), is the item's description in the integration's to-do list and the `trigger_detail` field of the notification event. Lists read as `a, b`, a mapping as `key: value`, capped at 200 characters; several entities with the attribute are each named. *Show with the task* in the task dialog's trigger section; kept by the options-flow trigger edit, which has no field for it |
 | `trigger_combinator` (2.59+) | enum | `any` | How the trigger pairs with the task's safety interval. `any`: whichever is met first makes the task due (the historical behaviour). `all`: the task only becomes due once the trigger fired **and** the interval elapsed — the interval acts as a minimum age instead of a deadline (e.g. "replace the filter when the sensor says so, but never more often than every 3 months"). Selectable in the task dialog and both config flows whenever a safety interval is set |
 
@@ -481,6 +482,12 @@ Activates when a sensor value crosses above or below a limit — or matches
 | `trigger_equals` | float | *(none)* | — | Trigger when value equals this level exactly |
 | `trigger_not_equals` | float | *(none)* | — | Trigger when value differs from this level |
 | `trigger_for_minutes` | int | 0 | 0–1440 | Minutes the condition must hold before triggering (debounce). 0 = immediate |
+
+Back in range, the trigger ends by itself: the task goes back to OK, or with
+*Auto-complete when the sensor recovers* records the completion. *When the
+value is back in range → Keep the task triggered until it is done*
+(`trigger_hold_until_done`, 2.120+) keeps it instead, for a reading that can
+go back before the job is done.
 
 At least one of `trigger_above`, `trigger_below`, `trigger_equals` or
 `trigger_not_equals` must be set. **Several limits in one trigger are
@@ -541,7 +548,7 @@ turns `on` when new firmware is available (2.103.4+).
 | `trigger_from_state` | string | `""` | Source state to count transitions from (empty = any state) |
 | `trigger_to_state` | string | `""` | Target state to count transitions to (empty = any state) |
 | `trigger_target_changes` | int | *(required)* | Number of transitions before triggering |
-| `trigger_hold_until_done` (2.110+, D#229) | bool | `false` | With `trigger_target_changes: 1` and a From- or To-state: the latch does **not** recover when the entity leaves its alert state; the task stays triggered until it is completed, skipped or reset. Excludes `auto_complete_on_recovery`; ignored on every other trigger |
+| `trigger_hold_until_done` (2.110+, D#229) | bool | `false` | With `trigger_target_changes: 1` and a From- or To-state: the latch does **not** recover when the entity leaves its alert state; the task stays triggered until it is completed, skipped or reset. Excludes `auto_complete_on_recovery`; holds a threshold and a due date too (2.120+, [shared fields](#shared-trigger-fields)) |
 
 With `trigger_target_changes: 1` the trigger is a **latch**: it activates on
 the first matching transition and recovers by itself when the entity leaves
@@ -580,7 +587,7 @@ For a sensor (or an attribute) that reports **when** the maintenance is due — 
 |-----------|------|---------|-------------|
 | `trigger_days_before` | int | `0` | 0–365: the task becomes due this many days before the reported date (0 = on the date itself) |
 
-The trigger arms a timer for the moment the date comes within `trigger_days_before`, so it fires on time without the sensor changing. It clears when the device reports a later date — typically after its own "done" button, which the task can press as its completion action; with `auto_complete_on_recovery` that recovery records the completion. An unreadable state (`unknown`, not a date) keeps the trigger as it was.
+The trigger arms a timer for the moment the date comes within `trigger_days_before`, so it fires on time without the sensor changing. It clears when the device reports a later date — typically after its own "done" button, which the task can press as its completion action; with `auto_complete_on_recovery` that recovery records the completion, and with `trigger_hold_until_done` (2.120+) a later date keeps the task until it is completed. An unreadable state (`unknown`, not a date) keeps the trigger as it was.
 
 ### Compound Trigger
 

@@ -132,6 +132,12 @@ class BaseTrigger(ABC):
         # that runs after every restart and every entry reload (each task
         # edit reloads). See _evaluate_and_update.
         self._evaluated_once = False
+        # D#229 follow-up: a verdict that is a level of the reading (a value
+        # over its limit, a date within reach) can be held until the task is
+        # done — a waste drawer that reads lower again, a frost forecast
+        # that turns milder. Back in range then ends nothing; a completion
+        # (reset) does. The state-change latch holds its own way.
+        self._holds_until_done = self.holds_level and bool(trigger_config.get("trigger_hold_until_done"))
         self._current_value: float | None = None
         self._unsub_listener: CALLBACK_TYPE | None = None
         # One timer per purpose (a retry and a subclass's for/hold window can
@@ -322,9 +328,14 @@ class BaseTrigger(ABC):
     def _evaluate_and_update(self, value: float) -> None:
         """Evaluate trigger condition and update state if changed."""
         was_triggered = self._triggered
-        is_triggered = self.evaluate(value)
-        self._triggered = is_triggered
         initial = not self._evaluated_once
+        is_triggered = self.evaluate(value)
+        if not is_triggered and self._holds_until_done and (was_triggered or (initial and self._already_announced())):
+            # Held until done: back in range is no recovery. After a restart
+            # or a reload the activation on record is held the same way (and
+            # only repainted, below).
+            is_triggered = True
+        self._triggered = is_triggered
         self._evaluated_once = True
         if initial and self._in_completion_cooldown():
             # A fresh instance (reload / restart) inside the post-completion

@@ -61,6 +61,10 @@ LIVE_FIELDS = frozenset(
         "required_completion_fields",
         "nfc_tag_id",
         "require_tag_scan",
+        # Read when a completion consumes them (parts_runtime), never wired
+        # by the setup. The dialog sends the list on every save, so a task
+        # that never stored one reloaded its object on its first save.
+        "consumes_parts",
     }
 )
 #: A changed sensor rule: rebuilt on the task's sensor.

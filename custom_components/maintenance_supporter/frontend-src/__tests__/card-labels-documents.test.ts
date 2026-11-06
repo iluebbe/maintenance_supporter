@@ -31,8 +31,8 @@ const OBJECTS = [
 ];
 
 const DOCUMENTS = [
-  { id: "d1", title: "Mower manual", kind: "file", task_ids: ["t1"] },
-  { id: "d2", title: "Unrelated receipt", kind: "file", task_ids: [] },
+  { id: "d1", title: "Mower manual", kind: "file", task_ids: ["t1"], object_id: "e1" },
+  { id: "d2", title: "Unrelated receipt", kind: "file", task_ids: [], object_id: "e1" },
 ];
 
 function mockHass(calls: string[]) {
@@ -120,5 +120,56 @@ describe("maintenance-card document chips", () => {
     await el.updateComplete;
     expect(chips(el)).to.have.lengthOf(0);
     expect(calls).to.not.contain("maintenance_supporter/documents/list");
+  });
+});
+
+describe("maintenance-card document chips across objects", () => {
+  const TWO = [
+    { entry_id: "e1", object: { id: "o1", name: "Garden shed" }, tasks: [T("t1", "Sharpen blades", { document_count: 1 })] },
+    { entry_id: "e2", object: { id: "o2", name: "Boiler" }, tasks: [T("t2", "Bleed the radiators", { document_count: 1 })] },
+    { entry_id: "e3", object: { id: "o3", name: "Car" }, tasks: [T("t3", "Check tyres")] },
+  ];
+  const DOCS: Record<string, Array<Record<string, unknown>>> = {
+    e1: [{ id: "d1", title: "Mower manual", kind: "file", task_ids: ["t1"], object_id: "o1" }],
+    e2: [{ id: "d2", title: "Boiler manual", kind: "file", task_ids: ["t2"], object_id: "o2" }],
+  };
+
+  async function mountTwo(acceptsEntryIds: boolean) {
+    const asked: Array<Record<string, unknown>> = [];
+    const el = await fixture<MaintenanceSupporterCard>(html`<maintenance-supporter-card></maintenance-supporter-card>`);
+    el.setConfig({ type: "custom:maintenance-supporter-card", show_actions: false } as never);
+    el.hass = {
+      language: "en",
+      user: { id: "u1", name: "Tester", is_admin: true, is_owner: true },
+      connection: {
+        sendMessagePromise: async (msg: Record<string, unknown>) => {
+          if (msg.type === "maintenance_supporter/objects") return { objects: TWO };
+          if (msg.type === "maintenance_supporter/documents/list") {
+            asked.push(msg);
+            if (msg.entry_ids) {
+              if (!acceptsEntryIds) throw { code: "invalid_format", message: "extra keys not allowed" };
+              return { documents: (msg.entry_ids as string[]).flatMap((id) => DOCS[id] || []) };
+            }
+            return { documents: DOCS[msg.entry_id as string] || [] };
+          }
+          return { overdue: 0, due_soon: 0, triggered: 0, ok: 0, total: 0 };
+        },
+        subscribeMessage: async () => () => {},
+      },
+    } as never;
+    await waitUntil(() => chips(el).length >= 2, "chips on both objects", { timeout: 2000 });
+    return { el, asked };
+  }
+
+  it("asks once for every object that has documents (perf 2026-11-05: once per object)", async () => {
+    const { el, asked } = await mountTwo(true);
+    expect(asked).to.deep.equal([{ type: "maintenance_supporter/documents/list", entry_ids: ["e1", "e2"] }]);
+    expect(chips(el).sort()).to.deep.equal(["Boiler manual", "Mower manual"]);
+  });
+
+  it("a server from before entry_ids is asked once per object", async () => {
+    const { el, asked } = await mountTwo(false);
+    expect(asked.map((m) => m.entry_id ?? "batch")).to.deep.equal(["batch", "e1", "e2"]);
+    expect(chips(el).sort()).to.deep.equal(["Boiler manual", "Mower manual"]);
   });
 });

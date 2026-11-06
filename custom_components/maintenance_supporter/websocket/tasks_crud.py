@@ -93,6 +93,7 @@ from ..helpers.ws_errors import send_translated_error, send_unsafe_url_error
 from ..models.shapes import HistoryEntry
 from ..parts_runtime import disable_buy_reminder
 from . import (
+    COMPACT_KEEPS_EMPTY,
     ID_FIELD,
     _load_object_entry,
     _load_object_task,
@@ -101,6 +102,11 @@ from . import (
 from .tasks_validation import _validate_trigger_config
 
 _ENTITY_SLUG_RE = re.compile(r"[a-z0-9_]+")
+
+
+def _blank(value: Any) -> bool:
+    """None, [] or {}: a field that says nothing (the trace's "—")."""
+    return value is None or value == [] or value == {}
 
 
 def _validate_entity_slug(connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> bool:
@@ -909,7 +915,10 @@ async def ws_update_task(
     before, after = normalize_task_storage(stored_task), normalize_task_storage(task)
     normalize_people(before)
     edited = {k for k in {*after, *before} if not k.startswith("_") and after.get(k) != before.get(k)}
-    changed = sorted(edited)[:20]
+    # The dialog sends every list on every save: a task's first save turned
+    # "no labels" into [] and read as "Labels: — → —". Nothing to nothing is
+    # no change worth telling (an empty Quick complete still is one).
+    changed = sorted(k for k in edited if k in COMPACT_KEEPS_EMPTY or not (_blank(before.get(k)) and _blank(after.get(k))))[:20]
     if changed:
         record_trace(hass, entry.entry_id, task_id, KIND_EDITED, fields=changed, changes=changed_values(before, after, changed))
 

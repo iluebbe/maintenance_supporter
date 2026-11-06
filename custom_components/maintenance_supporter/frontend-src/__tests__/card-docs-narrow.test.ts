@@ -32,13 +32,13 @@ const OBJECTS = [
   },
 ];
 
-const photo = (id: string) => ({ id, title: `photo-20260712-08${id.slice(-2)}.jpg`, kind: "file", tags: ["photo"], task_ids: ["t1"] });
+const photo = (id: string) => ({ id, title: `photo-20260712-08${id.slice(-2)}.jpg`, kind: "file", tags: ["photo"], task_ids: ["t1"], object_id: "e1" });
 const DOCUMENTS = [
   photo("p01"), photo("p02"), photo("p03"),
-  { id: "d1", title: "Robot vacuum S6 MaxV manual.pdf", kind: "file", tags: ["manual"], task_ids: ["t3"] },
-  { id: "d2", title: "Print bed cleaning guide.pdf", kind: "file", tags: ["manual"], task_ids: ["t4"] },
-  { id: "d3", title: "Spare parts list.pdf", kind: "file", tags: ["spare_parts"], task_ids: ["t4"] },
-  { id: "d4", title: "Warranty card.pdf", kind: "file", tags: ["warranty"], task_ids: ["t4"] },
+  { id: "d1", title: "Robot vacuum S6 MaxV manual.pdf", kind: "file", tags: ["manual"], task_ids: ["t3"], object_id: "e1" },
+  { id: "d2", title: "Print bed cleaning guide.pdf", kind: "file", tags: ["manual"], task_ids: ["t4"], object_id: "e1" },
+  { id: "d3", title: "Spare parts list.pdf", kind: "file", tags: ["spare_parts"], task_ids: ["t4"], object_id: "e1" },
+  { id: "d4", title: "Warranty card.pdf", kind: "file", tags: ["warranty"], task_ids: ["t4"], object_id: "e1" },
 ];
 
 function mockHass() {

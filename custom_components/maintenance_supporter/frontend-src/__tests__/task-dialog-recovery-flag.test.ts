@@ -68,20 +68,26 @@ describe("task-dialog auto-complete-on-recovery (#53)", () => {
     expect("auto_complete_on_recovery" in msg.trigger_config).to.be.false;
   });
 
-  it("renders the checkbox in the sensor trigger section", async () => {
+  it("offers it in the sensor trigger section: a choice where the trigger ends by itself, else a checkbox", async () => {
     const { el } = await mountDialog();
     await el.openCreate("e");
     (el as any)._scheduleType = "sensor_based";
     (el as any)._triggerEntityId = "sensor.salt";
     (el as any)._triggerEntityIds = ["sensor.salt"];
     await el.updateComplete;
-    const checkboxes = [...el.shadowRoot!.querySelectorAll('input[type="checkbox"]')];
-    // delta-mode checkbox only shows for counter type; the recovery checkbox
-    // shows for every sensor trigger type.
-    expect(checkboxes.length).to.be.greaterThan(0);
+    // A new trigger is a threshold, which ends by itself: recording the task
+    // as done is one of the three ways out (D#229 follow-up).
+    const done = el.shadowRoot!.querySelector<HTMLInputElement>('.trigger-end input[type="radio"][value="done"]');
+    expect(!!done, "the record-as-done choice").to.equal(true);
+    expect(done!.closest("label")!.textContent).to.contain("Record the task as done");
+
+    // A counter only ends with a completion: the checkbox, as before.
+    (el as any)._triggerType = "counter";
+    await el.updateComplete;
     const label = [...el.shadowRoot!.querySelectorAll("label")].find((l) =>
       /auto-complete|recover/i.test(l.textContent || ""),
     );
-    expect(label, "recovery checkbox label present").to.exist;
+    expect(!!label, "recovery checkbox label present").to.equal(true);
+    expect(!!el.shadowRoot!.querySelector(".trigger-end")).to.equal(false);
   });
 });

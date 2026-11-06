@@ -34,6 +34,7 @@ import { ACTIONABLE_STATUSES, STATUS_ICONS } from "./status-constants";
 import { ensureLocale, langOf, t } from "./helpers/locale-core";
 import { loadHistoryEntryDraft } from "./helpers/history-draft";
 import { escapeHtml } from "./helpers/html-escape";
+import { fetchObjects, fetchStatistics } from "./helpers/objects-fetch";
 
 interface MaintenanceObjectResp {
   entry_id: string;
@@ -648,12 +649,19 @@ export class MaintenanceDashboardStrategy extends HTMLElement {
       };
     }
 
-    await useLanguage(hass);
-    let response: { objects: MaintenanceObjectResp[] };
+    // The language, the objects and the counts load at once: one after the
+    // other they kept the dashboard waiting 0.3 to 1 s longer (perf
+    // 2026-11-06). Compact and shared: the cards on the views take these
+    // answers for their first load instead of asking again
+    // (helpers/objects-fetch). Handled here, awaited below.
+    const language = useLanguage(hass);
+    const objectsLoad = fetchObjects(hass, { first: true });
+    objectsLoad.catch(() => undefined);
+    const statsLoad = fetchStatistics(hass, { first: true }).catch(() => null);
+    await language;
+    let objects: MaintenanceObjectResp[];
     try {
-      response = await hass.connection.sendMessagePromise<{
-        objects: MaintenanceObjectResp[];
-      }>({ type: "maintenance_supporter/objects" });
+      objects = (await objectsLoad) as unknown as MaintenanceObjectResp[];
     } catch {
       return {
         title: s("maintenance"),
@@ -665,8 +673,6 @@ export class MaintenanceDashboardStrategy extends HTMLElement {
         ],
       };
     }
-
-    const objects = response.objects || [];
 
     // Onboarding short-circuit. With zero objects the area / status / floor /
     // due_date branches all produce just the Overview view (which shows
@@ -696,12 +702,8 @@ export class MaintenanceDashboardStrategy extends HTMLElement {
     // deleted), so they never read "unknown".
     let summaryIds: SummaryEntityIds = {};
     let counts: SummaryCounts = {};
-    try {
-      const stats = await hass.connection.sendMessagePromise<
-        { summary_entity_ids?: SummaryEntityIds } & SummaryCounts
-      >({
-        type: "maintenance_supporter/statistics",
-      });
+    const stats = (await statsLoad) as ({ summary_entity_ids?: SummaryEntityIds } & SummaryCounts) | null;
+    if (stats) {
       summaryIds = stats.summary_entity_ids || {};
       counts = {
         overdue: stats.overdue,
@@ -709,7 +711,7 @@ export class MaintenanceDashboardStrategy extends HTMLElement {
         due_soon: stats.due_soon,
         ok: stats.ok,
       };
-    } catch { /* fall back to the documented default ids */ }
+    } // else fall back to the documented default ids
 
     return {
       title: s("maintenance"),

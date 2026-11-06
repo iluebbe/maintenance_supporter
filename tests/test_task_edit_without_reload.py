@@ -18,9 +18,10 @@ from homeassistant.const import EVENT_STATE_CHANGED
 from homeassistant.core import Event, HomeAssistant, callback
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.maintenance_supporter.const import CONF_TASKS, MaintenanceStatus
+from custom_components.maintenance_supporter.const import CONF_PARTS, CONF_TASKS, MaintenanceStatus
 from custom_components.maintenance_supporter.helpers.task_apply import async_apply_task_edits, edited_fields, needs_reload
 from custom_components.maintenance_supporter.helpers.task_persist import async_update_task_simple
+from custom_components.maintenance_supporter.helpers.task_trace import get_trace
 from custom_components.maintenance_supporter.websocket.tasks import ws_update_task
 
 from .conftest import (
@@ -119,6 +120,49 @@ async def test_a_new_sensor_rule_rebuilds_the_trigger_without_a_reload(hass: Hom
     assert _published(obj).status == MaintenanceStatus.TRIGGERED
 
 
+#: What the task dialog sends on every save besides the edit (task-dialog
+#: _savePayload): each list, and null for each rule it does not set.
+DIALOG_EXTRAS: dict[str, Any] = {
+    "labels": [],
+    "consumes_parts": [],
+    "required_completion_fields": [],
+    "assignee_pool": [],
+    "readings": [],
+    "mirror_todo_entities": [],
+    "phases": None,
+    "phase_sequence": None,
+    "rotation_strategy": None,
+    "nfc_tag_id": None,
+    "complete_when": None,
+    "trigger_config": None,
+}
+
+
+async def test_the_first_save_from_the_dialog_is_a_refresh(hass: HomeAssistant) -> None:
+    """Found live (2026-11-06): 133 of 163 tasks on one home had never stored
+    consumes_parts. The dialog sends [] on every save, so the first save of
+    each still reloaded its object and froze that home for 13 s."""
+    task = build_task_data(interval_days=30)
+    assert "consumes_parts" not in task and "labels" not in task
+    obj = await _setup(hass, task)
+    reloads, buttons = await _update(hass, obj, notes="Descale with citric acid", **DIALOG_EXTRAS)
+    assert (reloads, buttons) == ([], [])
+    assert _published(obj).task["notes"] == "Descale with citric acid"
+    # The trace tells the edit, not the lists that went from nothing to [].
+    events = [e for e in get_trace(hass).events(obj.entry_id, TASK_ID_1) if e["kind"] == "edited"]
+    assert events and events[-1]["fields"] == ["notes"]
+
+
+async def test_new_part_links_need_no_reload(hass: HomeAssistant) -> None:
+    obj = make_object_entry(
+        hass, tasks={TASK_ID_1: build_task_data(interval_days=30)}, extra_data={CONF_PARTS: {"filter": {"id": "filter", "name": "Filter"}}}
+    )
+    await setup_integration(hass, make_global_entry(hass), obj)
+    reloads, buttons = await _update(hass, obj, consumes_parts=[{"part_id": "filter", "quantity": 2}])
+    assert (reloads, buttons) == ([], [])
+    assert obj.data[CONF_TASKS][TASK_ID_1]["consumes_parts"] == [{"part_id": "filter", "quantity": 2}]
+
+
 async def test_a_save_without_a_change_reloads_nothing(hass: HomeAssistant) -> None:
     obj = await _setup(hass, build_task_data(interval_days=30))
     reloads, buttons = await _update(hass, obj, interval_days=30)
@@ -149,7 +193,8 @@ async def test_a_rule_without_a_running_sensor_falls_back_to_the_reload(hass: Ho
 def test_which_edits_need_the_object_set_up_again() -> None:
     assert not needs_reload({"schedule", "notes", "warning_days", "responsible_user_id", "priority"})
     assert not needs_reload({"trigger_config"}), "rebuilt on the task's sensor"
-    for field in ("name", "entity_slug", "enabled", "complete_when", "mirror_todo_entities", "consumes_parts", "phases"):
+    assert not needs_reload({"consumes_parts"}), "a completion reads the links, the setup wires none"
+    for field in ("name", "entity_slug", "enabled", "complete_when", "mirror_todo_entities", "phases"):
         assert needs_reload({field}), field
     # Compared as stored: a flat interval is the nested schedule, runtime keys are no edit.
     before = build_task_data(interval_days=30)

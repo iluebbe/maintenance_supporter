@@ -24,15 +24,14 @@
  *
  * Each dialog is created once and re-used. Closing the dialog (via its own
  * Cancel/Save buttons) unsets ``_open`` internally; we never destroy it.
+ *
+ * The dialogs load when one is first opened (LOADERS): the card and the
+ * calendar card bundles, which Home Assistant loads on every page, used to
+ * evaluate all seven up front, ~100 ms of a phone's page load before
+ * anything was clicked (perf 2026-11-05). The element is created and given
+ * `hass` at once; what opens it runs when its class is defined.
  */
 
-import "./components/object-dialog";
-import "./components/task-dialog";
-import "./components/complete-dialog";
-import "./components/history-edit-dialog";
-import "./components/qr-dialog";
-import "./components/task-quick-actions-dialog";
-import "./components/object-quick-actions-dialog";
 import type { MaintenanceObjectDialog } from "./components/object-dialog";
 import type { MaintenanceTaskDialog } from "./components/task-dialog";
 import type {
@@ -56,6 +55,32 @@ const COMPLETE_DIALOG_TAG = "maintenance-complete-dialog";
 const QR_DIALOG_TAG = "maintenance-qr-dialog";
 const QUICK_ACTIONS_DIALOG_TAG = "maintenance-task-quick-actions-dialog";
 const OBJECT_QUICK_ACTIONS_DIALOG_TAG = "maintenance-object-quick-actions-dialog";
+
+/** Each dialog's module, imported on its first open. */
+const LOADERS: Record<string, () => Promise<unknown>> = {
+  [OBJECT_DIALOG_TAG]: () => import("./components/object-dialog"),
+  [TASK_DIALOG_TAG]: () => import("./components/task-dialog"),
+  [COMPLETE_DIALOG_TAG]: () => import("./components/complete-dialog"),
+  [HISTORY_EDIT_DIALOG_TAG]: () => import("./components/history-edit-dialog"),
+  [QR_DIALOG_TAG]: () => import("./components/qr-dialog"),
+  [QUICK_ACTIONS_DIALOG_TAG]: () => import("./components/task-quick-actions-dialog"),
+  [OBJECT_QUICK_ACTIONS_DIALOG_TAG]: () => import("./components/object-quick-actions-dialog"),
+};
+
+/** Run `use` once `tag` is defined: at once when it is (custom elements are
+ *  first-wins, so another bundle may have defined it), else when its module
+ *  has loaded, which upgrades the element already mounted. A failed load
+ *  leaves the dialog closed. */
+function whenDefined(tag: string, use: () => void): void {
+  if (customElements.get(tag)) {
+    use();
+    return;
+  }
+  LOADERS[tag]().then(use, (err: unknown) => {
+    // eslint-disable-next-line no-console
+    console.warn(`maintenance_supporter: ${tag} did not load`, err);
+  });
+}
 
 interface HassRoot extends HTMLElement {
   hass?: HomeAssistant;
@@ -128,9 +153,10 @@ export function __resetSettingsCacheForTests(): void {
 export function openCreateObjectDialog(): boolean {
   const dlg = getOrCreate<MaintenanceObjectDialog>(OBJECT_DIALOG_TAG);
   if (!syncHass(dlg)) return false;
-  // openCreate is defined on MaintenanceObjectDialog
-  dlg.openCreate();
-  void applyObjectDialogSettings(dlg);
+  whenDefined(OBJECT_DIALOG_TAG, () => {
+    dlg.openCreate();
+    void applyObjectDialogSettings(dlg);
+  });
   return true;
 }
 
@@ -149,8 +175,10 @@ export function openEditObjectDialog(
 ): boolean {
   const dlg = getOrCreate<MaintenanceObjectDialog>(OBJECT_DIALOG_TAG);
   if (!syncHass(dlg)) return false;
-  dlg.openEdit(entryId, obj);
-  void applyObjectDialogSettings(dlg);
+  whenDefined(OBJECT_DIALOG_TAG, () => {
+    dlg.openEdit(entryId, obj);
+    void applyObjectDialogSettings(dlg);
+  });
   return true;
 }
 
@@ -170,12 +198,14 @@ export function openCreateTaskDialog(
         objects?: Array<{ entry_id: string; object: { name: string } }>,
       ) => void;
     };
-    applyTaskDialogSettings(dlgFull, settings);
     // openCreate NEEDS a target: a bare call left _entryId undefined and
     // _objectChoices empty — no object picker, and save failed on the
     // backend's required entry_id (bug audit 2026-08-22). Callers pass the
     // entry (quick-actions) or their object list (card header button).
-    dlgFull.openCreate(entryId, objects);
+    whenDefined(TASK_DIALOG_TAG, () => {
+      applyTaskDialogSettings(dlgFull, settings);
+      dlgFull.openCreate(entryId, objects);
+    });
   })();
   return true;
 }
@@ -240,8 +270,10 @@ export function openEditTaskDialog(
       const dlgFull = dlg as MaintenanceTaskDialog & {
         openEdit: (entryId: string, task: unknown) => Promise<void>;
       };
-      applyTaskDialogSettings(dlgFull, settings);
-      await dlgFull.openEdit(entryId, fullTask);
+      whenDefined(TASK_DIALOG_TAG, () => {
+        applyTaskDialogSettings(dlgFull, settings);
+        void dlgFull.openEdit(entryId, fullTask);
+      });
     } catch (e) {
       // eslint-disable-next-line no-console
       console.warn("openEditTaskDialog: failed to load task/features", e);
@@ -257,7 +289,7 @@ export function openEditTaskDialog(
 export function openHistoryEditDialog(draft: HistoryEntryDraft): boolean {
   const dlg = getOrCreate<MaintenanceHistoryEditDialog>(HISTORY_EDIT_DIALOG_TAG);
   if (!syncHass(dlg)) return false;
-  dlg.openEdit(draft);
+  whenDefined(HISTORY_EDIT_DIALOG_TAG, () => dlg.openEdit(draft));
   return true;
 }
 
@@ -283,7 +315,7 @@ export function openCompleteDialog(args: CompleteDialogArgs): boolean {
       if (detail?.undo && hass) offerUndoToast(dlg, hass, detail, langOf(hass), () => undefined);
     });
   }
-  fillAndOpenCompleteDialog(dlg, args, langOf(getHass()));
+  whenDefined(COMPLETE_DIALOG_TAG, () => fillAndOpenCompleteDialog(dlg, args, langOf(getHass())));
   return true;
 }
 
@@ -296,7 +328,7 @@ export function openQrDialog(args: {
 }): boolean {
   const dlg = getOrCreate<MaintenanceQrDialog>(QR_DIALOG_TAG);
   if (!syncHass(dlg)) return false;
-  dlg.openForTask(args.entry_id, args.task_id, args.object_name, args.task_name);
+  whenDefined(QR_DIALOG_TAG, () => dlg.openForTask(args.entry_id, args.task_id, args.object_name, args.task_name));
   return true;
 }
 
@@ -307,7 +339,7 @@ export function openTaskQuickActions(entryId: string, taskId: string): boolean {
     QUICK_ACTIONS_DIALOG_TAG,
   );
   if (!syncHass(dlg)) return false;
-  void dlg.openFor(entryId, taskId);
+  whenDefined(QUICK_ACTIONS_DIALOG_TAG, () => void dlg.openFor(entryId, taskId));
   return true;
 }
 
@@ -317,6 +349,6 @@ export function openObjectQuickActions(entryId: string): boolean {
     OBJECT_QUICK_ACTIONS_DIALOG_TAG,
   );
   if (!syncHass(dlg)) return false;
-  void dlg.openFor(entryId);
+  whenDefined(OBJECT_QUICK_ACTIONS_DIALOG_TAG, () => void dlg.openFor(entryId));
   return true;
 }

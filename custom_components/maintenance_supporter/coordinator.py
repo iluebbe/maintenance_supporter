@@ -797,6 +797,16 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
             # again (live installation 2026-10-04).
             return
         if result.active is not None:
+            if (
+                task._trigger_active
+                and not result.active
+                and trigger_type in ("threshold", "due_date")
+                and task.trigger_config.get("trigger_hold_until_done")
+            ):
+                # D#229: held until the task is done. The reading back in
+                # range ends nothing here either, nor does it close the
+                # episode on record (a reload re-latches from it).
+                return
             if task._trigger_active and not result.active:
                 # A recovery only this sweep saw still ends the episode.
                 self.note_trigger_cleared(task_id)

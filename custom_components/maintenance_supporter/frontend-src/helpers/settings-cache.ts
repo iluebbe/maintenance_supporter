@@ -140,11 +140,21 @@ function slot(): CacheSlot {
   return (w.__msSettingsCache ??= { promise: null });
 }
 
+/** `lite`: without what only the Settings page shows (the notify targets,
+ *  the Battery Notes hint, the battery lifetime table), each a scan of the
+ *  whole home the server ran for every card on every dashboard (perf
+ *  2026-11-06); `parseSettings` reads none of it. A server from before
+ *  `lite` (updated, not yet restarted) is asked the old way. */
 export function fetchSettingsOnce(hass: HomeAssistant): Promise<SettingsCache> {
   const s = slot();
   if (s.promise) return s.promise;
-  const p: Promise<SettingsCache> = hass.connection
-    .sendMessagePromise<SettingsWire>({ type: "maintenance_supporter/settings" })
+  const ask = (msg: Record<string, unknown>) => hass.connection.sendMessagePromise<SettingsWire>(msg);
+  const p: Promise<SettingsCache> = ask({ type: "maintenance_supporter/settings", lite: true })
+    .catch((err: unknown) => {
+      // The old server rejects the unknown key; anything else is a failure.
+      if ((err as { code?: string } | null)?.code === "invalid_format") return ask({ type: "maintenance_supporter/settings" });
+      throw err;
+    })
     .then((r) => {
       const parsed = parseSettings(r);
       // Cards and the dialogs mounted on dashboards read the beta UI here.

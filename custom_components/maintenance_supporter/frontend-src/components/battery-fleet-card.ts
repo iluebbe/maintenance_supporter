@@ -9,10 +9,10 @@
  */
 
 import { LitElement, html, css, nothing } from "lit";
+import { StatesRedrawGate } from "../helpers/hass-changes";
 import { property, state } from "lit/decorators.js";
 import { registerCustomCard } from "../helpers/register-card";
 import type { HomeAssistant } from "../types";
-import "./battery-fleet-section";
 
 interface BatteryFleetCardConfig {
   type: string;
@@ -21,6 +21,20 @@ interface BatteryFleetCardConfig {
 
 export class MaintenanceBatteryFleetCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
+  /** A change of only `states` redraws at most once a second, as in the
+   *  panel (helpers/hass-changes): each card redrew on every state change
+   *  in the home, 15 to 27 times in 10 s on one (perf 2026-11-05). */
+  private readonly _statesGate = new StatesRedrawGate(this);
+
+  protected shouldUpdate(changedProps: Map<string, unknown>): boolean {
+    return !this._statesGate.hold(changedProps);
+  }
+
+  willUpdate(changedProps: Map<string, unknown>): void {
+    super.willUpdate(changedProps);
+    this._statesGate.release(changedProps);
+  }
+
   @state() private _config: BatteryFleetCardConfig = { type: "custom:maintenance-battery-fleet-card" };
 
   static getStubConfig(): BatteryFleetCardConfig {
@@ -29,6 +43,14 @@ export class MaintenanceBatteryFleetCard extends LitElement {
 
   setConfig(config: BatteryFleetCardConfig): void {
     this._config = config;
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    // The section is a sixth of the card bundle, which Home Assistant loads
+    // on every page: it loads when a fleet card is first shown and upgrades
+    // the element drawn below (perf 2026-11-05).
+    void import("./battery-fleet-section");
   }
 
   getCardSize(): number {

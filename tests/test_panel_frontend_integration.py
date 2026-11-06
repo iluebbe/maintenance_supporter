@@ -99,6 +99,39 @@ async def test_card_static_path_points_to_real_file(
     assert card_path.endswith(".js")
 
 
+async def test_every_card_chunk_is_served(hass: HomeAssistant) -> None:
+    """The cards are code-split since perf 2026-11-05: each chunk the two card
+    entries name (the shared code up front, the dialogs on first use) must
+    exist under the directory CARD_CHUNKS_URL serves. A chunk left out of git
+    after a rebuild 404s for every user, and only on first use."""
+    import re
+
+    from custom_components.maintenance_supporter.const import CARD_CHUNKS_URL
+
+    entry = _make_global_entry(hass, panel_enabled=False)
+    await setup_integration(hass, entry)
+
+    served: str | None = None
+    for call in hass.http.async_register_static_paths.call_args_list:  # type: ignore[attr-defined]
+        for cfg in call[0][0]:
+            if cfg.url_path == CARD_CHUNKS_URL:
+                served = cfg.path
+    assert served is not None, "the card chunks are not served"
+
+    frontend = Path("custom_components") / "maintenance_supporter" / "frontend"
+    pattern = re.compile(re.escape(CARD_CHUNKS_URL) + r"/([\w.-]+\.js)")
+    seen: set[str] = set()
+    todo = [frontend / "maintenance-card.js", frontend / "maintenance-calendar-card.js"]
+    while todo:
+        for name in pattern.findall(todo.pop().read_text(encoding="utf-8")):
+            if name not in seen:
+                seen.add(name)
+                chunk = Path(served) / name
+                assert chunk.is_file(), f"{name} is imported but not served"
+                todo.append(chunk)
+    assert any(name.startswith("task-dialog-") for name in seen), "the dialogs are chunks of their own"
+
+
 async def test_strategy_shim_static_path_points_to_real_file(
     hass: HomeAssistant,
 ) -> None:

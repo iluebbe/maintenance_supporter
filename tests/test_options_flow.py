@@ -1685,6 +1685,40 @@ async def test_edit_trigger_counting_drops_hold(
     assert "trigger_hold_until_done" not in tc
 
 
+@pytest.mark.parametrize(("auto_complete", "held"), [(False, True), (True, False)])
+async def test_edit_threshold_trigger_keeps_hold_until_done(
+    hass: HomeAssistant,
+    global_config_entry: ConfigEntry,
+    object_config_entry: ConfigEntry,
+    auto_complete: bool,
+    held: bool,
+) -> None:
+    """D#229 follow-up: a threshold holds until done too. A re-save in the
+    options flow keeps the panel's choice; ticking auto-complete replaces it."""
+    hass.states.async_set("sensor.washer", "40")
+    result, task_id = await _navigate_to_task_action(hass, global_config_entry, object_config_entry)
+    new_data = dict(object_config_entry.data)
+    new_tasks = dict(new_data[CONF_TASKS])
+    stored = {"type": TriggerType.THRESHOLD, "entity_id": "sensor.washer", "entity_ids": ["sensor.washer"], CONF_TRIGGER_ABOVE: 80.0, "trigger_hold_until_done": True}
+    new_tasks[task_id] = {**new_tasks[task_id], "trigger_config": stored}
+    hass.config_entries.async_update_entry(object_config_entry, data={**new_data, CONF_TASKS: new_tasks})
+    await hass.async_block_till_done()
+
+    result, _ = await _navigate_to_task_action(hass, global_config_entry, object_config_entry, skip_setup=True)
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "edit_trigger"})
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {"next_step_id": "edit_trigger_proceed"})
+    result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={CONF_TRIGGER_ENTITY: ["sensor.washer"]})
+    result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={CONF_TRIGGER_ATTRIBUTE: "_state"})
+    result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={CONF_TRIGGER_TYPE: TriggerType.THRESHOLD})
+    assert result["step_id"] == "opt_trigger_threshold"
+    submit = {CONF_TRIGGER_ABOVE: 80.0, CONF_TASK_WARNING_DAYS: 7, **({"auto_complete_on_recovery": True} if auto_complete else {})}
+    result = await hass.config_entries.options.async_configure(result["flow_id"], user_input=submit)
+    assert result["step_id"] == "task_action"
+    tc = object_config_entry.data[CONF_TASKS][task_id]["trigger_config"]
+    assert ("trigger_hold_until_done" in tc) is held
+    assert ("auto_complete_on_recovery" in tc) is auto_complete
+
+
 async def test_edit_trigger_starts_from_the_task_and_keeps_the_unit(
     hass: HomeAssistant,
     global_config_entry: ConfigEntry,

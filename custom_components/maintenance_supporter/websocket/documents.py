@@ -70,7 +70,10 @@ def _get_store(hass: HomeAssistant) -> DocumentStore:
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "maintenance_supporter/documents/list",
-        vol.Required("entry_id"): ID_FIELD,
+        # One object, or several in one answer: the task card asked once per
+        # object, 28 requests on every mount on one home (perf 2026-11-05).
+        vol.Exclusive("entry_id", "objects"): ID_FIELD,
+        vol.Exclusive("entry_ids", "objects"): [ID_FIELD],
     }
 )
 @websocket_api.async_response
@@ -79,7 +82,16 @@ async def ws_documents_list(
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """List all documents attached to an object (newest first)."""
+    """List all documents attached to an object, or to each of several
+    objects (newest first). An id that names no object is left out."""
+    if "entry_ids" in msg:
+        wanted = set(msg["entry_ids"])
+        object_ids = {object_id_for_entry(e) for e in _get_object_entries(hass) if e.entry_id in wanted}
+        connection.send_result(msg["id"], {"documents": _get_store(hass).for_objects(object_ids)})
+        return
+    if "entry_id" not in msg:
+        connection.send_error(msg["id"], websocket_api.ERR_INVALID_FORMAT, "entry_id or entry_ids is required")
+        return
     entry = _load_object_entry(hass, connection, msg)
     if entry is None:
         return

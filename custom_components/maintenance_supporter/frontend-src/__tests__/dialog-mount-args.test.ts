@@ -17,6 +17,8 @@
  */
 
 import { expect, waitUntil } from "@open-wc/testing";
+// The dialog loaded, as after its first open (dialog-mount loads it then).
+import "../components/complete-dialog.js";
 import { openCompleteDialog, openCreateTaskDialog } from "../dialog-mount";
 import { DEFAULT_CURRENCY_SYMBOL } from "../styles";
 import type { MaintenanceCompleteDialog } from "../components/complete-dialog";
