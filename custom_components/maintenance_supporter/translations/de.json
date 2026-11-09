@@ -682,7 +682,8 @@
           "notify_scope_view_id": "Nur benachrichtigen für Ansicht",
           "weekly_digest_enabled": "Wöchentliche Zusammenfassung",
           "warranty_reminder_enabled": "Garantie-Ablauf-Erinnerung",
-          "warranty_reminder_days": "Tage vor Ablauf"
+          "warranty_reminder_days": "Tage vor Ablauf",
+          "notify_language": "Benachrichtigungssprache"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Wie oft die Erinnerung wiederholt werden soll. 0 = einmalige Benachrichtigung.",
@@ -700,7 +701,8 @@
           "reminder_lead_days": "Kommagetrennte Vorlaufzeiten, z. B. 14, 3, 0 — am jeweiligen Tag wird eine zusätzliche Erinnerung gesendet. Leer = aus.",
           "notify_scope_view_id": "Nur Aufgaben, die zu den Label-/Nutzer-Filtern der gewählten Ansicht passen, senden Erinnerungen. Status, Sortierung und Gruppierung der Ansicht werden hier ignoriert.",
           "weekly_digest_enabled": "Eine Zusammenfassungs-Benachrichtigung am Montagmorgen, wenn Aufgaben anstehen.",
-          "warranty_reminder_enabled": "Einmal benachrichtigen, wenn die Garantie eines Objekts so viele Tage vor Ablauf steht."
+          "warranty_reminder_enabled": "Einmal benachrichtigen, wenn die Garantie eines Objekts so viele Tage vor Ablauf steht.",
+          "notify_language": "Sprache für Titel, Texte und Aktionsschaltflächen der Benachrichtigungen. Leer = Systemsprache von Home Assistant. Das Panel folgt weiterhin der Profilsprache jedes Benutzers."
         }
       },
       "notification_actions": {

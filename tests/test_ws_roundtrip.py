@@ -753,6 +753,8 @@ _SETTING_SAMPLES: dict[str, Any] = {
     "notification_title_prefix": "Rental",
     # #173 follow-up: completion notifications (off | automatic | all).
     "notify_completed": "automatic",
+    # #251: notification language (a table key, stored without the region).
+    "notify_language": "pt-br",
     "action_complete_enabled": True,
     "action_skip_enabled": True,
     "action_snooze_enabled": True,
@@ -860,6 +862,7 @@ async def test_every_allowlisted_setting_round_trips(hass: HomeAssistant, global
         "notification_title_style": settings["notifications"]["title_style"],
         "notification_title_prefix": settings["notifications"]["title_prefix"],
         "notify_completed": settings["notifications"]["completed"],
+        "notify_language": settings["notifications"]["notify_language"],
         "reminder_lead_days": settings["notifications"]["reminder_lead_days"],
         "notify_scope_view_id": settings["notifications"]["scope_view_id"],
         "notify_event_only": settings["notifications"]["event_only"],

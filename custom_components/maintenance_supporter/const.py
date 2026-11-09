@@ -318,6 +318,38 @@ CONF_NOTIFICATION_TITLE_STYLE: Final = "notification_title_style"
 CONF_NOTIFICATION_TITLE_PREFIX: Final = "notification_title_prefix"
 MAX_NOTIFICATION_TITLE_PREFIX_LENGTH: Final = 40
 
+# #251: language for the notification texts (titles, messages and action
+# buttons). "" = follow the Home Assistant system language, as before.
+CONF_NOTIFY_LANGUAGE: Final = "notify_language"
+MAX_NOTIFY_LANGUAGE_LENGTH: Final = 8
+# The 22 languages the notification tables carry, with their native names.
+# The key set must match helper.notification_manager._NOTIFICATION_STRINGS;
+# tests/test_i18n.py pins the two together.
+NOTIFICATION_LANGUAGES: Final[dict[str, str]] = {
+    "cs": "Čeština",
+    "da": "Dansk",
+    "de": "Deutsch",
+    "en": "English",
+    "es": "Español",
+    "fi": "Suomi",
+    "fr": "Français",
+    "hi": "हिन्दी",
+    "hu": "Magyar",
+    "it": "Italiano",
+    "ja": "日本語",
+    "ko": "한국어",
+    "nb": "Norsk bokmål",
+    "nl": "Nederlands",
+    "pl": "Polski",
+    "pt": "Português",
+    "pt-br": "Português (Brasil)",
+    "ru": "Русский",
+    "sv": "Svenska",
+    "tr": "Türkçe",
+    "uk": "Українська",
+    "zh": "简体中文",
+}
+
 # v2.26: notification routing — id of a saved filter view; when set, only tasks
 # MATCHING that view's task-selecting filters (label + responsible user) send
 # reminders. "" = no scope (all tasks). See helpers/saved_views.view_matches_task.

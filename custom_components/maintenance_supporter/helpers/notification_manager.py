@@ -47,9 +47,9 @@ from ..models.maintenance_task import MaintenanceTask
 from .aggregate import priority_rank, task_results_of
 from .assignees import person_display_name, task_user_ids
 from .completion_requirements import quick_complete_values, unattended_missing_fields
-from .global_options import get_global_options, global_option
+from .global_options import get_global_options, get_notification_language, global_option
 from .history import cycle_token
-from .i18n import format_text, normalize_language
+from .i18n import format_text
 from .notification_gates import STATUS_ENABLED_KEYS, status_reminder_enabled, task_may_notify
 from .notification_ids import (
     DIGEST_TAG,
@@ -1269,7 +1269,7 @@ async def async_dispatch_notify(
         url = (service_data.get("data") or {}).get("url")
         msg = service_data.get("message", "")
         if url and "](" not in msg:
-            link_text = _notif_t("open_task_link", normalize_language(hass))
+            link_text = _notif_t("open_task_link", get_notification_language(hass))
             service_data = {**service_data, "message": f"{msg}\n\n[{link_text}]({url})"}
         # The reminder's tag as its id: a newer reminder about the same task
         # replaces the older one, as on a phone — every repeat added one
@@ -1484,8 +1484,12 @@ class NotificationManager:
 
     @property
     def _lang(self) -> str:
-        """Get the HA UI language as a 2-letter table key."""
-        return normalize_language(self.hass)
+        """The notification language as a table key (#251).
+
+        The explicit setting wins; otherwise this follows the Home Assistant
+        system language, as before.
+        """
+        return get_notification_language(self.hass)
 
     def _skip_allowed(self, entry_id: str, task_id: str) -> bool:
         """#150: a skip-locked task gets no "Skip" action button — the tap

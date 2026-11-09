@@ -682,7 +682,8 @@
           "notify_scope_view_id": "Underret kun for visning",
           "weekly_digest_enabled": "Ugentlig oversigt",
           "warranty_reminder_enabled": "Påmindelse om garantiudløb",
-          "warranty_reminder_days": "Dage før udløb"
+          "warranty_reminder_days": "Dage før udløb",
+          "notify_language": "Notifikationssprog"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Hvor ofte påmindelsen om forestående forfald skal gentages. Sæt til 0 for en enkelt notifikation.",
@@ -700,7 +701,8 @@
           "reminder_lead_days": "Kommaseparerede varsler, f.eks. 14, 3, 0 — der sendes en ekstra påmindelse på hver matchende dag. Tomt = fra.",
           "notify_scope_view_id": "Kun opgaver, der matcher den valgte visnings etiket-/brugerfiltre, sender påmindelser. Visningens status, sortering og gruppering ignoreres her.",
           "weekly_digest_enabled": "Én samlet notifikation mandag morgen, når opgaver forfalder.",
-          "warranty_reminder_enabled": "Giv besked én gang, når et objekts garanti udløber om så mange dage."
+          "warranty_reminder_enabled": "Giv besked én gang, når et objekts garanti udløber om så mange dage.",
+          "notify_language": "Sprog for notifikationernes titler, meddelelser og handlingsknapper. Tomt = Home Assistants systemsprog. Panelet følger stadig hver brugers profilsprog."
         }
       },
       "notification_actions": {

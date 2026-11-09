@@ -23,6 +23,7 @@ from ..const import (
     CONF_DEFAULT_CONSUMABLE_THRESHOLD,
     CONF_DEFAULT_WARNING_DAYS,
     CONF_GROUPS,
+    CONF_NOTIFY_LANGUAGE,
     CONF_PANEL_TITLE,
     DEFAULT_BATTERY_LOW_PERCENT,
     DEFAULT_CONSUMABLE_THRESHOLD,
@@ -30,10 +31,11 @@ from ..const import (
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     MAX_PANEL_TITLE_LENGTH,
+    NOTIFICATION_LANGUAGES,
     PANEL_TITLES,
     THRESHOLD_PERCENT_RANGE,
 )
-from .i18n import normalize_language
+from .i18n import normalize_language, normalize_language_code
 from .settings_registry import setting_default
 
 
@@ -71,6 +73,22 @@ def global_option(hass: HomeAssistant, key: str) -> Any:
     fallback is never hand-typed next to the key."""
     entry = get_global_entry(hass)
     return entry_option(entry, key) if entry is not None else setting_default(key)
+
+
+def get_notification_language(hass: HomeAssistant) -> str:
+    """#251: the language of notification titles, messages and action buttons.
+
+    The explicit ``notify_language`` setting wins. An empty or unknown value
+    follows the Home Assistant system language, as the integration always did.
+    The panel keeps each user's profile language; this setting is server-side
+    only.
+    """
+    raw = global_option(hass, CONF_NOTIFY_LANGUAGE)
+    if isinstance(raw, str) and raw:
+        code = normalize_language_code(raw)
+        if code in NOTIFICATION_LANGUAGES:
+            return code
+    return normalize_language(hass)
 
 
 def is_schedule_time_enabled(hass: HomeAssistant) -> bool:

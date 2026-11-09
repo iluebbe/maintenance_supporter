@@ -23,6 +23,7 @@ from ..const import (
     CONF_NOTIFICATION_TITLE_PREFIX,
     CONF_NOTIFICATION_TITLE_STYLE,
     CONF_NOTIFY_COMPLETED,
+    CONF_NOTIFY_LANGUAGE,
     CONF_NOTIFY_SERVICE,
     CONF_OBJECTS_TABLE_COLUMNS,
     CONF_PANEL_TITLE,
@@ -40,6 +41,7 @@ from ..const import (
     MAX_NOTIFICATION_TITLE_PREFIX_LENGTH,
     MAX_PANEL_TITLE_LENGTH,
     MAX_REMINDER_LEADS,
+    NOTIFICATION_LANGUAGES,
     NOTIFICATION_TITLE_STYLES,
     NOTIFY_COMPLETED_MODES,
     PARTS_COST_MODES,
@@ -47,6 +49,7 @@ from ..const import (
     TIME_HHMMSS_PATTERN,
 )
 from .battery_lifetime import sanitize_lifetime_overrides
+from .i18n import normalize_language_code
 from .member_display import sanitize_member_display
 from .notify_targets import validate_notify_service
 from .parts import valid_search_template
@@ -157,6 +160,18 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
         filtered[CONF_NOTIFY_COMPLETED] = "off"
     if CONF_NOTIFICATION_TITLE_STYLE in filtered and filtered[CONF_NOTIFICATION_TITLE_STYLE] not in NOTIFICATION_TITLE_STYLES:
         del filtered[CONF_NOTIFICATION_TITLE_STYLE]
+    # #251: store a table key ("pt-br", "zh"), never a regional code. "" stays
+    # (follow the system language); an unknown code is dropped.
+    if CONF_NOTIFY_LANGUAGE in filtered:
+        raw_language = filtered[CONF_NOTIFY_LANGUAGE]
+        if not raw_language:
+            filtered[CONF_NOTIFY_LANGUAGE] = ""
+        else:
+            language_code = normalize_language_code(raw_language)
+            if language_code in NOTIFICATION_LANGUAGES:
+                filtered[CONF_NOTIFY_LANGUAGE] = language_code
+            else:
+                del filtered[CONF_NOTIFY_LANGUAGE]
 
     # #145: same treatment for the row-action style.
     if CONF_ROW_ACTION_STYLE in filtered and filtered[CONF_ROW_ACTION_STYLE] not in ROW_ACTION_STYLES:

@@ -77,6 +77,7 @@ from ..const import (
     CONF_NOTIFY_DUE_SOON_INTERVAL,
     CONF_NOTIFY_EVENT_ONLY,
     CONF_NOTIFY_EXTRA_DATA,
+    CONF_NOTIFY_LANGUAGE,
     CONF_NOTIFY_OVERDUE_ENABLED,
     CONF_NOTIFY_OVERDUE_INTERVAL,
     CONF_NOTIFY_SCOPE_VIEW_ID,
@@ -118,6 +119,7 @@ from ..const import (
     DEFAULT_WARNING_DAYS,
     DEFAULT_WARRANTY_REMINDER_DAYS,
     MAX_NOTIFY_EXTRA_DATA_LENGTH,
+    MAX_NOTIFY_LANGUAGE_LENGTH,
     MAX_PART_SEARCH_URL_TEMPLATE_LENGTH,
 )
 
@@ -225,6 +227,9 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     # D#248: trimmed + capped by the sanitiser like the panel title (no
     # max_len here: that would drop an over-long value instead).
     SettingSpec(CONF_NOTIFICATION_TITLE_PREFIX, str, ""),
+    # #251: notification language ("" = follow the system language). The value
+    # is normalised and enum-checked in helpers/settings_sanitize.py.
+    SettingSpec(CONF_NOTIFY_LANGUAGE, str, "", max_len=MAX_NOTIFY_LANGUAGE_LENGTH),
     # #173 follow-up: completion notifications off / automatic / all (enum-checked in dashboard.py).
     SettingSpec(CONF_NOTIFY_COMPLETED, str, "off", max_len=16),
     SettingSpec(CONF_NOTIFY_SCOPE_VIEW_ID, str, "", max_len=64),

@@ -682,7 +682,8 @@
           "notify_scope_view_id": "Yalnızca şu görünüm için bildir",
           "weekly_digest_enabled": "Haftalık özet",
           "warranty_reminder_enabled": "Garanti bitiş hatırlatması",
-          "warranty_reminder_days": "Bitişten gün önce"
+          "warranty_reminder_days": "Bitişten gün önce",
+          "notify_language": "Bildirim dili"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Vadesi yaklaşan hatırlatmasının ne sıklıkta tekrarlanacağı. Tek bildirim için 0 yapın.",
@@ -700,7 +701,8 @@
           "reminder_lead_days": "Virgülle ayrılmış süreler, örn. 14, 3, 0 — eşleşen her günde bir ek hatırlatma gönderilir. Boş = kapalı.",
           "notify_scope_view_id": "Yalnızca seçili kayıtlı görünümün etiket/kullanıcı filtreleriyle eşleşen görevler hatırlatma gönderir. Görünümün durum, sıralama ve gruplaması burada dikkate alınmaz.",
           "weekly_digest_enabled": "Vadesi gelen görevler olduğunda pazartesi sabahı tek bir özet bildirimi.",
-          "warranty_reminder_enabled": "Bir nesnenin garantisinin bitmesine bu kadar gün kaldığında bir kez bildir."
+          "warranty_reminder_enabled": "Bir nesnenin garantisinin bitmesine bu kadar gün kaldığında bir kez bildir.",
+          "notify_language": "Bildirim başlıkları, mesajları ve işlem düğmeleri için dil. Boş = Home Assistant sistem dili. Panel her kullanıcının profil dilini izlemeye devam eder."
         }
       },
       "notification_actions": {

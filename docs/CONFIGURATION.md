@@ -104,6 +104,7 @@ Visible only when `notifications_enabled` is `true`.
 | `notification_bundling_enabled` | bool | `false` | — | Bundle multiple due tasks into a single notification |
 | `notification_bundle_threshold` | int | 2 | 2–20 | Minimum pending tasks before bundling activates |
 | `notification_title_style` (1.4.0+) | enum | `default` | `default` / `object_name` / `task_name` | What appears as the notification's TITLE. `default` keeps the per-status text (e.g. *"Maintenance overdue!"* — backwards-compatible). `object_name` uses the object's name as the title (helpful when phones stack notifications); `task_name` uses the task's name. Bundled notifications honour `object_name` but fall back to the count-based title for `task_name` (multi-task bundles can't pick one task) |
+| `notify_language` (2.121+, #251) | enum | `""` (system) | one of the 22 supported codes | Language for notification titles, messages and action buttons. Empty = follow the Home Assistant system language. The panel keeps each user's profile language. Settings → Notifications → *Notification language* (also in the Configure dialog → Notification Settings) |
 
 Scheduled (non-reactive) reminders, notification scoping and your own notification rule (2.80+):
 

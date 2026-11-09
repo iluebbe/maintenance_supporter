@@ -79,6 +79,8 @@ export const DEFAULT_SETTINGS_RESPONSE = {
     max_per_day: 0, bundling_enabled: false, bundle_threshold: 2,
     title_style: "default",
     title_prefix: "",
+    notify_language: "",
+    language_options: [] as Array<{ value: string; label: string }>,
   },
   actions: {
     complete_enabled: false, skip_enabled: false,

@@ -682,7 +682,8 @@
           "notify_scope_view_id": "특정 보기만 알림",
           "weekly_digest_enabled": "주간 요약",
           "warranty_reminder_enabled": "보증 만료 알림",
-          "warranty_reminder_days": "만료 전 일수"
+          "warranty_reminder_days": "만료 전 일수",
+          "notify_language": "알림 언어"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "기한 임박 알림을 반복하는 간격입니다. 0으로 설정하면 한 번만 알립니다.",
@@ -700,7 +701,8 @@
           "reminder_lead_days": "쉼표로 구분한 사전 알림 시점입니다. 예: 14, 3, 0 — 해당하는 날마다 추가 알림이 한 번 발송됩니다. 비워두면 꺼짐.",
           "notify_scope_view_id": "선택한 저장된 보기의 라벨/사용자 필터와 일치하는 작업만 알림을 보냅니다. 보기의 상태·정렬·그룹화는 여기서 무시됩니다.",
           "weekly_digest_enabled": "예정된 작업이 있으면 월요일 아침에 요약 알림을 한 번 보냅니다.",
-          "warranty_reminder_enabled": "객체의 보증 만료가 설정한 일수만큼 남았을 때 한 번 알립니다."
+          "warranty_reminder_enabled": "객체의 보증 만료가 설정한 일수만큼 남았을 때 한 번 알립니다.",
+          "notify_language": "알림 제목, 메시지 및 작업 버튼의 언어입니다. 비워 두면 Home Assistant 시스템 언어를 사용합니다. 패널은 계속 각 사용자의 프로필 언어를 따릅니다."
         }
       },
       "notification_actions": {

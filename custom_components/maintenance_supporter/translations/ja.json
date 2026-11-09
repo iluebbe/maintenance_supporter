@@ -682,7 +682,8 @@
           "notify_scope_view_id": "このビューのみ通知",
           "weekly_digest_enabled": "週間まとめ",
           "warranty_reminder_enabled": "保証期限リマインダー",
-          "warranty_reminder_days": "期限切れ前の日数"
+          "warranty_reminder_days": "期限切れ前の日数",
+          "notify_language": "通知言語"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "期限間近のリマインダーを繰り返す頻度です。1 回のみの通知にするには 0 に設定します。",
@@ -700,7 +701,8 @@
           "reminder_lead_days": "カンマ区切りのリードタイム。例：14, 3, 0 — 該当する各日に追加リマインダーが送信されます。空欄 = 無効。",
           "notify_scope_view_id": "選択した保存済みビューのラベル／ユーザーフィルターに一致するタスクのみがリマインダーを送信します。ビューのステータス・並び順・グループ化はここでは無視されます。",
           "weekly_digest_enabled": "タスクがある月曜の朝に1件のまとめ通知。",
-          "warranty_reminder_enabled": "オブジェクトの保証期限までこの日数になったら一度通知します。"
+          "warranty_reminder_enabled": "オブジェクトの保証期限までこの日数になったら一度通知します。",
+          "notify_language": "通知のタイトル、メッセージ、アクションボタンの言語。空欄 = Home Assistant のシステム言語。パネルは引き続き各ユーザーのプロフィール言語に従います。"
         }
       },
       "notification_actions": {

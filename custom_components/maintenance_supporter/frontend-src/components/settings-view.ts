@@ -134,6 +134,10 @@ interface SettingsResponse {
     title_style?: string;
     /** D#248: in front of every title, any style ("" = none). */
     title_prefix?: string;
+    /** #251: notification language ("" = follow the system language). */
+    notify_language?: string;
+    /** #251: the native language names for the picker. */
+    language_options?: Array<{ value: string; label: string }>;
   };
   actions: {
     complete_enabled: boolean;
@@ -1230,6 +1234,17 @@ export class MaintenanceSettingsView extends LitElement {
     return html`
       <div class="settings-section">
         <h3>${t("settings_notifications", L)}</h3>
+
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_notify_language", L)}</span>
+          ${selectField({ cls: "notify-language", value: n.notify_language || "", live: true, onChange: (e: Event) => this._updateSetting("notify_language", (e.target as HTMLSelectElement).value) }, html`
+            <option value="">${t("settings_notify_language_system", L)}</option>
+            ${(n.language_options || []).map(
+              (o) => html`<option value=${o.value} ?selected=${n.notify_language === o.value}>${o.label}</option>`
+            )}
+          `)}
+        </label>
+        <div class="setting-hint">${t("settings_notify_language_hint", L)}</div>
 
         ${checkField({ cls: "setting-row", checked: n.due_soon_enabled, onChange: (e: Event) => this._updateSetting("notify_due_soon_enabled", (e.target as HTMLInputElement).checked), boxAfter: true }, html`<span>
             <span class="setting-label">${t("settings_notify_due_soon", L)}</span>

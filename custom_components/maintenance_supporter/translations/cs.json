@@ -682,7 +682,8 @@
           "notify_scope_view_id": "Upozorňovat jen pro zobrazení",
           "weekly_digest_enabled": "Týdenní přehled",
           "warranty_reminder_enabled": "Připomenutí konce záruky",
-          "warranty_reminder_days": "Dny před vypršením"
+          "warranty_reminder_days": "Dny před vypršením",
+          "notify_language": "Jazyk oznámení"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Jak často opakovat připomenutí „brzy splatné“. Nastavte 0 pro jednorázové oznámení.",
@@ -700,7 +701,8 @@
           "reminder_lead_days": "Předstihy oddělené čárkami, např. 14, 3, 0 — v každý odpovídající den se odešle další připomenutí. Prázdné = vypnuto.",
           "notify_scope_view_id": "Připomenutí posílají jen úkoly odpovídající filtrům štítku/uživatele zvoleného zobrazení. Stav, řazení a seskupení zobrazení se zde ignorují.",
           "weekly_digest_enabled": "Jedno souhrnné oznámení v pondělí ráno, když jsou úkoly.",
-          "warranty_reminder_enabled": "Upozornit jednou, když do vypršení záruky objektu zbývá tolik dní."
+          "warranty_reminder_enabled": "Upozornit jednou, když do vypršení záruky objektu zbývá tolik dní.",
+          "notify_language": "Jazyk názvů, zpráv a tlačítek oznámení. Prázdné = systémový jazyk Home Assistant. Panel nadále používá jazyk profilu každého uživatele."
         }
       },
       "notification_actions": {

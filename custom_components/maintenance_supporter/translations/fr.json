@@ -682,7 +682,8 @@
           "notify_scope_view_id": "Notifier uniquement pour la vue",
           "weekly_digest_enabled": "Récapitulatif hebdomadaire",
           "warranty_reminder_enabled": "Rappel d'expiration de garantie",
-          "warranty_reminder_days": "Jours avant l'expiration"
+          "warranty_reminder_days": "Jours avant l'expiration",
+          "notify_language": "Langue des notifications"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Fréquence de répétition du rappel bientôt dû. Définir à 0 pour une seule notification.",
@@ -700,7 +701,8 @@
           "reminder_lead_days": "Délais séparés par des virgules, p. ex. 14, 3, 0 — un rappel supplémentaire est envoyé chaque jour correspondant. Vide = désactivé.",
           "notify_scope_view_id": "Seules les tâches correspondant aux filtres étiquette/utilisateur de la vue choisie envoient des rappels. Le statut, le tri et le regroupement de la vue sont ignorés ici.",
           "weekly_digest_enabled": "Une notification récapitulative le lundi matin quand des tâches sont dues.",
-          "warranty_reminder_enabled": "Notifier une fois lorsque la garantie d'un objet expire dans ce nombre de jours."
+          "warranty_reminder_enabled": "Notifier une fois lorsque la garantie d'un objet expire dans ce nombre de jours.",
+          "notify_language": "Langue des titres, messages et boutons d'action des notifications. Vide = langue du système Home Assistant. Le panneau suit toujours la langue du profil de chaque utilisateur."
         }
       },
       "notification_actions": {

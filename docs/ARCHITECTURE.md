@@ -201,7 +201,7 @@ custom_components/maintenance_supporter/
 ├── listeners.py                   (388 lines)  Integration-wide event listeners: notification buttons, NFC tags, registry changes,
 │                                               deleted users
 ├── daily_jobs.py                  (224 lines)  Timers: retention sweep, the 08:00 digest / warranty / lead-time reminders, noon retry
-├── const.py                     (1,038 lines)  Constants, enums, defaults, PLATFORMS
+├── const.py                     (1,070 lines)  Constants, enums, defaults, PLATFORMS
 ├── coordinator.py               (2,441 lines)  DataUpdateCoordinator per object
 ├── storage.py                     (743 lines)  Per-entry Store (dynamic state, migration, part stock)
 ├── parts_runtime.py               (888 lines)  Spare-parts driver: consume/restock, declarative buy-task reconcile
@@ -210,7 +210,7 @@ custom_components/maintenance_supporter/
 ├── config_flow.py                 (934 lines)  Initial setup flow + templates
 ├── config_flow_helpers.py         (372 lines)  Shared config flow utilities
 ├── config_flow_options.py          (13 lines)  Options dispatcher
-├── config_flow_options_global.py (1,764 lines)  Global settings (general incl. currency, notifications, budgets, panel access)
+├── config_flow_options_global.py (1,831 lines)  Global settings (general incl. currency, notifications, budgets, panel access)
 ├── config_flow_options_task.py     (30 lines)  Per-object task options flow — a dispatcher assembled from the mixins below
 │   ├── …_task_base.py             (204 lines)  Shared state + threshold-floor (B1) helpers
 │   ├── …_task_add.py               (96 lines)  Add-task steps of the options flow, on the shared config_flow_schedule.py
@@ -247,7 +247,7 @@ custom_components/maintenance_supporter/
 │       ├── compound.py            (550 lines)  AND/OR compound trigger
 │       └── due_date.py             (89 lines)  Due-date trigger: the device reports WHEN the maintenance is due
 │
-├── websocket/                  (11,025 lines)  114 commands, 25 files — split by domain; tasks.py re-exports the task modules drawn under it
+├── websocket/                  (11,031 lines)  114 commands, 25 files — split by domain; tasks.py re-exports the task modules drawn under it
 │   ├── __init__.py                (934 lines)  Shared helpers + registration
 │   ├── objects.py               (1,097 lines)  13 commands: objects, object, object/create, object/update, object/delete,
 │   │                                           object/duplicate, object/from_template, object/archive, object/unarchive, object/pause,
@@ -266,7 +266,7 @@ custom_components/maintenance_supporter/
 │   ├── users.py                   (166 lines)  3 commands: users/list, task/assign_user, tasks/by_user
 │   ├── io.py                    (1,797 lines)  10 commands: version, templates, export, csv/export, objects/csv, csv/import,
 │   │                                           settings/export, json/import, qr/generate, qr/batch_generate
-│   ├── dashboard.py               (845 lines)  8 commands: settings, statistics, subscribe, schedule/preview, budget_status,
+│   ├── dashboard.py               (851 lines)  8 commands: settings, statistics, subscribe, schedule/preview, budget_status,
 │   │                                           global/update, global/test_notification, notify/user_targets
 │   ├── vacation.py                (206 lines)  4 commands: vacation/state, vacation/update, vacation/preview, vacation/end_now
 │   ├── parts.py                   (526 lines)  9 commands: part/create, part/update, part/delete, part/restock, part/use, part/purchase,
@@ -304,7 +304,7 @@ custom_components/maintenance_supporter/
 │   ├── strategy/                              Code-split dashboard strategy + content-hashed chunks/
 │   ├── locales/{21 non-EN}.json               Runtime-fetched UI translations
 │   └── vendor/pdf.min.mjs, pdf.worker.min.mjs pdf.js for the work sheet's manual excerpt
-├── frontend-src/               (53,340 lines)  164 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
+├── frontend-src/               (53,355 lines)  164 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
 │   ├── maintenance-panel.ts     (6,440 lines)  Panel shell: today / dashboard / calendar / settings tabs,
 │   │                                           object detail, task detail, all-objects, deep-link router
 │   ├── maintenance-dashboard-strategy.ts (1,265 lines)  Auto-generated dashboard strategy + 4 section strategies
@@ -436,9 +436,9 @@ custom_components/maintenance_supporter/
 │   │   ├── sparkline.ts           (672 lines)  Trigger section renderer (task detail)
 │   │   ├── status.ts              (103 lines)  A task's status as the user sees it — THE derivation for every surface
 │   │   └── weibull.ts             (188 lines)  Weibull reliability analysis renderers
-│   ├── components/             (23,444 lines)  43 files — Lit elements: dialogs, sections, views, cards
+│   ├── components/             (23,459 lines)  43 files — Lit elements: dialogs, sections, views, cards
 │   │   ├── task-dialog.ts       (4,712 lines)  Add/edit task (schedule kinds, triggers, checklist, assignees)
-│   │   ├── settings-view.ts     (2,837 lines)  In-panel global settings editor
+│   │   ├── settings-view.ts     (2,852 lines)  In-panel global settings editor
 │   │   ├── task-quick-actions-dialog.ts (981 lines)  Task ⋮ menu
 │   │   ├── documents-section.ts   (724 lines)  Object-detail documents/manuals section
 │   │   ├── parts-section.ts       (868 lines)  Object-detail spare-parts section
@@ -480,10 +480,10 @@ custom_components/maintenance_supporter/
 │   │   ├── task-trace-view.ts     (547 lines)  <maintenance-task-trace>: the task page's Trace tab (the new look), one due cycle at a time
 │   │   ├── ms-ha-select.ts         (81 lines)  ms-ha-select — the beta UI's dropdown: Home Assistant's ha-select fed by `<option>` children, so one options template …
 │   │   └── template-updates.ts    (256 lines)  What an object's template has learned since (D#85, 2.118): a line on the object page when the template changed a task …
-│   └── __tests__/              (38,188 lines)  260 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
+│   └── __tests__/              (38,265 lines)  261 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
-├── helpers/                    (37,978 lines)  114 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
-│   ├── notification_manager.py  (2,878 lines)  Multi-channel notification system
+├── helpers/                    (38,020 lines)  114 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
+│   ├── notification_manager.py  (2,882 lines)  Multi-channel notification system
 │   ├── notify_hooks.py            (407 lines)  The one send hook (#165): event `maintenance_supporter_notification`, extra-data template, event-only delivery
 │   ├── notify_icons.py             (97 lines)  Notification icons (#185): defaults per maintenance type / kind / fleet, `notify_icon_for`, `is_valid_icon`
 │   ├── qrcodegen.py               (702 lines)  Vendored QR library (Nayuki, MIT) — excluded from coverage
@@ -515,7 +515,7 @@ custom_components/maintenance_supporter/
 │   ├── entity_analyzer.py         (211 lines)  Entity discovery + recorder stats
 │   ├── retention.py               (244 lines)  Archive & auto-delete retention sweep
 │   ├── trigger_fallback.py        (399 lines)  Per-type fallback evaluators for the coordinator refresh
-│   ├── settings_registry.py       (297 lines)  Single source of truth for global-setting validation
+│   ├── settings_registry.py       (302 lines)  Single source of truth for global-setting validation
 │   ├── dates.py                   (371 lines)  Pure calendar math: add_interval, nth-weekday, day-of-month clamping
 │   ├── entity_rename.py           (280 lines)  Rewrites entity_id references when HA renames an entity
 │   ├── workday.py                 (177 lines)  Business-day provider bridging HA's Workday integration
@@ -547,7 +547,7 @@ custom_components/maintenance_supporter/
 │   ├── device_link.py             (351 lines)  Keep a stored `ha_device_id` pointing at a device that still exists
 │   ├── device_swap.py             (196 lines)  Move an object's device-bound wiring to another Home Assistant device
 │   ├── entry_tasks.py             (104 lines)  Single write chokepoint for task dicts in ConfigEntry.data
-│   ├── global_options.py          (198 lines)  Cross-entry lookups for the global config entry's options, the one merge-and-save
+│   ├── global_options.py          (216 lines)  Cross-entry lookups for the global config entry's options, the one merge-and-save
 │   │                                           write, the group clean-up
 │   ├── history.py                 (165 lines)  Tiny history-entry helpers shared by everything that reads a task's log
 │   ├── import_mapping.py          (434 lines)  Moving a backup to another instance: what ids cannot carry, names do
@@ -575,7 +575,7 @@ custom_components/maintenance_supporter/
 │   ├── complete_when.py           (146 lines)  Complete a task when another entity changes to a state (D#229)
 │   ├── user_orphans.py            (145 lines)  Deleted HA users still named: task assignments pruned, admin-panel allowlist as repairs
 │   ├── object_create.py            (94 lines)  Create an object's config entry (object/create, add_object, adoption, battery hub)
-│   ├── settings_sanitize.py       (286 lines)  A settings write checked against the registry (global/update, settings import, options flow)
+│   ├── settings_sanitize.py       (301 lines)  A settings write checked against the registry (global/update, settings import, options flow)
 │   ├── task_persist.py            (634 lines)  Task writes: create / persist / update / move / delete with side-state, adaptive config
 │   ├── rounding.py                 (26 lines)  Two decimals the way the panel rounds them
 │   ├── task_trace.py              (205 lines)  Task traces (the new look): what happened to a task, cycle by cycle
@@ -880,7 +880,7 @@ The coordinator's action methods are the single action layer; each of these is a
 
 **Stale-bundle handshake.** HA serves the panel JS with cache headers, so after an upgrade a browser can hold a bundle that is older than the backend it talks to — the failure mode is a silent one (a call whose new field the old bundle never sends). esbuild stamps the integration version it built from into `__MS_BUNDLE_VERSION__` (`helpers/bundle-version.ts`); on connect the panel asks the backend for its manifest version via the `maintenance_supporter/version` WS command and compares. A mismatch sets `_staleBundle`, which renders a reload banner. The comparison is deliberately conservative: dev builds (`"dev"`) and a missing server version never flag.
 
-**Language normalization.** HA emits regional codes (`zh-Hans`, `pt-BR`), while the integration's tables — calendar/notification/config-flow string dicts, the `name_<lang>` template fields, and the panel's `styles.ts` strings — are keyed by the bare two-letter prefix. `helpers/i18n.py::normalize_language_code` is the single normalizer every consumer runs through instead of truncating with `[:2]` itself, because **Brazilian Portuguese is the one regional variant with its own tables** (`pt-br`) and a bare truncation would silently collapse it into European `pt`. The frontend mirrors the rule in `langToLocale` (and keys Chinese as `zh`).
+**Language normalization.** HA emits regional codes (`zh-Hans`, `pt-BR`), while the integration's tables — calendar/notification/config-flow string dicts, the `name_<lang>` template fields, and the panel's `styles.ts` strings — are keyed by the bare two-letter prefix. `helpers/i18n.py::normalize_language_code` is the single normalizer every consumer runs through instead of truncating with `[:2]` itself, because **Brazilian Portuguese is the one regional variant with its own tables** (`pt-br`) and a bare truncation would silently collapse it into European `pt`. The frontend mirrors the rule in `langToLocale` (and keys Chinese as `zh`). Notification texts resolve their language through `helpers/global_options.get_notification_language` (#251): the explicit `notify_language` setting wins, an empty or unknown value follows the system language.
 
 **The panel as a card (2.84, #174).** `maintenance-panel-card.ts` (in the card bundle) defines `maintenance-supporter-panel-card`: a plain custom element that lazy-imports the panel bundle from the URL HA registered for the sidebar panel (`hass.panels["maintenance-supporter"].config._panel_custom.module_url`) — the same module instance, so `maintenance-supporter-panel` is defined once whichever surface loads first — and mounts one panel element with `embedded = true`, `presets` (`tab` / `view` from the card config) and `narrow` derived from the card's width (870 px, HA's own breakpoint). The panel keeps its bounded box with `.content` as the scroller, so the card gives it a definite height: the viewport below the card's top edge (measured on mount / resize, never on scroll) or the configured `height`. Embedded mode in the panel: no `ha-menu-button`, no safe-area padding on `.panel`, `_onLocationChanged` accepts the dashboard's path, and the presets open a tab / saved view once without persisting the choice.
 

@@ -682,7 +682,8 @@
           "notify_scope_view_id": "Ilmoita vain näkymälle",
           "weekly_digest_enabled": "Viikkokooste",
           "warranty_reminder_enabled": "Muistutus takuun päättymisestä",
-          "warranty_reminder_days": "Päivää ennen päättymistä"
+          "warranty_reminder_days": "Päivää ennen päättymistä",
+          "notify_language": "Ilmoitusten kieli"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Kuinka usein pian erääntyy -muistutus toistetaan. Aseta arvoon 0 yhtä ilmoitusta varten.",
@@ -700,7 +701,8 @@
           "reminder_lead_days": "Pilkuin erotellut ennakkoajat, esim. 14, 3, 0 — lisämuistutus lähetetään kunakin vastaavana päivänä. Tyhjä = pois.",
           "notify_scope_view_id": "Vain valitun näkymän tunniste-/käyttäjäsuodattimiin osuvat tehtävät lähettävät muistutuksia. Näkymän tila, lajittelu ja ryhmittely ohitetaan tässä.",
           "weekly_digest_enabled": "Yksi kooste-ilmoitus maanantaiaamuna, kun tehtäviä on.",
-          "warranty_reminder_enabled": "Ilmoita kerran, kun objektin takuun päättymiseen on näin monta päivää."
+          "warranty_reminder_enabled": "Ilmoita kerran, kun objektin takuun päättymiseen on näin monta päivää.",
+          "notify_language": "Ilmoitusten otsikoiden, viestien ja toimintopainikkeiden kieli. Tyhjä = Home Assistantin järjestelmän kieli. Paneeli seuraa edelleen jokaisen käyttäjän profiilin kieltä."
         }
       },
       "notification_actions": {

@@ -68,6 +68,7 @@ from ..const import (
     CONF_NOTIFY_DUE_SOON_INTERVAL,
     CONF_NOTIFY_EVENT_ONLY,
     CONF_NOTIFY_EXTRA_DATA,
+    CONF_NOTIFY_LANGUAGE,
     CONF_NOTIFY_OVERDUE_ENABLED,
     CONF_NOTIFY_OVERDUE_INTERVAL,
     CONF_NOTIFY_SCOPE_VIEW_ID,
@@ -96,6 +97,7 @@ from ..const import (
     DEFAULT_BUDGET_CURRENCY,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
+    NOTIFICATION_LANGUAGES,
     SIGNAL_NEW_OBJECT_ENTRY,
     SIGNAL_OBJECT_ENTRY_REMOVED,
 )
@@ -278,6 +280,10 @@ def _build_full_settings(
             "title_style": _opt(options, CONF_NOTIFICATION_TITLE_STYLE),
             # D#248: in front of every title, any style ("" = none).
             "title_prefix": _opt(options, CONF_NOTIFICATION_TITLE_PREFIX),
+            # #251: notification language ("" = follow the system language).
+            "notify_language": _opt(options, CONF_NOTIFY_LANGUAGE),
+            # Native names so the picker reads the same in every UI language.
+            "language_options": [{"value": code, "label": label} for code, label in NOTIFICATION_LANGUAGES.items()],
             # #173 follow-up: completion notifications (off | automatic | all).
             "completed": _opt(options, CONF_NOTIFY_COMPLETED),
             # Multiple lead-time reminders (days before due); [] = off.

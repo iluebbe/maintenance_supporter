@@ -608,6 +608,14 @@ def test_py_language_tables_cover_every_language() -> None:
         }
 
 
+def test_notification_languages_match_the_tables() -> None:
+    """#251: the picker's codes and the notification tables stay in step."""
+    from custom_components.maintenance_supporter.const import NOTIFICATION_LANGUAGES
+    from custom_components.maintenance_supporter.helpers.notification_manager import _NOTIFICATION_STRINGS
+
+    assert set(NOTIFICATION_LANGUAGES) == set(_NOTIFICATION_STRINGS)
+
+
 def test_py_language_tables_key_parity() -> None:
     """Every language block carries exactly the English key set."""
     for name, table in _py_language_tables().items():

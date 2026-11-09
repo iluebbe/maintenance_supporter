@@ -682,7 +682,8 @@
           "notify_scope_view_id": "Avisera endast för vy",
           "weekly_digest_enabled": "Veckosammanfattning",
           "warranty_reminder_enabled": "Påminnelse om garantiutgång",
-          "warranty_reminder_days": "Dagar före utgång"
+          "warranty_reminder_days": "Dagar före utgång",
+          "notify_language": "Aviseringsspråk"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Hur ofta ”snart förfaller”-påminnelsen ska upprepas. Ange 0 för en enskild avisering.",
@@ -700,7 +701,8 @@
           "reminder_lead_days": "Kommaseparerade ledtider, t.ex. 14, 3, 0 — en extra påminnelse skickas på varje matchande dag. Tomt = av.",
           "notify_scope_view_id": "Endast uppgifter som matchar den valda vyns etikett-/användarfilter skickar påminnelser. Vyns status, sortering och gruppering ignoreras här.",
           "weekly_digest_enabled": "En sammanfattningsavisering måndag morgon när uppgifter förfaller.",
-          "warranty_reminder_enabled": "Meddela en gång när ett objekts garanti har så här många dagar kvar."
+          "warranty_reminder_enabled": "Meddela en gång när ett objekts garanti har så här många dagar kvar.",
+          "notify_language": "Språk för aviseringarnas titlar, meddelanden och åtgärdsknappar. Tomt = Home Assistants systemspråk. Panelen följer fortfarande varje användares profilsspråk."
         }
       },
       "notification_actions": {

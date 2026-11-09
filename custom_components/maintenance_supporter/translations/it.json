@@ -682,7 +682,8 @@
           "notify_scope_view_id": "Notifica solo per la vista",
           "weekly_digest_enabled": "Riepilogo settimanale",
           "warranty_reminder_enabled": "Promemoria scadenza garanzia",
-          "warranty_reminder_days": "Giorni prima della scadenza"
+          "warranty_reminder_days": "Giorni prima della scadenza",
+          "notify_language": "Lingua delle notifiche"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Frequenza di ripetizione del promemoria in scadenza. Impostare a 0 per una singola notifica.",
@@ -700,7 +701,8 @@
           "reminder_lead_days": "Anticipi separati da virgole, ad es. 14, 3, 0 — un promemoria aggiuntivo viene inviato in ogni giorno corrispondente. Vuoto = disattivato.",
           "notify_scope_view_id": "Solo le attività che corrispondono ai filtri etichetta/utente della vista scelta inviano promemoria. Stato, ordinamento e raggruppamento della vista qui vengono ignorati.",
           "weekly_digest_enabled": "Una notifica di riepilogo il lunedì mattina quando ci sono attività.",
-          "warranty_reminder_enabled": "Notifica una volta quando alla garanzia di un oggetto mancano questi giorni alla scadenza."
+          "warranty_reminder_enabled": "Notifica una volta quando alla garanzia di un oggetto mancano questi giorni alla scadenza.",
+          "notify_language": "Lingua per titoli, messaggi e pulsanti delle notifiche. Vuoto = lingua di sistema di Home Assistant. Il pannello continua a seguire la lingua del profilo di ogni utente."
         }
       },
       "notification_actions": {

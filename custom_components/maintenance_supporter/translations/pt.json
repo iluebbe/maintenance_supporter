@@ -682,7 +682,8 @@
           "notify_scope_view_id": "Notificar apenas para a vista",
           "weekly_digest_enabled": "Resumo semanal",
           "warranty_reminder_enabled": "Lembrete de fim da garantia",
-          "warranty_reminder_days": "Dias antes do fim"
+          "warranty_reminder_days": "Dias antes do fim",
+          "notify_language": "Idioma das notificações"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Com que frequência repetir o lembrete de próximo do vencimento. Defina como 0 para uma única notificação.",
@@ -700,7 +701,8 @@
           "reminder_lead_days": "Antecedências separadas por vírgulas, p. ex. 14, 3, 0 — um lembrete adicional é enviado em cada dia correspondente. Vazio = desativado.",
           "notify_scope_view_id": "Apenas as tarefas que correspondem aos filtros de etiqueta/utilizador da vista escolhida enviam lembretes. O estado, a ordenação e o agrupamento da vista são ignorados aqui.",
           "weekly_digest_enabled": "Uma notificação de resumo na segunda de manhã quando há tarefas.",
-          "warranty_reminder_enabled": "Notificar uma vez quando faltarem estes dias para a garantia de um objeto expirar."
+          "warranty_reminder_enabled": "Notificar uma vez quando faltarem estes dias para a garantia de um objeto expirar.",
+          "notify_language": "Idioma dos títulos, mensagens e botões de ação das notificações. Vazio = idioma do sistema do Home Assistant. O painel continua a seguir o idioma do perfil de cada utilizador."
         }
       },
       "notification_actions": {

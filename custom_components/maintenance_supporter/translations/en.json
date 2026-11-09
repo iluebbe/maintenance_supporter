@@ -682,7 +682,8 @@
           "notify_scope_view_id": "Notify only for view",
           "weekly_digest_enabled": "Weekly digest",
           "warranty_reminder_enabled": "Warranty expiry reminder",
-          "warranty_reminder_days": "Days before expiry"
+          "warranty_reminder_days": "Days before expiry",
+          "notify_language": "Notification language"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "How often to repeat the due-soon reminder. Set to 0 for a single notification.",
@@ -700,7 +701,8 @@
           "reminder_lead_days": "Comma-separated lead times, e.g. 14, 3, 0 — one extra reminder fires on each matching day. Empty = off.",
           "notify_scope_view_id": "Only tasks matching the selected saved view's label/user filters send reminders. Status, sorting and grouping of the view are ignored here.",
           "weekly_digest_enabled": "A single summary notification on Monday morning when tasks are due.",
-          "warranty_reminder_enabled": "Notify once when an object's warranty is this many days from expiring."
+          "warranty_reminder_enabled": "Notify once when an object's warranty is this many days from expiring.",
+          "notify_language": "Language for notification titles, messages and action buttons. Empty = follow the Home Assistant system language. The panel keeps each user's profile language."
         }
       },
       "notification_actions": {

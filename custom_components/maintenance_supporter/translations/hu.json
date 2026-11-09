@@ -682,7 +682,8 @@
           "notify_scope_view_id": "Értesítés csak erre a nézetre",
           "weekly_digest_enabled": "Heti összefoglaló",
           "warranty_reminder_enabled": "Garancialejárati emlékeztető",
-          "warranty_reminder_days": "Nappal a lejárat előtt"
+          "warranty_reminder_days": "Nappal a lejárat előtt",
+          "notify_language": "Értesítési nyelv"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Milyen gyakran ismétlődjön a hamarosan esedékes emlékeztető. 0 = csak egyetlen értesítés.",
@@ -700,7 +701,8 @@
           "reminder_lead_days": "Vesszővel elválasztott napok, pl. 14, 3, 0 — minden egyező napon egy extra emlékeztető megy ki. Üres = kikapcsolva.",
           "notify_scope_view_id": "Csak a kiválasztott mentett nézet címke-/felhasználószűrőinek megfelelő feladatok küldenek emlékeztetőt. A nézet állapot-, rendezési és csoportosítási beállításait itt figyelmen kívül hagyjuk.",
           "weekly_digest_enabled": "Egyetlen összefoglaló értesítés hétfő reggel, ha vannak esedékes feladatok.",
-          "warranty_reminder_enabled": "Egyszeri értesítés, amikor egy objektum garanciája ennyi napra van a lejárattól."
+          "warranty_reminder_enabled": "Egyszeri értesítés, amikor egy objektum garanciája ennyi napra van a lejárattól.",
+          "notify_language": "Az értesítések címeinek, üzeneteinek és műveleti gombjainak nyelve. Üres = a Home Assistant rendszernyelve. A panel továbbra is minden felhasználó profilnyelvét követi."
         }
       },
       "notification_actions": {

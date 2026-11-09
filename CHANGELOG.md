@@ -2,6 +2,12 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ New
+
+- **Notifications can use their own language** (#251). The panel follows each user's Home Assistant profile language. Some households cannot change the system language, so phone notifications used the wrong language. Settings → Notifications and the Configure dialog → Notification Settings now have a **Notification language** choice with the 22 supported languages. Titles, messages and action buttons use it. An empty choice keeps the Home Assistant system language, as before.
+
 ## [2.120.0] - 2026-11-06
 
 ### ✨ New

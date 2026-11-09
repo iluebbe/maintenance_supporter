@@ -682,7 +682,8 @@
           "notify_scope_view_id": "Powiadamiaj tylko dla widoku",
           "weekly_digest_enabled": "Cotygodniowe podsumowanie",
           "warranty_reminder_enabled": "Przypomnienie o końcu gwarancji",
-          "warranty_reminder_days": "Dni przed wygaśnięciem"
+          "warranty_reminder_days": "Dni przed wygaśnięciem",
+          "notify_language": "Język powiadomień"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Jak często powtarzać przypomnienie „wkrótce wymagane”. Ustaw 0 dla pojedynczego powiadomienia.",
@@ -700,7 +701,8 @@
           "reminder_lead_days": "Wyprzedzenia rozdzielone przecinkami, np. 14, 3, 0 — w każdym wskazanym dniu wysyłane jest dodatkowe przypomnienie. Puste = wyłączone.",
           "notify_scope_view_id": "Przypomnienia wysyłają tylko zadania pasujące do filtrów etykiety/użytkownika wybranego widoku. Status, sortowanie i grupowanie widoku są tu ignorowane.",
           "weekly_digest_enabled": "Jedno powiadomienie podsumowujące w poniedziałek rano, gdy są zadania.",
-          "warranty_reminder_enabled": "Powiadom raz, gdy do wygaśnięcia gwarancji obiektu pozostanie tyle dni."
+          "warranty_reminder_enabled": "Powiadom raz, gdy do wygaśnięcia gwarancji obiektu pozostanie tyle dni.",
+          "notify_language": "Język tytułów, wiadomości i przycisków akcji powiadomień. Puste = język systemowy Home Assistant. Panel nadal używa języka profilu każdego użytkownika."
         }
       },
       "notification_actions": {

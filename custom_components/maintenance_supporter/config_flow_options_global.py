@@ -65,6 +65,7 @@ from .const import (
     CONF_NOTIFY_DUE_SOON_INTERVAL,
     CONF_NOTIFY_EVENT_ONLY,
     CONF_NOTIFY_EXTRA_DATA,
+    CONF_NOTIFY_LANGUAGE,
     CONF_NOTIFY_OVERDUE_ENABLED,
     CONF_NOTIFY_OVERDUE_INTERVAL,
     CONF_NOTIFY_SCOPE_VIEW_ID,
@@ -96,6 +97,7 @@ from .const import (
     MAX_NOTIFY_EXTRA_DATA_LENGTH,
     MAX_PANEL_TITLE_LENGTH,
     MAX_REMINDER_LEADS,
+    NOTIFICATION_LANGUAGES,
     NOTIFY_COMPLETED_MODES,
     PARTS_COST_MODES,
     ROW_ACTION_STYLES,
@@ -103,6 +105,7 @@ from .const import (
 )
 from .helpers.battery_lifetime import MAX_LIFETIME_MONTHS, MIN_LIFETIME_MONTHS, fleet_lifetime_catalog
 from .helpers.dates import normalize_hhmm
+from .helpers.global_options import get_notification_language
 from .helpers.home_profile import async_home_profile
 from .helpers.i18n import normalize_language
 from .helpers.member_display import AVATAR_COLOR_NAMES, AVATAR_PALETTE, member_display
@@ -139,6 +142,9 @@ _BUDGET_YEARLY_MIN, _BUDGET_YEARLY_MAX = float_range(CONF_BUDGET_YEARLY)
 
 # The notification scope's "every task" choice (a select option can't be "").
 _SCOPE_ALL = "__all__"
+# #251: the "system language" choice (a select option can't be ""); the
+# handler maps it back to the stored "".
+_LANGUAGE_SYSTEM = "__system__"
 # v1.4.6: HH:MM or HH:MM:SS, 0–23 hours, 0–59 minutes/seconds. Shared with the
 # WS handler via const.TIME_HHMMSS_PATTERN so the two can't diverge.
 _VALID_TIME_PATTERN = TIME_HHMMSS_PATTERN
@@ -346,6 +352,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "dwelling_apartment": "apartment",
         "dwelling_unknown": "not sure yet",
         "scope_all": "All tasks",
+        "notify_language_system": "System language",
         "region_auto": "Automatic ({region})",
         "region_none": "not found",
     },
@@ -354,6 +361,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "dwelling_apartment": "Wohnung",
         "dwelling_unknown": "noch unklar",
         "scope_all": "Alle Aufgaben",
+        "notify_language_system": "Systemsprache",
         "region_auto": "Automatisch ({region})",
         "region_none": "nicht gefunden",
     },
@@ -362,6 +370,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "dwelling_apartment": "byt",
         "dwelling_unknown": "zatím nejasné",
         "scope_all": "Všechny úkoly",
+        "notify_language_system": "Jazyk systému",
         "region_auto": "Automaticky ({region})",
         "region_none": "nenalezeno",
     },
@@ -370,6 +379,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "dwelling_apartment": "lejlighed",
         "dwelling_unknown": "endnu uklart",
         "scope_all": "Alle opgaver",
+        "notify_language_system": "Systemets sprog",
         "region_auto": "Automatisk ({region})",
         "region_none": "ikke fundet",
     },
@@ -378,6 +388,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "dwelling_apartment": "piso",
         "dwelling_unknown": "aún sin determinar",
         "scope_all": "Todas las tareas",
+        "notify_language_system": "Idioma del sistema",
         "region_auto": "Automático ({region})",
         "region_none": "no encontrada",
     },
@@ -386,6 +397,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "dwelling_apartment": "kerrostaloasunto",
         "dwelling_unknown": "vielä epäselvä",
         "scope_all": "Kaikki tehtävät",
+        "notify_language_system": "Järjestelmän kieli",
         "region_auto": "Automaattinen ({region})",
         "region_none": "ei löytynyt",
     },
@@ -394,15 +406,25 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "dwelling_apartment": "appartement",
         "dwelling_unknown": "pas encore déterminé",
         "scope_all": "Toutes les tâches",
+        "notify_language_system": "Langue du système",
         "region_auto": "Automatique ({region})",
         "region_none": "introuvable",
     },
-    "hi": {"dwelling_house": "मकान", "dwelling_apartment": "फ़्लैट", "dwelling_unknown": "अभी तय नहीं", "scope_all": "सभी कार्य", "region_auto": "स्वचालित ({region})", "region_none": "नहीं मिला"},
+    "hi": {
+        "dwelling_house": "मकान",
+        "dwelling_apartment": "फ़्लैट",
+        "dwelling_unknown": "अभी तय नहीं",
+        "notify_language_system": "सिस्टम भाषा",
+        "scope_all": "सभी कार्य",
+        "region_auto": "स्वचालित ({region})",
+        "region_none": "नहीं मिला",
+    },
     "hu": {
         "dwelling_house": "ház",
         "dwelling_apartment": "lakás",
         "dwelling_unknown": "még nem egyértelmű",
         "scope_all": "Minden feladat",
+        "notify_language_system": "Rendszer nyelve",
         "region_auto": "Automatikus ({region})",
         "region_none": "nem található",
     },
@@ -411,6 +433,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "dwelling_apartment": "appartamento",
         "dwelling_unknown": "non ancora chiaro",
         "scope_all": "Tutte le attività",
+        "notify_language_system": "Lingua di sistema",
         "region_auto": "Automatico ({region})",
         "region_none": "non trovata",
     },
@@ -419,6 +442,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "dwelling_apartment": "集合住宅",
         "dwelling_unknown": "まだ不明",
         "scope_all": "すべてのタスク",
+        "notify_language_system": "システム言語",
         "region_auto": "自動（{region}）",
         "region_none": "見つかりません",
     },
@@ -427,6 +451,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "dwelling_apartment": "아파트",
         "dwelling_unknown": "아직 불확실",
         "scope_all": "모든 작업",
+        "notify_language_system": "시스템 언어",
         "region_auto": "자동({region})",
         "region_none": "찾을 수 없음",
     },
@@ -435,6 +460,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "dwelling_apartment": "leilighet",
         "dwelling_unknown": "ennå uklart",
         "scope_all": "Alle oppgaver",
+        "notify_language_system": "Systemets språk",
         "region_auto": "Automatisk ({region})",
         "region_none": "ikke funnet",
     },
@@ -443,6 +469,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "dwelling_apartment": "appartement",
         "dwelling_unknown": "nog onduidelijk",
         "scope_all": "Alle taken",
+        "notify_language_system": "Systeemtaal",
         "region_auto": "Automatisch ({region})",
         "region_none": "niet gevonden",
     },
@@ -451,6 +478,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "dwelling_apartment": "mieszkanie",
         "dwelling_unknown": "jeszcze niejasne",
         "scope_all": "Wszystkie zadania",
+        "notify_language_system": "Język systemu",
         "region_auto": "Automatycznie ({region})",
         "region_none": "nie znaleziono",
     },
@@ -459,6 +487,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "dwelling_apartment": "apartamento",
         "dwelling_unknown": "ainda por determinar",
         "scope_all": "Todas as tarefas",
+        "notify_language_system": "Idioma do sistema",
         "region_auto": "Automático ({region})",
         "region_none": "não encontrada",
     },
@@ -467,6 +496,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "dwelling_apartment": "apartamento",
         "dwelling_unknown": "ainda indefinido",
         "scope_all": "Todas as tarefas",
+        "notify_language_system": "Idioma do sistema",
         "region_auto": "Automático ({region})",
         "region_none": "não encontrada",
     },
@@ -475,6 +505,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "dwelling_apartment": "квартира",
         "dwelling_unknown": "пока неясно",
         "scope_all": "Все задачи",
+        "notify_language_system": "Язык системы",
         "region_auto": "Автоматически ({region})",
         "region_none": "не найден",
     },
@@ -483,6 +514,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "dwelling_apartment": "lägenhet",
         "dwelling_unknown": "ännu oklart",
         "scope_all": "Alla uppgifter",
+        "notify_language_system": "Systemets språk",
         "region_auto": "Automatiskt ({region})",
         "region_none": "hittades inte",
     },
@@ -491,6 +523,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "dwelling_apartment": "daire",
         "dwelling_unknown": "henüz belirsiz",
         "scope_all": "Tüm görevler",
+        "notify_language_system": "Sistem dili",
         "region_auto": "Otomatik ({region})",
         "region_none": "bulunamadı",
     },
@@ -499,10 +532,19 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "dwelling_apartment": "квартира",
         "dwelling_unknown": "поки неясно",
         "scope_all": "Усі завдання",
+        "notify_language_system": "Мова системи",
         "region_auto": "Автоматично ({region})",
         "region_none": "не знайдено",
     },
-    "zh": {"dwelling_house": "独栋住宅", "dwelling_apartment": "公寓", "dwelling_unknown": "尚不确定", "scope_all": "所有任务", "region_auto": "自动（{region}）", "region_none": "未找到"},
+    "zh": {
+        "dwelling_house": "独栋住宅",
+        "dwelling_apartment": "公寓",
+        "dwelling_unknown": "尚不确定",
+        "notify_language_system": "系统语言",
+        "scope_all": "所有任务",
+        "region_auto": "自动（{region}）",
+        "region_none": "未找到",
+    },
 }
 
 
@@ -524,10 +566,14 @@ def parse_lead_days(raw: Any) -> list[int] | None:
     return leads[: MAX_REMINDER_LEADS * 2]
 
 
-def _get_test_result_text(hass: HomeAssistant, key: str) -> str:
-    """Get localized test notification result text."""
-    lang = normalize_language(hass)
-    texts = _TEST_NOTIFICATION_RESULTS.get(lang, _TEST_NOTIFICATION_RESULTS["en"])
+def _get_test_result_text(hass: HomeAssistant, key: str, *, lang: str | None = None) -> str:
+    """Get localized test notification text.
+
+    The result toast uses the admin UI language (default). The push message
+    passes ``lang`` so it follows the notification language (#251).
+    """
+    language = lang or normalize_language(hass)
+    texts = _TEST_NOTIFICATION_RESULTS.get(language, _TEST_NOTIFICATION_RESULTS["en"])
     return texts.get(key, texts.get("failed", key))
 
 
@@ -585,14 +631,15 @@ async def _send_test_to(
 ) -> str:
     """Send the test payload to every resolved service; "success" if any went."""
     try:
-        push_msg = _get_test_result_text(hass, "push_message")
+        notify_lang = get_notification_language(hass)
+        push_msg = _get_test_result_text(hass, "push_message", lang=notify_lang)
         service_data: dict[str, Any] = {
             "title": "Maintenance Supporter",
             "message": push_msg,
         }
         # The same buttons (translated, per the action toggles) a real
-        # reminder carries \u2014 test ids, which the action listener ignores.
-        test_actions = build_action_buttons(hass, options, normalize_language(hass), entry_id=None, task_id=None, skip_allowed=True)
+        # reminder carries — test ids, which the action listener ignores.
+        test_actions = build_action_buttons(hass, options, notify_lang, entry_id=None, task_id=None, skip_allowed=True)
         if test_actions:
             service_data["data"] = {"actions": test_actions}
         # Dual-path: legacy notify service OR notify entity (send_message).
@@ -1122,6 +1169,9 @@ class GlobalOptionsFlow(OptionsFlow):
             # "" = every task; a saved view narrows the reminders to its tasks.
             if user_input.get(CONF_NOTIFY_SCOPE_VIEW_ID) == _SCOPE_ALL:
                 user_input[CONF_NOTIFY_SCOPE_VIEW_ID] = ""
+            # #251: the picker's "system language" sentinel is stored as "".
+            if user_input.get(CONF_NOTIFY_LANGUAGE) == _LANGUAGE_SYSTEM:
+                user_input[CONF_NOTIFY_LANGUAGE] = ""
             if not errors:
                 return self._save_and_return(user_input)
 
@@ -1137,6 +1187,11 @@ class GlobalOptionsFlow(OptionsFlow):
         scope = self._opt(CONF_NOTIFY_SCOPE_VIEW_ID) or _SCOPE_ALL
         if scope not in {o["value"] for o in scope_options}:
             scope = _SCOPE_ALL  # the view was deleted — the setting falls back to all tasks
+        selected_language = self._opt(CONF_NOTIFY_LANGUAGE) or _LANGUAGE_SYSTEM
+        language_options = [
+            selector.SelectOptionDict(value=_LANGUAGE_SYSTEM, label=_settings_text(self.hass, "notify_language_system")),
+            *[selector.SelectOptionDict(value=code, label=name) for code, name in NOTIFICATION_LANGUAGES.items()],
+        ]
 
         return self.async_show_form(
             step_id="notification_settings",
@@ -1221,6 +1276,18 @@ class GlobalOptionsFlow(OptionsFlow):
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=_BUNDLE_MIN, max=_BUNDLE_MAX, step=1, mode=selector.NumberSelectorMode.BOX
+                        )
+                    ),
+                    # #251: notification language. suggested_value, not
+                    # default: the "system" choice is a sentinel, not the
+                    # registry default "".
+                    vol.Optional(
+                        CONF_NOTIFY_LANGUAGE,
+                        description={"suggested_value": selected_language},
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=language_options,
+                            mode=selector.SelectSelectorMode.DROPDOWN,
                         )
                     ),
                     # v1.4.0 (#44): notification title style

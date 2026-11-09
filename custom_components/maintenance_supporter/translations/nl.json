@@ -682,7 +682,8 @@
           "notify_scope_view_id": "Alleen melden voor weergave",
           "weekly_digest_enabled": "Wekelijks overzicht",
           "warranty_reminder_enabled": "Herinnering garantieverloop",
-          "warranty_reminder_days": "Dagen vóór afloop"
+          "warranty_reminder_days": "Dagen vóór afloop",
+          "notify_language": "Notificatietaal"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "Hoe vaak de herinnering voor bijna verlopen wordt herhaald. Stel in op 0 voor een enkele melding.",
@@ -700,7 +701,8 @@
           "reminder_lead_days": "Kommagescheiden aanlooptijden, bijv. 14, 3, 0 — op elke overeenkomende dag wordt een extra herinnering verzonden. Leeg = uit.",
           "notify_scope_view_id": "Alleen taken die overeenkomen met de label-/gebruikersfilters van de gekozen weergave sturen herinneringen. Status, sortering en groepering van de weergave worden hier genegeerd.",
           "weekly_digest_enabled": "Eén samenvattingsmelding op maandagochtend als er taken zijn.",
-          "warranty_reminder_enabled": "Eén keer melden wanneer de garantie van een object over zoveel dagen afloopt."
+          "warranty_reminder_enabled": "Eén keer melden wanneer de garantie van een object over zoveel dagen afloopt.",
+          "notify_language": "Taal voor titels, berichten en actieknoppen van notificaties. Leeg = systeemtaal van Home Assistant. Het paneel blijft de profieltaal van elke gebruiker volgen."
         }
       },
       "notification_actions": {

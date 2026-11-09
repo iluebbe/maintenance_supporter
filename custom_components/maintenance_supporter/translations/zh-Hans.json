@@ -682,7 +682,8 @@
           "notify_scope_view_id": "仅为该视图发送通知",
           "weekly_digest_enabled": "每周摘要",
           "warranty_reminder_enabled": "保修到期提醒",
-          "warranty_reminder_days": "到期前天数"
+          "warranty_reminder_days": "到期前天数",
+          "notify_language": "通知语言"
         },
         "data_description": {
           "notify_due_soon_interval_hours": "即将到期提醒的重复频率。设置为 0 则仅通知一次。",
@@ -700,7 +701,8 @@
           "reminder_lead_days": "逗号分隔的提前时间，例如 14, 3, 0 — 在每个匹配的日期发送一次额外提醒。留空 = 关闭。",
           "notify_scope_view_id": "只有匹配所选视图的标签/用户筛选的任务才会发送提醒。视图的状态、排序和分组在此处被忽略。",
           "weekly_digest_enabled": "当有待办任务时，周一早上发送一条汇总通知。",
-          "warranty_reminder_enabled": "当物品保修距到期还有这么多天时通知一次。"
+          "warranty_reminder_enabled": "当物品保修距到期还有这么多天时通知一次。",
+          "notify_language": "通知标题、消息和操作按钮的语言。留空 = 使用 Home Assistant 的系统语言。面板仍跟随每位用户的个人资料语言。"
         }
       },
       "notification_actions": {

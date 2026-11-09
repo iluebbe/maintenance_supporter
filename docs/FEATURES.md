@@ -1206,6 +1206,7 @@ where doing it is all there is to record.
 ![Notification icon in the task dialog](images/task-dialog-notify-icon.png)
 - **Triggers notify promptly** (2.81+, #175) — a sensor trigger flipping on or off asks the coordinator for a refresh right away (debounced ten seconds), so the *triggered* reminder and the notification event follow within seconds instead of waiting for the next 5-minute update tick
 - **Notification title style** (1.4.0+) — choose what appears as the notification's *title*: per-status text (default), the object name, or the task name. Helps when phones stack notifications and only the title is visible without expanding the stack
+- **Notification language** (2.121+, #251) — choose one of the 22 supported languages for notification titles, messages and action buttons. Empty follows the Home Assistant system language. The panel keeps each user's profile language. Settings → Notifications → *Notification language* (also Configure → Notification Settings)
 - **Title prefix** (2.118+) — free text in front of every notification's title, with every style (*"Rental · Maintenance Overdue!"*), so a phone that hears from more than one Home Assistant tells them apart. Empty by default; the field suggests the home's name
 
 ### Budget Tracking

@@ -50,6 +50,7 @@ _EXPECTED_STR_MAX_LENGTHS = {
     "budget_currency": 5,
     "notify_scope_view_id": 64,
     "notify_extra_data": 2000,  # #165 extra-data template
+    "notify_language": 8,  # #251: table key (pt-br) or a regional code to normalise
     "notify_completed": 16,  # #173 follow-up: off | automatic | all
     "parts_cost_mode": 16,  # #104: purchase | use
     "row_action_style": 32,
@@ -72,7 +73,7 @@ def test_str_max_lengths_frozen() -> None:
 
 
 def test_allowed_keys_count_and_types() -> None:
-    # 68 writable settings, each mapped to a concrete Python type
+    # 72 writable settings, each mapped to a concrete Python type
     # (#169 follow-up added the dict-typed member_display; #165 the two
     # notification-hook settings; #180 battery_recovered_percent; D#182
     # part_search_url_template; #181 follow-up battery_auto_record_recovery;
@@ -80,12 +81,12 @@ def test_allowed_keys_count_and_types() -> None:
     # advanced_predictions_visible; 2026-10 advanced_places_visible; #219
     # battery_low_delay_minutes; #231 mirror_todo_default_entities; #233
     # follow-up shared_device_user_ids; 2026-10 advanced_beta_editor_visible;
-    # D#248 notification_title_prefix).
-    assert len(ALLOWED_SETTING_KEYS) == 71
+    # D#248 notification_title_prefix; #251 notify_language).
+    assert len(ALLOWED_SETTING_KEYS) == 72
     assert all(isinstance(t, type) for t in ALLOWED_SETTING_KEYS.values())
     # No duplicate keys crept into the spec tuple.
     keys = [s.key for s in SETTING_SPECS]
-    assert len(keys) == len(set(keys)) == 71
+    assert len(keys) == len(set(keys)) == 72
 
 
 def test_every_ranged_key_is_declared_with_matching_type() -> None:
