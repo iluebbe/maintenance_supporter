@@ -1223,7 +1223,7 @@ Three services in `compose.yaml`:
 | `homeassistant-fresh` | Clean HA instance for fresh-install testing | `testing` |
 | `playwright` | Browser automation for E2E tests | `testing` |
 
-The Playwright **client and server versions must match exactly** — the image is `mcr.microsoft.com/playwright:v1.64.1-noble` and the container runs `npx playwright@1.64.1 run-server`; a mismatched `@playwright/test` in `e2e/` fails the handshake.
+The Playwright **client and server versions must match exactly** — the image is `mcr.microsoft.com/playwright:v1.65.0-noble` and the container runs `npx playwright@1.65.0 run-server`; a mismatched `@playwright/test` in `e2e/` fails the handshake.
 
 ### Faketime (Time Manipulation)
 
