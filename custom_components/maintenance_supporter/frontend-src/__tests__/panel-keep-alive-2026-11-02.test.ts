@@ -190,7 +190,7 @@ describe("perf 2026-11-02: the task page is drawn once while idle", () => {
 });
 
 describe("perf 2026-11-02: the object page is drawn once while idle", () => {
-  type WarmEl = PanelEl & { _warmUpObjectPage: () => void; _scheduleWarmUp: () => void; _objectWarmedUp: boolean; _warmedUp: boolean };
+  type WarmEl = PanelEl & { _warmUpObjectPage: () => void; _scheduleWarmUp: () => void; _objectWarmedUp: boolean; _warmedUp: boolean; _warmPending: boolean };
   type Section = HTMLElement & { entryId: string; updateComplete: Promise<unknown> };
   const SECTIONS = ["maintenance-documents-section", "maintenance-parts-section", "maintenance-object-history-section"];
   // Tasks only, and tasks with history and a part: the warm-up takes the second.
@@ -260,6 +260,9 @@ describe("perf 2026-11-02: the object page is drawn once while idle", () => {
     try {
       el._warmedUp = false;
       el._objectWarmedUp = false;
+      // A slice the mount asked the real browser for may still be waiting
+      // (a slow CI runner): the scheduler then asks for no second one.
+      el._warmPending = false;
       el._scheduleWarmUp();
       expect(queued.length, "one slice asked for").to.equal(1);
       queued.shift()!();
