@@ -135,6 +135,8 @@ DIALOG_EXTRAS: dict[str, Any] = {
     "nfc_tag_id": None,
     "complete_when": None,
     "trigger_config": None,
+    # #252: null = the standard texts, on every save.
+    "notification_texts": None,
 }
 
 

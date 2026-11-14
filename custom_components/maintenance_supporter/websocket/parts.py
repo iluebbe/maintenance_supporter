@@ -6,6 +6,7 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant.components import websocket_api
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import entity_registry as er
@@ -23,7 +24,7 @@ from ..const import (
     MAX_TEXT_LENGTH,
     PARTS_COST_MODES,
 )
-from ..helpers.aggregate import get_object_entries, get_store, object_name
+from ..helpers.aggregate import get_object_entries, get_store, is_object_entry, object_name, part_stock_unique_id
 from ..helpers.entry_tasks import write_tasks
 from ..helpers.parts import (
     MAX_PART_COST,
@@ -37,12 +38,14 @@ from ..helpers.parts import (
     normalize_part,
 )
 from ..helpers.permissions import require_write
-from ..helpers.shared_parts import live_parts
+from ..helpers.shared_parts import PartMoveError, async_move_part, live_parts
 from ..helpers.ws_errors import send_exception_error, send_translated_error
 from ..parts_runtime import (
     SIGNAL_PARTS_UPDATED,
     async_change_part_stock,
     async_part_dispose,
+    async_part_order,
+    async_part_order_cancel,
     async_part_purchase,
     async_part_ready_again,
     async_part_use,
@@ -285,6 +288,60 @@ async def ws_delete_part(
 
 @websocket_api.websocket_command(
     {
+        vol.Required("type"): "maintenance_supporter/part/move",
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("part_id"): ID_FIELD,
+        vol.Required("target_entry_id"): ID_FIELD,
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_move_part(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Move a part to another object: definition, stock, links, history (#262)."""
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
+        return
+    target = hass.config_entries.async_get_entry(msg["target_entry_id"])
+    if target is None or not is_object_entry(target):
+        connection.send_error(msg["id"], "not_found", "Target object not found")
+        return
+    try:
+        new_id = await async_move_part(hass, entry, target, msg["part_id"])
+    except PartMoveError as err:
+        if err.code == "limit_reached":
+            send_translated_error(connection, msg["id"], err.code, str(err), translation_key="parts_limit", translation_placeholders={"max": str(MAX_PARTS_PER_OBJECT)})
+        else:
+            connection.send_error(msg["id"], err.code, str(err))
+        return
+
+    # The stock sensor moves with its part (matched from the END, like the
+    # delete above): handed to the new owner under the id its setup looks
+    # for, it keeps its entity id and so its history and every dashboard
+    # and automation that names it. Removed, the new owner made a new one.
+    ent_reg = er.async_get(hass)
+    moved_unique_id = part_stock_unique_id(target.data.get(CONF_OBJECT) or {}, new_id)
+    for ent_entry in er.async_entries_for_config_entry(ent_reg, entry.entry_id):
+        if ent_entry.unique_id and ent_entry.unique_id.endswith(f"_part_{msg['part_id']}"):
+            try:
+                ent_reg.async_update_entity(
+                    ent_entry.entity_id, config_entry_id=target.entry_id, new_unique_id=moved_unique_id, device_id=None
+                )
+            except ValueError:  # the id is taken: the new owner makes its own
+                ent_reg.async_remove(ent_entry.entity_id)
+
+    for touched in (entry, target):
+        if touched.state is ConfigEntryState.LOADED:
+            await hass.config_entries.async_reload(touched.entry_id)
+        schedule_buy_task_reconcile(hass, touched)
+    connection.send_result(msg["id"], {"success": True, "entry_id": target.entry_id, "part_id": new_id})
+
+
+@websocket_api.websocket_command(
+    {
         vol.Required("type"): "maintenance_supporter/part/restock",
         vol.Required("entry_id"): ID_FIELD,
         vol.Required("part_id"): ID_FIELD,
@@ -463,6 +520,72 @@ async def ws_part_dispose(
     connection.send_result(msg["id"], result)
 
 
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/part/order",
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("part_id"): ID_FIELD,
+        # Packages for a part bought in packages; the restock amount when left out.
+        vol.Optional("quantity"): vol.All(vol.Any(int, float), vol.Coerce(float), vol.Range(min=0.01, max=MAX_PART_STOCK)),
+        # The delivery day (YYYY-MM-DD); the reminder waits until then.
+        vol.Optional("expected_date"): vol.Any(vol.All(str, vol.Length(max=MAX_DATE_LENGTH)), None),
+        vol.Optional("note"): vol.Any(vol.All(str, vol.Length(max=MAX_TEXT_LENGTH)), None),
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_part_order(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """A part was ordered and arrives later (#261): recorded on the part, its
+    buy reminder waits for the delivery day."""
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
+        return
+    expected = None
+    if msg.get("expected_date"):
+        expected = _parse_iso_date(connection, msg["id"], msg["expected_date"], field="expected_date")
+        if expected is None:
+            return
+    try:
+        result = await async_part_order(
+            hass, entry, msg["part_id"], quantity=msg.get("quantity"), expected=expected, note=msg.get("note")
+        )
+    except ServiceValidationError as err:
+        send_exception_error(connection, msg["id"], err, "invalid_input")
+        return
+    if result is None:
+        connection.send_error(msg["id"], "not_found", "Part not found")
+        return
+    connection.send_result(msg["id"], result)
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "maintenance_supporter/part/order_cancel",
+        vol.Required("entry_id"): ID_FIELD,
+        vol.Required("part_id"): ID_FIELD,
+    }
+)
+@require_write
+@websocket_api.async_response
+async def ws_part_order_cancel(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """The order fell through (#261): the part is no longer on order."""
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
+        return
+    if not await async_part_order_cancel(hass, entry, msg["part_id"]):
+        connection.send_error(msg["id"], "not_found", "No open order for this part")
+        return
+    connection.send_result(msg["id"], {"success": True})
+
+
 @websocket_api.websocket_command({vol.Required("type"): "maintenance_supporter/parts/overview"})
 @websocket_api.async_response
 async def ws_parts_overview(
@@ -519,6 +642,7 @@ async def ws_parts_overview(
                     "stock": stock,
                     "restoring": restoring,
                     "low": is_part_low(part, stock, restoring),
+                    "on_order": store.get_part_order(part_id) if store is not None else None,
                     "consumers": consumers.get((e.entry_id, part_id), []),
                 }
             )

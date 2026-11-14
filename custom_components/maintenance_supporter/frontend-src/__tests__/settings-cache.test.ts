@@ -10,7 +10,7 @@
  */
 
 import { expect } from "@open-wc/testing";
-import { FALLBACK_SETTINGS, fetchSettingsOnce, invalidateSettingsCache } from "../helpers/settings-cache.js";
+import { fetchSettingsOnce, invalidateSettingsCache, UNREAD_SETTINGS } from "../helpers/settings-cache.js";
 
 type Slot = { promise: Promise<unknown> | null };
 const win = window as unknown as { __msSettingsCache?: Slot };
@@ -51,7 +51,7 @@ describe("settings cache (page-wide)", () => {
       return { general: { row_action_style: "icons" } };
     });
     const first = await fetchSettingsOnce(hass);
-    expect(first).to.equal(FALLBACK_SETTINGS);
+    expect(first).to.equal(UNREAD_SETTINGS);
     expect(win.__msSettingsCache?.promise === null, "rejection not retained").to.be.true;
 
     fail = false;
@@ -84,7 +84,7 @@ describe("settings cache (page-wide)", () => {
     expect(await fresh).to.include({ rowActionStyle: "icons" });
 
     release!();
-    expect(await pending).to.equal(FALLBACK_SETTINGS);
+    expect(await pending).to.equal(UNREAD_SETTINGS);
     expect(win.__msSettingsCache?.promise === fresh, "the fresh promise survives").to.be.true;
   });
 });

@@ -21,13 +21,14 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
-from ..const import CONF_OBJECT, CONF_TASKS, HistoryEntryType
+from ..const import CONF_OBJECT, CONF_TASKS, MAX_TASKS_PER_OBJECT, HistoryEntryType
 from ..helpers.aggregate import async_store_even_unloaded
 from ..helpers.entry_tasks import insert_new_task
-from ..helpers.i18n import normalize_language, normalize_language_code
+from ..helpers.i18n import normalize_language, request_language
 from ..helpers.permissions import require_write
 from ..helpers.sanitize import cap_task_fields
 from ..helpers.schedule import normalize_task_storage
+from ..helpers.task_apply import async_apply_task_edits, note_task_edit
 from ..helpers.task_origin import ORIGIN_KEY, task_origin, template_origin
 from ..helpers.template_fingerprint import FIELDS, applied_fingerprints
 from ..helpers.template_updates import (
@@ -44,6 +45,7 @@ from ..helpers.template_updates import (
     task_language,
     template_task,
 )
+from ..helpers.ws_errors import send_archived_object_error, send_task_limit_error
 from ..templates import TaskTemplate, get_template_by_id, localize_template_text
 from . import ID_FIELD, _load_object_entry
 
@@ -92,7 +94,7 @@ async def ws_template_updates(
     entry = _load_object_entry(hass, connection, msg)
     if entry is None:
         return
-    ui_lang = normalize_language_code(msg.get("language")) if msg.get("language") else normalize_language(hass)
+    ui_lang = request_language(hass, msg.get("language"))
     data = entry.data
     template_id = object_template(data)
     template = get_template_by_id(template_id) if template_id else None
@@ -199,7 +201,21 @@ async def ws_apply_template_updates(
     decided = msg.get("new_tasks") or []
     add = [later[d["key"]] for d in decided if d["accept"] and d["key"] in later]
     said_no = [d["key"] for d in decided if not d["accept"] and d["key"] in later]
+    # The new tasks' refusals come before anything is written: they came
+    # after the field changes were stored, as an unknown error (BI7-A2).
+    if add and (data.get(CONF_OBJECT) or {}).get("archived_at"):
+        send_archived_object_error(connection, msg["id"])
+        return
+    if add and len(data.get(CONF_TASKS) or {}) + len(add) > MAX_TASKS_PER_OBJECT:
+        send_task_limit_error(connection, msg["id"])
+        return
 
+    stored = data.get(CONF_TASKS) or {}
+    edits = {
+        tid: changed
+        for tid, t in tasks.items()
+        if tid in stored and (changed := note_task_edit(hass, entry.entry_id, tid, stored[tid], t))
+    }
     new_data = dict(data)
     new_data[CONF_TASKS] = {**(data.get(CONF_TASKS) or {}), **{tid: normalize_task_storage(t) for tid, t in tasks.items()}}
     if said_no:
@@ -235,7 +251,14 @@ async def ws_apply_template_updates(
             words = ", ".join(_FIELD_WORDS[f] for f in FIELDS if f in fields)
             store.append_history(task_id, {"timestamp": now, "type": HistoryEntryType.UPDATED, "notes": f"From the template: {words}"})
         await store.async_save()
-    await hass.config_entries.async_reload(entry.entry_id)
+    if add:
+        # New tasks are new entities: the object sets up again.
+        await hass.config_entries.async_reload(entry.entry_id)
+    elif edits:
+        # A changed task takes effect like an edit in the dialog: a new name
+        # reloads, a new schedule, note or warning is a refresh. Every apply
+        # reloaded, and a reload froze a home with slow buttons (BI7-A4).
+        await async_apply_task_edits(hass, entry, edits)
     connection.send_result(
         msg["id"],
         {

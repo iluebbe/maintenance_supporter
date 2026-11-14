@@ -82,6 +82,8 @@ _FLOW_FIELDLESS_OK = {
     # D#229: holding a state-change latch until the task is done — chosen
     # in the panel, carried across the plain rebuild (a compound never has it).
     "trigger_hold_until_done",
+    # #149: the runtime session cap, set in the panel.
+    "trigger_runtime_max_session_seconds",
 }
 
 
@@ -102,12 +104,16 @@ def test_options_flow_knows_every_allowlisted_key() -> None:
         "an options-flow edit would silently drop them. Add a form field or add the "
         "key to the rebuild carry-over (and to _FLOW_FIELDLESS_OK with a reason)."
     )
-    # The fieldless keys must at least be carried across the rebuild.
-    for key in _FLOW_FIELDLESS_OK:
-        assert f'"{key}"' in src, (
-            f"'{key}' is exempt from having a flow field but is no longer carried "
-            "across the trigger rebuild — an options-flow edit now drops it."
-        )
+    # The fieldless keys must at least be carried across the rebuild: the
+    # one list both rebuilds read (DRY audit 2026-10-30, BI6-B6).
+    from custom_components.maintenance_supporter.helpers.task_fields import FLOW_CARRIED_TRIGGER_KEYS
+
+    missing_carry = sorted(_FLOW_FIELDLESS_OK - set(FLOW_CARRIED_TRIGGER_KEYS))
+    assert not missing_carry, (
+        f"{missing_carry} are exempt from having a flow field but not carried "
+        "across the trigger rebuild (FLOW_CARRIED_TRIGGER_KEYS) — an options-flow edit now drops them."
+    )
+    assert src.count("carried_trigger_keys(") == 2, "the plain and the compound rebuild carry through the one list"
 
 
 async def test_adopt_path_emits_only_allowlisted_keys(hass: HomeAssistant) -> None:

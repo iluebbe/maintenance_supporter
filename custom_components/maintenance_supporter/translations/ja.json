@@ -675,6 +675,7 @@
           "notification_bundle_threshold": "まとめるしきい値",
           "notification_title_style": "通知タイトルのスタイル",
           "notification_title_prefix": "通知タイトルの接頭辞",
+          "notification_language": "通知の言語",
           "notify_completed": "完了通知",
           "notify_event_only": "イベントのみ発火し、自分では送信しない",
           "notify_extra_data": "追加の通知データ（テンプレート）",
@@ -694,6 +695,7 @@
           "notification_bundle_threshold": "まとめ通知をトリガーするタスクの最小数です。",
           "notification_title_style": "通知のタイトルとして表示される内容です。既定ではステータスごとのテキスト (例: 「メンテナンスが期限切れです!」) を維持します。対象名 / タスク名は、スマートフォンの通知が積み重なるときに役立ちます。",
           "notification_title_prefix": "どのタイトルスタイルでも、すべての通知のタイトルの前に付けます。例えば、スマートフォンが複数の Home Assistant からリマインダーを受け取るときは住まいの名前を入れます。空欄 = 接頭辞なし。",
+          "notification_language": "通知のタイトル、本文、ボタンの言語。Home Assistant の言語 = これまでどおり。パネルは各ユーザーの言語のままです。",
           "notify_completed": "タスクが完了したときに理由付きで家族に知らせます（パネル、QR/NFC スキャン、To-do リスト、音声、センサーの回復など）。「自動のみ」は、その場で誰も操作していない完了だけを通知します：センサーの回復、買い物リストのチェック、オートメーションのサービス呼び出し。",
           "notify_event_only": "すべての通知はイベント maintenance_supporter_notification を発火します。有効にすると配信はすべてあなたのオートメーションが担当します。繰り返し間隔・静音時間・1日の上限は引き続きイベントの発火タイミングを決めます。",
           "notify_extra_data": "Jinja 付きの JSON または YAML。各 notify 呼び出しの data にマージされます（あなたのキーが優先）。変数: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message。",
@@ -1892,6 +1894,10 @@
         "via_tag_scan": {
           "name": "タグスキャン経由",
           "description": "この完了が、オートメーション自身が処理した物理タグ/QRコードのスキャンによるものであることを示します — タスクの「タグのスキャンでのみ完了可能」設定を満たします。"
+        },
+        "consume_parts": {
+          "name": "部品を消費する",
+          "description": "完了日時がタスクの最新の完了より前であっても、この完了に対してタスクに紐づく部品を計上します。現在の完了では常に計上され、さかのぼって記録する完了ではこのスイッチをオンにした場合のみ計上されます。部品は現在の在庫から差し引かれます。"
         }
       }
     },
@@ -1929,7 +1935,7 @@
       "fields": {
         "format": {
           "name": "形式",
-          "description": "エクスポートするデータの出力形式です (json または yaml)。"
+          "description": "出力形式：完全なエクスポートには json または yaml、履歴を 1 件 1 行の表として出力するには history_csv（ファイル maintenance_history.csv）。"
         },
         "include_history": {
           "name": "履歴を含める",
@@ -2351,7 +2357,7 @@
     },
     "shared_parts_moved": {
       "title": "共有の交換部品を {new_owner} に移動しました",
-      "description": "複数のメンテナンス対象が **{deleted_object}** にあった 1 つの交換部品在庫を共有していましたが、その対象が削除されました。他の対象が存在しない在庫を参照したままにならないよう、Maintenance Supporter は共有部品（{parts}）を現在の在庫ごと **{new_owner}** に移し、他のすべての対象のタスクのリンクをそちらへ付け替えました。失われたものはありません。\n\n**{new_owner}** は自動的に選ばれました。その在庫を使っていた対象のうち最も古いものです。別の対象のほうが適している場合は、メンテナンスパネルで部品をそちらへ移動してください。\n\n他に必要な作業はありません。確認後、この通知を閉じてください。"
+      "description": "複数のメンテナンス対象が **{deleted_object}** にあった 1 つの交換部品在庫を共有していましたが、その対象が削除されました。他の対象が存在しない在庫を参照したままにならないよう、Maintenance Supporter は共有部品（{parts}）を現在の在庫ごと **{new_owner}** に移し、他のすべての対象のタスクのリンクをそちらへ付け替えました。失われたものはありません。\n\n**{new_owner}** は自動的に選ばれました。その在庫を使っていた対象のうち最も古いものです。\n\n他に必要な作業はありません。確認後、この通知を閉じてください。"
     },
     "broken_part_link": {
       "title": "{object_name} の部品リンクが壊れています",
@@ -2538,6 +2544,9 @@
     "part_owner_archived": {
       "message": "「{object_name}」はアーカイブされています。購入を記録するには復元してください。"
     },
+    "part_owner_not_loaded": {
+      "message": "{object_name} は現在動作していません（無効、または起動中）。そのため予備部品を記録できません。動作してから再度お試しください。"
+    },
     "purchase_cost_too_high": {
       "message": "1 回の購入の合計は最大 {max} です。"
     },
@@ -2567,6 +2576,9 @@
     },
     "date_in_future": {
       "message": "日付に未来は指定できません。"
+    },
+    "time_based_needs_interval": {
+      "message": "時間ベースのタスクには間隔が必要です。"
     },
     "range_end_before_start": {
       "message": "終了は開始と同じか、それより後にしてください。"

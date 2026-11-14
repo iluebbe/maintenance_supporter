@@ -7,6 +7,7 @@
 
 import { expect } from "@open-wc/testing";
 import { effectiveRowActionStyle, parseSettings } from "../helpers/settings-cache";
+import vectors from "./fixtures/row-action-style-vectors.json";
 
 describe("row actions: icons by default in the beta", () => {
   it("nobody chose: icons with the beta, the default without", () => {
@@ -26,5 +27,17 @@ describe("row actions: icons by default in the beta", () => {
     expect(beta.rowActionStyle).to.equal("icons");
     const chosen = parseSettings({ features: { beta_editor: true }, general: { row_action_style: "buttons", row_action_style_set: true } });
     expect(chosen.rowActionStyle).to.equal("buttons");
+  });
+
+  it("reads the stored options as the options flow does (shared vectors, BI7-A1)", () => {
+    // tests/test_row_action_style.py checks the same vectors against
+    // shown_row_action_style. The settings answer carries the stored style or
+    // the registry default, whether one is stored, and the new-look switch.
+    for (const v of vectors.vectors) {
+      const o = v.options as Record<string, unknown>;
+      const style = typeof o.row_action_style === "string" ? o.row_action_style : "buttons_compact";
+      const beta = o.advanced_beta_editor_visible !== false;
+      expect(effectiveRowActionStyle(style, "row_action_style" in o, beta), v.note).to.equal(v.expected);
+    }
   });
 });

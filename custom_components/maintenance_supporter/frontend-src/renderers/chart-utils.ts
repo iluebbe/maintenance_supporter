@@ -1,6 +1,6 @@
 /** Shared chart helpers: nice axis ticks and consistent number/date formats. */
 
-import { formatDateShort, formatTimeOfDay, formatNumber } from "../styles";
+import { formatDateShort, formatTimeOfDay, formatNumber, withUnit } from "../styles";
 import { displayTimeZone, ymdIn } from "../helpers/ha-time";
 
 /** SVG / CSS coordinate: one decimal, ALWAYS a dot — never a user-facing
@@ -63,7 +63,7 @@ export function fmtNum(v: number, lang?: string): string {
 export function fmtVal(v: number, unit: string, lang?: string): string {
   const a = Math.abs(v);
   const s = formatNumber(v, lang, { maximumFractionDigits: a >= 100 ? 0 : a >= 1 || a === 0 ? 1 : 2 });
-  return unit ? `${s} ${unit}` : s;
+  return withUnit(s, unit, lang);
 }
 
 /** A y-axis tick with as many decimals as the tick step needs: a 0.005 step

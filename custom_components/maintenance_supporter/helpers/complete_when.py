@@ -39,14 +39,11 @@ from ..const import CONF_OBJECT, CONF_TASKS, UNAVAILABLE_STATES
 from ..models.shapes import CompleteWhen
 from .pause import is_task_inert
 from .sanitize import sanitize_complete_when
+from .state_match import norm_state
 from .task_trace import KIND_DONE_WHEN, record
 
 if TYPE_CHECKING:
     from ..coordinator import MaintenanceCoordinator
-
-
-def _norm(value: str) -> str:
-    return value.strip().casefold()
 
 
 def completes(to_state: str, old_state: State | None, new_state: State | None) -> bool:
@@ -55,8 +52,8 @@ def completes(to_state: str, old_state: State | None, new_state: State | None) -
         return False
     if old_state.state in UNAVAILABLE_STATES or new_state.state in UNAVAILABLE_STATES:
         return False
-    target = _norm(to_state)
-    return _norm(new_state.state) == target and _norm(old_state.state) != target
+    target = norm_state(to_state)
+    return norm_state(new_state.state) == target and norm_state(old_state.state) != target
 
 
 def _left(to_state: str, new_state: State | None) -> bool:
@@ -66,7 +63,7 @@ def _left(to_state: str, new_state: State | None) -> bool:
     be back when it ends."""
     if new_state is None:
         return True
-    return new_state.state not in UNAVAILABLE_STATES and _norm(new_state.state) != _norm(to_state)
+    return new_state.state not in UNAVAILABLE_STATES and norm_state(new_state.state) != norm_state(to_state)
 
 
 def rules_by_entity(tasks: Mapping[str, Any], obj: dict[str, Any]) -> dict[str, list[tuple[str, CompleteWhen]]]:
@@ -111,7 +108,7 @@ def async_track_complete_when(hass: HomeAssistant, coordinator: MaintenanceCoord
         def _held(_now: datetime) -> None:
             waiting.pop(task_id, None)
             state = hass.states.get(rule["entity_id"])
-            if state is not None and _norm(state.state) == _norm(rule["to_state"]):
+            if state is not None and norm_state(state.state) == norm_state(rule["to_state"]):
                 _complete(task_id, rule, state)
             else:
                 _trace(task_id, rule, state, "left_early")

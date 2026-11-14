@@ -702,10 +702,12 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "wellbeing": IntegrationSignature(
         name="Electrolux Wellbeing",
-        verified="2026-09-27 @ JohNan/homeassistant-wellbeing main (6e294d3, HACS default)",
+        verified="2026-11-09 @ JohNan/homeassistant-wellbeing main (86d5380, v1.4.15, HACS default)",
         source=(
             "JohNan/homeassistant-wellbeing entity.py forces entity_id = "
-            "slugify(f'wellbeing_{appliance}_{attr}') (no translation_key) → suffixes. "
+            "slugify(f'wellbeing_{appliance.display_name}_{attr}') (no translation_key) → "
+            "suffixes; display_name (86d5380, #263) is the appliance name, or the model "
+            "name when that name has no Latin letter or digit — the _{attr} suffix is unchanged. "
             "api.py PUREi9 robot: ApplianceConsumableSensor 'Main Brush' / 'Side Brush' / "
             "'Filter' (attrs main_brush_sqm / side_brush_sqm / filter_sqm, PERCENTAGE, "
             "value = 100 × (1 − m² since reset / rated m²), rated 3000 / 1000 / 1000 m² — "

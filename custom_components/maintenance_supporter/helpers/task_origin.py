@@ -25,8 +25,10 @@ an entity that duty matches, or named as a task of the object's stored
 template. A renamed one is never guessed — the reset offer shows it unticked
 as "renamed" and wiring it records the origin.
 
-A copy made with "Duplicate" is the user's own task and does not inherit the
-origin; moving, editing, export/import and replacing the object keep it.
+A task copied with "Duplicate" is the user's own task and does not inherit
+the origin; a duplicated object's tasks keep a template origin (the copy keeps
+the object's template and its review). Moving, editing, export/import and
+replacing the object keep it.
 """
 
 from __future__ import annotations

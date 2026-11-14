@@ -109,7 +109,10 @@ async def _seed(hass: HomeAssistant, global_entry: MockConfigEntry) -> dict[str,
     for entity_id, level in (("sensor.hall_smoke_battery", "80"), ("sensor.garage_remote_battery", "35")):
         hass.states.async_set(entity_id, level, {"device_class": "battery", "unit_of_measurement": "%"})
 
-    task = dict(build_task_data(task_id="rig_task"), **FULL_TASK, trigger_config=_full_trigger_config())
+    # Without the hold: it is kept only on a rule that can hold, not on this
+    # counter (DRY audit 2026-10-30, BI6-B7; test_export_roundtrip).
+    trigger = {k: v for k, v in _full_trigger_config().items() if k != "trigger_hold_until_done"}
+    task = dict(build_task_data(task_id="rig_task"), **FULL_TASK, trigger_config=trigger)
     task["object_id"] = "rig_obj"
     task["created_at"] = "2026-01-15"
     task["last_planned_due"] = "2026-05-28"

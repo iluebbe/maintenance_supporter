@@ -53,7 +53,7 @@ from homeassistant.helpers.storage import Store
 from .const import COMPLETION_PROVENANCE_NOTES, CONF_OBJECT, CONF_SHOPPING_LIST_ENTITY, CONF_TASKS, DOMAIN, GLOBAL_UNIQUE_ID
 from .helpers.global_options import global_option
 from .helpers.managed_timer import ManagedTimer
-from .helpers.parts import is_open_buy_task
+from .helpers.parts import buy_task_part_id, is_open_buy_task
 from .helpers.todo_mirror import async_todo_add_item, async_todo_get_items, async_todo_remove_item, mirror_summary
 
 _LOGGER = logging.getLogger(__name__)
@@ -318,6 +318,9 @@ class ShoppingListSync:
                 # A disabled, retired (bug audit 2026-08-29, P-F13), paused
                 # (2026-09-26) or completed reminder is not shopping.
                 if not is_open_buy_task(td, obj_data, store.get_last_performed(tid)):
+                    continue
+                # #261: ordered is bought as far as the shopping list goes.
+                if store.get_part_order(buy_task_part_id(td) or "") is not None:
                     continue
                 # Same row text as our own to-do platform (a buy task has no
                 # phases or calendar events, so the text is its bare name).

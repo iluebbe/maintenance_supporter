@@ -10,7 +10,7 @@
  * one of them changes without this table.
  */
 
-import { formatDate, t } from "../styles";
+import { formatDate, formatNumber, t } from "../styles";
 
 const EXACT: Record<string, string> = {
   "Completed from dashboard button": "hist_note_button",
@@ -36,7 +36,12 @@ const TEMPLATE_FIELD_LABELS: Record<string, string> = {
   "warning days": "warning_days",
 };
 const PATTERNS: Array<[RegExp, string, Fill]> = [
-  [/^Auto-completed: sensor recovered \((.+)\)$/, "hist_note_auto_recovered", (m) => ({ value: m[1] })],
+  // The reading in the viewer's number format and as it is stored: the
+  // history is where one looks things up, so it is not rounded again. A
+  // note from before 2.121 may hold an exponent ("1.23457e+06").
+  [/^Auto-completed: sensor recovered \((.+)\)$/, "hist_note_auto_recovered", (m, lang) => ({
+    value: m[1].trim() !== "" && Number.isFinite(Number(m[1])) ? formatNumber(Number(m[1]), lang, { maximumFractionDigits: 10 }) : m[1],
+  })],
   // D#229: the task's complete_when entity changed to its state.
   [/^Auto-completed: (.+) changed to (.+)$/, "hist_note_auto_entity", (m) => ({ entity: m[1], state: m[2] })],
   [/^Reset to (\d{4}-\d{2}-\d{2})$/, "hist_note_reset", (m, lang) => ({ date: formatDate(m[1], lang) })],

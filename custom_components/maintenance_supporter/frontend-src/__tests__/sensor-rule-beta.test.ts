@@ -15,7 +15,8 @@
 import { expect } from "@open-wc/testing";
 import { render } from "lit";
 import { renderTriggerSection, ruleSensors, type SparklineContext } from "../renderers/sparkline.js";
-import { conditionText, withUnit } from "../helpers/task-rules";
+import { conditionText } from "../helpers/task-rules";
+import { withUnit } from "../styles";
 import { setBetaUi } from "../helpers/beta-ui";
 import type { HomeAssistant, MaintenanceTask, StatisticsPoint, TriggerConfig } from "../types";
 

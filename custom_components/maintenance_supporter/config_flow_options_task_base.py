@@ -33,6 +33,7 @@ from .helpers.schedule import (
     normalize_task_storage,
     preview_occurrences,
 )
+from .helpers.task_apply import apply_entry_edits, note_entry_edits
 
 
 class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
@@ -45,6 +46,24 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
         self._trigger_entity_id: str | None = None
         self._trigger_entity_state: State | None = None
         self._trigger_on_complete = self._save_new_task
+        # What this session itself wrote (_note_flow_write): task id → the
+        # fields it changed, and whether more than tasks' fields changed.
+        self._flow_edits: dict[str, set[str]] = {}
+        self._flow_reload = False
+
+    def _note_flow_write(self, new_data: Mapping[str, Any]) -> None:
+        """Note what this write of the session changes, against the entry as
+        it is now: only the session's own writes take effect when it closes.
+        The entry at its start was the base, and what others wrote meanwhile
+        (a rotation's next person, a panel edit, a part's purchase price) was
+        traced as the session's edit and reloaded the object (bug audit
+        2026-11-08, W8-2)."""
+        edits = note_entry_edits(self.hass, self.config_entry.entry_id, self.config_entry.data, new_data)
+        if edits is None:
+            self._flow_reload = True
+            return
+        for task_id, fields in edits.items():
+            self._flow_edits.setdefault(task_id, set()).update(fields)
 
     def _update_config_entry(self, new_data: dict[str, Any]) -> None:
         """Update the config entry with new data.
@@ -59,6 +78,7 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
                 **new_data,
                 CONF_TASKS: {tid: normalize_task_storage(td) for tid, td in tasks.items()},
             }
+        self._note_flow_write(new_data)
         self.hass.config_entries.async_update_entry(self.config_entry, data=new_data)
 
     def _save_new_task(self) -> ConfigFlowResult:
@@ -84,6 +104,7 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
             return self._add_task_refused() or self.async_abort(reason="task_limit", description_placeholders={"max": str(MAX_TASKS_PER_OBJECT)})
         if store is not None:
             store.async_delay_save()
+        self._flow_reload = True  # a new task's entities
 
         self._current_task = {}
 
@@ -126,17 +147,24 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
         if getattr(self, "_reloaded", False) or getattr(self, "_data_at_start", None) is None or not self.hass.is_running:
             return
         entry = self.hass.config_entries.async_get_entry(self.handler) if isinstance(self.handler, str) else None
-        if entry is not None and entry.data is not self._data_at_start:
-            self.hass.config_entries.async_schedule_reload(entry.entry_id)
+        if entry is not None and (self._flow_reload or self._flow_edits):
+            # A task's edits take effect like the dialog's, anything else
+            # reloads (helpers/task_apply).
+            apply_entry_edits(self.hass, entry, None if self._flow_reload else self._flow_edits)
 
     async def async_step_done(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Close the options flow."""
         self._reloaded = True
-        # Flush store and reload to pick up config changes from this flow
+        # Flush the store, then make the flow's changes take effect: a task's
+        # edits like the dialog's (a refresh where it can), anything else a
+        # reload (helpers/task_apply).
         store = store_of(self.config_entry)
         if store is not None:
             await store.async_save()
-        self.hass.async_create_task(self.hass.config_entries.async_reload(self.config_entry.entry_id))
+        if getattr(self, "_data_at_start", None) is None:
+            self.hass.async_create_task(self.hass.config_entries.async_reload(self.config_entry.entry_id))
+        else:
+            apply_entry_edits(self.hass, self.config_entry, None if self._flow_reload else self._flow_edits)
         return self.async_create_entry(title="", data=self.config_entry.options)
 
     def _get_global_options(self) -> dict[str, Any]:

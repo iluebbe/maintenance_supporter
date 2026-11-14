@@ -30,6 +30,10 @@ class TaskResult:
     status: str = MaintenanceStatus.OK
     days_until_due: int | None = None
     next_due: str | None = None
+    # A task due only once its trigger fired AND its interval elapsed
+    # publishes the later of the two above (#260); this is the interval leg,
+    # which the status twin in helpers.status weighs. None otherwise.
+    interval_days_until_due: int | None = None
     is_done: bool = False
     # The tasks of a paused object, or a paused task (the status twin in
     # helpers.status reads it).

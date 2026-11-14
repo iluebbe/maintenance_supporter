@@ -751,6 +751,8 @@ _SETTING_SAMPLES: dict[str, Any] = {
     "notification_title_style": "object_name",
     # D#248: already trimmed, so the sanitiser keeps it as is.
     "notification_title_prefix": "Rental",
+    # #251: a table language (auto is the default).
+    "notification_language": "de",
     # #173 follow-up: completion notifications (off | automatic | all).
     "notify_completed": "automatic",
     "action_complete_enabled": True,
@@ -859,6 +861,7 @@ async def test_every_allowlisted_setting_round_trips(hass: HomeAssistant, global
         "notification_bundle_threshold": settings["notifications"]["bundle_threshold"],
         "notification_title_style": settings["notifications"]["title_style"],
         "notification_title_prefix": settings["notifications"]["title_prefix"],
+        "notification_language": settings["notifications"]["language"],
         "notify_completed": settings["notifications"]["completed"],
         "reminder_lead_days": settings["notifications"]["reminder_lead_days"],
         "notify_scope_view_id": settings["notifications"]["scope_view_id"],

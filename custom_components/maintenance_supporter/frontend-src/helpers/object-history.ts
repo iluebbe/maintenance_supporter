@@ -9,6 +9,7 @@ import type { HistoryEntry, ReadingValue } from "../types";
 import { historyPhotoIds } from "./history-photos";
 import { entrySpend } from "./parts-cost";
 import { stampDate, stampMs } from "./ha-time";
+import { t } from "../styles";
 
 /** One merged lifecycle row: a task's history entry plus its task identity. */
 export interface ObjectHistoryEntry {
@@ -71,6 +72,19 @@ function entryReadings(h: HistoryEntry, unit: string | null | undefined): Array<
   }
   if (typeof h.reading_value === "number") return [{ id: "", name: "", value: h.reading_value, unit: unit || "" }];
   return [];
+}
+
+/** Who completed an entry, as the printables name them: the person, and the
+ *  shared device it was done on ("Anna via Kitchen tablet", #233). The
+ *  object and the area record each wrote it (DRY audit 2026-10-30, FE6-B4). */
+export function completedByLabel(
+  e: Pick<ObjectHistoryEntry, "completedBy" | "completedVia">,
+  userName: (id: string) => string | null | undefined,
+  lang: string,
+): string | null {
+  if (!e.completedBy) return null;
+  if (!e.completedVia) return userName(e.completedBy) ?? null;
+  return t("completed_via", lang).replace("{person}", userName(e.completedBy) ?? "").replace("{device}", userName(e.completedVia) ?? "");
 }
 
 export function mergeObjectHistory(

@@ -675,6 +675,7 @@
           "notification_bundle_threshold": "Limite para agrupar",
           "notification_title_style": "Estilo do título da notificação",
           "notification_title_prefix": "Prefixo do título da notificação",
+          "notification_language": "Idioma das notificações",
           "notify_completed": "Notificações de conclusão",
           "notify_event_only": "Disparar apenas o evento, não enviar nada",
           "notify_extra_data": "Dados de notificação adicionais (modelo)",
@@ -694,6 +695,7 @@
           "notification_bundle_threshold": "Número mínimo de tarefas para disparar uma notificação agrupada.",
           "notification_title_style": "O que aparece como TÍTULO da notificação. O padrão mantém o texto por status (ex.: 'Manutenção atrasada!'). Nome do objeto / Nome da tarefa ajudam quando as notificações do celular se empilham.",
           "notification_title_prefix": "Vem antes do título de cada notificação, em qualquer estilo, ex.: o nome da casa quando o celular recebe lembretes de mais de um Home Assistant. Vazio = sem prefixo.",
+          "notification_language": "O idioma dos títulos, textos e botões das notificações. Idioma do Home Assistant = como até agora. O painel mantém o idioma de cada pessoa.",
           "notify_completed": "Aviso para a casa quando uma tarefa é concluída, com o motivo (painel, leitura QR/NFC, lista de tarefas, voz, recuperação do sensor…). \"Só automáticas\" anuncia apenas as conclusões que ninguém fez na hora: recuperação do sensor, item marcado na lista de compras, chamada de serviço de uma automação.",
           "notify_event_only": "Cada notificação dispara o evento maintenance_supporter_notification. Com esta opção sua automação cuida de toda a entrega — intervalos de repetição, horas de silêncio e limite diário continuam decidindo quando o evento dispara.",
           "notify_extra_data": "JSON ou YAML com Jinja, mesclado nos data de cada chamada notify (suas chaves prevalecem). Variáveis: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
@@ -1892,6 +1894,10 @@
         "via_tag_scan": {
           "name": "Via leitura de etiqueta",
           "description": "Confirma que esta conclusão veio da leitura de uma etiqueta/QR físico tratada pela própria automação — atende à configuração “Concluir apenas escaneando a etiqueta” da tarefa."
+        },
+        "consume_parts": {
+          "name": "Consumir peças",
+          "description": "Registra as peças vinculadas à tarefa para esta conclusão mesmo quando a data de conclusão é anterior à última conclusão da tarefa. Uma conclusão atual as registra de qualquer forma; uma lançada depois, somente com esta opção. As peças saem do estoque de hoje."
         }
       }
     },
@@ -1929,7 +1935,7 @@
       "fields": {
         "format": {
           "name": "Formato",
-          "description": "Formato de saída dos dados exportados (json ou yaml)."
+          "description": "Formato de saída: json ou yaml para a exportação completa, history_csv para o histórico em tabela com uma linha por entrada (arquivo maintenance_history.csv)."
         },
         "include_history": {
           "name": "Incluir histórico",
@@ -2351,7 +2357,7 @@
     },
     "shared_parts_moved": {
       "title": "Peças compartilhadas movidas para {new_owner}",
-      "description": "Vários objetos de manutenção compartilhavam um mesmo estoque de peças, que ficava em **{deleted_object}**, e esse objeto acaba de ser excluído. Em vez de deixar os outros objetos apontando para um estoque que não existe mais, o Maintenance Supporter moveu as peças compartilhadas ({parts}) — junto com o estoque atual — para **{new_owner}** e reapontou para elas os vínculos das tarefas de todos os demais objetos. Nada foi perdido.\n\n**{new_owner}** foi escolhido automaticamente: é o objeto mais antigo que usava esse estoque. Se outro objeto for o lugar mais adequado, mova as peças para lá no painel de Manutenção.\n\nNão é preciso fazer mais nada — dispense esta notificação depois de conferir."
+      "description": "Vários objetos de manutenção compartilhavam um mesmo estoque de peças, que ficava em **{deleted_object}**, e esse objeto acaba de ser excluído. Em vez de deixar os outros objetos apontando para um estoque que não existe mais, o Maintenance Supporter moveu as peças compartilhadas ({parts}) — junto com o estoque atual — para **{new_owner}** e reapontou para elas os vínculos das tarefas de todos os demais objetos. Nada foi perdido.\n\n**{new_owner}** foi escolhido automaticamente: é o objeto mais antigo que usava esse estoque.\n\nNão é preciso fazer mais nada — dispense esta notificação depois de conferir."
     },
     "broken_part_link": {
       "title": "Vínculos de peça quebrados em {object_name}",
@@ -2538,6 +2544,9 @@
     "part_owner_archived": {
       "message": "“{object_name}” está arquivado. Restaure-o para registrar uma compra."
     },
+    "part_owner_not_loaded": {
+      "message": "{object_name} não está em funcionamento agora (desativado ou ainda iniciando), então suas peças de reposição não podem ser registradas. Tente novamente quando estiver."
+    },
     "purchase_cost_too_high": {
       "message": "Uma compra pode custar no máximo {max} no total."
     },
@@ -2567,6 +2576,9 @@
     },
     "date_in_future": {
       "message": "A data não pode estar no futuro."
+    },
+    "time_based_needs_interval": {
+      "message": "Uma tarefa baseada em tempo precisa de um intervalo."
     },
     "range_end_before_start": {
       "message": "O fim precisa ser igual ou posterior ao início."

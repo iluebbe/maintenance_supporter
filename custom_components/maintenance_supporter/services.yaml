@@ -65,6 +65,11 @@ complete:
       description: Assert that this completion came from a physical tag/QR scan the automation handled itself — satisfies a task's "Only complete by scanning the tag" setting.
       selector:
         boolean:
+    consume_parts:
+      name: Consume parts
+      description: Book the parts linked to the task for this completion even when Completed at lies before the task's latest completion. A current completion books them anyway; a backfilled one only does with this switched on. The parts come off today's stock.
+      selector:
+        boolean:
 
 reset:
   name: Reset Maintenance
@@ -110,13 +115,14 @@ export_data:
   fields:
     format:
       name: Format
-      description: Output format for the exported data.
+      description: "Output format: json or yaml for the full export, history_csv for the history as a table with one row per entry (written to maintenance_history.csv)."
       default: "json"
       selector:
         select:
           options:
             - "json"
             - "yaml"
+            - "history_csv"
     include_history:
       name: Include History
       description: Whether to include task history entries in the export.

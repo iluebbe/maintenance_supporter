@@ -12,7 +12,7 @@
 
 import { LitElement, css, html, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { formatDateTime, formatNumber, langOf, sharedStyles, t } from "../styles";
+import { formatDateTime, formatNumber, langOf, sharedStyles, t, withUnit } from "../styles";
 import type { HistoryEntry, HomeAssistant, MaintenanceTask } from "../types";
 import {
   activityRows,
@@ -98,6 +98,7 @@ export class MaintenanceTaskTrace extends LitElement {
       this._cycles = buildCycles(res?.events ?? [], res?.history ?? [], langOf(this.hass), {
         triggerUnit: triggerUnit(this.hass, this.task) || undefined,
         stateRule: isStateRule(this.task),
+        entityName: (id) => entityName(this.hass, id),
       });
     } catch {
       this._failed = true;
@@ -267,7 +268,7 @@ export class MaintenanceTaskTrace extends LitElement {
     const n = Number(r.state);
     if (r.state === "" || !Number.isFinite(n)) return r.state;
     const unit = this.hass?.states?.[r.entityId]?.attributes?.unit_of_measurement;
-    return `${formatNumber(n, L, { maximumFractionDigits: 3 })}${typeof unit === "string" && unit ? ` ${unit}` : ""}`;
+    return withUnit(formatNumber(n, L, { maximumFractionDigits: 3 }), typeof unit === "string" ? unit : "", L);
   }
 
   /** The step's details: HA's "step details" for a maintenance step. */

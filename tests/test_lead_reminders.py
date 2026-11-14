@@ -211,7 +211,11 @@ async def test_send_lead_reminder_uses_due_soon_strings(
         data = mock_hass.services.async_call.call_args[0][2]
         assert "Filter" in data["message"]
         assert "14" in data["message"]
-        assert "2026-07-19" in data["message"]
+        # 2.121: the day written out, not the ISO date.
+        from custom_components.maintenance_supporter.helpers.intent_speech import spoken_iso_date
+
+        assert str(spoken_iso_date("2026-07-19", "en")) in data["message"]
+        assert "2026-07-19" not in data["message"]
 
 
 async def test_send_lead_reminder_respects_quiet_hours(

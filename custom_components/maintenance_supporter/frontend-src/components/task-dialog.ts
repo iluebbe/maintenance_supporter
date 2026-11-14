@@ -2,8 +2,8 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import type { AdaptiveConfig, HomeAssistant, MaintenanceTask, ReadingSlot, TaskPartLink, TriggerConfig, HAUser } from "../types";
-import { countText, formatDate, formatNumber, formStyles, nativeFieldStyles, t, weekdayName, monthName, langOf } from "../styles";
+import type { AdaptiveConfig, HomeAssistant, MaintenanceTask, NotificationTextKind, NotificationTexts, ReadingSlot, TaskPartLink, TriggerConfig, HAUser } from "../types";
+import { countText, ellipsize, formatDate, formatHold, formatNumber, formatUnit, formStyles, nativeFieldStyles, t, weekdayName, monthName, langOf, withUnit } from "../styles";
 import { UserService } from "../user-service";
 import { partLinkKey } from "../helpers/shared-parts";
 import { MAX_READING_SLOTS, cleanReadingSlots, duplicateReadingSlotIds, newReadingSlotId } from "../helpers/reading-slots";
@@ -18,19 +18,23 @@ import {
   PART_QTY_RANGE,
   SCHEDULE_OFFSET_MAX_DAYS,
   TRIGGER_DAYS_BEFORE_RANGE,
+  COMPLETE_WHEN_FOR_MINUTES_RANGE,
   TRIGGER_FOR_MINUTES_RANGE,
   TRIGGER_TARGET_CHANGES_RANGE,
   WARNING_DAYS_RANGE,
 } from "../helpers/setting-ranges";
 import { parseDurationMinutes } from "../helpers/duration";
 import { quickCompleteOn } from "../helpers/quick-complete";
+import { canHoldUntilDone, isStateLatch } from "../helpers/completes-itself";
 import type { TriggerType } from "../types";
 import { REQUIRED_COMPLETION_KEYS, REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
 import "./ms-textfield";
 import { defaultNotifyIcon } from "../helpers/notify-icons";
-import { entityName, primaryTriggerEntity, triggerEntityIds } from "../helpers/trigger-entities";
+import { NOTIFICATION_TEXT_KINDS, NOTIFICATION_TEXT_PLACEHOLDERS, cleanNotificationTexts, ownTextKinds } from "../helpers/notification-texts";
+import { compoundLogic, entityName, primaryTriggerEntity, triggerEntityIds, triggerUnit } from "../helpers/trigger-entities";
+import { applyTypeFields, emptyTypeFields, typeFieldsFromConfig, type TriggerTypeFields } from "../helpers/trigger-fields";
 import { ROTATION_STRATEGIES, TASK_PRIORITIES } from "../helpers/task-choices";
-import { MAX_MIRROR_TODO_LISTS, mirrorTargets, ownTodoLists } from "../helpers/mirror-lists";
+import { MAX_MIRROR_TODO_LISTS, mirrorChoice, mirrorTargets, ownTodoLists, type MirrorMode } from "../helpers/mirror-lists";
 import {
   buildRuleRows,
   deviceEntityFacts,
@@ -82,6 +86,13 @@ const triggerTypeLabel = (key: string, L: string): string => t(key === "due_date
 const TRIGGER_TYPE_KEYS_WITH_COMPOUND = [...TRIGGER_TYPE_KEYS, "compound"];
 // Backend defaults for the adaptive tuning fields (ewa_alpha / min / max days).
 const ADAPTIVE_DEFAULTS = { alpha: "0.3", min: "7", max: "365" } as const;
+/** The adaptive fields as one comparable value (save only what changed). */
+function adaptiveSnapshot(...fields: [boolean, string, string, string, boolean, boolean]): string {
+  return JSON.stringify(fields);
+}
+/** A task without adaptive tuning: off, the defaults, seasonal and the
+ *  sensor prediction on. */
+const ADAPTIVE_UNSET = adaptiveSnapshot(false, ADAPTIVE_DEFAULTS.alpha, ADAPTIVE_DEFAULTS.min, ADAPTIVE_DEFAULTS.max, true, true);
 // Bounds of a consumes_parts quantity (the field's min/max, the same range
 // the completion's used_parts accept) — validated on save with a message,
 // never silently replaced. One TS source, pinned to Python.
@@ -89,35 +100,15 @@ const CONSUMES_QTY_RANGE = PART_QTY_RANGE;
 
 /** One condition of a compound trigger — a flat trigger the user edits inline.
  *  String-typed like the top-level fields (form inputs); coerced on save. */
-interface CompoundConditionDraft {
+interface CompoundConditionDraft extends TriggerTypeFields {
   entityIds: string; // comma-separated raw input
-  type: TriggerType;
-  attribute: string; // "" = use the entity state
-  above: string;
-  below: string;
-  equals: string;
-  notEquals: string;
-  forMinutes: string;
-  targetValue: string;
-  deltaMode: boolean;
-  fromState: string;
-  toState: string;
-  targetChanges: string;
-  runtimeHours: string;
-  onStates: string;
-  daysBefore: string;
   /** Original keys this editor has no fields for (attribute, baseline, ...).
    *  Spread back on save so a compound roundtrip never drops them (#103 class). */
   carry: Partial<TriggerConfig>;
 }
 
 function emptyCondition(): CompoundConditionDraft {
-  return {
-    entityIds: "", type: "threshold", attribute: "", above: "", below: "",
-    equals: "", notEquals: "", forMinutes: "0",
-    targetValue: "", deltaMode: false, fromState: "", toState: "",
-    targetChanges: "", runtimeHours: "", onStates: "", daysBefore: "0", carry: {},
-  };
+  return { entityIds: "", ...emptyTypeFields(), carry: {} };
 }
 
 /** Keys the compound editor owns via its own form fields — everything else
@@ -131,64 +122,10 @@ const MANAGED_CONDITION_KEYS = new Set([
   "trigger_days_before",
 ]);
 
-/** The per-type trigger fields BOTH editors own — the flat trigger form and
- *  every compound condition. The flat form used to hydrate and serialize
- *  them with its own copy of the rules below, and the copies had drifted:
- *  a compound state_change condition dropped its #136 hold time
- *  (`trigger_for_minutes`, a managed key, so not carried either) on every
- *  save (DRY audit 2026-09-26). */
-export type TriggerTypeFields = Omit<CompoundConditionDraft, "entityIds" | "carry">;
-
-/** Storage → form for the shared per-type fields. */
-export function typeFieldsFromConfig(c: TriggerConfig): TriggerTypeFields {
-  return {
-    type: c.type || "threshold",
-    attribute: c.attribute || "",
-    above: c.trigger_above?.toString() ?? "",
-    below: c.trigger_below?.toString() ?? "",
-    equals: c.trigger_equals?.toString() ?? "",
-    notEquals: c.trigger_not_equals?.toString() ?? "",
-    forMinutes: c.trigger_for_minutes?.toString() ?? "0",
-    targetValue: c.trigger_target_value?.toString() ?? "",
-    deltaMode: c.trigger_delta_mode || false,
-    fromState: c.trigger_from_state || "",
-    toState: c.trigger_to_state || "",
-    targetChanges: c.trigger_target_changes?.toString() ?? "",
-    runtimeHours: c.trigger_runtime_hours?.toString() ?? "",
-    onStates: (c.trigger_on_states || []).join(", "),
-    daysBefore: c.trigger_days_before?.toString() ?? "0",
-  };
-}
-
-/** Form → storage: writes the shared per-type fields onto `c` (only the
- *  ones the type uses; unparsable numbers are left out). */
-export function applyTypeFields(c: TriggerConfig, d: TriggerTypeFields): void {
-  if (d.attribute) c.attribute = d.attribute;
-  const forMinutes = parseInt(d.forMinutes, 10);
-  if (d.type === "threshold") {
-    const a = parseFloat(d.above); if (!isNaN(a)) c.trigger_above = a;
-    const b = parseFloat(d.below); if (!isNaN(b)) c.trigger_below = b;
-    const eq = parseFloat(d.equals); if (!isNaN(eq)) c.trigger_equals = eq;
-    const ne = parseFloat(d.notEquals); if (!isNaN(ne)) c.trigger_not_equals = ne;
-    if (!isNaN(forMinutes)) c.trigger_for_minutes = forMinutes;
-  } else if (d.type === "counter") {
-    const v = parseFloat(d.targetValue); if (!isNaN(v)) c.trigger_target_value = v;
-    c.trigger_delta_mode = d.deltaMode;
-  } else if (d.type === "state_change") {
-    if (d.fromState) c.trigger_from_state = d.fromState;
-    if (d.toState) c.trigger_to_state = d.toState;
-    const n = parseInt(d.targetChanges, 10); if (!isNaN(n)) c.trigger_target_changes = n;
-    // #136: the new state must hold this long before a change counts.
-    if (!isNaN(forMinutes)) c.trigger_for_minutes = forMinutes;
-  } else if (d.type === "runtime") {
-    const h = parseFloat(d.runtimeHours); if (!isNaN(h)) c.trigger_runtime_hours = h;
-    const on = (d.onStates || "").split(",").map((s) => s.trim()).filter(Boolean);
-    if (on.length > 0) c.trigger_on_states = on;
-  } else if (d.type === "due_date") {
-    const days = parseInt(d.daysBefore, 10);
-    c.trigger_days_before = isNaN(days) ? 0 : days;
-  }
-}
+// The shared per-type fields live in helpers/trigger-fields (the beta
+// editor's rule row reads them too); re-exported for the tests.
+export { applyTypeFields, typeFieldsFromConfig };
+export type { TriggerTypeFields };
 
 /** Map a persisted compound condition (storage shape) to an editable draft. */
 function conditionToDraft(c: TriggerConfig): CompoundConditionDraft {
@@ -228,7 +165,7 @@ function attributePreview(value: unknown): string {
   const text = Array.isArray(value)
     ? value.filter((v) => v !== null && v !== undefined && v !== "").join(", ")
     : value !== null && typeof value === "object" ? "" : value === undefined || value === null ? "" : String(value);
-  return text.length > 40 ? `${text.slice(0, 39)}…` : text;
+  return ellipsize(text);
 }
 
 /** What the dialog reads of an object: its name and its spare parts. */
@@ -349,6 +286,11 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _customIcon = "";
   /** #185: mdi icon for this task's push notifications ("" = type default). */
   @state() private _notifyIcon = "";
+  /** #252: the task's own notification texts, as typed (cleaned on save). */
+  @state() private _notifyTexts: NotificationTexts = {};
+  /** Their section opens on a task that has one, decided once per open like
+   *  the Details (bug audit 2026-11-08, E8-3). */
+  @state() private _notifyTextsOpen = false;
   @state() private _priority = "normal";
   @state() private _labels = "";
   /** #216: the Details disclosure opens on a task that has any of its fields
@@ -358,7 +300,7 @@ export class MaintenanceTaskDialog extends LitElement {
   /** D#183: external todo.* lists the task is mirrored into while due. */
   @state() private _mirrorTodoEntities: string[] = [];
   /** #231: the default lists, the task's own (the picker), or none. */
-  @state() private _mirrorTodoMode: "default" | "own" | "none" = "default";
+  @state() private _mirrorTodoMode: MirrorMode = "default";
   // D#229: the entity (and its state) whose change completes the due task.
   @state() private _completeWhenEntity = "";
   @state() private _completeWhenState = "";
@@ -505,6 +447,8 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _qcCost = "";
   @state() private _qcDuration = "";
   @state() private _qcFeedback: "" | "needed" | "not_needed" | "not_sure" = "";
+  /** The prefill section opens on a task that has one (once per open). */
+  @state() private _qcValuesOpen = false;
 
   // Environmental entity (adaptive_config)
   @state() private _environmentalEntity = "";
@@ -525,10 +469,10 @@ export class MaintenanceTaskDialog extends LitElement {
   private _adaptiveWasEnabled = false;
 
   private _adaptiveSnapshot(): string {
-    return JSON.stringify([
+    return adaptiveSnapshot(
       this._adaptiveEnabled, this._adaptiveAlpha, this._adaptiveMin,
       this._adaptiveMax, this._adaptiveSeasonal, this._adaptivePrediction,
-    ]);
+    );
   }
   private _userService: UserService | null = null;
 
@@ -654,6 +598,8 @@ export class MaintenanceTaskDialog extends LitElement {
     this._documentationUrl = task.documentation_url || "";
     this._customIcon = task.custom_icon || "";
     this._notifyIcon = task.notify_icon || "";
+    this._notifyTexts = Object.fromEntries(Object.entries(task.notification_texts ?? {}).map(([k, v]) => [k, { ...v }]));
+    this._notifyTextsOpen = ownTextKinds(this._notifyTexts).length > 0;
     this._priority = task.priority || "normal";
     this._labels = (task.labels || []).join(", ");
     this._mirrorTodoEntities = [...(task.mirror_todo_entities || [])];
@@ -744,6 +690,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._qcCost = qcd?.cost != null ? String(qcd.cost) : "";
     this._qcDuration = qcd?.duration != null ? String(qcd.duration) : "";
     this._qcFeedback = (qcd?.feedback as "needed" | "not_needed" | "not_sure" | undefined) || "";
+    this._qcValuesOpen = this._qcPrefilled();
 
     const ac: Partial<AdaptiveConfig> = task.adaptive_config || {};
     this._environmentalEntity = ac.environmental_entity || "";
@@ -778,7 +725,7 @@ export class MaintenanceTaskDialog extends LitElement {
       this._triggerRuntimeMaxSession = tc.trigger_runtime_max_session_seconds?.toString() || "";
       this._triggerDetailAttribute = tc.detail_attribute || "";
       if (tc.type === "compound") {
-        this._compoundLogic = tc.compound_logic === "OR" ? "OR" : "AND";
+        this._compoundLogic = compoundLogic(tc);
         this._compoundConditions = (tc.conditions || []).map(conditionToDraft);
       } else {
         this._compoundLogic = "AND";
@@ -828,6 +775,8 @@ export class MaintenanceTaskDialog extends LitElement {
     this._documentationUrl = "";
     this._customIcon = "";
     this._notifyIcon = "";
+    this._notifyTexts = {};
+    this._notifyTextsOpen = false;
     this._priority = "normal";
     this._labels = "";
     this._mirrorTodoEntities = [];
@@ -886,6 +835,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._qcCost = "";
     this._qcDuration = "";
     this._qcFeedback = "";
+    this._qcValuesOpen = false;
     this._resetTriggerFields();
   }
 
@@ -1111,19 +1061,30 @@ export class MaintenanceTaskDialog extends LitElement {
     ].join(", ");
   }
 
-  /** #233: Quick complete, the switch and its prefill. The hints say what
-   *  a one-tap completion cannot answer: a required photo or a detail the
-   *  prefill leaves empty (the dialog opens for it), a tag scan (only the
-   *  tag or the QR code on the thing), the checklist and readings (not
-   *  asked). "Who did it" needs no hint: the person tapping answers it. */
-  private _renderQuickComplete(L: string) {
-    const prefilled: Record<string, boolean> = {
+  /** Which completion fields the Quick complete prefill answers. */
+  private _qcPrefill(): Record<string, boolean> {
+    return {
       notes: !!this._qcNotes.trim(),
       cost: !isNaN(parseFloat(this._qcCost)),
       duration: parseDurationMinutes(this._qcDuration) !== null,
       photo: false,
       user: true,
     };
+  }
+
+  /** The prefill sets a value (notes, cost, duration or the feedback). */
+  private _qcPrefilled(): boolean {
+    const p = this._qcPrefill();
+    return p.notes || p.cost || p.duration || !!this._qcFeedback;
+  }
+
+  /** #233: Quick complete, the switch and its prefill. The hints say what
+   *  a one-tap completion cannot answer: a required photo or a detail the
+   *  prefill leaves empty (the dialog opens for it), a tag scan (only the
+   *  tag or the QR code on the thing), the checklist and readings (not
+   *  asked). "Who did it" needs no hint: the person tapping answers it. */
+  private _renderQuickComplete(L: string) {
+    const prefilled = this._qcPrefill();
     const open = this._requiredCompletion.filter((field) => !prefilled[field]);
     const notAsked = !!this._checklistText.trim() || this._readings.length > 0;
     return html`
@@ -1137,7 +1098,7 @@ export class MaintenanceTaskDialog extends LitElement {
               : nothing}
             ${this._requireTagScan ? html`<div class="field-help quick-complete-note">${t("quick_complete_tag_hint", L)}</div>` : nothing}
             ${notAsked ? html`<div class="field-help">${t("quick_complete_not_asked", L)}</div>` : nothing}
-            ${collapsible({ cls: "ca-section quick-complete-values", open: Object.values(prefilled).slice(0, 3).some(Boolean) || !!this._qcFeedback, header: t("quick_complete_values", L) }, html`
+            ${collapsible({ cls: "ca-section quick-complete-values", open: this._qcValuesOpen, header: t("quick_complete_values", L) }, html`
               <p class="field-help">${t("quick_complete_values_help", L)}</p>
               <ms-textfield
                 label="${t("quick_complete_defaults_notes", L)}"
@@ -1654,7 +1615,7 @@ export class MaintenanceTaskDialog extends LitElement {
 
   private async _save(): Promise<void> {
     if (this._loading) return;  // synchronous re-entry guard (double-click)
-    if (!this._name.trim() || this._missingDueDate()) return;
+    if (this._incomplete()) return;
     if (this._adaptiveSnapshot() !== this._adaptiveInitial) {
       const minIv = parseInt(this._adaptiveMin, 10);
       const maxIv = parseInt(this._adaptiveMax, 10);
@@ -1673,12 +1634,12 @@ export class MaintenanceTaskDialog extends LitElement {
       return;
     }
     if (!this._applyConsumesQtyText()) return;
-    if (this._completeWhenEntity && parseInt(this._completeWhenFor, 10) > TRIGGER_FOR_MINUTES_RANGE[1]) {
+    if (this._completeWhenEntity && parseInt(this._completeWhenFor, 10) > COMPLETE_WHEN_FOR_MINUTES_RANGE[1]) {
       // D#240: the backend keeps at most a day, and cut a longer hold down
       // without a word (DRY audit 2026-10-30, X6-A2).
       this._error = t("settings_value_out_of_range", this._lang)
         .replace("{min}", "1")
-        .replace("{max}", formatNumber(TRIGGER_FOR_MINUTES_RANGE[1], this._lang));
+        .replace("{max}", formatNumber(COMPLETE_WHEN_FOR_MINUTES_RANGE[1], this._lang));
       return;
     }
     this._loading = true;
@@ -1769,6 +1730,26 @@ export class MaintenanceTaskDialog extends LitElement {
     return this._scheduleType === "one_time" && !this._dueDate;
   }
 
+  /** A time-based task without its interval: the backend refuses it too
+   *  (it used to make a manual task of it), so Save waits for the interval
+   *  (bug audit 2026-11-08, W8-1). */
+  private _missingInterval(): boolean {
+    return this._scheduleType === "time_based" && !(parseInt(this._intervalDays, 10) > 0);
+  }
+
+  /** What Save waits for: a name and the schedule's own date or interval. */
+  private _incomplete(): boolean {
+    return !this._name.trim() || this._missingDueDate() || this._missingInterval();
+  }
+
+  /** The schedule type picked in the form. Switching to time-based seeds
+   *  the interval the Add rule choice gives: the field it shows starts
+   *  empty for a task that had none (bug audit 2026-11-08, W8-1). */
+  private _setScheduleType(value: string): void {
+    if (value === "time_based" && !(parseInt(this._intervalDays, 10) > 0)) this._intervalDays = "30";
+    this._scheduleType = value;
+  }
+
   /** The task/create | task/update message from the form (validated above). */
   private _savePayload(): Record<string, unknown> {
     const data: Record<string, unknown> = {
@@ -1830,6 +1811,8 @@ export class MaintenanceTaskDialog extends LitElement {
     data.custom_icon = this._customIcon || null;
     // #185: null clears the override (the update path pops the key).
     data.notify_icon = this._notifyIcon.trim() || null;
+    // #252: null = the standard texts (the update path pops the key).
+    data.notification_texts = cleanNotificationTexts(this._notifyTexts);
     data.priority = this._priority;
     data.labels = this._labels
       .split(",")
@@ -1838,9 +1821,9 @@ export class MaintenanceTaskDialog extends LitElement {
     // D#183: always sent — [] clears the mirror targets. #231: with default
     // lists the choice decides (other lists left empty = none); without, the
     // picker alone, and an opt-out made earlier stays.
-    const ownLists = this.mirrorTodoDefault.length && this._mirrorTodoMode !== "own" ? [] : mirrorTargets(this.hass, this._mirrorTodoEntities);
-    data.mirror_todo_entities = ownLists;
-    data.mirror_todo_use_default = this.mirrorTodoDefault.length ? this._mirrorTodoMode === "default" : this._mirrorTodoMode !== "none";
+    const mirror = this._mirrorChoice();
+    data.mirror_todo_entities = mirror.entities;
+    data.mirror_todo_use_default = mirror.useDefault;
     data.enabled = this._enabled;
     if (!this._taskId || this._lastPerformed !== this._loadedLastPerformed) {
       data.last_performed = this._lastPerformed || null;
@@ -1954,24 +1937,7 @@ export class MaintenanceTaskDialog extends LitElement {
       else if (this._autoCompleteOnRecovery) triggerConfig.auto_complete_on_recovery = true;
       if (this._triggerCombinator === "all") triggerConfig.trigger_combinator = "all";
       if (this._triggerDetailAttribute) triggerConfig.detail_attribute = this._triggerDetailAttribute;
-
-      // Multi-entity: store entity_logic for all trigger types
-      if (entityIds.length > 1) {
-        triggerConfig.entity_logic = this._triggerEntityLogic;
-      }
-
-      // Flat-form-only fields.
-      if (this._triggerType === "counter" && this._triggerDeltaMode && this._triggerBaselineValue) {
-        // #102: optional counting start value ("last service was at X").
-        // Empty = count from the reading at creation / keep the live
-        // baseline; the backend clears stale Store state when it changes.
-        const b = parseFloat(this._triggerBaselineValue);
-        if (!isNaN(b) && b >= 0) triggerConfig.trigger_baseline_value = b;
-      } else if (this._triggerType === "runtime" && this._triggerRuntimeMaxSession) {
-        // #149: per-session cap (seconds) against sensors stuck ON.
-        const v = parseInt(this._triggerRuntimeMaxSession, 10);
-        if (!isNaN(v) && v > 0) triggerConfig.trigger_runtime_max_session_seconds = v;
-      }
+      Object.assign(triggerConfig, this._ownRuleFields(entityIds));
 
       data.trigger_config = triggerConfig;
     } else if (this._taskId) {
@@ -2164,12 +2130,41 @@ export class MaintenanceTaskDialog extends LitElement {
     const [only] = this._compoundConditions;
     if (!only) return;
     const ids = only.entityIds.split(",").map((s) => s.trim()).filter(Boolean);
-    const { entityIds: _ids, carry: _carry, ...fields } = only;
+    const { entityIds: _ids, carry, ...fields } = only;
     this._compoundConditions = [];
     this._setTypeFields(fields);
     this._triggerEntityId = ids[0] || "";
     this._triggerEntityIds = ids;
+    // The condition's own settings are the flat rule's fields again
+    // (_ownRuleFields; bug audit 2026-11-08, E8-2).
+    this._triggerEntityLogic = carry.entity_logic === "all" ? "all" : "any";
+    this._triggerBaselineValue = carry.trigger_baseline_value?.toString() || "";
+    this._triggerRuntimeMaxSession = carry.trigger_runtime_max_session_seconds?.toString() || "";
     if (ids[0]) void this._fetchEntityAttributes(ids[0]);
+  }
+
+  /** The rule's own settings beside its per-type fields: how its entities
+   *  combine, the counting start value (#102) and the session cap (#149).
+   *  A flat rule saves them, a compound condition keeps them in its carry
+   *  (the backend's conditions read them); combining two rules dropped them
+   *  (bug audit 2026-11-08, E8-2). Holding until done is not one of them:
+   *  it is a plain rule's, the server drops it from a condition (D#229). */
+  private _ownRuleFields(entityIds: string[]): Partial<TriggerConfig> {
+    const own: Partial<TriggerConfig> = {};
+    // Multi-entity: store entity_logic for all trigger types
+    if (entityIds.length > 1) own.entity_logic = this._triggerEntityLogic;
+    if (this._triggerType === "counter" && this._triggerDeltaMode && this._triggerBaselineValue) {
+      // #102: optional counting start value ("last service was at X").
+      // Empty = count from the reading at creation / keep the live
+      // baseline; the backend clears stale Store state when it changes.
+      const b = parseFloat(this._triggerBaselineValue);
+      if (!isNaN(b) && b >= 0) own.trigger_baseline_value = b;
+    } else if (this._triggerType === "runtime" && this._triggerRuntimeMaxSession) {
+      // #149: per-session cap (seconds) against sensors stuck ON.
+      const v = parseInt(this._triggerRuntimeMaxSession, 10);
+      if (!isNaN(v) && v > 0) own.trigger_runtime_max_session_seconds = v;
+    }
+    return own;
   }
 
   /** Compound trigger editor: AND/OR logic + a list of inline conditions. */
@@ -2246,18 +2241,26 @@ export class MaintenanceTaskDialog extends LitElement {
   /** D#229: a plain state-change trigger with one transition and a from- or
    *  to-state is a latch that ends by itself when the state ends — the one
    *  trigger that can instead hold until the task is done. */
+  /** The rule being edited, as far as what ends it goes. */
+  private _endShape() {
+    return {
+      type: this._triggerType,
+      trigger_target_changes: this._triggerTargetChanges === "" ? undefined : Number(this._triggerTargetChanges),
+      trigger_from_state: this._triggerFromState.trim(),
+      trigger_to_state: this._triggerToState.trim(),
+    };
+  }
+
   private _isStateLatch(): boolean {
-    return this._triggerType === "state_change"
-      && (this._triggerTargetChanges === "" || Number(this._triggerTargetChanges) === 1)
-      && !!(this._triggerFromState.trim() || this._triggerToState.trim());
+    return isStateLatch(this._endShape());
   }
 
   /** D#229: the triggers that end by themselves and so may instead hold
    *  until the task is done: the state latch, a threshold (the value back in
    *  range) and a date from a sensor (a later date reported). A counter and
-   *  a runtime only end with a completion. */
+   *  a runtime only end with a completion (helpers/completes-itself). */
   private _endsByItself(): boolean {
-    return this._isStateLatch() || this._triggerType === "threshold" || this._triggerType === "due_date";
+    return canHoldUntilDone(this._endShape());
   }
 
   /** D#229: what happens when the trigger ends by itself — the task goes back
@@ -2327,8 +2330,8 @@ export class MaintenanceTaskDialog extends LitElement {
             class="complete-when-for"
             label="${t("for_at_least_minutes", L)}"
             type="number"
-            min=${TRIGGER_FOR_MINUTES_RANGE[0]}
-            max=${TRIGGER_FOR_MINUTES_RANGE[1]}
+            min="0"
+            max=${COMPLETE_WHEN_FOR_MINUTES_RANGE[1]}
             .value=${this._completeWhenFor}
             @input=${(e: Event) => (this._completeWhenFor = (e.target as HTMLInputElement).value)}
           ></ms-textfield>
@@ -3039,7 +3042,6 @@ export class MaintenanceTaskDialog extends LitElement {
     const L = this._lang;
 
     const unitAttr = st.attributes?.unit_of_measurement;
-    const unit = typeof unitAttr === "string" && unitAttr ? ` ${unitAttr}` : "";
     const raw = this._triggerAttribute
       ? st.attributes?.[this._triggerAttribute]
       : st.state;
@@ -3048,6 +3050,7 @@ export class MaintenanceTaskDialog extends LitElement {
     // Profile number format like every other figure (#163) — the hint used
     // to print "1.2" next to a "1,2 bar" entity card (bug review 2026-09-04).
     const fmt = (v: number) => formatNumber(v, L, { maximumFractionDigits: 1 });
+    const withU = (v: number) => withUnit(fmt(v), typeof unitAttr === "string" ? unitAttr : "", L);
 
     const parts: string[] = [];
     if (this._triggerType === "threshold") {
@@ -3059,11 +3062,11 @@ export class MaintenanceTaskDialog extends LitElement {
       const equals = parseFloat(this._triggerEquals);
       const notEquals = parseFloat(this._triggerNotEquals);
       if ([above, below, equals, notEquals].every((v) => isNaN(v))) return nothing;
-      if (hasNum) parts.push(t("trigger_hint_now", L).replace("{value}", fmt(num) + unit));
-      if (!isNaN(above)) parts.push(t("trigger_hint_above", L).replace("{target}", fmt(above) + unit));
-      if (!isNaN(below)) parts.push(t("trigger_hint_below", L).replace("{target}", fmt(below) + unit));
-      if (!isNaN(equals)) parts.push(t("trigger_hint_equals", L).replace("{target}", fmt(equals) + unit));
-      if (!isNaN(notEquals)) parts.push(t("trigger_hint_not_equals", L).replace("{target}", fmt(notEquals) + unit));
+      if (hasNum) parts.push(t("trigger_hint_now", L).replace("{value}", withU(num)));
+      if (!isNaN(above)) parts.push(t("trigger_hint_above", L).replace("{target}", withU(above)));
+      if (!isNaN(below)) parts.push(t("trigger_hint_below", L).replace("{target}", withU(below)));
+      if (!isNaN(equals)) parts.push(t("trigger_hint_equals", L).replace("{target}", withU(equals)));
+      if (!isNaN(notEquals)) parts.push(t("trigger_hint_not_equals", L).replace("{target}", withU(notEquals)));
     } else if (this._triggerType === "counter") {
       const target = parseFloat(this._triggerTargetValue);
       if (isNaN(target)) return nothing;
@@ -3071,20 +3074,20 @@ export class MaintenanceTaskDialog extends LitElement {
         if (this._taskId) {
           // Editing: the baseline is the reading at the last completion (or
           // task creation), not the current value — don't imply otherwise.
-          parts.push(t("trigger_hint_counter_delta_edit", L).replace("{target}", fmt(target) + unit));
+          parts.push(t("trigger_hint_counter_delta_edit", L).replace("{target}", withU(target)));
         } else if (hasNum) {
           parts.push(
             t("trigger_hint_counter_delta", L)
-              .replace("{value}", fmt(num) + unit)
-              .replace("{due}", fmt(num + target) + unit)
-              .replace("{target}", fmt(target) + unit),
+              .replace("{value}", withU(num))
+              .replace("{due}", withU(num + target))
+              .replace("{target}", withU(target)),
           );
         } else {
-          parts.push(t("trigger_hint_counter_delta_edit", L).replace("{target}", fmt(target) + unit));
+          parts.push(t("trigger_hint_counter_delta_edit", L).replace("{target}", withU(target)));
         }
       } else {
-        if (hasNum) parts.push(t("trigger_hint_now", L).replace("{value}", fmt(num) + unit));
-        parts.push(t("trigger_hint_counter_abs", L).replace("{target}", fmt(target) + unit));
+        if (hasNum) parts.push(t("trigger_hint_now", L).replace("{value}", withU(num)));
+        parts.push(t("trigger_hint_counter_abs", L).replace("{target}", withU(target)));
       }
     } else if (this._triggerType === "runtime") {
       const hours = parseFloat(this._triggerRuntimeHours);
@@ -3114,6 +3117,14 @@ export class MaintenanceTaskDialog extends LitElement {
     }
     if (!parts.length) return overlap;
     return html`<div class="trigger-live-hint">${parts.join(" ")}</div>${overlap}`;
+  }
+
+  /** #255: a long hold typed in minutes, said in hours or days ("21600" is
+   *  15 days); nothing for a short one, which reads fine as minutes. */
+  private _holdReadable(L: string) {
+    const minutes = parseInt(this._triggerForMinutes, 10);
+    if (!Number.isFinite(minutes) || minutes < 120) return nothing;
+    return html`<div class="field-help hold-readable">= ${formatHold(minutes, L)}</div>`;
   }
 
   private _renderTriggerTypeFields() {
@@ -3151,9 +3162,12 @@ export class MaintenanceTaskDialog extends LitElement {
         <ms-textfield
           label="${t("for_at_least_minutes", L)}"
           type="number"
+          min=${TRIGGER_FOR_MINUTES_RANGE[0]}
+          max=${TRIGGER_FOR_MINUTES_RANGE[1]}
           .value=${this._triggerForMinutes}
           @input=${(e: Event) => (this._triggerForMinutes = (e.target as HTMLInputElement).value)}
         ></ms-textfield>
+        ${this._holdReadable(L)}
       `;
     }
     if (this._triggerType === "counter") {
@@ -3223,6 +3237,7 @@ export class MaintenanceTaskDialog extends LitElement {
           .value=${this._triggerForMinutes}
           @input=${(e: Event) => (this._triggerForMinutes = (e.target as HTMLInputElement).value)}
         ></ms-textfield>
+        ${this._holdReadable(L)}
         <div class="field-help">${t("for_minutes_state_help", L)}</div>
       `;
     }
@@ -3370,7 +3385,7 @@ export class MaintenanceTaskDialog extends LitElement {
     return this._section("schedule-section", t("task_section_schedule", L), html`
           <div class="select-row">
             ${selectIsHa() ? nothing : html`<label>${t("schedule_type", L)}</label>`}
-            ${selectField({ label: t("schedule_type", L), value: this._scheduleType, onChange: (e: Event) => (this._scheduleType = (e.target as HTMLSelectElement).value) }, html`
+            ${selectField({ label: t("schedule_type", L), value: this._scheduleType, onChange: (e: Event) => this._setScheduleType((e.target as HTMLSelectElement).value) }, html`
               ${SCHEDULE_TYPE_KEYS.map(
                 (key) => html`<option value=${key} ?selected=${key === this._scheduleType}>${t(key, L)}</option>`
               )}
@@ -3384,6 +3399,7 @@ export class MaintenanceTaskDialog extends LitElement {
                   .value=${this._intervalDays}
                   @input=${(e: Event) => (this._intervalDays = (e.target as HTMLInputElement).value)}
                 ></ms-textfield>
+                ${this._missingInterval() ? html`<div class="field-help interval-required">${t("interval_required", L)}</div>` : nothing}
                 ${this._renderUnitSelect()}
                 <div class="select-row">
                   ${selectIsHa() ? nothing : html`<label>${t("interval_anchor", L)}</label>`}
@@ -3641,8 +3657,32 @@ export class MaintenanceTaskDialog extends LitElement {
             <ha-icon icon=${this._notifyIcon.trim() || defaultNotifyIcon(this._type)}></ha-icon>
             ${t("notify_icon_hint", L).replace("{default}", defaultNotifyIcon(this._type))}
           </div>
+          ${this._renderNotifyTexts(L)}
           ${this._renderMirrorTodo(L)}
     `);
+  }
+
+  /** #252: the task's own notification texts, a title and a message per
+   *  kind; an empty field keeps the standard text. Triggered only where
+   *  the task has a sensor rule (or a text for it already). */
+  private _renderNotifyTexts(L: string) {
+    const kinds = NOTIFICATION_TEXT_KINDS.filter((k) => k !== "triggered" || this._scheduleType === "sensor_based" || !!this._notifyTexts.triggered);
+    return collapsible({ cls: "notify-texts", open: this._notifyTextsOpen, header: t("notify_texts", L) }, html`
+      <p class="field-help">${t("notify_texts_hint", L)}</p>
+      ${kinds.map((kind) => html`
+        <div class="notify-text" data-kind=${kind}>
+          <div class="notify-text-kind">${t(kind, L)}</div>
+          <ms-textfield class="notify-text-title" label=${t("notify_texts_title", L)} .value=${this._notifyTexts[kind]?.title ?? ""}
+            @input=${(e: Event) => this._setNotifyText(kind, "title", (e.target as HTMLInputElement).value)}></ms-textfield>
+          <ms-textfield class="notify-text-message" label=${t("notify_texts_message", L)} multiline .rows=${2} .value=${this._notifyTexts[kind]?.message ?? ""}
+            @input=${(e: Event) => this._setNotifyText(kind, "message", (e.target as HTMLInputElement).value)}></ms-textfield>
+          <div class="field-help">${t("notify_texts_placeholders", L).replace("{list}", NOTIFICATION_TEXT_PLACEHOLDERS[kind].map((p) => `{${p}}`).join(" "))}${kind === "triggered" ? ` ${t("notify_texts_detail_hint", L)}` : kind === "completed" ? ` ${t("notify_texts_completed_hint", L)}` : ""}</div>
+        </div>`)}
+    `);
+  }
+
+  private _setNotifyText(kind: NotificationTextKind, field: "title" | "message", value: string): void {
+    this._notifyTexts = { ...this._notifyTexts, [kind]: { ...this._notifyTexts[kind], [field]: value } };
   }
 
   /** D#183 / #231: the to-do lists the due task is mirrored into. With
@@ -3728,21 +3768,14 @@ export class MaintenanceTaskDialog extends LitElement {
       nthWeekday: this._nthWeekday,
       domDay: this._domDay,
       domLastDay: this._domLastDay,
+      domBusiness: this._domBusiness,
+      calOffset: this._calOffset,
+      calMonths: this._calMonths,
       calendarEntity: this._calendarEntity ? entityName(this.hass, this._calendarEntity) : "",
       warningDays: this._warningDays,
-      triggerType: this._triggerType,
+      trigger: this._typeFields(),
       triggerEntityIds: flatIds,
-      triggerAttribute: this._triggerAttribute,
-      above: this._triggerAbove,
-      below: this._triggerBelow,
-      forMinutes: this._triggerForMinutes,
-      targetValue: this._triggerTargetValue,
-      deltaMode: this._triggerDeltaMode,
-      fromState: this._triggerFromState,
-      toState: this._triggerToState,
-      targetChanges: this._triggerTargetChanges,
-      runtimeHours: this._triggerRuntimeHours,
-      daysBefore: this._triggerDaysBefore,
+      triggerUnit: triggerUnit(this.hass, { trigger_config: { type: this._triggerType, entity_id: flatIds[0] } }),
       triggerCombinator: this._triggerCombinator,
       entityLogic: this._triggerEntityLogic,
       compoundLogic: this._compoundLogic,
@@ -3762,15 +3795,15 @@ export class MaintenanceTaskDialog extends LitElement {
       pool: this._assigneePool,
       rotation: this._rotationStrategy,
       notifyEnabled: this._notifyEnabled,
-      mirrorLists: this._mirrorListsShown(),
+      ownTexts: ownTextKinds(this._notifyTexts).length > 0,
+      mirrorLists: this._mirrorChoice().lists,
     };
   }
 
-  /** The lists the task goes onto while due, as the save sends them. */
-  private _mirrorListsShown(): string[] {
-    if (!this.mirrorTodoDefault.length) return this._mirrorTodoMode === "none" ? [] : this._mirrorTodoEntities;
-    if (this._mirrorTodoMode === "default") return this.mirrorTodoDefault;
-    return this._mirrorTodoMode === "own" ? this._mirrorTodoEntities : [];
+  /** What the save sends for the to-do lists, and the lists the task then
+   *  goes onto while due (the notifications row's chips). */
+  private _mirrorChoice() {
+    return mirrorChoice(this.hass, this._mirrorTodoMode, this.mirrorTodoDefault, this._mirrorTodoEntities);
   }
 
   private _userName(userId: string): string {
@@ -3814,11 +3847,17 @@ export class MaintenanceTaskDialog extends LitElement {
   private _combineTrigger(type: TriggerType, entityId = ""): void {
     if (this._triggerType !== "compound") {
       const ids = this._triggerEntityIds.length ? this._triggerEntityIds : this._triggerEntityId ? [this._triggerEntityId] : [];
-      this._compoundConditions = [{ entityIds: ids.join(", "), ...this._typeFields(), carry: {} }];
+      this._compoundConditions = [{ entityIds: ids.join(", "), ...this._typeFields(), carry: this._ownRuleFields(ids) }];
       this._compoundLogic = "OR";
       this._triggerType = "compound";
       this._triggerEntityId = "";
       this._triggerEntityIds = [];
+      // They ride the condition now; a compound's own form has none of them
+      // (nor a hold: D#229 holds a plain rule only).
+      this._triggerEntityLogic = "any";
+      this._holdUntilDone = false;
+      this._triggerBaselineValue = "";
+      this._triggerRuntimeMaxSession = "";
     }
     this._compoundConditions = [...this._compoundConditions, { ...emptyCondition(), type, entityIds: entityId }];
   }
@@ -3860,8 +3899,7 @@ export class MaintenanceTaskDialog extends LitElement {
         return;
       }
       if (this._scheduleType === "sensor_based") this._resetTriggerFields();
-      if (c.value === "time_based" && !(parseInt(this._intervalDays, 10) > 0)) this._intervalDays = "30";
-      this._scheduleType = c.value;
+      this._setScheduleType(c.value);
       this._ruleSel = "schedule";
       return;
     }
@@ -3973,6 +4011,12 @@ export class MaintenanceTaskDialog extends LitElement {
     this._consumesParts = {};
     this._consumesQtyText = {};
     this._phaseDefs = this._phaseDefs.map((d) => ({ ...d, partId: "", partQty: "", extraParts: [] }));
+    // The adaptive tuning and the environmental sensor are saved after the
+    // create (task/create takes neither), and only when they differ from
+    // what the task had: the new task has none (bug audit 2026-11-08, E8-1).
+    this._adaptiveInitial = ADAPTIVE_UNSET;
+    this._environmentalInitial = "";
+    this._environmentalAttributeInitial = "";
     await Promise.all([this._loadParts(), this._loadForeignPools()]);
     this._betaStep = "form";
     this._ruleSel = "task";
@@ -4253,7 +4297,7 @@ export class MaintenanceTaskDialog extends LitElement {
               </ha-button>`
             : nothing}
           ${step === "form"
-            ? html`<ha-button @click=${this._save} .disabled=${this._loading || !this._name.trim() || this._missingDueDate()}>
+            ? html`<ha-button @click=${this._save} .disabled=${this._loading || this._incomplete()}>
                 ${this._loading ? t("saving", L) : t(hasNext ? "task_series_save_next" : "save", L)}
               </ha-button>`
             : nothing}
@@ -4297,7 +4341,7 @@ export class MaintenanceTaskDialog extends LitElement {
             : nothing}
           <ha-button
             @click=${this._save}
-            .disabled=${this._loading || !this._name.trim() || this._missingDueDate()}
+            .disabled=${this._loading || this._incomplete()}
           >
             ${this._loading ? t("saving", L) : t(hasNext ? "task_series_save_next" : "save", L)}
           </ha-button>
@@ -4317,6 +4361,14 @@ export class MaintenanceTaskDialog extends LitElement {
     .state-picker-form {
       display: block;
       margin: 8px 0;
+    }
+    /* #252: one block per kind of notification. */
+    .notify-text {
+      margin: 12px 0;
+    }
+    .notify-text-kind {
+      font-weight: 500;
+      margin-bottom: 4px;
     }
     /* D#229: one option per line — three sentences flowed into each other. */
     .trigger-end,

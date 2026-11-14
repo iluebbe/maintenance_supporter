@@ -58,12 +58,12 @@ from ..helpers.battery_fleet_setup import FLEET_LIST_CAP, INSTALLED_CELLS_KEY, f
 from ..helpers.battery_lifetime import REPLACEMENT_LOG_KEY, sanitize_replacement_log
 from ..helpers.completion_photos import history_photo_ids
 from ..helpers.completion_requirements import quick_complete_on
-from ..helpers.csv_handler import export_object_records_csv, export_objects_csv
+from ..helpers.csv_handler import async_export_history_csv, export_object_records_csv, export_objects_csv
 from ..helpers.dates import canonical_iso_date, import_day, normalize_hhmm, parse_iso_date
 from ..helpers.global_options import get_default_warning_days, get_global_entry, get_global_options, merge_global_options
 from ..helpers.history import finite_amount, strict_amount
 from ..helpers.home_profile import async_home_profile
-from ..helpers.i18n import normalize_language, normalize_language_code
+from ..helpers.i18n import request_language
 from ..helpers.import_mapping import (
     DEVICES_KEY,
     TASK_NAMES_KEY,
@@ -78,7 +78,7 @@ from ..helpers.import_mapping import (
     resolve_task_refs_by_name,
 )
 from ..helpers.notify_icons import normalize_icon
-from ..helpers.parts import PartValidationError, is_http_url, iter_part_links, map_part_links, normalize_part, portable_stock
+from ..helpers.parts import PartValidationError, is_part_url, iter_part_links, map_part_links, normalize_part, portable_stock
 from ..helpers.pause import pause_end_day
 from ..helpers.phases import clamp_phase_cursor, sanitize_phase_defs, sanitize_phase_sequence
 from ..helpers.qr_generator import (
@@ -91,7 +91,7 @@ from ..helpers.reading_slots import history_reading_values
 from ..helpers.sanitize import ACTION_OWNER_KEY, sanitize_group, seed_rotation_assignee
 from ..helpers.saved_views import sanitize_view
 from ..helpers.settings_registry import ALLOWED_SETTING_KEYS
-from ..helpers.settings_sanitize import sanitize_settings_input, settings_error_field
+from ..helpers.settings_sanitize import settings_write_refusal
 from ..helpers.task_fields import import_due_date, import_interval_days, import_warning_days
 from ..helpers.task_origin import ORIGIN_KEY, sanitize_origin
 from ..helpers.template_usage import templates_in_use
@@ -143,6 +143,7 @@ _TASK_FIELD_TYPES: dict[str, type | tuple[type, ...]] = {
     "mirror_todo_entities": list,
     "mirror_todo_use_default": bool,
     "complete_when": dict,
+    "notification_texts": dict,
 }
 
 
@@ -613,7 +614,7 @@ async def ws_get_templates(
     disabled = get_disabled_template_ids(hass)
     profile = await async_home_profile(hass)
     in_use = templates_in_use(hass)
-    lang = normalize_language_code(msg.get("language")) if msg.get("language") else normalize_language(hass)
+    lang = request_language(hass, msg.get("language"))
 
     result = {
         "categories": {cat_id: {k: v for k, v in cat.items()} for cat_id, cat in TEMPLATE_CATEGORIES.items()},
@@ -693,6 +694,41 @@ async def ws_export_csv(
     """Export all (or a selection of) maintenance data as CSV."""
     entry_ids = set(msg["entry_ids"]) if msg.get("entry_ids") else None
     csv_data = export_objects_csv(hass, entry_ids=entry_ids)
+    connection.send_result(msg["id"], {"csv": csv_data})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/csv/history",
+        vol.Optional("entry_ids"): [ID_FIELD],
+        # Both inclusive, local days (YYYY-MM-DD).
+        vol.Optional("date_from"): vol.Any(str, None),
+        vol.Optional("date_to"): vol.Any(str, None),
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_export_history_csv(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Export the history as CSV, one row per entry (D#253).
+
+    Admin only, like the full export: it carries costs, notes and who did what.
+    """
+    bounds: dict[str, Any] = {}
+    for field in ("date_from", "date_to"):
+        raw = msg.get(field)
+        if not raw:
+            continue
+        day = parse_iso_date(raw)
+        if day is None:
+            connection.send_error(msg["id"], "invalid_date", f"{field} must be YYYY-MM-DD")
+            return
+        bounds[field] = day
+    entry_ids = set(msg["entry_ids"]) if msg.get("entry_ids") else None
+    csv_data = await async_export_history_csv(hass, entry_ids, **bounds)
     connection.send_result(msg["id"], {"csv": csv_data})
 
 
@@ -894,10 +930,10 @@ def _apply_settings_import(
     # field each error names and validate the rest again.
     filtered: dict[str, Any] = {}
     for _ in range(len(scalars) + 1):
-        filtered, error = sanitize_settings_input(scalars)
-        if error is None:
+        filtered, refusal = settings_write_refusal(hass, scalars)
+        if refusal is None:
             break
-        bad = settings_error_field(error)
+        bad, error = refusal
         _LOGGER.warning("Settings import: %s dropped (%s)", bad, error)
         if bad not in scalars:
             filtered = {}
@@ -1151,7 +1187,7 @@ async def ws_import_json(
                     # the whole part — a crafted backup could carry a javascript:
                     # link, an old one an over-long one.
                     _purl = raw_part.get("product_url")
-                    if not (isinstance(_purl, str) and is_http_url(_purl.strip())):
+                    if not (isinstance(_purl, str) and is_part_url(_purl.strip())):
                         raw_part.pop("product_url", None)
                     # #222: an unknown cost mode follows the household setting.
                     if raw_part.get("cost_mode") not in PARTS_COST_MODES:
@@ -1233,6 +1269,8 @@ async def ws_import_json(
                     "notify_enabled",
                     # #185: notification icon override (shape-checked below).
                     "notify_icon",
+                    # #252: own notification texts (cleaned by cap_task_fields).
+                    "notification_texts",
                     "responsible_user_id",
                     "entity_slug",
                     "trigger_config",

@@ -15,6 +15,9 @@ import {
   triggerSentence,
   type RuleDraft,
 } from "../helpers/task-rules";
+import { emptyTypeFields, type TriggerTypeFields } from "../helpers/trigger-fields";
+
+const rule = (fields: Partial<TriggerTypeFields>): TriggerTypeFields => ({ ...emptyTypeFields(), ...fields });
 
 function draft(over: Partial<RuleDraft> = {}): RuleDraft {
   return {
@@ -22,8 +25,7 @@ function draft(over: Partial<RuleDraft> = {}): RuleDraft {
     scheduleType: "time_based", intervalDays: "30", intervalUnit: "days", intervalAnchor: "completion",
     dueDate: "", weekdays: [], nth: "1", nthWeekday: "5", domDay: "1", domLastDay: false, calendarEntity: "",
     warningDays: "7",
-    triggerType: "threshold", triggerEntityIds: [], triggerAttribute: "", above: "", below: "", forMinutes: "0",
-    targetValue: "", deltaMode: false, fromState: "", toState: "", targetChanges: "", runtimeHours: "", daysBefore: "0",
+    trigger: emptyTypeFields(), triggerEntityIds: [],
     triggerCombinator: "any", entityLogic: "any", compoundLogic: "AND", compoundCount: 0, compoundEntityIds: [],
     completeWhenEntity: "", completeWhenState: "", completeWhenFor: "", completeWhenAnyTime: false,
     quickOn: false, requiredCount: 0, allowSkip: true, requireTagScan: false, checklistCount: 0, partsCount: 0,
@@ -71,26 +73,34 @@ describe("beta editor: schedule sentences", () => {
 });
 
 describe("beta editor: sensor rule sentences", () => {
-  const sensor = (over: Partial<RuleDraft>) => draft({ scheduleType: "sensor_based", triggerEntityIds: ["sensor.washes"], ...over });
+  const sensor = (fields: Partial<TriggerTypeFields>, over: Partial<RuleDraft> = {}) =>
+    draft({ scheduleType: "sensor_based", triggerEntityIds: ["sensor.washes"], trigger: rule(fields), ...over });
 
   it("reads each rule type", () => {
-    expect(triggerSentence(sensor({ triggerType: "threshold", above: "25" }), "en")).to.equal("above 25");
-    expect(triggerSentence(sensor({ triggerType: "threshold", above: "25", below: "5", forMinutes: "10" }), "en")).to.equal("above 25 · below 5 · for 10 minutes");
-    expect(triggerSentence(sensor({ triggerType: "counter", targetValue: "25", deltaMode: true }), "en")).to.equal("goes up by 25 since the last completion");
-    expect(triggerSentence(sensor({ triggerType: "counter", targetValue: "400" }), "en")).to.equal("reaches 400");
-    expect(triggerSentence(sensor({ triggerType: "state_change", toState: "on" }), "en")).to.equal("changes to on");
-    expect(triggerSentence(sensor({ triggerType: "state_change", fromState: "off", toState: "on", targetChanges: "3" }), "en")).to.equal("changes from off · changes to on · 3 times");
-    expect(triggerSentence(sensor({ triggerType: "state_change" }), "en")).to.equal("changes state");
-    expect(triggerSentence(sensor({ triggerType: "runtime", runtimeHours: "200" }), "en")).to.equal("has run for 200 hours");
-    expect(triggerSentence(sensor({ triggerType: "due_date", daysBefore: "7" }), "en")).to.equal("7 days before the date it reports");
-    expect(triggerSentence(sensor({ triggerType: "due_date" }), "en")).to.equal("on the date it reports");
-    expect(triggerSentence(sensor({ triggerType: "threshold", above: "25", triggerAttribute: "hardness" }), "en")).to.equal("above 25 (hardness)");
+    expect(triggerSentence(sensor({ type: "threshold", above: "25" }), "en")).to.equal("above 25");
+    expect(triggerSentence(sensor({ type: "threshold", above: "25", below: "5", forMinutes: "10" }), "en")).to.equal("above 25 · below 5 · for 10 minutes");
+    expect(triggerSentence(sensor({ type: "counter", targetValue: "25", deltaMode: true }), "en")).to.equal("goes up by 25 since the last completion");
+    expect(triggerSentence(sensor({ type: "counter", targetValue: "400" }), "en")).to.equal("reaches 400");
+    expect(triggerSentence(sensor({ type: "state_change", toState: "on" }), "en")).to.equal("changes to on");
+    expect(triggerSentence(sensor({ type: "state_change", fromState: "off", toState: "on", targetChanges: "3" }), "en")).to.equal("changes from off · changes to on · 3 times");
+    expect(triggerSentence(sensor({ type: "state_change" }), "en")).to.equal("changes state");
+    expect(triggerSentence(sensor({ type: "runtime", runtimeHours: "200" }), "en")).to.equal("has run for 200 hours");
+    expect(triggerSentence(sensor({ type: "due_date", daysBefore: "7" }), "en")).to.equal("7 days before the date it reports");
+    expect(triggerSentence(sensor({ type: "due_date" }), "en")).to.equal("on the date it reports");
+    expect(triggerSentence(sensor({ type: "threshold", above: "25", attribute: "hardness" }), "en")).to.equal("above 25 (hardness)");
+  });
+
+  it("says the rule the way the task page and the trace do: with the unit and = / ≠ (DRY 2026-11-07 FE7-B1)", () => {
+    expect(triggerSentence(sensor({ type: "threshold", below: "60" }, { triggerUnit: "%" }), "en")).to.equal("below 60%");
+    expect(triggerSentence(sensor({ type: "threshold", below: "60" }, { triggerUnit: "%" }), "de")).to.match(/60 %$/);
+    expect(triggerSentence(sensor({ type: "counter", targetValue: "400" }, { triggerUnit: "kWh" }), "en")).to.equal("reaches 400 kWh");
+    expect(triggerSentence(sensor({ type: "threshold", equals: "3", notEquals: "0" }), "en")).to.equal("= 3 · ≠ 0");
   });
 
   it("a compound counts its conditions; a rule without a sensor asks for one", () => {
-    expect(triggerSentence(draft({ triggerType: "compound", compoundLogic: "OR", compoundCount: 2 }), "en")).to.equal("Any condition applies (2)");
-    expect(triggerSentence(draft({ triggerType: "compound", compoundLogic: "AND", compoundCount: 3 }), "en")).to.equal("All conditions apply (3)");
-    expect(triggerSentence(draft({ triggerType: "threshold", triggerEntityIds: [] }), "en")).to.equal("Pick a sensor");
+    expect(triggerSentence(draft({ trigger: rule({ type: "compound" }), compoundLogic: "OR", compoundCount: 2 }), "en")).to.equal("Any condition applies (2)");
+    expect(triggerSentence(draft({ trigger: rule({ type: "compound" }), compoundLogic: "AND", compoundCount: 3 }), "en")).to.equal("All conditions apply (3)");
+    expect(triggerSentence(draft({ trigger: rule({ type: "threshold" }), triggerEntityIds: [] }), "en")).to.equal("Pick a sensor");
   });
 });
 
@@ -103,7 +113,7 @@ describe("beta editor: rows", () => {
 
   it("names the entities as chips and says what a row adds", () => {
     const rows = buildRuleRows(draft({
-      scheduleType: "sensor_based", triggerType: "counter", triggerEntityIds: ["sensor.washes"], targetValue: "25", deltaMode: true,
+      scheduleType: "sensor_based", trigger: rule({ type: "counter", targetValue: "25", deltaMode: true }), triggerEntityIds: ["sensor.washes"],
       completeWhenEntity: "binary_sensor.door", completeWhenState: "on", completeWhenFor: "2",
       quickOn: true, requiredCount: 2, allowSkip: false, checklistCount: 3, partsCount: 1, requireTagScan: true,
       responsibleUserId: "u1", pool: ["u1", "u2"], rotation: "round_robin", mirrorLists: ["todo.house"], enabled: false,

@@ -1,0 +1,2 @@
+/*! maintenance_supporter frontend 2.121.0 */
+function r(t){if(t.key!=="Enter"&&t.key!==" ")return;let n=t.target?.closest?.('[role="menuitem"], [role="button"]');!n||n.getAttribute("aria-disabled")==="true"||(t.preventDefault(),n.click())}function o(t){return e=>{e.key!=="Enter"&&e.key!==" "||(e.preventDefault(),t(e))}}function i(t,e){return n=>{n.key==="Enter"?t():n.key==="Escape"&&e()}}function u(t){let e=parseFloat(t);return Number.isFinite(e)&&e>0?e:null}export{r as a,o as b,i as c,u as d};

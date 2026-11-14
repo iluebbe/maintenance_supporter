@@ -2172,9 +2172,9 @@
  },
  "connectlife": {
   "urls": [
-   "https://raw.githubusercontent.com/oyvindwe/connectlife-ha/main/custom_components/connectlife/data_dictionaries/012.yaml",
-   "https://raw.githubusercontent.com/oyvindwe/connectlife-ha/main/custom_components/connectlife/data_dictionaries/010.yaml",
-   "https://raw.githubusercontent.com/oyvindwe/connectlife-ha/main/custom_components/connectlife/data_dictionaries/015.yaml",
+   "https://raw.githubusercontent.com/oyvindwe/connectlife-ha/main/custom_components/connectlife/mappings/012.yaml",
+   "https://raw.githubusercontent.com/oyvindwe/connectlife-ha/main/custom_components/connectlife/mappings/010.yaml",
+   "https://raw.githubusercontent.com/oyvindwe/connectlife-ha/main/custom_components/connectlife/mappings/015.yaml",
    "https://raw.githubusercontent.com/oyvindwe/connectlife-ha/main/custom_components/connectlife/entity.py"
   ],
   "strings": [
@@ -2199,7 +2199,7 @@
    "attr=\"FilterLife\"",
    "attr=\"FilterLife_1\"",
    "attr=\"FilterLife_2\"",
-   "{DEFAULT_NAME}_{self.get_appliance.name}_{self.entity_attr}"
+   "{DEFAULT_NAME}_{self.get_appliance.display_name}_{self.entity_attr}"
   ]
  },
  "roomba_rest980": {
@@ -2433,7 +2433,10 @@
   ],
   "strings": [
    "translation_key=\"fragrance_remaining\"",
-   "translation_key=\"bay_fragrance_remaining\""
+   "translation_key=f\"bay_{bay}_fragrance_remaining\"",
+   "*_bay_sensors(1),",
+   "*_bay_sensors(2),",
+   "(*_bay_sensors(3), *_bay_sensors(4))"
   ]
  },
  "vitesy": {

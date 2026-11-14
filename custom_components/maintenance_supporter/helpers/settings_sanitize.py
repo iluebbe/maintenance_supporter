@@ -6,9 +6,10 @@ accepted subset and, for a refused value, the error code."""
 from __future__ import annotations
 
 import math
+import re
 from typing import Any, cast
 
-from homeassistant.core import valid_entity_id
+from homeassistant.core import HomeAssistant
 
 from ..const import (
     BUDGET_CURRENCIES,
@@ -20,6 +21,7 @@ from ..const import (
     CONF_HOME_TYPE,
     CONF_MEMBER_DISPLAY,
     CONF_MIRROR_TODO_DEFAULT_ENTITIES,
+    CONF_NOTIFICATION_LANGUAGE,
     CONF_NOTIFICATION_TITLE_PREFIX,
     CONF_NOTIFICATION_TITLE_STYLE,
     CONF_NOTIFY_COMPLETED,
@@ -40,6 +42,8 @@ from ..const import (
     MAX_NOTIFICATION_TITLE_PREFIX_LENGTH,
     MAX_PANEL_TITLE_LENGTH,
     MAX_REMINDER_LEADS,
+    NOTIFICATION_LANGUAGE_AUTO,
+    NOTIFICATION_LANGUAGE_NAMES,
     NOTIFICATION_TITLE_STYLES,
     NOTIFY_COMPLETED_MODES,
     PARTS_COST_MODES,
@@ -47,11 +51,12 @@ from ..const import (
     TIME_HHMMSS_PATTERN,
 )
 from .battery_lifetime import sanitize_lifetime_overrides
+from .i18n import normalize_language_code
 from .member_display import sanitize_member_display
 from .notify_targets import validate_notify_service
 from .parts import valid_search_template
 from .region import is_region_setting
-from .sanitize import sanitize_mirror_todo_entities
+from .sanitize import is_todo_entity_id, sanitize_mirror_todo_entities
 from .settings_registry import (
     ALLOWED_SETTING_KEYS,
     FLOAT_RANGES,
@@ -76,6 +81,29 @@ def settings_error_field(error: str) -> str:
         "invalid_shopping_list_entity": CONF_SHOPPING_LIST_ENTITY,
         "invalid_search_template": CONF_PART_SEARCH_URL_TEMPLATE,
     }.get(error, CONF_NOTIFY_SERVICE)
+
+
+def settings_write_refusal(hass: HomeAssistant, settings_input: dict[str, Any]) -> tuple[dict[str, Any], tuple[str, str] | None]:
+    """What a settings write keeps, and its refusal as ``(setting, code)``:
+    the sanitiser's rules plus the one that needs Home Assistant, no default
+    to-do list of our own (#231). The panel's write, the options flow's
+    General page and the settings import each checked a part of it (DRY
+    audit 2026-10-30, BI6-B5)."""
+    filtered, error = sanitize_settings_input(settings_input)
+    if error:
+        return filtered, (settings_error_field(error), error)
+    defaults = filtered.get(CONF_MIRROR_TODO_DEFAULT_ENTITIES)
+    if defaults:
+        # The to-do mirror reaches the coordinator; imported when asked.
+        from .todo_mirror import mirror_todo_error
+
+        if mirror_todo_error(hass, defaults):
+            return filtered, (CONF_MIRROR_TODO_DEFAULT_ENTITIES, "invalid_mirror_todo")
+    return filtered, None
+
+
+#: A language code as Home Assistant spells one: "de", "pt-BR", "zh-Hans".
+_LANGUAGE_CODE = re.compile(r"[A-Za-z]{2}(?:[-_][A-Za-z]{2,4})?")
 
 
 def clean_title_prefix(raw: Any) -> str:
@@ -157,6 +185,21 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
         filtered[CONF_NOTIFY_COMPLETED] = "off"
     if CONF_NOTIFICATION_TITLE_STYLE in filtered and filtered[CONF_NOTIFICATION_TITLE_STYLE] not in NOTIFICATION_TITLE_STYLES:
         del filtered[CONF_NOTIFICATION_TITLE_STYLE]
+    # #251: "auto" (a blank one too) or a language the notification tables
+    # speak; a code as Home Assistant spells it ("pt-BR", "zh-Hans") reads as
+    # its table, a word ("Deutsch") is no code.
+    if CONF_NOTIFICATION_LANGUAGE in filtered:
+        raw_lang = filtered[CONF_NOTIFICATION_LANGUAGE]
+        if raw_lang in ("", NOTIFICATION_LANGUAGE_AUTO):
+            lang: str | None = NOTIFICATION_LANGUAGE_AUTO
+        elif isinstance(raw_lang, str) and _LANGUAGE_CODE.fullmatch(raw_lang):
+            lang = normalize_language_code(raw_lang)
+        else:
+            lang = None
+        if lang == NOTIFICATION_LANGUAGE_AUTO or lang in NOTIFICATION_LANGUAGE_NAMES:
+            filtered[CONF_NOTIFICATION_LANGUAGE] = lang
+        else:
+            del filtered[CONF_NOTIFICATION_LANGUAGE]
 
     # #145: same treatment for the row-action style.
     if CONF_ROW_ACTION_STYLE in filtered and filtered[CONF_ROW_ACTION_STYLE] not in ROW_ACTION_STYLES:
@@ -253,9 +296,7 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
     # integration may load later; the sync self-heals on first appearance).
     if CONF_SHOPPING_LIST_ENTITY in filtered:
         raw_ent = (filtered[CONF_SHOPPING_LIST_ENTITY] or "").strip()
-        if raw_ent and not valid_entity_id(raw_ent):
-            return filtered, "invalid_shopping_list_entity"
-        if raw_ent and not raw_ent.startswith("todo."):
+        if raw_ent and not is_todo_entity_id(raw_ent):
             return filtered, "invalid_shopping_list_entity"
         filtered[CONF_SHOPPING_LIST_ENTITY] = raw_ent
 

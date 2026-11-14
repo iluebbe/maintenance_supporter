@@ -12,11 +12,11 @@
  */
 
 import { html, nothing } from "lit";
-import { t, formatDate, formatDueDays, formatLastDone, formatNumber } from "../styles";
+import { t, formatDate, formatDueDays, formatLastDone, formatNumber, withUnit } from "../styles";
 import { fmtVal, px } from "./chart-utils";
 import { daysProgress } from "../helpers/interval";
-import { stampMs } from "../helpers/ha-time";
-import { isCounterTrigger, miniSeriesKey, primaryTriggerEntity } from "../helpers/trigger-entities";
+import { daysBetweenIso, stampMs } from "../helpers/ha-time";
+import { compoundLogic, isCounterTrigger, miniSeriesKey, primaryTriggerEntity } from "../helpers/trigger-entities";
 import type { MaintenanceTask, TaskRow, StatisticsPoint } from "../types";
 
 const MINI_SPARKLINE_W = 60;
@@ -155,8 +155,8 @@ export function renderTriggerProgress(row: TaskRow | MaintenanceTask, opts?: { t
     } else if (tc.trigger_equals != null || tc.trigger_not_equals != null) {
       // Discrete = / ≠ levels have no meaningful gradient — binary bar,
       // same treatment as compound.
-      const target = tc.trigger_equals != null ? `= ${tc.trigger_equals}` : `≠ ${tc.trigger_not_equals}`;
-      label = `${fmtVal(val, "", opts?.lang)} (${target}${unit ? ` ${unit}` : ""})`;
+      const target = tc.trigger_equals != null ? `= ${fmtVal(tc.trigger_equals, unit, opts?.lang)}` : `≠ ${fmtVal(tc.trigger_not_equals ?? 0, unit, opts?.lang)}`;
+      label = `${fmtVal(val, "", opts?.lang)} (${target})`;
       pct = row.trigger_active ? 100 : 0;
     } else {
       return nothing;
@@ -202,7 +202,7 @@ export function renderTriggerProgress(row: TaskRow | MaintenanceTask, opts?: { t
     pct = val <= lead ? 100 : Math.max(0, 100 - ((val - lead) / 30) * 100);
     label = formatDueDays(dueDaysOf(val), opts?.lang);
   } else if (triggerType === "compound") {
-    const logic = tc.compound_logic || (tc as any).operator || "AND";
+    const logic = compoundLogic(tc);
     const condCount = tc.conditions?.length || 0;
     label = `${logic} (${condCount})`;
     pct = row.trigger_active ? 100 : 0;
@@ -334,9 +334,14 @@ export function renderDaysProgress(task: MaintenanceTask, lang: string) {
   const L = lang;
   if (task.days_until_due == null || !task.interval_days || task.interval_days <= 0) return nothing;
 
-  // Unit-aware (issue #59): a "1 year" task has span ≈365 d, not 1 d.
+  // Unit-aware (issue #59): a "1 year" task has span ≈365 d, not 1 d. A task
+  // that needs its trigger too is due at the later of the two (#260): its bar
+  // runs from the last time to that date.
+  const legsSpan = task.trigger_config?.trigger_combinator === "all" && task.last_performed && task.next_due
+    ? daysBetweenIso(task.last_performed.slice(0, 10), task.next_due)
+    : null;
   const { pct, overflow: daysOverflow } = daysProgress(
-    task.interval_days, task.days_until_due, task.interval_unit,
+    task.interval_days, task.days_until_due, task.interval_unit, legsSpan,
   );
 
   let barColor = "var(--success-color, #4caf50)";

@@ -16,6 +16,7 @@ import { renderNotesMarkdown } from "../helpers/notes-markdown";
 import { renderPeopleAvatars, type PersonDisplay } from "../helpers/person";
 import { taskUserIds } from "../helpers/assignees";
 import { quickCompleteOn } from "../helpers/quick-complete";
+import { isInertTask } from "../status-constants";
 import { entityName } from "../helpers/trigger-entities";
 import { t, formatDate, formatDayCount, formatRecurrence, formatCost, formatDuration } from "../styles";
 import { renderRefChip } from "../helpers/reference";
@@ -31,10 +32,11 @@ import { renderDaysProgress } from "./progress";
 import { newestFirst, renderHistoryEntry, renderHistoryFilters, renderHistoryList, type HistoryContext } from "./history";
 import { renderStatusBadge } from "./status";
 import { clampPhaseCursor, effectivePhase, hasPhases } from "../helpers/phases";
-import { renderEventTitles, renderTriggerDetail } from "../helpers/event-titles";
+import { renderTaskTitle, triggerDetailText } from "../helpers/event-titles";
 import "../components/task-documents";
 import "../components/task-trace-view";
 import { renderTabBar as tabBar } from "../helpers/tab-bar";
+import { mirrorListsOf } from "../helpers/mirror-lists";
 
 export interface TaskDetailContext {
   lang: string;
@@ -145,9 +147,12 @@ const MORE_PATH = "M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 
 /** The task's ⋮ menu, listed once for our popup and HA's dropdown. */
 function taskMenuEntries(task: MaintenanceTask, ctx: TaskDetailContext, L: string): MenuEntry[] {
   const writer = !ctx.isOperator;
+  // Archived, switched off or paused: the server refuses complete / skip /
+  // reset / postpone, and the task sends no reminder to snooze.
+  const live = !isInertTask(task);
   return [
     writer && { label: t("edit", L), action: () => ctx.openEdit(task) },
-    quickCompleteOn(task) && { label: t("complete_with_details", L), cls: "complete-details", action: () => ctx.openComplete(task, { details: true }) },
+    live && quickCompleteOn(task) && { label: t("complete_with_details", L), cls: "complete-details", action: () => ctx.openComplete(task, { details: true }) },
     { label: t("qr_code", L), action: () => ctx.openQr(task.name) },
     { label: t("worksheet", L), action: () => ctx.printWorksheet() },
     // The recommendation card carries Re-analyze too, but only once a
@@ -159,9 +164,9 @@ function taskMenuEntries(task: MaintenanceTask, ctx: TaskDetailContext, L: strin
     // Reset / Postpone / Snooze are household actions (read tier,
     // helpers/permissions HOUSEHOLD_ACTIONS): offered to everyone, like
     // Complete / Skip and the Lovelace quick-actions Reset.
-    { label: t("reset", L), action: () => ctx.promptReset() },
-    { label: `${t("postpone", L)}…`, action: () => ctx.promptPostpone() },
-    { label: t("snooze", L), action: () => ctx.snoozeTask() },
+    live && { label: t("reset", L), action: () => ctx.promptReset() },
+    live && { label: `${t("postpone", L)}…`, action: () => ctx.promptPostpone() },
+    live && { label: t("snooze", L), action: () => ctx.snoozeTask() },
     writer && !task.archived && { label: task.paused ? t("resume_task", L) : `${t("pause_task", L)}…`, action: () => ctx.togglePause(!!task.paused) },
     writer && { label: task.archived ? t("unarchive", L) : t("archive", L), action: () => ctx.toggleArchive(!!task.archived) },
     writer && "divider",
@@ -176,7 +181,7 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
   return html`
     <div class="task-header">
       <div class="task-header-title">
-        <span class="task-name-breadcrumb" @click=${() => ctx.showTaskView()}>${task.name}${renderEventTitles(task.next_event_titles)}${renderTriggerDetail(task.trigger_detail)}</span>
+        <span class="task-name-breadcrumb" @click=${() => ctx.showTaskView()}>${renderTaskTitle(task.name, task.next_event_titles, triggerDetailText(task, L))}</span>
         ${renderRefChip(ctx.taskRef ?? null, t("ref_number", L))}
         <span class="breadcrumb-separator">·</span>
         <span class="object-name-breadcrumb" @click=${() => ctx.showObject()}>${ctx.objectName}</span>
@@ -211,10 +216,12 @@ function renderTaskHeader(task: MaintenanceTask, ctx: TaskDetailContext) {
         }
       </div>
       <div class="task-header-actions">
-        <ha-button appearance="accent" variant="success" @click=${() => ctx.openComplete(task)}>${t("complete", L)}</ha-button>
-        ${task.allow_skip !== false
-          ? html`<ha-button appearance="outlined" variant="warning" .disabled=${ctx.actionLoading} @click=${() => ctx.promptSkip()}>${t("skip", L)}</ha-button>`
-          : nothing}
+        ${isInertTask(task)
+          ? nothing
+          : html`<ha-button appearance="accent" variant="success" @click=${() => ctx.openComplete(task)}>${t("complete", L)}</ha-button>
+            ${task.allow_skip !== false
+              ? html`<ha-button appearance="outlined" variant="warning" .disabled=${ctx.actionLoading} @click=${() => ctx.promptSkip()}>${t("skip", L)}</ha-button>`
+              : nothing}`}
         <div class="more-menu-wrapper">
           ${menuIsHa()
             ? renderHaMenu(html`<ha-icon-button slot="trigger" .disabled=${ctx.actionLoading} .label=${t("more_actions", L)} .path=${MORE_PATH}></ha-icon-button>`,
@@ -562,14 +569,17 @@ export function renderOverviewTab(task: MaintenanceTask, ctx: TaskDetailContext)
 }
 
 function renderHistoryTab(task: MaintenanceTask, ctx: TaskDetailContext) {
+  // A past completion is a completion: the server refuses it on an archived,
+  // switched-off or paused task, as the header's Complete (bug audit
+  // 2026-11-08, E8-5).
   return html`
     <div class="tab-content history-tab">
-      <div class="history-add-past">
+      ${isInertTask(task) ? nothing : html`<div class="history-add-past">
         <ha-button appearance="plain" class="history-add-past-btn" @click=${() => ctx.openComplete(task, { details: true })}>
           <ha-icon icon="mdi:calendar-plus"></ha-icon>
           ${t("history_add_past", ctx.lang)}
         </ha-button>
-      </div>
+      </div>`}
       ${renderHistoryFilters(task, ctx.history)}
       ${renderHistoryList(task, ctx.history)}
     </div>
@@ -602,7 +612,7 @@ function renderTabContent(task: MaintenanceTask, ctx: TaskDetailContext) {
  *  default lists (named as such) unless it opted out. */
 function renderMirrorBadge(task: MaintenanceTask, ctx: TaskDetailContext, L: string) {
   const own = task.mirror_todo_entities ?? [];
-  const lists = own.length ? own : task.mirror_todo_use_default === false ? [] : ctx.mirrorTodoDefault ?? [];
+  const lists = mirrorListsOf(task, ctx.mirrorTodoDefault);
   if (!lists.length) return nothing;
   const names = lists.map((eid) => entityName(ctx.hass, eid)).join(", ");
   const title = own.length ? `${t("task_mirror_todo", L)}: ${names}` : t("task_mirror_todo_default", L).replace("{lists}", names);

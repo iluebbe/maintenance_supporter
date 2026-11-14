@@ -71,16 +71,18 @@ from .helpers.calendar_source import (
     calendar_entity_ids,
     next_event_titles,
 )
+from .helpers.completes_itself import holds_until_done
 from .helpers.completion_requirements import (
     missing_completion_fields,
     quick_complete_values,
     unattended_missing_fields,
 )
 from .helpers.coordinator_data import task_results
-from .helpers.dates import is_past_dated, local_moment, parse_persisted_utc, stamp_instant
+from .helpers.dates import is_past_dated, local_date_from_iso, local_moment, parse_iso_date, parse_persisted_utc, stamp_instant
 from .helpers.entry_tasks import write_task, write_tasks
 from .helpers.global_options import global_option, is_schedule_time_enabled
 from .helpers.history import completed_entries
+from .helpers.i18n import plain_number
 from .helpers.interval_analyzer import IntervalAnalyzer, hemisphere
 from .helpers.issues import (
     async_purge_task_issues,
@@ -89,7 +91,7 @@ from .helpers.issues import (
     stale_action_issue_id,
 )
 from .helpers.notification_gates import task_may_notify
-from .helpers.notification_manager import NotificationManager
+from .helpers.notification_manager import NotificationManager, SentMarks
 from .helpers.notify_hooks import KIND_STATUS
 from .helpers.parts import MAX_PART_COST, PART_REF_FIELD, on_hand
 from .helpers.parts_cost import COST_BASIS_USE, annotate_completion, averaged_price, part_cost_mode, parts_cost_mode
@@ -105,7 +107,7 @@ from .helpers.phases import task_label
 from .helpers.prediction_cache import PredictionCache
 from .helpers.reference_numbers import assign_history_refs, assign_task_refs, next_history_ref
 from .helpers.schedule import FLAT_RECURRENCE_KEYS, KIND_INTERVAL, KIND_MANUAL, Schedule, read_legacy_fields
-from .helpers.status import compute_live_status
+from .helpers.status import combined_due, compute_live_status, needs_both_legs
 from .helpers.task_trace import KIND_DONE_WHEN, observe_statuses
 from .helpers.task_trace import record as record_trace
 from .helpers.todo_mirror import TODO_MIRROR_KEY
@@ -262,6 +264,12 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # note_live_trigger_state / _overlay_live_trigger_flips.
         self._trigger_seq = 0
         self._live_trigger_flips: dict[str, tuple[int, bool, float | None]] = {}
+        # Compound tasks whose latch the first refresh took from the record
+        # until their live trigger speaks (_evaluate_trigger_fallback), and
+        # latches the sweep made while the task had not been seen on the
+        # normal side since it was done: no new episode, so not held.
+        self._compound_trigger_seeds: set[str] = set()
+        self._unheld_sweep_latches: set[str] = set()
         # The task sensors that run each task's triggers: a changed sensor
         # rule is rebuilt on its sensor instead of reloading the object
         # (helpers/task_apply).
@@ -718,7 +726,28 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
             except Exception:  # noqa: BLE001 - one task's prediction failure must not break the whole coordinator update
                 self._log_analysis_failure(task_id, "prediction", "Sensor prediction failed for task %s")
 
+        if needs_both_legs(task.trigger_config):
+            self._publish_combined_due(task, task_id, task_result)
         return task_result
+
+    def _publish_combined_due(self, task: MaintenanceTask, task_id: str, task_result: TaskResult) -> None:
+        """Publish when a task that needs its trigger AND its interval is due:
+        the later of the two (#260). The interval's date alone made the card,
+        the rows, the detail bar, Assist and the due sensors say "overdue"
+        next to an OK badge while the sensor had not got there. The status
+        twin keeps weighing the interval leg (``interval_days_until_due``)."""
+        today = dt_util.now().date()
+        task_result.interval_days_until_due = task_result.days_until_due
+        activation = self.announced_activation(task_id) if task._trigger_active else None
+        due = combined_due(
+            task.next_due,
+            trigger_active=task._trigger_active,
+            predicted=parse_iso_date(task_result.threshold_prediction_date),
+            activated=parse_iso_date(local_date_from_iso(activation.get("timestamp"))) if activation else None,
+            today=today,
+        )
+        task_result.next_due = due.isoformat() if due else None
+        task_result.days_until_due = (due - today).days if due else None
 
     async def _async_sync_todo_mirror(self, task_results: dict[str, TaskResult]) -> None:
         """Hand this refresh's results to the to-do mirror (helpers/todo_mirror)."""
@@ -748,6 +777,15 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # value and no chart for ten minutes after a completion, even when
         # the counter had visibly been reset (2.95 counter resets, found live).
         in_cooldown = task_id in self._recently_completed
+        # The first refresh after a restart or a reload runs before the
+        # platforms set the live triggers up, and every task object starts
+        # untriggered. A verdict only a live trigger knows (a compound, a
+        # for-minutes window, a sensor not back yet) or a held one read as
+        # "not triggered": the push went off the phones, the to-do row off the
+        # lists, and the trigger's restore only repainted. The activation on
+        # record stands until a reading ends it, as the previous refresh's
+        # latch does later (bug audit 2026-11-08, T8-1).
+        seed = not self._previous_statuses and not in_cooldown and not task._trigger_active and self.trigger_already_announced(task_id)
 
         from .entity.triggers import normalize_entity_ids
 
@@ -755,7 +793,16 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
 
         # Compound triggers have entity_ids inside conditions, not at top level
         if trigger_type == "compound":
-            # Compound is fully event-driven; fallback cannot re-evaluate
+            # Compound is fully event-driven; fallback cannot re-evaluate. A
+            # latch taken from the record is withdrawn by the compound itself
+            # once it sees every condition entity (CompoundTrigger.settle).
+            if seed:
+                task._trigger_active = True
+                self._compound_trigger_seeds.add(task_id)
+            elif task_id in self._compound_trigger_seeds:
+                settle = getattr(self._trigger_hosts.get(task_id), "settle_triggers", None)
+                if callable(settle):
+                    settle()
             return
 
         entity_ids = normalize_entity_ids(task.trigger_config)
@@ -788,6 +835,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
             task._trigger_current_value = result.current_value
         if in_cooldown:
             return  # the value for display only — no re-activation yet
+        held = holds_until_done(task.trigger_config)
+        if seed and (result.active is None or (result.active is False and held)):
+            task._trigger_active = True
         if result.active is False and trigger_type in _STATE_READING_TRIGGER_TYPES and not self._trigger_has_reading(entity_ids):
             # An episode ends on a reading, never on sensors that are all
             # offline. The evaluators already give no verdict then; this
@@ -797,20 +847,48 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
             # again (live installation 2026-10-04).
             return
         if result.active is not None:
-            if (
-                task._trigger_active
-                and not result.active
-                and trigger_type in ("threshold", "due_date")
-                and task.trigger_config.get("trigger_hold_until_done")
-            ):
+            if result.active and not task._trigger_active and held and not self.trigger_already_announced(task_id):
+                # A latch this sweep makes. Before the task was seen on the
+                # normal side after it was done, it is the old reading still
+                # standing (a cloud sensor reporting late), not a new episode:
+                # held, it kept the task triggered until a second completion
+                # (bug audit 2026-11-08, T8-2).
+                if self._seen_clear_since_done(task_id):
+                    self._unheld_sweep_latches.discard(task_id)
+                else:
+                    self._unheld_sweep_latches.add(task_id)
+            if task._trigger_active and not result.active and held and task_id not in self._unheld_sweep_latches:
                 # D#229: held until the task is done. The reading back in
                 # range ends nothing here either, nor does it close the
                 # episode on record (a reload re-latches from it).
                 return
             if task._trigger_active and not result.active:
-                # A recovery only this sweep saw still ends the episode.
+                # A recovery only this sweep saw still ends the episode, and
+                # announces nothing: no event, no "Trigger ended", no #53
+                # completion. The live trigger announces a recovery
+                # (BaseTrigger._announce_task_recovered) and does it on its
+                # own next reading, so a sweep that ran into it would announce
+                # it twice; and a reading only the sweep saw is no evidence
+                # that the work was done (DRY audit 2026-11-07, BR7-B2).
                 self.note_trigger_cleared(task_id)
+                self._unheld_sweep_latches.discard(task_id)
             task._trigger_active = result.active
+
+    def _seen_clear_since_done(self, task_id: str) -> bool:
+        """Whether the task's trigger was seen on the normal side since the
+        task was last done (note_trigger_recovered stamps it), or the task
+        never was."""
+        done = ""
+        for entry in (self.merged_task(task_id) or {}).get("history") or []:
+            if not isinstance(entry, dict) or entry.get("type") not in LIFECYCLE_HISTORY_TYPES:
+                continue
+            ts = str(entry.get("timestamp") or "")
+            if stamp_instant(ts) >= stamp_instant(done):
+                done = ts
+        if not done:
+            return True
+        cleared = parse_persisted_utc(self._store.get_task_state(task_id).get("trigger_cleared_at"))
+        return cleared is not None and cleared >= stamp_instant(done)
 
     async def _async_check_for_issues(self, tasks: dict[str, MaintenanceTask]) -> None:
         """Check trigger entity availability and create/remove repair issues.
@@ -1089,6 +1167,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
                     days_until_due=task_result.days_until_due,
                     next_due=task_result.next_due,
                     responsible_user_id=task_result.task.get("responsible_user_id"),
+                    trigger_active=task_result.trigger_active,
                 )
 
         # Update the cache AFTER all notifications have been sent
@@ -1203,6 +1282,30 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
             return False
         return not MaintenanceTask.from_dict(task).can_complete_now
 
+    def unattended_refusal(self, task_id: str, *, source: str) -> str | None:
+        """Why :meth:`complete_maintenance` would refuse completing the task
+        now from a surface that asks nobody (``unattended``, no tag scan,
+        dated now): the translation key it raises, or None. The reminder's
+        Complete button asks this; the notification manager restated the
+        gates and missed the inert one (DRY audit 2026-10-30, BR6-B7).
+        tests/test_dry_audit_2026_11_07 pins the two against each other."""
+        task = self.merged_task(task_id)
+        if not task:
+            return None
+        prefill = quick_complete_values(task) if source not in COMPLETION_SOURCES_UNMANNED else {}
+        if unattended_missing_fields(task, prefill=prefill):
+            return "completion_details_required"
+        if task.get("require_tag_scan"):
+            return "tag_scan_required"
+        if self._is_inert(task):
+            return "task_inactive"
+        try:
+            if not MaintenanceTask.from_dict(task).can_complete_now:
+                return "too_early"
+        except (KeyError, TypeError, ValueError):
+            return None
+        return None
+
     def _persist_dynamic_state(self, task_id: str, task: MaintenanceTask) -> None:
         """Write task's dynamic state to Store (debounced)."""
         td = task.to_dict()
@@ -1290,6 +1393,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         reading_values: list[ReadingValue] | None = None,
         restock_quantity: float | None = None,
         used_parts: list[UsedPart] | None = None,
+        consume_linked_parts: bool = False,
         auto: bool = False,
         unattended: bool = False,
         completed_at: datetime | None = None,
@@ -1521,6 +1625,12 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # valued in the budget and went back to the shelf on a history
         # delete, though they never left it (bug audit 2026-10-17, S-5).
         _automatic = not _is_backfill and not merged[task_id].get(BATTERY_FLEET_TASK_FLAG)
+        # D#264: a surface without a parts list (the complete action) can ask
+        # for the task's linked parts by name. They then count as an explicit
+        # selection, which a backfill honours: an oil change entered for a
+        # past date books its oil and filter like the panel's dialog does.
+        if consume_linked_parts and used_parts is None and not merged[task_id].get(BATTERY_FLEET_TASK_FLAG):
+            used_parts = [dict(link) for link in (_phase_effective(merged[task_id], "consumes_parts") or [])]  # type: ignore[misc]
         record_links = (
             used_parts
             if used_parts is not None
@@ -1594,6 +1704,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
             # progress (runtime hours, delta baseline, counts, an active
             # trigger) and no cooldown starts. It used to send the reset
             # signal like a fresh completion (bug audit 2026-10-16).
+            sent_before = self._sent_marks(task_id)
             await self._persist_and_signal_task_change(task_id, task, occurrence_done=is_latest)
             if is_latest:
                 self._completion_cooldown.add(task_id)
@@ -1676,7 +1787,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # completion, so a sensor task that re-triggered weeks later was never
         # announced again until HA restarted (bug audit 2026-08-29).
         if is_latest:
-            self._clear_notification_state(task_id, reminded=merged[task_id])
+            self._clear_notification_state(task_id, reminded=merged[task_id], since=sent_before)
 
         _LOGGER.debug("Maintenance completed: %s on %s", task.name, self.maintenance_object.name)
 
@@ -1736,7 +1847,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         if trigger_value is None:
             notes = "Auto-completed: sensor recovered"
         else:
-            notes = f"Auto-completed: sensor recovered ({trigger_value:g})"
+            # A history note is read to find out what happened: four
+            # decimals, where a reminder rounds to two.
+            notes = f"Auto-completed: sensor recovered ({plain_number(trigger_value, digits=4)})"
         await self._async_auto_complete(task_id, notes)
 
     async def async_auto_complete_from_entity(self, task_id: str, entity_name: str, to_state: str, *, any_time: bool = False) -> None:
@@ -1842,12 +1955,13 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # reset ended (bug audit 2026-10-16, C-L).
         self._store.clear_checklist_progress(task_id)
 
+        sent_before = self._sent_marks(task_id)
         await self._persist_and_signal_task_change(task_id, task)
         # After the persist, as complete does it: cleared before, a refresh
         # already running on the old snapshot saw the task overdue and
         # unstamped and sent the reminder again, its buttons carrying the
         # new cycle's token (bug audit 2026-10-17, C-4).
-        self._clear_notification_state(task_id, reminded=merged[task_id])
+        self._clear_notification_state(task_id, reminded=merged[task_id], since=sent_before)
 
         _LOGGER.debug("Maintenance reset: %s on %s", task.name, self.maintenance_object.name)
 
@@ -1965,7 +2079,15 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
                 translation_placeholders={"task_name": str(task_data.get("name", task_id))},
             )
 
-    def _clear_notification_state(self, task_id: str, *, reminded: Mapping[str, Any] | None = None) -> None:
+    def _sent_marks(self, task_id: str) -> SentMarks | None:
+        """What went out about the task, taken before a completion, skip or
+        reset stores the new cycle (NotificationManager.sent_marks)."""
+        nm = self.hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
+        return nm.sent_marks(self.entry.entry_id, task_id) if isinstance(nm, NotificationManager) else None
+
+    def _clear_notification_state(
+        self, task_id: str, *, reminded: Mapping[str, Any] | None = None, since: SentMarks | None = None
+    ) -> None:
         """Forget the per-status notification bookkeeping for a task.
 
         With ``reminded`` — the task as it was when its reminder went out,
@@ -1974,6 +2096,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         did that: one closed in the panel, by voice or a tag stayed on the
         phones, and its Complete button then completed the NEXT cycle (bug
         audit 2026-10-16, N1; the buttons now also carry the cycle).
+        ``since``: :meth:`_sent_marks` from before the new cycle was stored;
+        a reminder of the new cycle sent meanwhile stays (N8-1).
 
         The notification manager lives on the shared runtime; it may be absent
         in tests or during teardown - then there is nothing to clear.
@@ -1984,7 +2108,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         if reminded is None:
             nm.clear_task_state(self.entry.entry_id, task_id)
         else:
-            nm.clear_and_dismiss(self.entry.entry_id, task_id, reminded)
+            nm.clear_and_dismiss(self.entry.entry_id, task_id, reminded, since=since)
 
     async def skip_maintenance(
         self,
@@ -2044,12 +2168,13 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # this one finds it; released when the skip did not land on disk,
         # or the retry would be swallowed as a duplicate of nothing.
         self._recent_skips[task_id] = time.monotonic()
+        sent_before = self._sent_marks(task_id)
         try:
             await self._persist_and_signal_task_change(task_id, task)
         except Exception:
             self._recent_skips.pop(task_id, None)
             raise
-        self._clear_notification_state(task_id, reminded=merged[task_id])
+        self._clear_notification_state(task_id, reminded=merged[task_id], since=sent_before)
 
         _LOGGER.debug("Maintenance skipped: %s on %s", task.name, self.maintenance_object.name)
 
@@ -2206,6 +2331,15 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         which flips happened after it restored the latch."""
         self._trigger_seq += 1
         self._live_trigger_flips[task_id] = (self._trigger_seq, active, current_value)
+        # The live trigger has spoken: no latch from the record or the sweep
+        # is left to settle (_evaluate_trigger_fallback).
+        self._compound_trigger_seeds.discard(task_id)
+        self._unheld_sweep_latches.discard(task_id)
+
+    def holds_trigger_seed(self, task_id: str) -> bool:
+        """Whether the first refresh took the compound task's latch from the
+        record and its live trigger has not spoken since."""
+        return task_id in self._compound_trigger_seeds
 
     def _overlay_live_trigger_flips(self, task_results: dict[str, TaskResult], seen: dict[str, int]) -> None:
         """Apply the flips that landed after the refresh restored each task's
@@ -2248,8 +2382,13 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         repaints (BaseTrigger._restore_activation; bug audit 2026-09-26,
         SCH-10). Latest by timestamp — string compare like the history-edit
         reconciliation — with later list entries winning ties."""
+        return self.announced_activation(task_id) is not None
+
+    def announced_activation(self, task_id: str) -> Mapping[str, Any] | None:
+        """The TRIGGERED history entry of the task's open activation (see
+        :meth:`trigger_already_announced`), or None."""
         task = self.merged_task(task_id) or {}
-        latest_type: str | None = None
+        latest: Mapping[str, Any] | None = None
         latest_ts = ""
 
         for entry in task.get("history") or []:
@@ -2257,16 +2396,16 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
                 continue
             ts = str(entry.get("timestamp") or "")
             if stamp_instant(ts) >= stamp_instant(latest_ts):
-                latest_type, latest_ts = entry.get("type"), ts
-        if latest_type != HistoryEntryType.TRIGGERED:
-            return False
+                latest, latest_ts = entry, ts
+        if latest is None or latest.get("type") != HistoryEntryType.TRIGGERED:
+            return None
         # A recovery recorded after that activation closed the episode
         # (note_trigger_cleared) — compared as instants, the two stamps come
         # from different clocks' ISO forms.
         cleared = parse_persisted_utc(self._store.get_task_state(task_id).get("trigger_cleared_at"))
-        if cleared is None or parse_persisted_utc(latest_ts) is None:
-            return True
-        return cleared < stamp_instant(latest_ts)
+        if cleared is None or parse_persisted_utc(latest_ts) is None or cleared < stamp_instant(latest_ts):
+            return latest
+        return None
 
     async def async_refresh_now(self) -> None:
         """Recompute immediately — for changes a person just made.

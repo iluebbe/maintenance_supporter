@@ -20,6 +20,7 @@ import { formatBytes } from "../helpers/format-bytes";
 import { docCategory, docDisplayName, CATEGORY_ICONS } from "../helpers/document-categories";
 import { DOC_FILTER_MIN, filterDocuments } from "../helpers/document-filter";
 import type { HomeAssistant } from "../types";
+import { onActivationKey } from "../helpers/keyboard";
 
 interface Doc {
   id: string;
@@ -232,12 +233,7 @@ export class MaintenanceTaskDocuments extends LitElement {
           tabindex="0"
           title=${page ? `${t("doc_open", L)} · ${t("doc_page", L)} ${page}` : t("doc_open", L)}
           @click=${() => this._open(doc)}
-          @keydown=${(e: KeyboardEvent) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              void this._open(doc);
-            }
-          }}
+          @keydown=${onActivationKey(() => void this._open(doc))}
         >
           <div class="tdoc-title">${docDisplayName(doc)}</div>
           ${(doc as { description?: string }).description ? html`<div class="tdoc-desc">${(doc as { description?: string }).description}</div>` : nothing}

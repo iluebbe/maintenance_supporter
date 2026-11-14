@@ -53,7 +53,8 @@ describe("panel: an update waiting for the restart", () => {
     await waitUntil(() => banner(), "restart banner shown", { timeout: 2000 });
     expect(banner()!.textContent!.trim()).to.equal(t("restart_pending_banner", "en").replace("{version}", "2.104.0"));
     expect(banner()!.textContent).to.contain("Restart Home Assistant");
-    expect(ready.size).to.equal(1);
+    // The version check, and the objects subscription that subscribes again (#258).
+    expect(ready.size).to.equal(2);
 
     // Home Assistant restarts: the connection comes back with the new code.
     answer = RESTARTED;

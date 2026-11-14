@@ -675,6 +675,7 @@
           "notification_bundle_threshold": "Bundeldrempel",
           "notification_title_style": "Stijl van meldingstitel",
           "notification_title_prefix": "Voorvoegsel voor de meldingstitel",
+          "notification_language": "Taal van meldingen",
           "notify_completed": "Voltooiingsmeldingen",
           "notify_event_only": "Alleen het event afvuren, zelf niets versturen",
           "notify_extra_data": "Extra notificatiegegevens (sjabloon)",
@@ -694,6 +695,7 @@
           "notification_bundle_threshold": "Minimaal aantal taken om een gebundelde melding te activeren.",
           "notification_title_style": "Wat verschijnt als TITEL van de melding. Standaard behoudt de status-tekst (bijv. 'Onderhoud achterstallig!'). Objectnaam / taaknaam helpen wanneer de telefoon meldingen stapelt.",
           "notification_title_prefix": "Komt vóór de titel van elke melding, bij elke stijl, bijv. de naam van de woning wanneer de telefoon herinneringen van meer dan één Home Assistant krijgt. Leeg = geen voorvoegsel.",
+          "notification_language": "De taal van titels, teksten en knoppen van de meldingen. Taal van Home Assistant = zoals tot nu toe. Het paneel blijft in de taal van ieder persoon.",
           "notify_completed": "Huishoudnieuws wanneer een taak is voltooid, met de reden (paneel, QR-/NFC-scan, takenlijst, spraak, sensorherstel …). \"Alleen automatisch\" meldt alleen voltooiingen die niemand ter plekke deed — sensorherstel, afvinken op de boodschappenlijst, een service-aanroep van een automatisering.",
           "notify_event_only": "Elke notificatie vuurt het event maintenance_supporter_notification af. Met deze optie verzorgt jouw automatisering de volledige bezorging — herhaalintervallen, stille uren en de daglimiet bepalen nog steeds wanneer het event komt.",
           "notify_extra_data": "JSON of YAML met Jinja, samengevoegd in de data van elke notify-aanroep (jouw sleutels winnen). Variabelen: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
@@ -1892,6 +1894,10 @@
         "via_tag_scan": {
           "name": "Via tag-scan",
           "description": "Bevestigt dat deze voltooiing afkomstig is van het scannen van een fysieke tag/QR-code die de automatisering zelf heeft afgehandeld — voldoet aan de taakinstelling „Alleen af te ronden via tag-scan”."
+        },
+        "consume_parts": {
+          "name": "Onderdelen verbruiken",
+          "description": "Boekt de aan de taak gekoppelde onderdelen voor deze voltooiing, ook als Voltooid op vóór de laatste voltooiing van de taak ligt. Een actuele voltooiing boekt ze sowieso, een achteraf ingevoerde alleen met deze schakelaar. De onderdelen gaan van de huidige voorraad af."
         }
       }
     },
@@ -1929,7 +1935,7 @@
       "fields": {
         "format": {
           "name": "Formaat",
-          "description": "Uitvoerformaat voor de geëxporteerde gegevens (json of yaml)."
+          "description": "Uitvoerformaat: json of yaml voor de volledige export, history_csv voor de geschiedenis als tabel met één rij per item (bestand maintenance_history.csv)."
         },
         "include_history": {
           "name": "Geschiedenis opnemen",
@@ -2351,7 +2357,7 @@
     },
     "shared_parts_moved": {
       "title": "Gedeelde reserveonderdelen verplaatst naar {new_owner}",
-      "description": "Meerdere onderhoudsobjecten deelden één voorraad reserveonderdelen die bij **{deleted_object}** stond, en dat object is zojuist verwijderd. Om te voorkomen dat de andere objecten naar een voorraad wijzen die niet meer bestaat, heeft Maintenance Supporter de gedeelde onderdelen ({parts}) — inclusief de huidige voorraad — naar **{new_owner}** verplaatst en de taakkoppelingen van alle andere objecten daarop aangepast. Er is niets verloren gegaan.\n\n**{new_owner}** is automatisch gekozen: het is het oudste object dat de voorraad gebruikte. Past een ander object beter, verplaats de onderdelen dan daarheen in het onderhoudspaneel.\n\nVerder hoef je niets te doen — sluit deze melding zodra je het gecontroleerd hebt."
+      "description": "Meerdere onderhoudsobjecten deelden één voorraad reserveonderdelen die bij **{deleted_object}** stond, en dat object is zojuist verwijderd. Om te voorkomen dat de andere objecten naar een voorraad wijzen die niet meer bestaat, heeft Maintenance Supporter de gedeelde onderdelen ({parts}) — inclusief de huidige voorraad — naar **{new_owner}** verplaatst en de taakkoppelingen van alle andere objecten daarop aangepast. Er is niets verloren gegaan.\n\n**{new_owner}** is automatisch gekozen: het is het oudste object dat de voorraad gebruikte.\n\nVerder hoef je niets te doen — sluit deze melding zodra je het gecontroleerd hebt."
     },
     "broken_part_link": {
       "title": "Ongeldige onderdeelkoppelingen bij {object_name}",
@@ -2538,6 +2544,9 @@
     "part_owner_archived": {
       "message": "“{object_name}” is gearchiveerd. Herstel het om een aankoop vast te leggen."
     },
+    "part_owner_not_loaded": {
+      "message": "{object_name} draait nu niet (uitgeschakeld of nog aan het opstarten), dus de reserveonderdelen kunnen niet worden geboekt. Probeer het opnieuw zodra het draait."
+    },
     "purchase_cost_too_high": {
       "message": "Een aankoop mag in totaal hoogstens {max} kosten."
     },
@@ -2567,6 +2576,9 @@
     },
     "date_in_future": {
       "message": "De datum mag niet in de toekomst liggen."
+    },
+    "time_based_needs_interval": {
+      "message": "Een tijdgebaseerde taak heeft een interval nodig."
     },
     "range_end_before_start": {
       "message": "Het einde moet op of na het begin liggen."

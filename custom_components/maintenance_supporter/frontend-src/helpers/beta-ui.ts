@@ -44,6 +44,12 @@ export function setBetaUi(on: boolean): void {
   window.dispatchEvent(new CustomEvent(EVENT));
 }
 
+/** The default look while nothing has said which one (a failed settings
+ *  read): never over what a read that worked set. */
+export function setBetaUiDefault(on: boolean): void {
+  if ((window as unknown as Record<string, unknown>)[KEY] === undefined) setBetaUi(on);
+}
+
 /** An HA component is there to use. */
 export function haHas(tag: string): boolean {
   return !!customElements.get(tag);

@@ -5,9 +5,10 @@ parts and the battery fleet."""
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Mapping
 from copy import deepcopy
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 from homeassistant.config_entries import ConfigEntry
@@ -28,7 +29,7 @@ from ..const import (
     NOTIFICATION_MANAGER_KEY,
 )
 from ..models.shapes import AdaptiveConfig, HistoryEntry
-from .aggregate import async_commit_store, get_runtime_data, get_store, is_object_entry
+from .aggregate import async_commit_store, async_store_even_unloaded, get_runtime_data, get_store, is_object_entry
 from .completion_photos import history_photo_ids
 from .dates import parse_iso_date
 from .entry_tasks import insert_new_task, write_task
@@ -40,16 +41,24 @@ from .global_options import (
     merge_global_options,
 )
 from .issues import async_purge_task_issues
-from .parts import PART_REF_FIELD, map_part_links
+from .parts import PART_REF_FIELD, map_part_links, map_used_parts
 from .sanitize import cap_task_fields, normalize_people, sanitize_assignee_pool
 from .schedule import (
     KIND_INTERVAL,
     KIND_MANUAL,
     KIND_ONE_TIME,
     Schedule,
+    flat_recurrence_refusal,
+    implied_schedule_type,
 )
-from .task_apply import async_apply_task_edits, edited_fields
+from .task_apply import async_apply_task_edits, note_task_edit
 from .task_trace import forget_task as forget_task_trace
+from .todo_mirror import TODO_MIRROR_KEY
+
+if TYPE_CHECKING:
+    from ..storage import MaintenanceStore
+
+_LOGGER = logging.getLogger(__name__)
 
 _TIME_BASED = "time_based"
 # The flat service schedule_type → the Schedule kind it means.
@@ -78,8 +87,10 @@ def _check_schedule_request(
     schedule_type: str | None,
     *,
     interval_days: Any,
+    due_date: Any,
     schedule: dict[str, Any] | None,
     stored_kind: str | None = None,
+    stored_due: Any = None,
 ) -> None:
     """Refuse a recurrence request that contradicts itself.
 
@@ -91,7 +102,9 @@ def _check_schedule_request(
     ``schedule`` a one-time task without a date. ``stored_kind`` is the
     task's current kind on an edit — an interval task switched to
     ``time_based`` keeps its interval. Raises ValueError (the services report
-    it as invalid input).
+    it as invalid input). Without a nested schedule the flat rules of the WS
+    commands (``flat_recurrence_refusal``); a nested one must name the kind
+    the type says (the panel's WS writes let it win instead).
     """
     if schedule_type is None:
         return
@@ -103,22 +116,12 @@ def _check_schedule_request(
                 raise ValueError(f"schedule_type {schedule_type!r} contradicts the {kind!r} schedule (use time_based)")
         elif _FLAT_TO_KIND.get(schedule_type) != kind:
             raise ValueError(f"schedule_type {schedule_type!r} contradicts the schedule's kind {kind!r}")
+        if schedule_type == KIND_ONE_TIME and not due_date and not parsed.due_date:
+            raise ValueError("A one-time task needs a due_date")
         return
-    if schedule_type == KIND_MANUAL and interval_days is not None:
-        raise ValueError("A manual task has no interval — leave interval_days out")
-    if schedule_type == _TIME_BASED and interval_days is None and stored_kind != KIND_INTERVAL:
-        raise ValueError("A time-based task needs interval_days")
-
-
-def _implied_schedule_type(*, interval_days: Any, due_date: Any, schedule: dict[str, Any] | None) -> str:
-    """What an ``add_task`` call without ``schedule_type`` asks for: the kind
-    its other fields describe (a bare name stays a manual task, as before)."""
-    if schedule:
-        kind = Schedule.from_dict(schedule).kind
-        return kind if kind in (KIND_ONE_TIME, KIND_MANUAL) else _TIME_BASED
-    if due_date:
-        return KIND_ONE_TIME
-    return _TIME_BASED if interval_days is not None else KIND_MANUAL
+    refusal = flat_recurrence_refusal(schedule_type, interval_days=interval_days, due_date=due_date, stored_kind=stored_kind, stored_due=stored_due)
+    if refusal:
+        raise ValueError(refusal)
 
 
 async def async_persist_task(
@@ -193,11 +196,8 @@ async def async_create_task_simple(
     if not name:
         raise ValueError("Name must not be empty")
     if schedule_type is None:
-        schedule_type = _implied_schedule_type(interval_days=interval_days, due_date=due_date, schedule=schedule)
-    else:
-        _check_schedule_request(schedule_type, interval_days=interval_days, schedule=schedule)
-    if schedule_type == KIND_ONE_TIME and not due_date and not (schedule and Schedule.from_dict(schedule).due_date):
-        raise ValueError("A one-time task needs a due_date")
+        schedule_type = implied_schedule_type(interval_days=interval_days, due_date=due_date, schedule=schedule)
+    _check_schedule_request(schedule_type, interval_days=interval_days, due_date=due_date, schedule=schedule)
     task_id = uuid4().hex
     task_data: dict[str, Any] = {
         "id": task_id,
@@ -316,12 +316,14 @@ async def async_update_task_simple(
         raise ValueError(f"No task {task_id!r} in {entry.title!r}")
 
     task = dict(new_tasks[task_id])
-    stored_kind = Schedule.parse(new_tasks[task_id]).kind
+    stored = Schedule.parse(new_tasks[task_id])
     _check_schedule_request(
         updates.get("schedule_type"),
         interval_days=updates.get("interval_days"),
+        due_date=updates.get("due_date"),
         schedule=updates.get("schedule"),
-        stored_kind=stored_kind,
+        stored_kind=stored.kind,
+        stored_due=stored.due_date,
     )
     if updates.get("due_date") is not None:
         updates = {**updates, "due_date": _checked_due_date(updates["due_date"])}
@@ -351,7 +353,7 @@ async def async_update_task_simple(
     if (
         new_kind in (KIND_MANUAL, KIND_ONE_TIME)
         and not updates.get("schedule")
-        and (new_kind != stored_kind or new_kind == KIND_MANUAL)
+        and (new_kind != stored.kind or new_kind == KIND_MANUAL)
     ):
         # A switch to manual / one-time: the stored interval rode along into
         # the flat overlay and rebuilt an interval, so the switch silently did
@@ -371,7 +373,7 @@ async def async_update_task_simple(
     write_task(hass, entry, task_id, task)
     # A new interval or note is a refresh; a name or enabled reloads the
     # object (helpers/task_apply).
-    await async_apply_task_edits(hass, entry, {task_id: edited_fields(new_tasks[task_id], task)})
+    await async_apply_task_edits(hass, entry, {task_id: note_task_edit(hass, entry.entry_id, task_id, new_tasks[task_id], task)})
 
 
 class TaskMoveRefused(ValueError):
@@ -479,6 +481,15 @@ async def async_move_task(
     await async_delete_task(hass, source, task_id, removed_state=final_state)
     if final_state:
         state = _strip_refs(final_state)
+    # The parts its completions used name their object the same way: an own
+    # part had no entry_id, and after the move a history edit looked it up on
+    # the target, found nothing and put no stock back (bug audit 2026-11-08,
+    # P8-2).
+    if isinstance(state.get("history"), list):
+        state["history"], _ = map_used_parts(
+            state["history"],
+            lambda used: [{**link, "entry_id": link.get("entry_id") or source.entry_id} if isinstance(link, dict) else link for link in used],
+        )
     photo_ids: set[str] = set()
     for entry in state.get("history") or []:
         if isinstance(entry, dict):
@@ -515,6 +526,48 @@ async def async_move_task(
                 continue
             groups[gid] = {**group, "task_refs": [*group.get("task_refs", []), {"entry_id": target.entry_id, "task_id": task_id}]}
         merge_global_options(hass, global_entry, {CONF_GROUPS: groups})
+
+
+async def async_forget_tasks(
+    hass: HomeAssistant,
+    entry_id: str,
+    store: MaintenanceStore | None,
+    tasks: Mapping[str, Any],
+) -> None:
+    """What a deleted task leaves outside its object's entry, cleaned up.
+
+    For one task (``async_delete_task``: task/delete, task/move, the
+    retention sweep) and for every task of a deleted object
+    (``__init__.async_remove_entry``). The two kept their own copies in step
+    by hand, and the trace forget had to be added to both (DRY audit
+    2026-11-07, BR7-B4):
+
+    * its rows on the family's to-do lists (D#183), before the Store state
+      that names them goes; a list error is logged, never blocks the delete;
+    * the notification manager's bookkeeping, and its reminder on the phones;
+    * its trace;
+    * its id on the persistent vacation exempt list (journey L1): deleted ids
+      used to accumulate there and confused the vacation preview.
+    """
+    mirror = hass.data.get(DOMAIN, {}).get(TODO_MIRROR_KEY)
+    if store is not None and mirror is not None and hasattr(mirror, "async_forget_task"):
+        for task_id in tasks:
+            try:
+                await mirror.async_forget_task(store, task_id)
+            except Exception:  # a list provider error must not block the delete
+                _LOGGER.warning("Could not take the to-do rows of task %s off their lists", task_id, exc_info=True)
+
+    nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
+    for task_id, task in tasks.items():
+        if nm is not None and isinstance(task, dict):
+            nm.clear_and_dismiss(entry_id, task_id, task)
+        forget_task_trace(hass, entry_id, task_id)
+
+    ge = get_global_entry(hass)
+    exempt = get_global_options(hass).get(CONF_VACATION_EXEMPT_TASK_IDS) or []
+    gone = set(tasks)
+    if ge is not None and isinstance(exempt, list) and gone.intersection(exempt):
+        merge_global_options(hass, ge, {CONF_VACATION_EXEMPT_TASK_IDS: [t for t in exempt if t not in gone]})
 
 
 async def async_delete_task(
@@ -558,22 +611,18 @@ async def async_delete_task(
 
     hass.config_entries.async_update_entry(entry, data=new_data)
 
-    # Clean up Store (a mirrored task takes its to-do rows with it, D#183)
-    store = get_store(hass, entry.entry_id)
+    # Its to-do rows, notifications, trace and vacation exemption; then the
+    # Store state (the mirror cleanup reads it first). From the file while
+    # the object is not loaded, as the object delete does: the rows stayed on
+    # the lists, and the record naming them went with the next setup's prune
+    # (bug audit 2026-11-08, O8-6).
+    store = await async_store_even_unloaded(hass, entry)
+    await async_forget_tasks(hass, entry.entry_id, store, {task_id: removed_task})
     if store is not None:
-        mirror = hass.data.get(DOMAIN, {}).get("todo_mirror")
-        if mirror is not None and hasattr(mirror, "async_forget_task"):
-            await mirror.async_forget_task(store, task_id)
         if removed_state is not None:
             removed_state.update(deepcopy(store.get_task_state(task_id)))
         store.remove_task(task_id)
         await store.async_save()
-
-    # Its notification state, and its reminder off the phones.
-    nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
-    if nm is not None:
-        nm.clear_and_dismiss(entry.entry_id, task_id, removed_task)
-    forget_task_trace(hass, entry.entry_id, task_id)
 
     # Remove orphaned entity registry entries for the deleted task. Match any
     # per-task entity — sensor (`_{task_id}`), binary_sensor (`_{task_id}_overdue`),
@@ -592,15 +641,6 @@ async def async_delete_task(
     doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
     if doc_store is not None:
         await doc_store.async_unlink_task(task_id)
-
-    # Clean up the global vacation exempt list (journey L1): the list is
-    # persistent and task-id keyed — without this, deleted ids accumulate
-    # there forever and confuse the vacation preview UI.
-    ge = get_global_entry(hass)
-    if ge is not None:
-        exempt = get_global_options(hass).get(CONF_VACATION_EXEMPT_TASK_IDS) or []
-        if isinstance(exempt, list) and task_id in exempt:
-            merge_global_options(hass, ge, {CONF_VACATION_EXEMPT_TASK_IDS: [t for t in exempt if t != task_id]})
 
     # Every repair issue about this task — not only its missing-trigger
     # ones: a stale completion-action target outlived the task in Settings →

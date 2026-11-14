@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from collections.abc import Iterable, Mapping
 from datetime import date, datetime, time, timedelta
 from typing import Any
@@ -22,6 +23,7 @@ from ..const import (
     CONF_ACTION_SKIP_ENABLED,
     CONF_ACTION_SNOOZE_ENABLED,
     CONF_MAX_NOTIFICATIONS_PER_DAY,
+    CONF_NOTIFICATION_LANGUAGE,
     CONF_NOTIFICATION_TITLE_STYLE,
     CONF_NOTIFICATIONS_ENABLED,
     CONF_NOTIFY_COMPLETED,
@@ -34,22 +36,25 @@ from ..const import (
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
     CONF_SNOOZE_DURATION_HOURS,
+    CONF_TASK_NOTIFICATION_TEXTS,
     CONF_TASK_PRIORITY,
     CONF_TASKS,
     DEFAULT_BUDGET_CURRENCY,
     DEFAULT_CURRENCY_DECIMALS,
     DOMAIN,
     NOTIFIABLE_STATUSES,
+    NOTIFICATION_LANGUAGE_NAMES,
+    NOTIFICATION_TEXT_PLACEHOLDERS,
     NOTIFICATION_TITLE_STYLES,
     MaintenanceStatus,
 )
-from ..models.maintenance_task import MaintenanceTask
 from .aggregate import priority_rank, task_results_of
 from .assignees import person_display_name, task_user_ids
-from .completion_requirements import quick_complete_values, unattended_missing_fields
+from .completes_itself import completes_itself
 from .global_options import get_global_options, global_option
 from .history import cycle_token
 from .i18n import format_text, normalize_language
+from .intent_speech import spoken_iso_date
 from .notification_gates import STATUS_ENABLED_KEYS, status_reminder_enabled, task_may_notify
 from .notification_ids import (
     DIGEST_TAG,
@@ -1161,6 +1166,48 @@ def _notif_t(key: str, lang: str, **kwargs: str) -> str:
     return format_text(_NOTIFICATION_STRINGS, lang, key, **kwargs)
 
 
+def notification_language(hass: HomeAssistant) -> str:
+    """#251: the language notifications speak: the setting's, else Home
+    Assistant's (``auto``, the default)."""
+    chosen = global_option(hass, CONF_NOTIFICATION_LANGUAGE)
+    return chosen if chosen in NOTIFICATION_LANGUAGE_NAMES else normalize_language(hass)
+
+
+_PLACEHOLDER = re.compile(r"\{(\w+)\}")
+
+
+def own_text_raw(task: Mapping[str, Any] | None, kind: str, field: str) -> str | None:
+    """#252: the task's own title or message for one kind of notification as
+    written, or None for the standard text."""
+    texts = (task or {}).get(CONF_TASK_NOTIFICATION_TEXTS)
+    entry = texts.get(kind) if isinstance(texts, Mapping) else None
+    text = entry.get(field) if isinstance(entry, Mapping) else None
+    return text if isinstance(text, str) and text.strip() else None
+
+
+def fill_placeholders(text: str, kind: str, values: Mapping[str, str]) -> str:
+    """An own text with the kind's placeholders filled. Anything else ("{x}",
+    a lone brace) stays as written. Not ``str.format``: that reads
+    attributes ("{task.__class__}") and refuses a stray brace."""
+    known = NOTIFICATION_TEXT_PLACEHOLDERS.get(kind, ())
+    return _PLACEHOLDER.sub(lambda m: values[m.group(1)] if m.group(1) in known and m.group(1) in values else m.group(0), text)
+
+
+#: What went out about a task: how many reminders went out or were held
+#: for quiet hours in this process, its status stamps and its held
+#: reminders (NotificationManager.sent_marks).
+SentMarks = tuple[int, tuple[object, ...], tuple[object, ...]]
+
+
+def own_text(task: Mapping[str, Any] | None, kind: str, field: str, values: Mapping[str, str]) -> str | None:
+    """The task's own title or message, filled, or None for the standard text:
+    also when its placeholders fill to nothing ("{detail}" while the trigger
+    has no detail sent a push without a text; bug audit 2026-11-08, N8-4)."""
+    raw = own_text_raw(task, kind, field)
+    filled = fill_placeholders(raw, kind, values) if raw else ""
+    return filled if filled.strip() else None
+
+
 async def get_user_notify_services(hass: HomeAssistant, user_id: str) -> list[str]:
     """Find all notify services for a user via mobile_app config entries.
 
@@ -1235,6 +1282,13 @@ def _companion_phones(hass: HomeAssistant, service: str) -> list[str]:
     return [leaf for leaf in _notify_leaves(hass, service) if _is_phone(hass, leaf)]
 
 
+def persistent_notification_id(tag: str) -> str:
+    """A reminder's persistent-notification id, from its tag: a newer one
+    about the same task replaces it, and the task's end dismisses it. The
+    send and the dismissal each spelled it (DRY audit 2026-10-30, BR6-B13)."""
+    return f"{DOMAIN}_{tag}"
+
+
 def _is_phone(hass: HomeAssistant, service: str) -> bool:
     name = service.partition(".")[2]
     return name.startswith("mobile_app_") and hass.services.has_service("notify", name)
@@ -1269,14 +1323,14 @@ async def async_dispatch_notify(
         url = (service_data.get("data") or {}).get("url")
         msg = service_data.get("message", "")
         if url and "](" not in msg:
-            link_text = _notif_t("open_task_link", normalize_language(hass))
+            link_text = _notif_t("open_task_link", notification_language(hass))
             service_data = {**service_data, "message": f"{msg}\n\n[{link_text}]({url})"}
         # The reminder's tag as its id: a newer reminder about the same task
         # replaces the older one, as on a phone — every repeat added one
         # more card (bug audit 2026-10-16, N8).
         tag = (service_data.get("data") or {}).get("tag")
         if tag:
-            service_data = {**service_data, "data": {**(service_data.get("data") or {}), "notification_id": f"{DOMAIN}_{tag}"}}
+            service_data = {**service_data, "data": {**(service_data.get("data") or {}), "notification_id": persistent_notification_id(tag)}}
     if hass.services.has_service(domain, name):
         await hass.services.async_call(domain, name, service_data, blocking=blocking)
         return True
@@ -1344,6 +1398,9 @@ class NotificationManager:
         # once the task needs no doing after a reload or a restart (DRY audit
         # 2026-10-30, BR6-A1).
         self._on_phones: dict[str, str] = {}
+        # Per task, how many reminders went out or were held in this
+        # process (sent_marks; not persisted, compared within one action).
+        self._sent_seq: dict[str, int] = {}
         # Reminders that fell into quiet hours: key → the facts needed for the
         # one summary that goes out when the quiet hours end.
         self._quiet_held: dict[str, dict[str, Any]] = {}
@@ -1438,9 +1495,12 @@ class NotificationManager:
         entry_id: str,
         task_id: str,
         context: Mapping[str, Any],
+        self_completing: bool = False,
     ) -> bool:
         """Resolve targets (per-user services, else the global service) and
         fan the notification out; True when at least one send succeeded.
+        ``self_completing``: the task completes itself (D#250), its push
+        carries no Complete and no Skip.
 
         The status-change and lead-reminder paths carried drifting copies of
         this block — one logged the per-user fallback, the other was silent.
@@ -1478,14 +1538,16 @@ class NotificationManager:
                 entry_id=entry_id,
                 task_id=task_id,
                 context=context,
+                self_completing=self_completing,
             ):
                 success = True
         return success
 
     @property
     def _lang(self) -> str:
-        """Get the HA UI language as a 2-letter table key."""
-        return normalize_language(self.hass)
+        """The notification language as a table key (#251: the setting's,
+        else Home Assistant's)."""
+        return notification_language(self.hass)
 
     def _skip_allowed(self, entry_id: str, task_id: str) -> bool:
         """#150: a skip-locked task gets no "Skip" action button — the tap
@@ -1495,27 +1557,17 @@ class NotificationManager:
 
     def _complete_allowed(self, entry_id: str, task_id: str) -> bool:
         """A "Complete" button the action handler would refuse is not offered
-        (audit 2026-09-29): the tap only logged the refusal. Same rules as
-        ``coordinator.complete_maintenance`` for an unattended surface — a
-        task only a tag scan may complete, one that demands details (nobody
-        is asked on a notification tap; phase-aware), and one whose completion
-        window has not opened yet (a lead-time reminder). Unknown entries or
-        tasks keep the button (nothing to check against)."""
+        (audit 2026-09-29): the tap only logged the refusal. The coordinator
+        says what ``complete_maintenance`` refuses from the button
+        (``unattended_refusal``): a task only a tag scan may complete, one that
+        demands details its prefill does not hold (#233), one that is not
+        active, and one whose completion window has not opened yet (a
+        lead-time reminder). Unknown entries or tasks keep the button."""
         entry = self.hass.config_entries.async_get_entry(entry_id)
         coordinator = getattr(getattr(entry, "runtime_data", None), "coordinator", None)
         if coordinator is None:
             return True
-        task = coordinator.merged_task(task_id)
-        if not task:
-            return True
-        # #233: a required note, cost or duration the task's prefill holds is
-        # answered on a tap (the completion records it).
-        if task.get("require_tag_scan") or unattended_missing_fields(task, prefill=quick_complete_values(task)):
-            return False
-        try:
-            return bool(MaintenanceTask.from_dict(task).can_complete_now)
-        except (KeyError, TypeError, ValueError):
-            return True
+        return not isinstance(coordinator.unattended_refusal(task_id, source="notification_action"), str)
 
     def _cycle_token(self, entry_id: str, task_id: str) -> str | None:
         """The task's current ``cycle_token`` (``None`` when it is unknown)."""
@@ -1548,7 +1600,7 @@ class NotificationManager:
             return None
 
         cfg = task_data if task_data is not None else self._task_config(str(entry_id), str(task_id))
-        return trigger_detail(self.hass, cfg.get("trigger_config"))
+        return trigger_detail(self.hass, cfg.get("trigger_config"), self._lang)
 
     def _task_config(self, entry_id: str, task_id: str) -> Mapping[str, Any]:
         """The task's static config dict (``entry.data``) — carries the flags
@@ -1819,6 +1871,8 @@ class NotificationManager:
 
     def _hold_for_quiet_end(self, key: str, facts: dict[str, Any]) -> None:
         self._quiet_held[key] = facts
+        if facts.get("entry_id") and facts.get("task_id"):
+            self._count_sent([task_key_of(str(facts["entry_id"]), str(facts["task_id"]))])
         self._note_quiet_skip("a reminder")
         self._dirty()
 
@@ -1978,11 +2032,17 @@ class NotificationManager:
     def _mark_delivered(self, keys: list[str]) -> None:
         """Bookkeeping after a successful send: counts, served set, starvation."""
         self._daily_count += 1
+        self._count_sent(keys)
         for k in keys:
             self._served_today.add(k)
             self._deferred_today.discard(k)
             self._starved.discard(k)
         self._dirty()
+
+    def _count_sent(self, task_keys: list[str]) -> None:
+        """One more reminder sent or held for each task (sent_marks)."""
+        for tkey in task_keys:
+            self._sent_seq[tkey] = self._sent_seq.get(tkey, 0) + 1
 
     def _is_snoozed(self, key: str) -> bool:
         """Check if a notification key is snoozed."""
@@ -2046,11 +2106,14 @@ class NotificationManager:
         next_due: str | None = None,
         responsible_user_id: str | None = None,
         task_data: Mapping[str, Any] | None = None,
+        trigger_active: bool | None = None,
     ) -> None:
         """Handle status change / repeat check and send notification if appropriate.
 
         ``task_data`` is the task's config dict for the per-task gates (mute,
         saved-view scope); looked up from the entry when not given.
+        ``trigger_active`` is the trigger's live verdict (the coordinator's
+        result); unknown, a triggered status stands for it.
         """
         # Keep the "configured notify service missing" repair issue in sync with
         # reality on every attempt (cheap; transition-gated internally).
@@ -2110,12 +2173,23 @@ class NotificationManager:
         if not self._admit([task_key], self._priority_rank(task_data if task_data is not None else self._task_config(entry_id, task_id))):
             return
 
-        # Build translated message
+        # Build translated message (#252: or the task's own texts)
         lang = self._lang
-        title, message = self._build_message(new_status, lang, task_name, object_name, days_until_due, next_due)
-        # #228: a triggered task says what its trigger is about.
-        if detail := self._trigger_detail(new_status, entry_id, task_id, task_data):
-            message = f"{message}\n{detail}"
+        cfg = task_data if task_data is not None else self._task_config(entry_id, task_id)
+        title, message = self._build_message(
+            new_status,
+            lang,
+            task_name,
+            object_name,
+            days_until_due,
+            next_due,
+            task=cfg,
+            # #228: a triggered task says what its trigger is about.
+            detail=self._trigger_detail(new_status, entry_id, task_id, cfg),
+        )
+        # D#250: a task its sensor completes gets no Complete and no Skip.
+        active = trigger_active if trigger_active is not None else new_status == MaintenanceStatus.TRIGGERED
+        self_completing = completes_itself(cfg.get("trigger_config"), active)
 
         context = notification_context(
             self.hass,
@@ -2136,6 +2210,7 @@ class NotificationManager:
             entry_id=entry_id,
             task_id=task_id,
             context=context,
+            self_completing=self_completing,
         ):
             return
 
@@ -2193,8 +2268,13 @@ class NotificationManager:
             if actor_name:
                 who = _notif_t("completed_by", lang, name=actor_name)
         reason = _notif_t(f"reason_{src}" if f"reason_{src}" in _NOTIFICATION_STRINGS["en"] else "reason_unknown", lang)
-        title = self._styled_title(_notif_t("completed_title", lang), task_name, object_name)
-        message = _notif_t("completed_message", lang, task=task_name, object=object_name, reason=reason, who=who)
+        # #252: the task's own texts, where it has them.
+        cfg = task_data if task_data is not None else self._task_config(entry_id, task_id)
+        values = {"task": task_name, "object": object_name, "reason": reason, "person": actor_name or ""}
+        title = own_text(cfg, "completed", "title", values) or self._styled_title(_notif_t("completed_title", lang), task_name, object_name)
+        message = own_text(cfg, "completed", "message", values) or _notif_t(
+            "completed_message", lang, task=task_name, object=object_name, reason=reason, who=who
+        )
         context = notification_context(
             self.hass,
             KIND_COMPLETED,
@@ -2227,41 +2307,63 @@ class NotificationManager:
         object_name: str,
         days_until_due: int | None,
         next_due: str | None,
+        *,
+        task: Mapping[str, Any] | None = None,
+        detail: str | None = None,
     ) -> tuple[str, str]:
-        """Build translated notification title and message."""
+        """Build translated notification title and message.
+
+        ``task`` (its config) brings its own texts (#252): a title replaces
+        the styled one, a message the standard one. ``detail`` (#228, what a
+        trigger is about) follows the message on its own line, unless an own
+        text puts ``{detail}`` where it belongs."""
+        kind = str(status)
+        # One set of values for the standard text and the task's own: the
+        # days of an overdue task count up, an unknown number reads "?".
+        days = abs(days_until_due) if kind == MaintenanceStatus.OVERDUE and days_until_due is not None else days_until_due
+        values = {
+            "task": task_name,
+            "object": object_name,
+            "days": str(days) if days is not None else "?",
+            # The day as the notification language writes it ("November 20",
+            # "20. November", the year only when it is not this one): a
+            # reminder is read at a glance, and "2026-11-20" is not. The
+            # event keeps the ISO date (``next_due``).
+            "due": (spoken_iso_date(next_due, lang) or next_due) if next_due is not None else "?",
+            "detail": detail or "",
+        }
+        title, message = self._standard_message(status, lang, values)
+        title = self._styled_title(title, task_name, object_name)
+        if kind in NOTIFICATION_TEXT_PLACEHOLDERS:
+            own_title = own_text_raw(task, kind, "title")
+            own_message = own_text_raw(task, kind, "message")
+            title = own_text(task, kind, "title", values) or title
+            message = own_text(task, kind, "message", values) or message
+            if "{detail}" in f"{own_title or ''}{own_message or ''}":
+                detail = None  # in its place already
+        if detail:
+            message = f"{message}\n{detail}"
+        return title, message
+
+    @staticmethod
+    def _standard_message(status: str, lang: str, values: Mapping[str, str]) -> tuple[str, str]:
+        """The translated standard title and message of a status reminder,
+        from the values :meth:`_build_message` worked out."""
+        task, obj = values["task"], values["object"]
         if status == MaintenanceStatus.DUE_SOON:
             title = _notif_t("due_soon_title", lang)
-            message = _notif_t(
-                "due_soon_message",
-                lang,
-                task=task_name,
-                object=object_name,
-                days=str(days_until_due) if days_until_due is not None else "?",
-                due=next_due if next_due is not None else "?",
-            )
+            message = _notif_t("due_soon_message", lang, task=task, object=obj, days=values["days"], due=values["due"])
         elif status == MaintenanceStatus.OVERDUE:
             title = _notif_t("overdue_title", lang)
-            days_overdue = str(abs(days_until_due)) if days_until_due is not None else "?"
-            message = _notif_t(
-                "overdue_message",
-                lang,
-                task=task_name,
-                object=object_name,
-                days=days_overdue,
-            )
+            message = _notif_t("overdue_message", lang, task=task, object=obj, days=values["days"])
         elif status == MaintenanceStatus.TRIGGERED:
             title = _notif_t("triggered_title", lang)
-            message = _notif_t(
-                "triggered_message",
-                lang,
-                task=task_name,
-                object=object_name,
-            )
+            message = _notif_t("triggered_message", lang, task=task, object=obj)
         else:
             title = "Maintenance"
-            message = f"{task_name} ({object_name})"
+            message = f"{task} ({obj})"
 
-        return self._styled_title(title, task_name, object_name), message
+        return title, message
 
     def _styled_title(self, title: str, task_name: str, object_name: str) -> str:
         """v1.4.0 (#44): the configured title style — the object or task name
@@ -2282,6 +2384,7 @@ class NotificationManager:
         entry_id: str,
         task_id: str,
         context: Mapping[str, Any] | None = None,
+        self_completing: bool = False,
     ) -> bool:
         """Send notification via specific service, optionally with action buttons.
 
@@ -2291,6 +2394,8 @@ class NotificationManager:
             message: Notification message
             entry_id: Config entry ID for action buttons
             task_id: Task ID for action buttons
+            self_completing: the task completes itself (D#250): no Complete
+                and no Skip button, as on its rows (Snooze stays)
 
         Returns:
             True if the notification was sent successfully, False otherwise.
@@ -2302,8 +2407,8 @@ class NotificationManager:
             self._lang,
             entry_id=entry_id,
             task_id=task_id,
-            skip_allowed=self._skip_allowed(entry_id, task_id),
-            complete_allowed=self._complete_allowed(entry_id, task_id),
+            skip_allowed=not self_completing and self._skip_allowed(entry_id, task_id),
+            complete_allowed=not self_completing and self._complete_allowed(entry_id, task_id),
             cycle=self._cycle_token(entry_id, task_id),
         )
 
@@ -2559,6 +2664,7 @@ class NotificationManager:
         days: int,
         next_due: str | None = None,
         responsible_user_id: str | None = None,
+        trigger_active: bool | None = None,
     ) -> None:
         """Send one lead-time reminder (task is due in exactly ``days`` days).
 
@@ -2601,7 +2707,9 @@ class NotificationManager:
         # — this copy built its own and always titled "due soon", so lead
         # reminders were the one push a stack could not tell apart (bug
         # audit 2026-09-26).
-        title, message = self._build_message(MaintenanceStatus.DUE_SOON, self._lang, task_name, object_name, days, next_due)
+        # #252: the task's own due-soon texts, too.
+        cfg = self._task_config(entry_id, task_id)
+        title, message = self._build_message(MaintenanceStatus.DUE_SOON, self._lang, task_name, object_name, days, next_due, task=cfg)
 
         context = notification_context(
             self.hass,
@@ -2622,6 +2730,8 @@ class NotificationManager:
             entry_id=entry_id,
             task_id=task_id,
             context=context,
+            # D#250: the live trigger state (unknown = not active: a lead is about a date).
+            self_completing=completes_itself(cfg.get("trigger_config"), trigger_active),
         ):
             self._mark_delivered([lead_task_key])
             self._on_phones[lead_task_key] = ON_PHONES_LEAD
@@ -2670,7 +2780,14 @@ class NotificationManager:
 
         service_data = _service_payload(title, message, tag=budget_tag(period))
 
-        context = notification_context(self.hass, KIND_BUDGET, period=period, spent=spent, budget=budget, percent=pct)
+        # The event carries the amounts to the cent, like the panel: a sum
+        # of costs read 123.45000000000002 in an automation's own text. Not
+        # to the message's decimals: those default to none, and 950.60
+        # would arrive as 951.
+        places = max(2, decimals)
+        context = notification_context(
+            self.hass, KIND_BUDGET, period=period, spent=round(spent, places), budget=round(budget, places), percent=pct
+        )
         try:
             if await async_emit_and_dispatch(self.hass, self.notify_service, service_data, context):
                 self._last_notified[budget_key] = dt_util.now()
@@ -2770,17 +2887,60 @@ class NotificationManager:
         self._on_phones.pop(tkey, None)
         self._dirty()
 
-    def clear_and_dismiss(self, entry_id: str, task_id: str, reminded: Mapping[str, Any]) -> None:
+    def sent_marks(self, entry_id: str, task_id: str) -> SentMarks:
+        """What went out about the task so far (:data:`SentMarks`). A
+        completion, skip or reset takes them before it stores the new cycle,
+        whose refresh may already remind of that one (see
+        :meth:`clear_and_dismiss`)."""
+        keys = [notification_key(entry_id, task_id, status) for status in NOTIFIABLE_STATUSES]
+        return (
+            self._sent_seq.get(task_key_of(entry_id, task_id), 0),
+            tuple(self._last_notified.get(key) for key in keys),
+            tuple(self._quiet_held.get(key) for key in keys),
+        )
+
+    def _forget_marks(self, entry_id: str, task_id: str, marks: SentMarks) -> None:
+        """Forget the old cycle's ``marks`` (:meth:`sent_marks`) and keep
+        what went out since: its stamp, and the push on the phones."""
+        _seq, stamps, held = marks
+        keys = [notification_key(entry_id, task_id, status) for status in NOTIFIABLE_STATUSES]
+        for key, stamp, hold in zip(keys, stamps, held, strict=True):
+            if stamp is not None and self._last_notified.get(key) == stamp:
+                del self._last_notified[key]
+            if hold is not None and self._quiet_held.get(key) == hold:
+                del self._quiet_held[key]
+            self._snoozed_until.pop(key, None)
+        self._dirty()
+
+    def clear_and_dismiss(
+        self,
+        entry_id: str,
+        task_id: str,
+        reminded: Mapping[str, Any],
+        *,
+        since: SentMarks | None = None,
+        reason: str = "done",
+    ) -> None:
         """:meth:`clear_task_state`, and a reminder of this cycle off the
         phones of the people it went to. ``reminded`` is the task as it was
         when it went out (before a completion hands a rotation on). The one
         path for a task that is done or gone: a deleted task, a deleted
         object and a buy reminder the reconcile removed only cleared the
-        bookkeeping and left the push (BR6-A2)."""
+        bookkeeping and left the push (BR6-A2).
+
+        ``since``: the marks taken before the new cycle was stored. When its
+        refresh already reminded of the new cycle, that push replaced the old
+        one under the same tag: only the old marks go. Dismissed, the fresh
+        push left the phones and went out again on the next refresh (bug
+        audit 2026-11-08, N8-1). ``reason`` for the trace: done, or
+        reassigned (the people it is for changed, N8-2)."""
+        if since is not None and since[0] != self.sent_marks(entry_id, task_id)[0]:
+            self._forget_marks(entry_id, task_id, since)
+            return
         dismiss = self.was_reminded(entry_id, task_id)
         self.clear_task_state(entry_id, task_id)
         if dismiss:
-            record_trace(self.hass, entry_id, task_id, KIND_REMINDER_CLEARED, reason="done")
+            record_trace(self.hass, entry_id, task_id, KIND_REMINDER_CLEARED, reason=reason)
             self.hass.async_create_task(
                 self.async_dismiss_task_notification(task_id, user_ids=task_user_ids(reminded)),
                 f"{DOMAIN} dismiss reminder {task_id}",
@@ -2851,7 +3011,7 @@ class NotificationManager:
         if "notify.persistent_notification" in leaves:
             from homeassistant.components import persistent_notification
 
-            persistent_notification.async_dismiss(self.hass, f"{DOMAIN}_{tag}")
+            persistent_notification.async_dismiss(self.hass, persistent_notification_id(tag))
         for service in dict.fromkeys(leaf for leaf in leaves if _is_phone(self.hass, leaf)):
             domain, _, name = service.partition(".")
             try:

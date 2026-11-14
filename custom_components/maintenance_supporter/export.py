@@ -123,6 +123,8 @@ def _build_export_object(
             "notify_enabled": tdata.get("notify_enabled"),
             # #185: per-task notification icon override.
             "notify_icon": tdata.get("notify_icon"),
+            # #252: the task's own notification texts.
+            "notification_texts": tdata.get("notification_texts"),
             "responsible_user_id": tdata.get("responsible_user_id"),
             "entity_slug": tdata.get("entity_slug"),
             "adaptive_config": tdata.get("adaptive_config"),

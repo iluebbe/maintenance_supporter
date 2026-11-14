@@ -40,6 +40,8 @@ const EDITABLE: Record<string, string> = {
   // #173: per-task notification mute — same checkbox idiom.
   notify_enabled: "notify_enabled",
   notify_icon: "notify_icon",
+  // #252: own notification texts — cleaned and re-sent whole on every save.
+  notification_texts: "notification_texts",
   reading_unit: "reading_unit",
   readings: "readings", // #161 phase 2: slot list, re-sent whole on every save
   consumes_parts: "consumes_parts",
@@ -113,9 +115,12 @@ const READONLY = new Set([
   "next_due",
   // #189: titles of the calendar events behind next_due — computed, read-only.
   "next_event_titles",
+  "upcoming_dates",
   "trigger_active",
   // #228: the detail attribute's value while the trigger is active — computed.
   "trigger_detail",
+  // The decimals in it, for the viewer's number format — computed.
+  "trigger_detail_numbers",
   "trigger_current_value",
   "trigger_entity_state",
   "trigger_current_delta",

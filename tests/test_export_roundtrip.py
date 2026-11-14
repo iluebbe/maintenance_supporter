@@ -84,6 +84,8 @@ FULL_TASK = {
     "mirror_todo_entities": ["todo.family", "todo.kids"],
     # D#229: the completion entity — config, so the JSON backup carries it.
     "complete_when": {"entity_id": "binary_sensor.washer_door", "to_state": "on"},
+    # #252: the task's own notification texts — config, so the JSON backup carries them.
+    "notification_texts": {"overdue": {"title": "Filter!", "message": "{task} is {days} day(s) late"}},
     "checklist": ["step1", "step2"],
     "schedule_time": "07:30",
     "entity_slug": "full_field_probe",
@@ -340,7 +342,11 @@ async def test_json_full_field_roundtrip(hass: HomeAssistant, global_entry: Mock
     # lowercase etc.), asserting no allowlisted key was stripped on the way in.
     src_tc = src_task.get("trigger_config") or {}
     dst_tc = dst_task.get("trigger_config") or {}
-    lost_tc = set(src_tc) - set(dst_tc)
+    # The hold is kept only on a rule that can hold (helpers/completes_itself
+    # holds_until_done, DRY audit 2026-10-30 BI6-B7): not on this counter,
+    # and on a rule that holds it excludes the auto-complete the fixture
+    # needs. test_complete_when_229 keeps it on a latch.
+    lost_tc = set(src_tc) - set(dst_tc) - {"trigger_hold_until_done"}
     if lost_tc:
         diffs.append(f"trigger_config keys stripped by import: {sorted(lost_tc)}")
 
@@ -516,6 +522,7 @@ _CSV_TASK_EXCLUDED = {
     "allow_skip",  # skip lock (#150) - JSON backup carries it
     "notify_enabled",  # per-task mute (#173) - JSON backup carries it
     "notify_icon",  # per-task notification icon (#185) - JSON backup carries it
+    "notification_texts",  # #252 own notification texts (nested per kind; JSON backup carries them)
     "entity_slug",  # instance-specific entity naming
     "origin",  # 2.95 fingerprint (catalog duty / template task) - JSON backup carries it
     "mirror_todo_entities",  # D#183 to-do entity ids (instance-specific; JSON backup carries them)

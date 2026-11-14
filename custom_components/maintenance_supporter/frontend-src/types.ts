@@ -85,6 +85,18 @@ export interface ManualDocRef {
   url?: string | null;
 }
 
+/** #252: the kinds of notification a task can word itself. */
+export type NotificationTextKind = "due_soon" | "overdue" | "triggered" | "completed";
+
+/** #252: a task's own title and/or message for one kind; one left out takes the standard text. */
+export interface NotificationText {
+  title?: string;
+  message?: string;
+}
+
+/** #252: kind → its own texts; absent = the standard texts. */
+export type NotificationTexts = Partial<Record<NotificationTextKind, NotificationText>>;
+
 /** D#229: one entity and the state that completes the task while it is due. */
 export interface CompleteWhen {
   entity_id: string;
@@ -273,6 +285,8 @@ export interface MaintenanceTask {
   notify_enabled?: boolean;
   /** #185: mdi icon for this task's push notifications; null/absent = the type's default. */
   notify_icon?: string | null;
+  /** #252: the task's own notification texts; null/absent = the standard ones. */
+  notification_texts?: NotificationTexts | null;
   schedule_type: ScheduleType;
   interval_days?: number | null;
   interval_unit?: IntervalUnit;
@@ -349,11 +363,15 @@ export interface MaintenanceTask {
   next_due?: string | null;
   /** #189: titles of the calendar events behind next_due (calendar kind). */
   next_event_titles?: string[];
+  /** #266: coming due dates (ISO) of a calendar-kind schedule, from the engine. */
+  upcoming_dates?: string[];
   /** Per-occurrence postpone: the ISO date the current cycle was deferred to. */
   due_override?: string | null;
   trigger_active: boolean;
   /** #228: the trigger's detail attribute's value, while the trigger is active. */
   trigger_detail?: string | null;
+  /** The decimals in it (written with a point), for the viewer's number format. */
+  trigger_detail_numbers?: string[] | null;
   trigger_current_value?: number | null;
   trigger_current_delta?: number | null;
   trigger_baseline_value?: number | null;
@@ -473,6 +491,9 @@ export interface MaintenancePart {
   is_low?: boolean;
   /** Derived: product_url or the configured shopping-search link. */
   shopping_url?: string;
+  /** #261: ordered and not here yet (quantity counts packages for a part
+   *  bought in packages); null/absent = nothing on order. */
+  on_order?: { quantity: number; expected?: string | null; ordered_at?: string; note?: string | null } | null;
 }
 
 export interface MaintenanceObjectResponse {
@@ -671,6 +692,8 @@ export interface TaskRow {
   notify_enabled: boolean;
   /** #185: per-task notification icon override; null/absent = the type's default. */
   notify_icon?: string | null;
+  /** #252: the task's own notification texts; null/absent = the standard ones. */
+  notification_texts?: NotificationTexts | null;
   nfc_tag_id: string | null;
   priority: string;
   labels: string[];
@@ -705,10 +728,11 @@ export interface HomeAssistant {
       subscribeMsg: Record<string, unknown>,
       options?: Record<string, unknown>
     ): Promise<() => void>;
-    /** "ready" fires after a reconnect (a Home Assistant restart). Optional:
-     *  test stubs leave it out. */
-    addEventListener?(event: "ready", callback: () => void): void;
-    removeEventListener?(event: "ready", callback: () => void): void;
+    /** "ready" fires after a reconnect (a Home Assistant restart),
+     *  "disconnected" when the socket closed. Optional: test stubs leave
+     *  them out. */
+    addEventListener?(event: "ready" | "disconnected", callback: () => void): void;
+    removeEventListener?(event: "ready" | "disconnected", callback: () => void): void;
   };
   callService(
     domain: string,
@@ -757,8 +781,9 @@ export interface HomeAssistant {
   /** Server config — country (#140) feeds the "language"-default date
    *  format ("en" + AU → en-AU → DD/MM/YYYY); time_zone is HA's own zone,
    *  the one next_due / days_until_due count in (helpers/ha-time).
-   *  location_name: the home's name, offered as the title prefix (D#248). */
-  config?: { country?: string | null; time_zone?: string | null; location_name?: string | null };
+   *  location_name: the home's name, offered as the title prefix (D#248).
+   *  language: Home Assistant's own, the notifications' "auto" (#251). */
+  config?: { country?: string | null; time_zone?: string | null; location_name?: string | null; language?: string | null };
   localize(key: string, ...args: unknown[]): string;
   user?: { id: string; name: string; is_admin: boolean; is_owner: boolean };
   /** HA's registered panels; a custom panel carries its module URL under

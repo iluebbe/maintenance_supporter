@@ -1,0 +1,2 @@
+/*! maintenance_supporter frontend 2.121.0 */
+import{z as t}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-74ISRDIW.js";async function p(o,n,s){let e=t("delete_object_confirm",s);if(!n)return e;try{let r=(await o.connection.sendMessagePromise({type:"maintenance_supporter/object/delete_preview",entry_id:n}))?.parts_handover;if(!r||!r.parts?.length)return e;let a=t("delete_object_parts_move",s).replace("{parts}",r.parts.join(", ")).replace("{object}",r.new_owner);return`${e} ${a}`}catch{return e}}export{p as a};

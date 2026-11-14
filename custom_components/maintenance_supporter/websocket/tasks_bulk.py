@@ -24,7 +24,7 @@ from ..helpers.completion_requirements import quick_complete_on
 from ..helpers.entry_tasks import write_tasks
 from ..helpers.permissions import require_write
 from ..helpers.sanitize import cap_quick_complete_defaults_field, normalize_people, sanitize_labels
-from ..helpers.task_apply import async_apply_task_edits, edited_fields
+from ..helpers.task_apply import async_apply_task_edits, note_task_edit
 from . import ID_FIELD
 from .tasks_crud import _TASK_FIELDS
 
@@ -135,7 +135,8 @@ async def ws_update_many_tasks(
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """Apply the same change to several tasks; one write and one reload per object."""
+    """Apply the same change to several tasks; one write per object, taking
+    effect like a task edit (a refresh where it can, helpers/task_apply)."""
     shared = msg.get("changes") or {}
     per_task = [(item, {**shared, **(item.get("changes") or {})}) for item in msg["items"]]
     # The user lookups are awaits — all of them before any task is read.
@@ -174,7 +175,7 @@ async def ws_update_many_tasks(
             updated.append({"entry_id": entry_id, "task_id": task_id})
             previous.append({"entry_id": entry_id, "task_id": task_id, "changes": replaced})
         if new_tasks:
-            edits = {task_id: edited_fields(stored_tasks[task_id], task) for task_id, task in new_tasks.items()}
+            edits = {task_id: note_task_edit(hass, entry_id, task_id, stored_tasks[task_id], task) for task_id, task in new_tasks.items()}
             write_tasks(hass, entry, new_tasks)
             # A priority or a person for many tasks is a refresh, not a
             # reload of the object (helpers/task_apply).

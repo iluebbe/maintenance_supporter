@@ -317,6 +317,37 @@ CONF_NOTIFICATION_TITLE_STYLE: Final = "notification_title_style"
 # instances can tell them apart. "" = no prefix.
 CONF_NOTIFICATION_TITLE_PREFIX: Final = "notification_title_prefix"
 MAX_NOTIFICATION_TITLE_PREFIX_LENGTH: Final = 40
+# #251: the language every notification speaks (titles, messages, action
+# buttons); "auto" = Home Assistant's language, as before. The panel keeps
+# following each person's own language.
+CONF_NOTIFICATION_LANGUAGE: Final = "notification_language"
+NOTIFICATION_LANGUAGE_AUTO: Final = "auto"
+#: The languages of the notification string tables, each by its own name
+#: (frontend-src/helpers/notification-languages.ts keeps the same list).
+NOTIFICATION_LANGUAGE_NAMES: Final[dict[str, str]] = {
+    "en": "English",
+    "cs": "Čeština",
+    "da": "Dansk",
+    "de": "Deutsch",
+    "es": "Español",
+    "fi": "Suomi",
+    "fr": "Français",
+    "hi": "हिन्दी",
+    "hu": "Magyar",
+    "it": "Italiano",
+    "ja": "日本語",
+    "ko": "한국어",
+    "nb": "Norsk bokmål",
+    "nl": "Nederlands",
+    "pl": "Polski",
+    "pt": "Português",
+    "pt-br": "Português (Brasil)",
+    "ru": "Русский",
+    "sv": "Svenska",
+    "tr": "Türkçe",
+    "uk": "Українська",
+    "zh": "简体中文",
+}
 
 # v2.26: notification routing — id of a saved filter view; when set, only tasks
 # MATCHING that view's task-selecting filters (label + responsible user) send
@@ -551,6 +582,22 @@ CONF_TASK_ICON: Final = "custom_icon"
 # the maintenance type's default (helpers/notify_icons.py).
 CONF_TASK_NOTIFY_ICON: Final = "notify_icon"
 MAX_NOTIFY_ICON_LENGTH: Final = 64
+# #252: the task's own notification texts, per kind ({"due_soon": {"title":
+# …, "message": …}, …}); a kind or field left out takes the standard text
+# (helpers/sanitize.sanitize_notification_texts). Bundles and the quiet-hours
+# summary list several tasks and keep the standard texts.
+CONF_TASK_NOTIFICATION_TEXTS: Final = "notification_texts"
+MAX_NOTIFICATION_TEXT_TITLE_LENGTH: Final = 120
+MAX_NOTIFICATION_TEXT_MESSAGE_LENGTH: Final = 500
+#: The placeholders each kind fills; anything else in a text stays as written
+#: (frontend-src/helpers/notification-texts.ts keeps the same table).
+NOTIFICATION_TEXT_PLACEHOLDERS: Final[dict[str, tuple[str, ...]]] = {
+    "due_soon": ("task", "object", "days", "due"),
+    "overdue": ("task", "object", "days", "due"),
+    "triggered": ("task", "object", "detail"),
+    "completed": ("task", "object", "reason", "person"),
+}
+NOTIFICATION_TEXT_KINDS: Final = tuple(NOTIFICATION_TEXT_PLACEHOLDERS)
 CONF_TASK_NFC_TAG: Final = "nfc_tag_id"
 # v2.20 (#83): display unit for `reading`-type tasks ("kWh", "m³", ...).
 CONF_TASK_READING_UNIT: Final = "reading_unit"
@@ -1024,11 +1071,18 @@ MAX_PART_SEARCH_URL_TEMPLATE_LENGTH: Final = 500
 # (frontend-src/helpers/setting-ranges.ts) by
 # tests/test_frontend_const_parity.py::test_ts_field_ranges_match_backend.
 TRIGGER_FIELD_RANGES: dict[str, tuple[int, int]] = {
-    "trigger_for_minutes": (0, 1440),  # #136 hold time, one day at most
+    # #136 hold time. Thirty days at most (#255: "above 3 °C for 15 days" to get
+    # past the last frost): the threshold and state rules keep when the hold
+    # began across restarts, so a long one is not lost to an update.
+    "trigger_for_minutes": (0, 43_200),
     "trigger_target_changes": (1, 10_000),
     # due_date: fire this many days before the date the sensor reports.
     "trigger_days_before": (0, 365),
 }
+# Done-when hold time (D#240), minutes. A day at most: this wait lives in
+# memory and a restart starts it over, so it stays short (unlike a rule's
+# hold above).
+COMPLETE_WHEN_FOR_MINUTES_RANGE: tuple[int, int] = (1, 1440)
 # Runtime target hours: > 0 (the WS validator) / >= 1 (the flow selector).
 TRIGGER_RUNTIME_HOURS_MAX: Final = 100_000
 # (#83) +-N-day shift of a calendar-kind occurrence ("2 days before the last

@@ -18,12 +18,20 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.maintenance_supporter.const import CONF_ADVANCED_BUDGET, CONF_NOTIFICATIONS_ENABLED, CONF_ROW_ACTION_NOTICE, DOMAIN, GLOBAL_UNIQUE_ID
+from custom_components.maintenance_supporter.const import (
+    CONF_ADVANCED_BUDGET,
+    CONF_NOTIFICATIONS_ENABLED,
+    CONF_ROW_ACTION_NOTICE,
+    CONF_ROW_ACTION_STYLE,
+    DOMAIN,
+    GLOBAL_UNIQUE_ID,
+)
 from custom_components.maintenance_supporter.helpers.settings_registry import (
     SETTING_SPECS,
     SettingSpec,
     setting_default,
     settings_defaults,
+    shown_row_action_style,
 )
 from custom_components.maintenance_supporter.websocket.dashboard import _build_full_settings
 
@@ -154,8 +162,11 @@ async def test_options_flow_form_defaults_equal_the_registry(hass: HomeAssistant
             if key not in registry_keys or not hasattr(marker, "default") or marker.default is vol.UNDEFINED:
                 continue
             seen.add(key)
-            if marker.default() != setting_default(key):
-                drifted.append(f"{step}/{key}: form {marker.default()!r} vs registry {setting_default(key)!r}")
+            # The row style shows what the rows show while nobody chose one:
+            # icons with the new look (BI7-A1), not the bare registry default.
+            expected = shown_row_action_style(entry.options) if key == CONF_ROW_ACTION_STYLE else setting_default(key)
+            if marker.default() != expected:
+                drifted.append(f"{step}/{key}: form {marker.default()!r} vs registry {expected!r}")
     assert not drifted, "options-flow defaults drifted from the registry:\n  " + "\n  ".join(drifted)
     # Sanity: the sweep really covered the flow (a renamed step would
     # otherwise pass vacuously).

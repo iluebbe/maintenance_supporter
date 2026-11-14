@@ -47,7 +47,7 @@ from ..const import (
 from ..const import (
     ARCHIVE_REASON_AUTO as _REASON_AUTO,
 )
-from .aggregate import get_object_entries, merged_tasks
+from .aggregate import get_object_entries, merged_tasks, store_of
 from .completion_requirements import UNATTACHED_PHOTO_MAX_AGE_HOURS, unattached_photo_ids
 from .dates import local_date_from_iso, parse_persisted_utc
 from .entry_tasks import write_tasks
@@ -203,6 +203,12 @@ async def async_run_retention_sweep(hass: HomeAssistant) -> None:
     now_iso = dt_util.now().isoformat()
 
     for entry in get_object_entries(hass):
+        if store_of(entry) is None:
+            # Disabled or setting up: without its Store the tasks have no
+            # history, so the guard that keeps a task with booked money saw
+            # none and deleted it (bug audit 2026-11-08, O8-2). Its turn
+            # comes once it runs again.
+            continue
         merged = _merged_tasks(entry)
         # The two sets are disjoint by construction: archive needs archived_at
         # None; delete needs archived_at set — a task can't be both this pass.

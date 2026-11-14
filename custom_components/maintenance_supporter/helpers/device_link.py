@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import inspect
 import logging
+from collections.abc import Mapping
 from typing import Any, cast
 
 from homeassistant.core import HomeAssistant
@@ -187,6 +188,24 @@ def _only_ours(device: object, own_entry_id: str) -> bool:
     so any registry entry shape works.
     """
     return set(device_owner_ids(device)) == {own_entry_id}
+
+
+def appliance_devices(hass: HomeAssistant) -> list[Any]:
+    """The device registry's devices that can be an appliance: all but the
+    sub-devices (HA 2026.9: never the appliance itself, and reading their
+    make or model logs a deprecation report per access).
+
+    HA 2026.9 deprecates mapping-style access on ``DeviceRegistry.devices``
+    (``.values()`` logs a deprecation for custom integrations and stops
+    working in 2027.9) and iterates ENTRIES; 2026.8 and older iterate ids and
+    need ``.values()``. The collection itself is probed, not a neighbouring
+    symbol (#144). The object repair's device match and the battery lifetime
+    table each had a copy (DRY audit 2026-10-30, BR6-B5)."""
+    registry_devices = dr.async_get(hass).devices
+    # cast(Any): the .values() branch only runs on 2026.8 and older, whose
+    # stubs the 2026.9 ones replace.
+    devices = cast(Any, registry_devices).values() if isinstance(registry_devices, Mapping) else registry_devices
+    return [device for device in devices if getattr(device, "parent_device_id", None) is None]
 
 
 def is_maintenance_device(hass: HomeAssistant, device: object) -> bool:

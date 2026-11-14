@@ -38,15 +38,14 @@ from __future__ import annotations
 
 import logging
 import re
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date
 from itertools import pairwise
 from statistics import median
-from typing import Any, cast
+from typing import Any
 
 from homeassistant.core import HomeAssistant, valid_entity_id
-from homeassistant.helpers import device_registry as dr
 
 from ..const import CONF_BATTERY_LIFETIME_MONTHS
 from .aggregate import store_of
@@ -537,27 +536,17 @@ def fleet_lifetime_catalog(hass: HomeAssistant) -> list[dict[str, Any]]:
     """The lifetime table as Settings shows it (the panel and the options
     flow) — fleet types first, learned rows named "Manufacturer Model"."""
     try:
-        from .battery_fleet import discover_battery_types, read_batteries
+        from .battery_fleet import discover_battery_types, model_key_of, read_batteries
+        from .device_link import appliance_devices
 
         names: dict[str, str] = {}
-        # HA 2026.9 deprecates mapping-style access on DeviceRegistry.devices
-        # (.values() logs a deprecation warning for custom integrations and
-        # stops working in 2027.9) and iterates ENTRIES; 2026.8 and older
-        # iterate ids and need .values(). Probe the collection itself, same as
-        # repairs.py.
-        registry_devices = dr.async_get(hass).devices
-        all_devices: list[Any] = list(
-            cast(Any, registry_devices).values() if isinstance(registry_devices, Mapping) else registry_devices
-        )
+        all_devices = appliance_devices(hass)
         for bat in read_batteries(hass):
             if bat.model_key and bat.model_key not in names:
                 for device in all_devices:
-                    if getattr(device, "parent_device_id", None) is not None:
-                        continue  # 2026.9 sub-device: never the appliance, and its make/model reads are deprecated
-                    manufacturer = str(getattr(device, "manufacturer", None) or "")
-                    model = str(getattr(device, "model", None) or getattr(device, "model_id", None) or "")
-                    key = f"{manufacturer.strip().lower()}|{model.strip().lower()}"
-                    if key == bat.model_key:
+                    if model_key_of(device) == bat.model_key:
+                        manufacturer = str(getattr(device, "manufacturer", None) or "")
+                        model = str(getattr(device, "model", None) or getattr(device, "model_id", None) or "")
                         names[bat.model_key] = " ".join(x for x in (manufacturer, model) if x)
                         break
         return lifetime_catalog(hass, list(discover_battery_types(hass)), model_names=names)

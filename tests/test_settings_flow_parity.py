@@ -179,7 +179,7 @@ async def test_general_step_carries_the_panel_rows(hass: HomeAssistant) -> None:
         result["flow_id"],
         {
             CONF_DEFAULT_CONSUMABLE_THRESHOLD: 15.0,
-            CONF_ROW_ACTION_STYLE: "icons",
+            CONF_ROW_ACTION_STYLE: "buttons",
             CONF_REF_NUMBERS_IN_LISTS: True,
             CONF_INSTALL_ASSIST_SENTENCES: False,
             # checkbox order; "name" unticked
@@ -188,7 +188,7 @@ async def test_general_step_carries_the_panel_rows(hass: HomeAssistant) -> None:
     )
     assert result["type"] == FlowResultType.MENU
     assert g.options[CONF_DEFAULT_CONSUMABLE_THRESHOLD] == 15 and isinstance(g.options[CONF_DEFAULT_CONSUMABLE_THRESHOLD], int)
-    assert g.options[CONF_ROW_ACTION_STYLE] == "icons"
+    assert g.options[CONF_ROW_ACTION_STYLE] == "buttons"
     assert g.options[CONF_REF_NUMBERS_IN_LISTS] is True
     # the panel's column order is kept, new ones appended, name always there
     assert g.options[CONF_OBJECTS_TABLE_COLUMNS] == ["name", "model", "manufacturer", "notes"]

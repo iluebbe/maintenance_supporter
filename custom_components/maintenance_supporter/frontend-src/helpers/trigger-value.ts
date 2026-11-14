@@ -3,7 +3,7 @@
  *  trigger_value is only the count of changes, and the history said "Trigger
  *  value: 1". An update entity names its versions. */
 
-import { formatNumber, t } from "../styles";
+import { formatNumber, t, withUnit } from "../styles";
 import type { HistoryEntry } from "../types";
 
 export interface TriggerValueContext {
@@ -33,5 +33,5 @@ export function triggerValueText(h: HistoryEntry, lang: string, ctx: TriggerValu
     if (to) return `${t("trigger_val", lang)}: ${from ? `${from} → ` : ""}${to}`;
   }
   if (ctx.stateRule || typeof h.trigger_value !== "number" || !Number.isFinite(h.trigger_value)) return "";
-  return `${t("trigger_val", lang)}: ${formatNumber(h.trigger_value, lang, { maximumFractionDigits: 3 })}${ctx.unit ? ` ${ctx.unit}` : ""}`;
+  return `${t("trigger_val", lang)}: ${withUnit(formatNumber(h.trigger_value, lang, { maximumFractionDigits: 3 }), ctx.unit, lang)}`;
 }

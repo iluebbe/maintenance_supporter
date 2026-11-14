@@ -17,7 +17,7 @@
  */
 
 import type { HomeAssistant } from "../types";
-import { setBetaUi } from "./beta-ui";
+import { setBetaUi, setBetaUiDefault } from "./beta-ui";
 import { NO_DELEGATION, type WriteAccess } from "./permissions";
 import { SETTING_INT_RANGES } from "./setting-ranges";
 import { partsCostModeOf, type PartsCostMode } from "./parts-cost";
@@ -115,10 +115,13 @@ export interface SettingsWire {
 }
 
 export const FALLBACK_SETTINGS: SettingsCache = {
+  // The server's defaults (tests/test_frontend_const_parity.py): the new
+  // look is on unless switched off, and a failed read showed the classic
+  // one (DRY audit 2026-11-07, X7-A3).
   features: {
     adaptive: false, seasonal: false,
     environmental: false, budget: false, groups: false,
-    checklists: false, schedule_time: false, completion_actions: false, places: false, beta_editor: false,
+    checklists: false, schedule_time: false, completion_actions: false, places: false, beta_editor: true,
   },
   defaultWarningDays: 7,
   rowActionStyle: "buttons_compact",
@@ -129,6 +132,15 @@ export const FALLBACK_SETTINGS: SettingsCache = {
   objectsTableColumns: undefined,
   partsCostMode: "purchase",
   mirrorTodoDefault: [],
+};
+
+/** What a surface works with when the settings could not be read: the
+ *  server's defaults, so the new look, with the row actions it shows while
+ *  nobody chose a style. The failed read set neither, and kept labelled
+ *  buttons (bug audit 2026-11-08, C8-3). */
+export const UNREAD_SETTINGS: SettingsCache = {
+  ...FALLBACK_SETTINGS,
+  rowActionStyle: effectiveRowActionStyle(undefined, false, FALLBACK_SETTINGS.features.beta_editor),
 };
 
 interface CacheSlot {
@@ -164,7 +176,9 @@ export function fetchSettingsOnce(hass: HomeAssistant): Promise<SettingsCache> {
     .catch(() => {
       // Only drop OUR promise — an invalidate + refetch may have replaced it.
       if (s.promise === p) s.promise = null;
-      return FALLBACK_SETTINGS;
+      // A read that worked (the panel's, another card's) keeps its look.
+      setBetaUiDefault(UNREAD_SETTINGS.features.beta_editor);
+      return UNREAD_SETTINGS;
     });
   s.promise = p;
   return p;

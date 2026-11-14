@@ -675,6 +675,7 @@
           "notification_bundle_threshold": "Niputuksen kynnysarvo",
           "notification_title_style": "Ilmoituksen otsikon tyyli",
           "notification_title_prefix": "Ilmoituksen otsikon etuliite",
+          "notification_language": "Ilmoitusten kieli",
           "notify_completed": "Ilmoitukset suorituksista",
           "notify_event_only": "Laukaise vain tapahtuma, älä lähetä mitään",
           "notify_extra_data": "Lisätiedot ilmoitukseen (malli)",
@@ -694,6 +695,7 @@
           "notification_bundle_threshold": "Tehtävien vähimmäismäärä, joka laukaisee niputetun ilmoituksen.",
           "notification_title_style": "Mikä näkyy ilmoituksen OTSIKKONA. Oletus säilyttää tilakohtaisen tekstin (esim. 'Huolto myöhässä!'). Kohteen nimi / Tehtävän nimi auttavat, kun puhelinilmoitukset pinoutuvat.",
           "notification_title_prefix": "Lisätään jokaisen ilmoituksen otsikon eteen kaikilla tyyleillä, esim. kodin nimi, kun puhelin saa muistutuksia useammasta kuin yhdestä Home Assistantista. Tyhjä = ei etuliitettä.",
+          "notification_language": "Ilmoitusten otsikoiden, tekstien ja painikkeiden kieli. Home Assistantin kieli = kuten ennen. Paneeli pysyy kunkin henkilön omalla kielellä.",
           "notify_completed": "Tieto taloudelle, kun tehtävä on suoritettu, syyn kera (paneeli, QR-/NFC-skannaus, tehtävälista, puhe, anturin palautuminen …). ”Vain automaattiset” ilmoittaa vain suoritukset, joita kukaan ei tehnyt paikan päällä: anturin palautuminen, ostoslistan rastitus, automaation palvelukutsu.",
           "notify_event_only": "Jokainen ilmoitus laukaisee tapahtuman maintenance_supporter_notification. Tällä asetuksella automaatiosi hoitaa koko toimituksen — toistovälit, hiljaiset tunnit ja päiväraja määräävät yhä, milloin tapahtuma tulee.",
           "notify_extra_data": "JSON tai YAML Jinjalla, yhdistetään jokaisen notify-kutsun data-kenttään (omat avaimesi voittavat). Muuttujat: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
@@ -1892,6 +1894,10 @@
         "via_tag_scan": {
           "name": "Tunnisteen skannauksella",
           "description": "Vahvistaa, että tämä suoritus on peräisin fyysisen tunnisteen/QR-koodin skannauksesta, jonka automaatio käsitteli itse — täyttää tehtävän asetuksen ”Suoritus vain tunnisteen skannauksella”."
+        },
+        "consume_parts": {
+          "name": "Kuluta osat",
+          "description": "Kirjaa tehtävään liitetyt osat tälle suoritukselle myös silloin, kun suorituspäivä on ennen tehtävän viimeisintä suoritusta. Nykyinen suoritus kirjaa ne joka tapauksessa, jälkikäteen lisätty vain tällä valinnalla. Osat vähennetään tämän päivän varastosta."
         }
       }
     },
@@ -1929,7 +1935,7 @@
       "fields": {
         "format": {
           "name": "Muoto",
-          "description": "Vietyjen tietojen tulostusmuoto (json tai yaml)."
+          "description": "Tulostusmuoto: json tai yaml koko vientiin, history_csv historialle taulukkona, yksi rivi merkintää kohden (tiedosto maintenance_history.csv)."
         },
         "include_history": {
           "name": "Sisällytä historia",
@@ -2351,7 +2357,7 @@
     },
     "shared_parts_moved": {
       "title": "Jaetut varaosat siirretty kohteeseen {new_owner}",
-      "description": "Useat huoltokohteet käyttivät samaa varaosavarastoa, joka oli kohteessa **{deleted_object}**, ja kyseinen kohde poistettiin juuri. Sen sijaan että muut kohteet jäisivät osoittamaan varastoon jota ei enää ole, Maintenance Supporter siirsi jaetut osat ({parts}) nykyisine saldoineen kohteeseen **{new_owner}** ja ohjasi kaikkien muiden kohteiden tehtävälinkit siihen. Mitään ei menetetty.\n\n**{new_owner}** valittiin automaattisesti: se on vanhin varastoa käyttänyt kohde. Jos jokin toinen kohde sopii paremmin, siirrä osat sinne huoltopaneelissa.\n\nMuuta ei tarvita — sulje tämä ilmoitus, kun olet tarkistanut asian."
+      "description": "Useat huoltokohteet käyttivät samaa varaosavarastoa, joka oli kohteessa **{deleted_object}**, ja kyseinen kohde poistettiin juuri. Sen sijaan että muut kohteet jäisivät osoittamaan varastoon jota ei enää ole, Maintenance Supporter siirsi jaetut osat ({parts}) nykyisine saldoineen kohteeseen **{new_owner}** ja ohjasi kaikkien muiden kohteiden tehtävälinkit siihen. Mitään ei menetetty.\n\n**{new_owner}** valittiin automaattisesti: se on vanhin varastoa käyttänyt kohde.\n\nMuuta ei tarvita — sulje tämä ilmoitus, kun olet tarkistanut asian."
     },
     "broken_part_link": {
       "title": "Rikkinäisiä varaosalinkkejä kohteessa {object_name}",
@@ -2538,6 +2544,9 @@
     "part_owner_archived": {
       "message": "”{object_name}” on arkistoitu. Palauta se kirjataksesi oston."
     },
+    "part_owner_not_loaded": {
+      "message": "{object_name} ei ole nyt käynnissä (poistettu käytöstä tai vielä käynnistymässä), joten sen varaosia ei voi kirjata. Yritä uudelleen, kun se on käynnissä."
+    },
     "purchase_cost_too_high": {
       "message": "Ostos voi maksaa yhteensä enintään {max}."
     },
@@ -2567,6 +2576,9 @@
     },
     "date_in_future": {
       "message": "Päivämäärä ei voi olla tulevaisuudessa."
+    },
+    "time_based_needs_interval": {
+      "message": "Aikaperusteinen tehtävä tarvitsee välin."
     },
     "range_end_before_start": {
       "message": "Loppu ei voi olla ennen alkua."

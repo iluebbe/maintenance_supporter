@@ -675,6 +675,7 @@
           "notification_bundle_threshold": "Gruplama eşiği",
           "notification_title_style": "Bildirim başlığı stili",
           "notification_title_prefix": "Bildirim başlığı ön eki",
+          "notification_language": "Bildirim dili",
           "notify_completed": "Tamamlama bildirimleri",
           "notify_event_only": "Yalnızca olayı tetikle, kendim hiçbir şey gönderme",
           "notify_extra_data": "Ek bildirim verisi (şablon)",
@@ -694,6 +695,7 @@
           "notification_bundle_threshold": "Gruplanmış bildirimi tetiklemek için gereken en az görev sayısı.",
           "notification_title_style": "Bildirimin BAŞLIĞI olarak ne görüneceği. Varsayılan, duruma özgü metni korur (örn. 'Bakım gecikti!'). Nesne adı / Görev adı, telefon bildirimleri üst üste yığıldığında yardımcı olur.",
           "notification_title_prefix": "Her başlık stilinde her bildirimin başlığının önüne eklenir; örneğin telefon birden fazla Home Assistant'tan hatırlatma alıyorsa evin adı. Boş = ön ek yok.",
+          "notification_language": "Bildirimlerin başlık, metin ve düğmelerinin dili. Home Assistant dili = şimdiye kadarki gibi. Panel her kişinin kendi dilinde kalır.",
           "notify_completed": "Bir görev tamamlandığında ev halkına nedeniyle birlikte haber verir (panel, QR/NFC tarama, yapılacaklar listesi, ses, sensör toparlanması…). \"Yalnızca otomatik\" sadece kimsenin yerinde yapmadığı tamamlamaları bildirir: sensör toparlanması, alışveriş listesinde işaretleme, bir otomasyonun servis çağrısı.",
           "notify_event_only": "Her bildirim maintenance_supporter_notification olayını tetikler. Bu açıkken teslimatın tamamını otomasyonun üstlenir — tekrar aralıkları, sessiz saatler ve günlük sınır olayın ne zaman geleceğine karar vermeye devam eder.",
           "notify_extra_data": "Jinja içeren JSON veya YAML, her notify çağrısının data alanına birleştirilir (senin anahtarların kazanır). Değişkenler: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
@@ -1892,6 +1894,10 @@
         "via_tag_scan": {
           "name": "Etiket taramasıyla",
           "description": "Bu tamamlamanın, otomasyonun kendisinin işlediği fiziksel bir etiket/QR taramasından geldiğini doğrular — görevin “Yalnızca etiket taranarak tamamlanır” ayarını karşılar."
+        },
+        "consume_parts": {
+          "name": "Parçaları tüket",
+          "description": "Tamamlanma tarihi görevin son tamamlanmasından önce olsa bile, bu tamamlama için göreve bağlı parçaları düşer. Güncel bir tamamlama onları her durumda düşer, geriye dönük girilen yalnızca bu seçenekle. Parçalar bugünkü stoktan düşülür."
         }
       }
     },
@@ -1929,7 +1935,7 @@
       "fields": {
         "format": {
           "name": "Biçim",
-          "description": "Dışa aktarılan veriler için çıktı biçimi (json veya yaml)."
+          "description": "Çıktı biçimi: tam dışa aktarma için json veya yaml, geçmişi kayıt başına bir satırlık tablo olarak almak için history_csv (maintenance_history.csv dosyası)."
         },
         "include_history": {
           "name": "Geçmişi Dahil Et",
@@ -2351,7 +2357,7 @@
     },
     "shared_parts_moved": {
       "title": "Paylaşılan yedek parçalar {new_owner} nesnesine taşındı",
-      "description": "Birden fazla bakım nesnesi, **{deleted_object}** üzerinde tutulan tek bir yedek parça stoğunu paylaşıyordu ve bu nesne az önce silindi. Diğer nesnelerin artık var olmayan bir stoğu göstermesi yerine Maintenance Supporter, paylaşılan parçaları ({parts}) mevcut stoklarıyla birlikte **{new_owner}** üzerine taşıdı ve diğer tüm nesnelerin görev bağlantılarını buraya yönlendirdi. Hiçbir şey kaybolmadı.\n\n**{new_owner}** otomatik olarak seçildi: stoğu kullanan en eski nesne odur. Başka bir nesne daha uygunsa, parçaları Bakım panelinden oraya taşıyın.\n\nBaşka bir şey yapmanız gerekmiyor — kontrol ettikten sonra bu bildirimi kapatın."
+      "description": "Birden fazla bakım nesnesi, **{deleted_object}** üzerinde tutulan tek bir yedek parça stoğunu paylaşıyordu ve bu nesne az önce silindi. Diğer nesnelerin artık var olmayan bir stoğu göstermesi yerine Maintenance Supporter, paylaşılan parçaları ({parts}) mevcut stoklarıyla birlikte **{new_owner}** üzerine taşıdı ve diğer tüm nesnelerin görev bağlantılarını buraya yönlendirdi. Hiçbir şey kaybolmadı.\n\n**{new_owner}** otomatik olarak seçildi: stoğu kullanan en eski nesne odur.\n\nBaşka bir şey yapmanız gerekmiyor — kontrol ettikten sonra bu bildirimi kapatın."
     },
     "broken_part_link": {
       "title": "{object_name} üzerinde bozuk parça bağlantıları",
@@ -2538,6 +2544,9 @@
     "part_owner_archived": {
       "message": "“{object_name}” arşivlendi. Satın alma kaydetmek için geri yükleyin."
     },
+    "part_owner_not_loaded": {
+      "message": "{object_name} şu anda çalışmıyor (devre dışı ya da hâlâ başlatılıyor), bu yüzden yedek parçaları kaydedilemiyor. Çalıştığında yeniden deneyin."
+    },
     "purchase_cost_too_high": {
       "message": "Bir satın alma toplamda en fazla {max} tutabilir."
     },
@@ -2567,6 +2576,9 @@
     },
     "date_in_future": {
       "message": "Tarih gelecekte olamaz."
+    },
+    "time_based_needs_interval": {
+      "message": "Zamana dayalı bir görevin bir aralığa ihtiyacı vardır."
     },
     "range_end_before_start": {
       "message": "Bitiş, başlangıçla aynı veya daha sonra olmalıdır."

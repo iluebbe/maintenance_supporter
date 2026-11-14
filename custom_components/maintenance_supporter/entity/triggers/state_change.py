@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
@@ -13,8 +14,9 @@ from homeassistant.helpers.event import (
 )
 from homeassistant.util import dt as dt_util
 
-from ...const import HISTORY_DETAIL_CHARS, UNAVAILABLE_STATES
+from ...const import CONF_TRIGGER_HOLD_UNTIL_DONE, HISTORY_DETAIL_CHARS, UNAVAILABLE_STATES
 from ...helpers.managed_timer import ManagedTimer
+from ...helpers.state_match import norm_state
 
 if TYPE_CHECKING:
     from .base_trigger import TriggerHost
@@ -23,11 +25,6 @@ from ...helpers.dates import parse_persisted_utc
 from .base_trigger import BaseTrigger, update_versions
 
 _LOGGER = logging.getLogger(__name__)
-
-
-def _norm_state(value: str | None) -> str | None:
-    """Case/whitespace-insensitive state form for from/to comparisons."""
-    return value.strip().casefold() if isinstance(value, str) else value
 
 
 class StateChangeTrigger(BaseTrigger):
@@ -49,6 +46,8 @@ class StateChangeTrigger(BaseTrigger):
     # the transition the last counted change was (for the history entry).
     _pending_from: str | None = None
     _counted_transition: tuple[str | None, str] | None = None
+    # The last real state on record from before this instance (#254).
+    _restored_last_state: str | None = None
 
     def __init__(
         self,
@@ -64,15 +63,15 @@ class StateChangeTrigger(BaseTrigger):
         # user's casing, and HA states themselves can be capitalized
         # (input_select "Home") — normalizing BOTH sides at compare time is
         # the only variant that works for every surface combination.
-        self._from_state: str | None = _norm_state(trigger_config.get("trigger_from_state"))
-        self._to_state: str | None = _norm_state(trigger_config.get("trigger_to_state"))
+        self._from_state: str | None = norm_state(trigger_config.get("trigger_from_state"))
+        self._to_state: str | None = norm_state(trigger_config.get("trigger_to_state"))
         self._target_changes: int = trigger_config.get("trigger_target_changes", 1)
         # D#229: a single-shot latch that does NOT recover when the entity
         # leaves its alert state — the washer's "finished" lasts a minute, the
         # laundry stays in until someone empties it. Only completing, skipping
         # or resetting the task (reset()) ends it; the persisted change count
         # carries it across restarts like any latch.
-        self._hold_until_done: bool = bool(trigger_config.get("trigger_hold_until_done")) and self._target_changes == 1
+        self._hold_until_done: bool = bool(trigger_config.get(CONF_TRIGGER_HOLD_UNTIL_DONE)) and self._target_changes == 1
         # Restore persisted change count from config, default to 0
         self._change_count: int = trigger_config.get("trigger_change_count", 0)
         self._current_value = float(self._change_count)
@@ -99,6 +98,9 @@ class StateChangeTrigger(BaseTrigger):
         self._restored_pending_dt: datetime | None = parse_persisted_utc(trigger_config.get("trigger_state_pending_since"))
         if self._restored_pending_dt is None:
             self._restored_pending_state = None
+        # The last real state the rule saw before a restart (consumed by
+        # _settle_on): a change made while nothing watched counts (#254).
+        self._restored_last_state = trigger_config.get("trigger_state_last_state")
 
     def _in_alert_state(self, state: str | None) -> bool | None:
         """Whether *state* is the latch's ALERT state (#167).
@@ -117,9 +119,9 @@ class StateChangeTrigger(BaseTrigger):
         - Neither set: no latch semantics (None) — a pure change counter.
         """
         if self._to_state is not None:
-            return _norm_state(state) == self._to_state
+            return norm_state(state) == self._to_state
         if self._from_state is not None:
-            return _norm_state(state) != self._from_state
+            return norm_state(state) != self._from_state
         return None
 
     async def async_setup(self) -> None:
@@ -147,9 +149,7 @@ class StateChangeTrigger(BaseTrigger):
             self._unsub_listener = async_track_state_change_event(self.hass, [self.entity_id], self._handle_state_transition)
             return
 
-        self._last_state = state.state
-        self._reconcile_persisted_latch(state.state)
-        self._resume_pending_window(state.state)
+        self._settle_on(state.state)
 
         # Register state change listener (override base: we handle events differently)
         self._unsub_listener = async_track_state_change_event(self.hass, [self.entity_id], self._handle_state_transition)
@@ -176,16 +176,28 @@ class StateChangeTrigger(BaseTrigger):
         longer in its alert state is cleared QUIETLY — the recovery
         transition was never observed, so we must NOT auto-complete for it
         here (that path only runs on a live off event, guarded against
-        double-count). Otherwise the latch is restored and repainted, and so
+        double-count) — unless an update entity's installed version proves
+        the install (:meth:`_installed_while_down`). Otherwise the latch is
+        restored and repainted, and so
         is a latch held until done (D#229), whatever the entity reads now.
         """
         if self._change_count < self._target_changes:
             return
         if self._target_changes == 1 and not self._hold_until_done and self._in_alert_state(live_state) is False:
+            installed = self._installed_while_down()
             self._change_count = 0
             self._current_value = 0.0
             self._triggered = False
             self._persist_runtime_soon()
+            if installed:
+                # An update installed while Home Assistant was down (a Core
+                # or OS update restarts it) left its proof: the installed
+                # version moved since the rule fired. Its rule ends as on a
+                # live install, recorded as done when it says so; the quiet
+                # clear left nothing in the history and the trace cycle open
+                # (bug audit 2026-11-08, T8-3).
+                self._on_trigger_deactivated(0.0)
+                return
             self.entity.async_update_trigger_state(
                 is_triggered=False,
                 current_value=0.0,
@@ -198,6 +210,58 @@ class StateChangeTrigger(BaseTrigger):
                 current_value=float(self._change_count),
                 trigger_entity_id=self.entity_id,
             )
+
+    def _settle_on(self, live_state: str) -> None:
+        """Line the restored runtime up with the first real state this
+        instance sees: the persisted latch (#131), a hold window open at the
+        restart (#136) and a change made while nothing watched (#254)."""
+        before = self._restored_last_state if self._restored_last_state is not None else self._last_state
+        self._restored_last_state = None
+        self._last_state = live_state
+        self._reconcile_persisted_latch(live_state)
+        self._resume_pending_window(live_state)
+        self._count_missed_transition(before, live_state)
+
+    def _count_missed_transition(self, before: str | None, live_state: str) -> None:
+        """Count a matching change the entity made while Home Assistant was
+        down (#254). The setup only read the live state, so a washer's drum
+        clean reminder that went on during a restart was no transition: the
+        task stayed OK for days while its sensor read on. *before* is the
+        last real state on record; a state that already read so before the
+        restart (a task completed while its sensor still read on) changes
+        nothing. A hold window starts now: how long the state held while
+        nothing watched is unknown."""
+        if before == live_state:
+            return
+        if before is None or self._pending_state is not None or not self._transition_matches(before, live_state):
+            # Only the state on record moved.
+            self._persist_runtime_soon()
+            return
+        if self._for_minutes > 0:
+            self._pending_from = before
+            self._start_pending(live_state)
+        else:
+            self._commit_transition(live_state, before)
+
+    def _transition_matches(self, old: str | None, new: str) -> bool:
+        """Whether *old* → *new* is the configured pattern (either side unset
+        matches any state)."""
+        if self._from_state is not None and norm_state(old) != self._from_state:
+            return False
+        return self._to_state is None or norm_state(new) == self._to_state
+
+    def _installed_while_down(self) -> bool:
+        """Whether an update entity's installed version differs from the one
+        its rule's open firing recorded (``trigger_change``). Class lookup
+        like :meth:`_already_announced`."""
+        if not self.entity_id.startswith("update."):
+            return False
+        lookup = getattr(type(self._coordinator), "announced_activation", None)
+        fired = lookup(self._coordinator, self._task_id) if callable(lookup) else None
+        change = fired.get("trigger_change") if isinstance(fired, Mapping) else None
+        before = change.get("installed") if isinstance(change, Mapping) else None
+        now = update_versions(self.hass.states.get(self.entity_id)).get("installed")
+        return bool(before and now and before != now)
 
     def _resume_pending_window(self, live_state: str) -> None:
         """Resume (or discard) a hold window persisted before a restart (#136).
@@ -213,7 +277,7 @@ class StateChangeTrigger(BaseTrigger):
         self._restored_pending_dt = None
         if self._for_minutes <= 0 or restored_dt is None or restored_state is None or self._triggered:
             return
-        if _norm_state(live_state) != _norm_state(restored_state):
+        if norm_state(live_state) != norm_state(restored_state):
             self._persist_runtime_soon()
             return
         elapsed = (dt_util.utcnow() - restored_dt).total_seconds()
@@ -253,7 +317,7 @@ class StateChangeTrigger(BaseTrigger):
             return
         # Safety net: only commit while the state still holds.
         live = self.hass.states.get(self.entity_id)
-        if live is None or _norm_state(live.state) != _norm_state(pending):
+        if live is None or norm_state(live.state) != norm_state(pending):
             self._persist_runtime_soon()
             return
         _LOGGER.debug(
@@ -335,14 +399,12 @@ class StateChangeTrigger(BaseTrigger):
             # moment the latch can be checked against reality.
             if new_val not in UNAVAILABLE_STATES:
                 self._needs_latch_reconcile = False
-                self._last_state = new_val
-                self._reconcile_persisted_latch(new_val)
                 # The hold window open at the restart resumes here too: only
                 # an entity ready at setup got it back, so a late Zigbee /
                 # Z-Wave sensor never counted a state that kept holding, and
                 # the stale window stayed in the Store (bug audit 2026-10-17,
                 # T-6).
-                self._resume_pending_window(new_val)
+                self._settle_on(new_val)
             return
 
         old_val = old_state.state
@@ -383,7 +445,7 @@ class StateChangeTrigger(BaseTrigger):
                 and not self._triggered
                 and self._pending_state is None
                 and interrupted is not None
-                and _norm_state(new_val) == _norm_state(interrupted)
+                and norm_state(new_val) == norm_state(interrupted)
             ):
                 self._start_pending(new_val)
 
@@ -394,9 +456,7 @@ class StateChangeTrigger(BaseTrigger):
         # through the normal transition/auto-complete path below.
         if self._needs_latch_reconcile:
             self._needs_latch_reconcile = False
-            self._last_state = new_val
-            self._reconcile_persisted_latch(new_val)
-            self._resume_pending_window(new_val)
+            self._settle_on(new_val)
             return
 
         # Use _last_state as fallback when old_val is unavailable/unknown
@@ -411,14 +471,7 @@ class StateChangeTrigger(BaseTrigger):
             self._interrupted_pending = None
             self._clear_pending()
 
-        # Check if transition matches pattern
-        matches = True
-        if self._from_state is not None and _norm_state(effective_old) != self._from_state:
-            matches = False
-        if self._to_state is not None and _norm_state(new_val) != self._to_state:
-            matches = False
-
-        if matches and effective_old != new_val:
+        if self._transition_matches(effective_old, new_val) and effective_old != new_val:
             if self._for_minutes > 0:
                 # #136: the transition only counts once new_val has held.
                 self._pending_from = effective_old
@@ -441,7 +494,10 @@ class StateChangeTrigger(BaseTrigger):
             self._triggered = False
             self._on_trigger_deactivated(0.0)
 
-        self._last_state = new_val
+        if new_val != self._last_state:
+            self._last_state = new_val
+            # On record for the next start (#254).
+            self._persist_runtime_soon()
 
     def _recovery_reading(self, value: float) -> float | None:
         """The value is the reset change count, not a reading — the
@@ -491,12 +547,16 @@ class StateChangeTrigger(BaseTrigger):
         self._persist_soon(self._persist_runtime)
 
     async def _persist_runtime(self) -> None:
-        """Persist the full runtime dict (count + hold window) to the Store.
+        """Persist the full runtime dict (count, hold window, last real
+        state) to the Store.
 
         Always the COMPLETE dict: set_trigger_runtime replaces per-entity
         state wholesale, so a partial write would drop the other half.
         """
         data: dict[str, Any] = {"change_count": self._change_count}
+        last = self._last_state if self._last_state is not None else self._restored_last_state
+        if last is not None:
+            data["last_state"] = last
         if self._pending_since is not None and self._pending_state is not None:
             data["pending_since"] = self._pending_since
             data["pending_state"] = self._pending_state

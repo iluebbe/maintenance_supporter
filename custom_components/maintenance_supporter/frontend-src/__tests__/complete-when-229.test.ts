@@ -180,4 +180,17 @@ describe("Done when (D#229): the history note", () => {
     expect(historyNoteText("Auto-completed: Washer door changed to on", "de")).to.equal("Automatisch abgeschlossen: Washer door wechselte zu on");
     expect(historyNoteText("Auto-completed: sensor recovered", "en")).to.equal("Auto-completed: sensor recovered");
   });
+
+  it("writes the recovered reading in the viewer's number format (2.121)", () => {
+    setLocale("de", { hist_note_auto_recovered: "Automatisch abgeschlossen: Sensor erholt ({value})" });
+    expect(historyNoteText("Auto-completed: sensor recovered (1234567.89)", "de")).to.equal("Automatisch abgeschlossen: Sensor erholt (1.234.567,89)");
+    expect(historyNoteText("Auto-completed: sensor recovered (21.46)", "de")).to.contain("(21,46)");
+    // a note from before 2.121: six digits or an exponent
+    expect(historyNoteText("Auto-completed: sensor recovered (1.23457e+06)", "en")).to.contain("(1,234,570)");
+    // as stored: the history is where one looks a reading up
+    expect(historyNoteText("Auto-completed: sensor recovered (0.123457)", "en")).to.contain("(0.123457)");
+    expect(historyNoteText("Auto-completed: sensor recovered (0.0042)", "de")).to.contain("(0,0042)");
+    expect(historyNoteText("Auto-completed: sensor recovered (21.4568)", "de")).to.contain("(21,4568)");
+    expect(historyNoteText("Auto-completed: sensor recovered (n/a)", "en")).to.contain("(n/a)");
+  });
 });

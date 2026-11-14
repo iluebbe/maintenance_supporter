@@ -15,15 +15,51 @@ twin cannot derive itself (``warning_days_effective``) alongside
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Mapping
+from datetime import date
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.util import dt as dt_util
 
-from ..const import DEFAULT_WARNING_DAYS, MaintenanceStatus
+from ..const import CONF_TRIGGER_COMBINATOR, DEFAULT_WARNING_DAYS, MaintenanceStatus
 from .dates import parse_hhmm
 
 if TYPE_CHECKING:
     from ..models.task_result import TaskResult
+
+
+def needs_both_legs(trigger_config: Mapping[str, Any] | None) -> bool:
+    """Whether the task is due only once its trigger fired AND its interval
+    elapsed (the ``"all"`` combinator: the interval is a minimum age)."""
+    return (trigger_config or {}).get(CONF_TRIGGER_COMBINATOR) == "all"
+
+
+def combined_due(
+    interval_due: date | None,
+    *,
+    trigger_active: bool,
+    predicted: date | None,
+    activated: date | None,
+    today: date,
+) -> date | None:
+    """When a task that needs both legs is due: the later of the interval's
+    date and the trigger's (#260).
+
+    * Triggered: the later of the interval date and the activation.
+    * Not triggered, with a prediction of when the sensor gets there: the
+      later of the interval date and that prediction (today at the earliest:
+      a reading behind its forecast is not overdue).
+    * Not triggered, no prediction: the interval date while it lies ahead,
+      the earliest the task can be due; after it no date, only the sensor
+      can tell.
+    """
+    if interval_due is None:
+        return None
+    if trigger_active:
+        return max(interval_due, activated) if activated is not None else interval_due
+    if predicted is not None:
+        return max(interval_due, predicted, today)
+    return interval_due if interval_due > today else None
 
 
 def effective_warning_days(warning_days: int, span_days: int | None) -> int:
@@ -112,13 +148,19 @@ def compute_live_status(result: TaskResult) -> str:
     """
     task = result.task
     warning_days = result.warning_days_effective
+    all_mode = needs_both_legs(task.get("trigger_config"))
+    days = result.days_until_due
+    if all_mode and result.interval_days_until_due is not None:
+        # The published days are the later of the two legs (#260); the
+        # ladder weighs the interval leg itself.
+        days = result.interval_days_until_due
     return compute_status(
         archived=task.get("archived_at") is not None,
         paused=result.paused,
         enabled=task.get("enabled", True) is not False,
-        days_until_due=result.days_until_due,
+        days_until_due=days,
         trigger_active=result.trigger_active,
-        all_mode=(task.get("trigger_config") or {}).get("trigger_combinator") == "all",
+        all_mode=all_mode,
         warning_days=warning_days if warning_days is not None else task.get("warning_days", DEFAULT_WARNING_DAYS),
         past_schedule_time=is_past_schedule_time(task.get("schedule_time")),
     )

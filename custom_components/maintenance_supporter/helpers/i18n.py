@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import math
 from collections.abc import Mapping
 from typing import Any
 
@@ -28,6 +29,13 @@ def normalize_language(hass: HomeAssistant) -> str:
     return normalize_language_code(getattr(hass.config, "language", None))
 
 
+def request_language(hass: HomeAssistant, language: str | None) -> str:
+    """The language a request asks for (the panel sends its user's), else
+    Home Assistant's, as a table key. Four commands spelled it out (DRY
+    audit 2026-11-07, BI7-B4)."""
+    return normalize_language_code(language) if language else normalize_language(hass)
+
+
 def normalize_language_code(code: str | None) -> str:
     """Normalize a raw language code to a table key (idempotent).
 
@@ -39,6 +47,42 @@ def normalize_language_code(code: str | None) -> str:
     if lang.startswith("pt") and lang.endswith("br"):
         return "pt-br"
     return lang[:2]
+
+
+# Languages that write a decimal COMMA ("12,5"). Everything else here writes
+# a point; a spoken answer and a number in a reminder follow the same rule.
+DECIMAL_COMMA_LANGUAGES = frozenset(
+    {"de", "fr", "es", "it", "nl", "pt", "pt-br", "ru", "uk", "pl", "cs", "da", "fi", "nb", "sv", "tr", "hu"}
+)
+_MAX_PLACES = 10
+
+
+def plain_number(value: float, lang: str | None = None, *, digits: int = 2) -> str:
+    """A reading as a person writes it: at most ``digits`` decimals, no
+    trailing zeros, never an exponent ("21.46", "7", "1234567").
+
+    ``:g`` kept six significant digits, so a reminder read "0.123457" or
+    "1.23457e+06". Below one a value keeps two significant digits
+    ("0.015", "0.0042"): two decimals alone made 0.015 read "0.01" and
+    0.004 nothing. With a ``lang`` that writes a decimal comma the mark is
+    a comma; without one it is a point (a stored note or an event, which
+    an automation reads).
+
+    ``digits`` is how much the reader wants: two for a reminder, read at
+    a glance; more for a history note, read to find out what happened.
+    """
+    number = float(value)
+    if not math.isfinite(number):
+        return str(value)
+    places = digits
+    if number and abs(number) < 1:
+        places = min(_MAX_PLACES, max(digits, 1 - math.floor(math.log10(abs(number)))))
+    text = f"{number:.{places}f}"
+    if "." in text:
+        text = text.rstrip("0").rstrip(".")
+    if text in ("-0", ""):
+        text = "0"
+    return text.replace(".", ",") if lang and normalize_language_code(lang) in DECIMAL_COMMA_LANGUAGES else text
 
 
 def format_text(tables: Mapping[str, Mapping[str, str]], lang: str, key: str, **kwargs: Any) -> str:

@@ -51,15 +51,15 @@ from ..helpers.device_swap import move_tasks_to_device, old_device_ids
 from ..helpers.entity_attributes import get_entity_attributes
 from ..helpers.entity_rename import migrate_object_unique_ids
 from ..helpers.global_options import cleanup_group_refs
-from ..helpers.i18n import normalize_language, normalize_language_code
+from ..helpers.i18n import request_language
 from ..helpers.object_create import async_create_object
 from ..helpers.object_names import name_changed_onto_taken, name_taken, unique_object_name
 from ..helpers.parts import PART_REF_FIELD, map_part_links
 from ..helpers.pause import build_resumed_entry_data, reanchor_recurring_task, wants_fresh_cycle
 from ..helpers.permissions import require_write
 from ..helpers.sanitize import cap_object_fields, strip_object_reference, strip_task_runtime_state
-from ..helpers.shared_parts import async_relink_history, borrowed_part_ids, relink_borrowers
-from ..helpers.task_origin import ORIGIN_KEY
+from ..helpers.shared_parts import async_relink_history, borrowed_part_ids, pool_handover, relink_borrowers
+from ..helpers.task_origin import ORIGIN_KEY, task_origin
 from ..helpers.template_usage import OBJECT_TEMPLATE_ID
 from ..helpers.url_safety import is_safe_url
 from ..helpers.ws_errors import send_translated_error, send_unsafe_url_error
@@ -513,6 +513,26 @@ async def ws_delete_object(
 
 @websocket_api.websocket_command(
     {
+        vol.Required("type"): "maintenance_supporter/object/delete_preview",
+        vol.Required("entry_id"): ID_FIELD,
+    }
+)
+@websocket_api.async_response
+async def ws_delete_object_preview(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """What deleting the object hands on (D#256): the spare parts other
+    objects draw on move to one of them. Read only; the delete dialog asks."""
+    entry = _load_object_entry(hass, connection, msg)
+    if entry is None:
+        return
+    connection.send_result(msg["id"], {"parts_handover": pool_handover(hass, entry)})
+
+
+@websocket_api.websocket_command(
+    {
         vol.Required("type"): "maintenance_supporter/object/duplicate",
         vol.Required("entry_id"): ID_FIELD,
     }
@@ -574,9 +594,15 @@ async def ws_duplicate_object(
         task["id"] = task_id
         task["object_id"] = new_obj["id"]
         strip_task_runtime_state(task)
-        # The copy is the user's own task, not the duty / template task the
-        # original was created as (2.95 fingerprint) — like task/duplicate.
-        task.pop(ORIGIN_KEY, None)
+        # The copy is the user's own task, not the duty the original was
+        # adopted as (2.95 fingerprint) — like task/duplicate. A template
+        # task stays one: the copy keeps the object's template, and its
+        # review asks about the template's later changes as the original's
+        # does. Dropping the origin left the copy's review empty for good,
+        # while object/replace and the JSON import keep it (DRY audit
+        # 2026-11-07, BI7-B3).
+        if (task_origin(task) or {}).get("kind") != "template":
+            task.pop(ORIGIN_KEY, None)
         task = _remap_own_part_links(task, part_id_map, entry.entry_id)
         new_tasks[task_id] = task
         new_obj["task_ids"].append(task_id)
@@ -632,7 +658,7 @@ async def ws_create_from_template(
     if not _validate_device_link(hass, connection, msg, self_entry_id=None):
         return
 
-    lang = normalize_language_code(msg.get("language")) if msg.get("language") else normalize_language(hass)
+    lang = request_language(hass, msg.get("language"))
     default_name = localize_template_text(template.name, lang) or template.name
     name = (msg.get("name") or default_name).strip() or default_name
     # Auto-number on collision: applying the same template twice (or owning

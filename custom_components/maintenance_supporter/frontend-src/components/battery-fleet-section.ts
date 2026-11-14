@@ -17,10 +17,20 @@ import { px } from "../renderers/chart-utils";
 import type { HomeAssistant } from "../types";
 import { collapsible } from "../helpers/collapsible";
 import { checkField } from "../helpers/check-field";
+import { commitOnEnter, positiveCount } from "../helpers/keyboard";
 
+/** helpers/battery_fleet.py ``_row`` plus the cell choices of
+ *  ``roster_cell_choices`` (tests/test_typed_shapes.py pins the two, DRY audit
+ *  2026-10-30, X6-B11). */
 interface BatteryRow {
   entity_id: string;
+  /** "manufacturer|model", the lifetime learning pool's key. */
+  model_key?: string;
+  /** #180: low only because the recovery latch holds it. */
+  latched?: boolean;
   device_name: string;
+  /** D#267: the device's area; same-named devices are told apart by it. */
+  area_name?: string;
   battery_type: string;
   quantity: number;
   level: number | null;
@@ -131,6 +141,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
   /** #218: the cells whose dispose field is open, and how many. */
   @state() private _disposeFor: string | null = null;
   @state() private _disposeQty = "1";
+  @state() private _disposeInvalid = false;
   @state() private _history: HistorySeries | null = null;
   // Urgency by default (issue #123: "soon sat in the middle of the list");
   // the choice is remembered per browser.
@@ -202,8 +213,9 @@ export class MaintenanceBatteryFleetSection extends LitElement {
   /** #218: dead cells leave the "to charge" pile without going back to
    *  the stock, so the shopping list sees they are gone. */
   private async _dispose(entryId: string | null | undefined, partId: string): Promise<void> {
-    const qty = parseFloat(this._disposeQty);
-    if (!Number.isFinite(qty) || qty <= 0) return;
+    const qty = positiveCount(this._disposeQty);
+    this._disposeInvalid = qty === null;
+    if (qty === null) return;
     if (await this._act({ type: "maintenance_supporter/part/dispose", entry_id: entryId, part_id: partId, quantity: qty })) {
       this._disposeFor = null;
     }
@@ -215,10 +227,11 @@ export class MaintenanceBatteryFleetSection extends LitElement {
         @click=${() => {
           this._disposeFor = c.part_id;
           this._disposeQty = "1";
+          this._disposeInvalid = false;
         }}><ha-icon icon="mdi:trash-can-outline"></ha-icon>${t("part_dispose", L)}</button>`;
     }
     return html`<input
-        class="bf-dispose-qty"
+        class="bf-dispose-qty${this._disposeInvalid ? " invalid" : ""}"
         type="number"
         min="1"
         max=${String(c.restoring)}
@@ -226,10 +239,7 @@ export class MaintenanceBatteryFleetSection extends LitElement {
         aria-label=${t("part_dispose_how_many", L)}
         title=${t("part_dispose_how_many", L)}
         @input=${(e: Event) => (this._disposeQty = (e.target as HTMLInputElement).value)}
-        @keydown=${(e: KeyboardEvent) => {
-          if (e.key === "Enter") void this._dispose(entryId, c.part_id);
-          if (e.key === "Escape") this._disposeFor = null;
-        }}
+        @keydown=${commitOnEnter(() => void this._dispose(entryId, c.part_id), () => (this._disposeFor = null))}
       /><button class="bf-charged bf-dispose confirm" title=${t("part_dispose_hint", L)} .disabled=${this._marking}
         @click=${() => this._dispose(entryId, c.part_id)}><ha-icon icon="mdi:check"></ha-icon>${t("part_dispose", L)}</button
       ><button class="bf-charged bf-dispose" title=${t("cancel", L)} @click=${() => (this._disposeFor = null)}
@@ -447,8 +457,19 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     // ascending (a 6 % battery before an 18 % one); the rest by days-until.
     const rank = (r: RosterRow) => (r.status === "low" ? -1000 + (r.level ?? 101) / 101 : (r.days_until ?? Infinity));
     return [...filtered].sort(
-      (a, b) => rank(a) - rank(b) || a.device_name.localeCompare(b.device_name),
+      (a, b) =>
+        rank(a) - rank(b) ||
+        a.device_name.localeCompare(b.device_name) ||
+        (a.area_name || "").localeCompare(b.area_name || ""),
     );
+  }
+
+  /** D#267: the area to show beside a device name, unless the name already
+   *  says it ("Kitchen sensor" in the Kitchen). */
+  private _areaOf(b: BatteryRow): string {
+    const area = (b.area_name || "").trim();
+    if (!area || b.device_name.toLowerCase().includes(area.toLowerCase())) return "";
+    return area;
   }
 
   /** The forecast as a date a person can plan with, not a day count.
@@ -599,7 +620,11 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     const days = this._forecastDays(b);
     return html`
       <div class="bf-row">
-        <span class="bf-dev">${b.device_name}</span>
+        <span class="bf-dev"
+          >${b.device_name}${this._areaOf(b)
+            ? html`<span class="bf-area">${this._areaOf(b)}</span>`
+            : nothing}</span
+        >
         ${o.status
           ? html`<span class="bf-status bf-${b.status}"
                 >${b.no_sensor && b.status === "low"
@@ -948,6 +973,9 @@ export class MaintenanceBatteryFleetSection extends LitElement {
       background: var(--card-background-color);
       color: var(--primary-text-color);
     }
+    .bf-dispose-qty.invalid {
+      border-color: var(--error-color, #f44336);
+    }
     .bf-label {
       font-size: 12px;
       text-transform: uppercase;
@@ -990,6 +1018,11 @@ export class MaintenanceBatteryFleetSection extends LitElement {
     .bf-dev {
       grid-column: 1;
       min-width: 0;
+    }
+    .bf-area {
+      margin-inline-start: 6px;
+      color: var(--secondary-text-color);
+      font-size: 0.85em;
     }
     .bf-offline,
     .bf-status {

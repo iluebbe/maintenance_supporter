@@ -34,7 +34,7 @@ from .helpers import voice_undo
 from .helpers.aggregate import store_of
 from .helpers.assignees import person_display_name
 from .helpers.entry_tasks import write_task
-from .helpers.i18n import normalize_language_code
+from .helpers.i18n import DECIMAL_COMMA_LANGUAGES, normalize_language_code
 from .helpers.parts import MAX_PART_STOCK, is_part_low, packages_bought, restock_units
 from .helpers.reading_slots import resolve_reading_values, sanitize_reading_slots
 from .intent import (
@@ -59,11 +59,9 @@ from .intent import (
 )
 from .parts_runtime import async_change_part_stock, async_part_purchase, open_buy_task_id
 
-# Languages that write a decimal COMMA ("12,5"). Everything else here writes
-# a point; the spoken answer follows the same convention.
-_DECIMAL_COMMA = frozenset(
-    {"de", "fr", "es", "it", "nl", "pt", "pt-br", "ru", "uk", "pl", "cs", "da", "fi", "nb", "sv", "tr", "hu"}
-)
+# The languages that write a decimal comma: one list for what is heard,
+# said and written into a reminder (helpers/i18n).
+_DECIMAL_COMMA = DECIMAL_COMMA_LANGUAGES
 _NUMBER = re.compile(r"-?\d[\d\s.,'’]*")
 
 
@@ -466,7 +464,7 @@ class LowBatteriesIntent(intent.IntentHandler):
 
     async def async_handle(self, intent_obj: intent.Intent) -> intent.IntentResponse:
         """Handle the intent."""
-        from .helpers.battery_fleet import compute_overview
+        from .helpers.battery_fleet import battery_label, compute_overview
 
         lang = intent_obj.language
         response = intent_obj.create_response()
@@ -478,7 +476,7 @@ class LowBatteriesIntent(intent.IntentHandler):
             response.async_set_speech(_sp("batteries_none", lang))
             return response
         items = ", ".join(
-            _sp("battery_item", lang, device=row["device_name"], type=row["battery_type"]) for row in overview.low[:8]
+            _sp("battery_item", lang, device=battery_label(row), type=row["battery_type"]) for row in overview.low[:8]
         )
         speech = _sp_n("batteries_low", lang, len(overview.low), count=len(overview.low), items=items)
         if overview.needs_now:

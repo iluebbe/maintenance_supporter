@@ -44,7 +44,7 @@ from .entity.id_change import entity_id_changed
 from .entity.summary_coordinator import MaintenanceSummaryCoordinator
 from .entity.triggers import BaseTrigger, create_triggers, normalize_entity_ids
 from .helpers.aggregate import object_slug as aggregate_object_slug
-from .helpers.aggregate import store_of
+from .helpers.aggregate import part_stock_unique_id, store_of
 from .helpers.assignees import task_people_attributes
 from .helpers.coordinator_data import has_coordinator_data
 from .helpers.dates import parse_hhmm
@@ -381,6 +381,14 @@ class MaintenanceSensor(MaintenanceEntity, SensorEntity):
             result.trigger_current_value = None
             result.status = compute_live_status(result)
         await self._async_setup_triggers()
+
+    def settle_triggers(self) -> None:
+        """Let a compound waiting for late condition entities settle (the
+        coordinator asks while it keeps the latch on record for it)."""
+        for trigger in self._triggers:
+            settle = getattr(trigger, "settle", None)
+            if callable(settle):
+                settle()
 
     async def _async_setup_triggers(self) -> None:
         """The task's triggers from its rule, unless the task is inert."""
@@ -763,9 +771,7 @@ class PartStockSensor(MaintenanceEntity, SensorEntity):
         """Initialize the stock sensor for one part."""
         super().__init__(coordinator, part_id)
         self._part_id = part_id
-        obj_data = coordinator.entry.data.get(CONF_OBJECT, {})
-        object_slug = aggregate_object_slug(obj_data)
-        self._attr_unique_id = f"maintenance_supporter_{object_slug}_part_{part_id}"
+        self._attr_unique_id = part_stock_unique_id(coordinator.entry.data.get(CONF_OBJECT, {}), part_id)
 
     @property
     def name(self) -> str:
@@ -1028,12 +1034,14 @@ class BatteryFleetLowSensor(SensorEntity):
         ov = self._ov_for_attributes or self._overview()
         self._ov_for_attributes = None
 
+        from .helpers.battery_fleet import battery_label
+
         def _due_label(row: dict[str, Any]) -> str:
             # #135: dashboard-ready per-device lines. Rechargeables are
             # charged, never bought — no type suffix for them.
             if row.get("rechargeable"):
-                return f"{row['device_name']} — recharge"
-            return f"{row['device_name']} — replace ({row['battery_type']})"
+                return f"{battery_label(row)} — recharge"
+            return f"{battery_label(row)} — replace ({row['battery_type']})"
 
         return {
             "total_batteries": ov.total,
@@ -1051,6 +1059,8 @@ class BatteryFleetLowSensor(SensorEntity):
             "batteries_due_detailed": [
                 {
                     "name": r["device_name"],
+                    # D#267: same-named devices are told apart by their area.
+                    "area": r.get("area_name") or None,
                     "type": r["battery_type"],
                     "quantity": r["quantity"],
                     "level": r["level"],

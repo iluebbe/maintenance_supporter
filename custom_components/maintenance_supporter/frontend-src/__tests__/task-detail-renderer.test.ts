@@ -220,6 +220,19 @@ describe("task-detail renderer", () => {
     expect(host.querySelector(".paused-until")?.textContent).to.include("until");
   });
 
+  it("a paused or switched-off task has no Complete or Skip, nor Reset, Postpone and Snooze (FE7-A1)", () => {
+    // The server refuses them (helpers.pause.is_task_inert) and the card
+    // never offered them (isInertTask): the page did (DRY audit 2026-11-07).
+    for (const inert of [{ paused: true, status: "paused" }, { enabled: false }, { archived: true }]) {
+      const host = mount(task(inert as never), ctx({ moreMenuOpen: true }));
+      const buttons = [...host.querySelectorAll(".task-header-actions ha-button")].map((b) => b.textContent?.trim());
+      expect(buttons, JSON.stringify(inert)).to.not.include.members(["Complete", "Skip"]);
+      const items = [...host.querySelectorAll(".popup-menu-item")].map((i) => i.textContent?.trim() || "");
+      for (const word of ["Reset", "Postpone…", "Snooze"]) expect(items, `${word} ${JSON.stringify(inert)}`).to.not.include(word);
+      expect(items, "the QR code stays").to.include("QR Code");
+    }
+  });
+
   it("shows a bell-off badge for a muted task (#173), and none otherwise", () => {
     const muted = mount(task({ notify_enabled: false }), ctx());
     expect(muted.querySelector(".muted-badge")).to.exist;
@@ -261,6 +274,14 @@ describe("task-detail renderer", () => {
     expect(btn, "add-past button").to.exist;
     btn.click();
     expect(completed).to.equal(t2);
+  });
+
+  it("no 'add past completion' on an archived, switched-off or paused task: the server refuses it (bug audit 2026-11-08, E8-5)", () => {
+    for (const inert of [{ archived: true }, { enabled: false }, { status: "paused" }]) {
+      const host = mount(task(inert), ctx({ activeTab: "history" }));
+      expect(host.querySelector(".history-add-past-btn") === null, JSON.stringify(inert)).to.be.true;
+      host.remove();
+    }
   });
 
   it("object-manual row falls back to an attached manual when the URL is empty", () => {

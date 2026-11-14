@@ -13,7 +13,7 @@ Every request carries a client-assigned integer `id`.
 
 Payloads below are the `result` object.
 
-All 114 WebSocket commands the integration registers are covered here. Their
+All 119 WebSocket commands the integration registers are covered here. Their
 authorization tiers are frozen in `tests/test_ws_permission_matrix.py` — that
 test is the inventory of record; this file is its prose companion (and
 `tests/test_docs_counts_in_sync.py` keeps the counts quoted here honest).
@@ -123,6 +123,12 @@ Places (2026-10): `place` is a zone entity id (anything else, `""` and
 
 ### `object/delete` — `@require_write`
 `{entry_id}`. Result `{"success": true}`.
+
+### `object/delete_preview` — read
+`{entry_id}` → `{parts_handover: {new_owner, new_owner_entry_id, parts:[names]} | null}`.
+What the delete hands on: spare parts other objects draw on are not deleted
+with their owner, they move to the oldest of those objects. `null` when
+nothing moves. The delete dialog shows it before the delete.
 
 ### `object/archive` / `object/unarchive` — `@require_write`
 `{entry_id}`. Archive cascades `archived_reason:"object"` onto active tasks;
@@ -238,7 +244,24 @@ unit.
 `part/update` `{entry_id, part_id, name (req), ...same fields}` (`name` is
 required on every update; other omitted fields keep their stored values;
 `stock: null` untracks). `part/delete` `{entry_id, part_id}`
-(also prunes task links + any open buy reminder). `part/restock`
+(also prunes task links + any open buy reminder). `part/move` (#262)
+`{entry_id, part_id, target_entry_id}` → `{success, entry_id, part_id}` — the
+part goes to another object with its stock, its open order, the links of every
+task that uses it (the old owner's tasks then borrow it), the history's
+`used_parts` and its stock sensor (the entity id stays); `invalid_target` for the same object, an archived one or the
+battery fleet, `limit_reached` when the target's shelf is full. `part/order`
+(#261) `{entry_id, part_id, quantity?, expected_date?, note?}` →
+`{on_order, task_id}` — ordered, not here yet: recorded on the part as
+`on_order` `{quantity, expected, ordered_at, note}` (`quantity` counts packages
+like a purchase, the restock amount when left out); the part's buy reminder is
+kept or created (not for a part whose buy reminders are off) and, with an
+`expected_date` ahead, postponed to it; a date further out than a task may be
+postponed is refused before anything is stored. A second call replaces the
+order. The receipt is the reminder's completion or `part/purchase` (each closes
+the order) or a `part/restock` with a positive `delta` (what arrived comes off
+the order; it closes once all of it is here). `part/order_cancel`
+`{entry_id, part_id}` clears it (`not_found` without an open order) and ends
+the reminder's wait for the delivery, not a postponement of the user's own. `part/restock`
 `{entry_id, part_id, delta | absolute}` → `{stock}`. `part/use` (#226)
 `{entry_id, part_id, quantity?}` → `{stock, restoring}` — some used outside a
 task: off `stock` like a completion's parts (a reusable part's used ones onto
@@ -383,8 +406,11 @@ template's value (the user's anchor, end and business-day roll stay when the
 recurrence kind is the same) and adds an `updated` history entry per task;
 `accept: false` remembers the declined value (`origin.declined`, the object's
 `template_declined` for new tasks), so only a later, different change is
-offered again. History, completions and photos are never touched. Reloads the
-object.
+offered again. History, completions and photos are never touched. Changed
+fields take effect like a `task/update` (a new schedule, note or warning is a
+refresh, a new name reloads the object, 2.121+); new tasks reload it. New
+tasks are refused before anything is written: `archived` on an archived
+object, `limit_reached` past 200 tasks.
 
 ---
 
@@ -397,7 +423,8 @@ object.
   "name": "Replace filter",            // REQUIRED, 1..200
   "task_type": "replacement",          // wire key; stored as "type". default "custom".
                                        //   enum: cleaning|inspection|replacement|calibration|service|reading|custom
-  "schedule_type": "time_based",       // default. time_based|sensor_based|manual|one_time
+  "schedule_type": "time_based",       // time_based|sensor_based|manual|one_time; left out: what the
+                                       //   fields say (interval → time_based, due_date → one_time, else manual)
   "interval_days": 90,                 // 1..3650 | null (time interval)
   "interval_unit": "days",             // days|weeks|months|years (default days)
   "interval_anchor": "completion",     // completion|planned
@@ -422,6 +449,7 @@ object.
   "allow_skip": true,                  // #150: false = skip lock (server refuses task/skip + voice SkipTask)
   "notify_enabled": true,              // #173: false = no reminders for this task (status, repeats, lead-time, bundles); stored only when false
   "notify_icon": "mdi:air-filter",     // #185: push-notification icon override (mdi:…, ≤64); null/"" = the maintenance type's default; malformed = invalid_icon
+  "notification_texts": {"due_soon": {"title": "Bins tonight", "message": "{task}: {days} day(s)"}}, // #252: own texts per kind (due_soon/overdue/triggered/completed; title ≤120, message ≤500); {task} {object} {days} {due} {detail} {reason} {person}; null = the standard texts
   "checklist": ["Turn off power", "…"],// ≤100 items, each ≤500
   "reading_unit": "kWh",               // reading tasks — see "Meter readings" (also `readings` slots)
   "consumes_parts": [{"part_id": "p1", "quantity": 1}], // see "Spare parts"
@@ -454,12 +482,15 @@ Result: `{"task_id": "<uuid>"}` (+ `"warnings"` maybe). Dry-run:
 `invalid_trigger_config`, `invalid_url`, `invalid_entity_slug`, `invalid_format`.
 Without a nested `schedule`, `invalid_input` also refuses a flat recurrence that
 contradicts itself (2.104): an unknown `schedule_type`, `one_time` without a
-`due_date` (on `task/update`: unless the task already has one), and `manual` with
-an `interval_days`. A task cannot be added to an archived object.
+`due_date` (on `task/update`: unless the task already has one), `manual` with
+an `interval_days`, and (2.121) `time_based` without one (on `task/update`:
+unless the task already has an interval). The `add_task` / `update_task`
+services apply the same rules. A task cannot be added to an archived object.
+`consumes_parts: []` removes the links (the field is left out, 2.121).
 
 `invalid_trigger_config` also covers the VALUES (2.68.1+): thresholds,
 `trigger_target_value` and `trigger_baseline_value` must be finite numbers,
-`trigger_for_minutes` a whole number 0–1440, `trigger_target_changes` 1–10000,
+`trigger_for_minutes` a whole number 0–43200 (30 days), `trigger_target_changes` 1–10000,
 `trigger_runtime_hours` > 0 and ≤ 100000, `trigger_days_before` a whole number 0–365,
 `trigger_delta_mode` a real boolean
 (and a delta counter needs a positive step). Numeric strings are accepted and
@@ -510,7 +541,8 @@ Several tasks changed at once, across objects:
 `task/update` (`null` clears a field; rotation `off` / reminders on are
 stored as their absence), plus `labels_add` / `labels_remove` to edit
 labels without replacing them, and `quick_complete` (bool, #233: on keeps a
-task's own prefill). One write and one reload per object. A
+task's own prefill). One write per object, which takes effect like a
+`task/update` (a refresh; a reload only where a change needs one). A
 task that cannot take the change is reported in `failed`
 (`not_found`, `invalid_user`, `invalid_input` = no change at all) while
 the others are saved.
@@ -518,7 +550,7 @@ the others are saved.
 items (without a shared `changes`) to undo.
 
 ### Task actions (no write gate)
-- `task/complete` `{entry_id, task_id, notes?, cost? (-1e6..1e6; below zero = a credit), duration? (min, 0..525600), checklist_state? {str:bool}, feedback? (needed|not_needed|not_sure), photo_doc_ids? [doc id, max 10]}` → `{"success": true}` — photos are documents uploaded beforehand via `POST /api/maintenance_supporter/document/upload` (multipart `entry_id`, `tags=photo`, `file`); the history entry stores them as `photo_doc_ids` (entries written before 2.75 carry a single `photo_doc_id`, still accepted on input) — refused with `tag_scan_required` when the task has `require_tag_scan` (only the NFC handler, `task/quick_complete` and the `complete` service with `via_tag_scan: true` pass). Also takes `completed_at` (see *Backdated completions*), `reading_value` / `reading_values` (*Meter readings*), `used_parts` (*Spare parts*) and `restock_quantity` (a buy task). `via_tag_scan: true` exists here too — it is the panel's QR deep-link fallback and ASSERTS that someone scanned the tag at the thing: an assistant must never send it. Other refusals: `too_early` (completion window), `completion_details_required` (required fields), `task_inactive` (archived / disabled / paused)
+- `task/complete` `{entry_id, task_id, notes?, cost? (-1e6..1e6; below zero = a credit), duration? (min, 0..525600), checklist_state? {str:bool}, feedback? (needed|not_needed|not_sure), photo_doc_ids? [doc id, max 10]}` → `{"success": true, "undo": bool}` (`undo`: `task/undo` can take it back); a repeat of a completion just recorded (a double tap) records nothing and answers `{"success": true, "undo": false, "already_recorded_seconds": n}` — photos are documents uploaded beforehand via `POST /api/maintenance_supporter/document/upload` (multipart `entry_id`, `tags=photo`, `file`); the history entry stores them as `photo_doc_ids` (entries written before 2.75 carry a single `photo_doc_id`, still accepted on input) — refused with `tag_scan_required` when the task has `require_tag_scan` (only the NFC handler, `task/quick_complete` and the `complete` service with `via_tag_scan: true` pass). Also takes `completed_at` (see *Backdated completions*), `reading_value` / `reading_values` (*Meter readings*), `used_parts` (*Spare parts*) and `restock_quantity` (a buy task). `via_tag_scan: true` exists here too — it is the panel's QR deep-link fallback and ASSERTS that someone scanned the tag at the thing: an assistant must never send it. Other refusals: `too_early` (completion window), `completion_details_required` (required fields), `task_inactive` (archived / disabled / paused)
 - `task/quick_complete` `{entry_id, task_id, source? (qr|panel, default qr)}` → `{"success": true, "via": "quick", "undo": bool}` — records the task's prefill; needs *Quick complete* on (`quick_complete_defaults` present, `{}` included), else `no_defaults`. Only `source: qr` (the code on the thing) counts as the tag scan; `panel` is a tap in the panel or on a card
 - `task/checklist_progress` `{entry_id, task_id, checklist_state (req, {item text: bool})}` →
   `{"success": true, "checklist_state": {...}}` — persists in-cycle ticks WITHOUT
@@ -534,10 +566,11 @@ items (without a shared `changes`) to undo.
   this is only for corrections.
 - `task/postpone` `{entry_id, task_id, until (req, YYYY-MM-DD)}` → `{"success": true}` —
   defers **this occurrence only** to a chosen date; the recurrence itself is untouched.
-  Bad date, or one more than 3650 days out → `invalid_date` (the latter with
-  translation key `postpone_too_far`; since 2.96 the limit holds on every
-  surface, voice included). A date in the past (`postpone_in_past`) and a done
-  one-time task (`postpone_done`) are refused (2.104).
+  Bad date → `invalid_date`. One more than 3650 days out → `postpone_too_far`
+  (since 2.121 the code; before, `invalid_date` with that translation key; the
+  limit holds on every surface, voice included). A date in the past
+  (`postpone_in_past`) and a done one-time task (`postpone_done`) are refused
+  (2.104).
 - `task/snooze` `{entry_id, task_id}` → `{"success": true, "hours", "snoozed_until"}` (the duration and the ISO end, 2.96) — silences due-soon /
   overdue / triggered reminders for the configured `snooze_duration_hours`.
   Changes neither schedule nor status; the snooze is stored and survives a
@@ -566,8 +599,13 @@ due cycles. `events` are `{at, kind, …}`: `status` `{from, to}`, `reminder`
 `{reminder: status|lead|bundle, status?, days?}`, `reminder_cleared` `{reason:
 done|status_left|inert}`, `snoozed` `{until, hours}`, `done_when` `{entity,
 state, result: counted|waiting|left_early|not_due|inert|recent, minutes?,
-status?}`, `edited` `{fields}`; at most 200 per task. They are recorded only
-while `advanced_beta_editor_visible` is on (`enabled`). Error: `not_found`.
+status?}`, `edited` `{fields, changes?: {field: [before, after]}}` (every
+way of editing: the dialog, `tasks/update_many`, the `update_task` action,
+the options flow, a template's changes; a field sent as its default is no
+edit), `trigger_cleared` `{entity?, state?, value?, installed?, latest?}`
+(the sensor rule let go of the task by itself); at most 200 per task. They
+are recorded only while `advanced_beta_editor_visible` is on (`enabled`).
+Error: `not_found`.
 
 ### `tasks/by_user` — read (self) / write (others)
 `{user_id (req)}` → `{tasks:[…]}` — the tasks meant for that user (theirs, and
@@ -625,7 +663,9 @@ Any key outside the whitelist is stripped.
 - `detail_attribute`: `str|null` (2.109+) — an attribute of the watched entity
   shown with the task while the trigger is active (the task summary's
   `trigger_detail`, the reminder's last line), e.g. `"low"` of a medication
-  sensor. Also on a compound trigger (read from every condition's entity).
+  sensor. Numbers are rounded to two decimals; the summary writes them with a
+  point and names the decimals in `trigger_detail_numbers` (`null` without
+  any), so a client can put them into its viewer's number format. Also on a compound trigger (read from every condition's entity).
 - `trigger_combinator`: `"any"` (default) | `"all"` — how the trigger pairs with
   the task's safety interval. `any` = whichever is met first makes the task due;
   `all` = the task only becomes due once the trigger fired AND the interval
@@ -818,6 +858,10 @@ values dropped. Keys relevant to setup:
   mirrored into while due (unless `mirror_todo_use_default` is false); our own
   `todo.maintenance` = `invalid_mirror_todo`
 - `weekly_digest_enabled` (bool) — opt-in Monday summary
+- `notification_language` (`auto` | `en` … `pt-br` | `zh`; 2.121, #251) — the
+  language of every notification (titles, messages, buttons); `auto` = Home
+  Assistant's. A code as Home Assistant spells it (`pt-BR`, `zh-Hans`) is read as
+  its table (`pt-br`, `zh`); anything that is no such code is dropped
 - `notify_event_only` (bool; 2.80, #165) — fire `maintenance_supporter_notification`
   and send nothing (an automation delivers); `notify_extra_data` (str ≤ 2000;
   JSON/YAML with Jinja over every event field: kind/status/priority/labels/
@@ -930,6 +974,14 @@ archive below) — only metadata.
 reduced view: no parts / history / nested-schedule extras (tabular by design
 — the covered-or-excluded contract is pinned by
 `tests/test_export_roundtrip.py`).
+
+### `csv/history` — admin — one row per history entry (D#253)
+`{entry_ids?:[...], date_from?, date_to?}` → `{csv}`. Columns: `object`, `task`,
+`timestamp` (local, `YYYY-MM-DD HH:MM`), `type`, `ref_no`, `completed_by` (the
+person's name), `cost`, `parts_cost`, `duration`, `reading`, `feedback`,
+`notes`. `date_from` / `date_to` are inclusive local days (`invalid_date`
+otherwise). The `export_data` action writes the same table with
+`format: history_csv` (to `maintenance_history.csv`).
 
 ### `objects/csv` — one row per object (#67)
 `{entry_ids?:[...]}` → `{csv}`. Asset table download (no cost/history), so not
@@ -1145,7 +1197,7 @@ now go to (`null` entry = a new object, nothing to cover).
 object even across HA devices; pass `entry_id` to join an existing object) `{tasks_created,objects_created,total,errors?}`. Each selection becomes a task
 that triggers while the sensor is on and auto-completes on recovery
 (`state_change` → `on` + `auto_complete_on_recovery`). `for_minutes` (#136,
-0–1440) writes `trigger_for_minutes` on the created trigger: the problem must
+0–43200) writes `trigger_for_minutes` on the created trigger: the problem must
 persist that long before the task fires — the flicker filter for sensors that
 report problems for a few seconds. Omitted/0 = trigger on the first flicker.
 With `entry_id` it

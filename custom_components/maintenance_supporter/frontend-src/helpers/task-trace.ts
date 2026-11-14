@@ -11,13 +11,15 @@
  *  steps in a row folded into one (fifteen trigger firings are one line,
  *  their values in the details). Pure, unit-tested in task-trace.test.ts. */
 
-import { countText, formatDate, formatDateTime, formatNumber, formatRecurrence, formatUnit, t } from "../styles";
+import { countText, formatDate, formatDateTime, formatNumber, formatRecurrence, formatUnit, monthName, t, withUnit } from "../styles";
 import { historyNoteText } from "./history-note";
 import { conditionText } from "./task-rules";
 import { triggerValueText } from "./trigger-value";
-import { triggerEntityIds } from "./trigger-entities";
+import { compoundLogic, triggerEntityIds } from "./trigger-entities";
 import { URGENT_STATUSES } from "../status-constants";
-import type { HistoryEntry, TriggerConfig } from "../types";
+import { ownTextKinds } from "./notification-texts";
+import { REQUIRED_COMPLETION_LABELS } from "../components/required-completion-labels";
+import type { HistoryEntry, NotificationTexts, TriggerConfig } from "../types";
 
 /** One event of the journal, as `maintenance_supporter/task/trace` sends it. */
 export interface TraceEvent {
@@ -85,6 +87,8 @@ export interface TraceOptions {
   triggerUnit?: string;
   /** The rule is a state rule: its firings' value is only a count. */
   stateRule?: boolean;
+  /** An entity by its name: the steps named the sensor by its id. */
+  entityName?: (entityId: string) => string;
 }
 
 const STATUS_ICONS: Record<string, string> = {
@@ -131,6 +135,7 @@ const CLEARED_KEYS: Record<string, string> = {
   done: "beta_trace_cleared_done",
   status_left: "beta_trace_cleared_status",
   inert: "beta_trace_cleared_inert",
+  reassigned: "beta_trace_cleared_reassigned",
 };
 
 function str(v: unknown): string {
@@ -161,8 +166,9 @@ export function spanText(ms: number, lang: string): string {
 }
 
 /** One journal event as a timeline step. */
-export function eventItem(e: TraceEvent, lang: string): TraceItem {
+export function eventItem(e: TraceEvent, lang: string, opts: TraceOptions = {}): TraceItem {
   const L = lang;
+  const named = (id: string): string => (id && opts.entityName ? opts.entityName(id) : id);
   switch (e.kind) {
     case "status": {
       const from = str(e.from);
@@ -222,7 +228,7 @@ export function eventItem(e: TraceEvent, lang: string): TraceItem {
     case "done_when": {
       const result = str(e.result);
       const minutes = Number(e.minutes);
-      const entity = str(e.entity) || "—";
+      const entity = named(str(e.entity)) || "—";
       const state = str(e.state) || "—";
       const details: TraceDetail[] = [{ label: bare(t("complete_when", L)), value: `${entity} → ${state}` }];
       if (result === "not_due" && str(e.status)) details.push({ label: t("report_col_status", L), value: statusLabel(str(e.status), L) });
@@ -263,9 +269,11 @@ export function eventItem(e: TraceEvent, lang: string): TraceItem {
         : state
           ? fill(t("beta_trace_trigger_cleared_state", L), { state })
           : value !== null
-            ? fill(t("beta_trace_trigger_cleared_value", L), { value: formatNumber(value, L, { maximumFractionDigits: 3 }) })
+            ? fill(t("beta_trace_trigger_cleared_value", L), {
+                value: withUnit(formatNumber(value, L, { maximumFractionDigits: 3 }), opts.triggerUnit, L),
+              })
             : t("beta_trace_trigger_cleared", L);
-      const details: TraceDetail[] = str(e.entity) ? [{ label: t("beta_sensor_rule", L), value: str(e.entity) }] : [];
+      const details: TraceDetail[] = str(e.entity) ? [{ label: t("beta_sensor_rule", L), value: named(str(e.entity)) }] : [];
       return {
         at: e.at,
         icon: "mdi:alert-circle-check-outline",
@@ -283,8 +291,10 @@ export function eventItem(e: TraceEvent, lang: string): TraceItem {
 
 /** A stored task field → the locale key of the label the dialog shows for
  *  it. The trace named the fields by their storage keys ("interval_days,
- *  trigger_config"), readable in no language (language check 2026-11-01). */
-const FIELD_LABELS: Record<string, string> = {
+ *  trigger_config"), readable in no language (language check 2026-11-01).
+ *  tests/test_frontend_const_parity.py holds it against the stored task's
+ *  fields: one without a label read as "other settings". */
+export const FIELD_LABELS: Record<string, string> = {
   name: "task_name",
   type: "maintenance_type",
   enabled: "task_enabled",
@@ -316,11 +326,16 @@ const FIELD_LABELS: Record<string, string> = {
   rotation_strategy: "rotation_strategy",
   nfc_tag_id: "nfc_tag_id",
   require_tag_scan: "require_tag_scan",
+  // The dialog asks both the other way round: its values are turned too.
   allow_skip: "disallow_skip",
+  notify_enabled: "no_notifications",
+  required_completion_fields: "require_on_completion",
+  entity_slug: "entity_id",
   on_complete_action: "on_complete_action_title",
   quick_complete_defaults: "qr_action_quick_complete",
   consumes_parts: "consumes_parts_label",
   notify_icon: "notify_icon",
+  notification_texts: "notify_texts",
   mirror_todo_entities: "task_mirror_todo",
   mirror_todo_use_default: "task_mirror_todo",
   adaptive_config: "adaptive_enabled",
@@ -366,16 +381,41 @@ function clip(text: string, max: number): string {
 }
 
 /** A sensor rule in a few words: its sensors and their condition, or how
- *  many conditions a compound has. */
+ *  many conditions a compound has; then what happens when it ends by
+ *  itself. Two rules that differed only there read the same ("… → …"). */
 function ruleText(rule: TriggerConfig, ctx: ChangeContext): string {
   const L = ctx.lang;
+  let text: string;
   if (rule.type === "compound") {
     const n = String((rule.conditions || []).length);
-    return t((rule.compound_logic || "AND") === "AND" ? "beta_rules_all_of" : "beta_rules_any_of", L).split("{n}").join(n);
+    const all = compoundLogic(rule) === "AND";
+    text = t(all ? "beta_rules_all_of" : "beta_rules_any_of", L).split("{n}").join(n);
+  } else {
+    const who = triggerEntityIds(rule).map(ctx.entityName).join(", ");
+    const what = conditionText(rule, ctx.unit, L);
+    text = who ? `${who}: ${what}` : what;
   }
-  const who = triggerEntityIds(rule).map(ctx.entityName).join(", ");
-  const what = conditionText(rule, ctx.unit, L);
-  return who ? `${who}: ${what}` : what;
+  if (rule.trigger_hold_until_done) return `${text} · ${t("trigger_end_hold", L)}`;
+  if (rule.auto_complete_on_recovery) return `${text} · ${t("trigger_end_done", L)}`;
+  return text;
+}
+
+/** What a stored schedule says beyond its kind and day: the date of a
+ *  one-time task, an interval counted from the planned date, the season, the
+ *  end of a series. "One-time → One-time" was a new date (FE7-A3). */
+function scheduleText(s: Record<string, unknown>, L: string): string {
+  const base = formatRecurrence({ schedule: s, due_date: typeof s.due_date === "string" ? s.due_date : undefined } as Parameters<typeof formatRecurrence>[0], L);
+  const parts = [base];
+  if (s.anchor === "planned") parts.push(t("anchor_planned", L));
+  if (Array.isArray(s.season_months) && s.season_months.length) {
+    const months = [...s.season_months].filter((m): m is number => typeof m === "number").sort((a, b) => a - b);
+    parts.push(`${bare(t("season_window_label", L))}: ${months.map((m) => monthName(m - 1, L, "short")).join(", ")}`);
+  }
+  if (isRecord(s.ends)) {
+    if (typeof s.ends.count === "number") parts.push(`${t("series_end_count_label", L)}: ${formatNumber(s.ends.count, L)}`);
+    if (typeof s.ends.until === "string") parts.push(`${t("series_end_until_label", L)}: ${formatDate(s.ends.until, L)}`);
+  }
+  return parts.join(" · ");
 }
 
 /** One stored value of a task field the way the dialog would say it: a
@@ -386,11 +426,30 @@ export function changeValue(field: string, v: unknown, ctx: ChangeContext): stri
   if (v === null || v === undefined || v === "" || (Array.isArray(v) && !v.length)) return "—";
   switch (field) {
     case "schedule":
-      return isRecord(v) ? formatRecurrence({ schedule: v } as Parameters<typeof formatRecurrence>[0], L) : "—";
+      return isRecord(v) ? scheduleText(v, L) : "—";
     case "trigger_config":
       return isRecord(v) ? ruleText(v as unknown as TriggerConfig, ctx) : "—";
-    case "complete_when":
-      return isRecord(v) && typeof v.entity_id === "string" ? `${ctx.entityName(v.entity_id)} → ${str(v.to_state) || "—"}` : "—";
+    case "notification_texts":
+      // #252: which kinds the task words itself (the texts are too long).
+      return isRecord(v) ? ownTextKinds(v as NotificationTexts).map((k) => t(k, L)).join(", ") || "—" : "—";
+    case "complete_when": {
+      if (!isRecord(v) || typeof v.entity_id !== "string") return "—";
+      // As the task's badge says it: how long the state must hold, and
+      // whether it also counts while the task is not due.
+      let text = `${ctx.entityName(v.entity_id)} → ${str(v.to_state) || "—"}`;
+      const minutes = Number(v.for_minutes);
+      if (Number.isFinite(minutes) && minutes > 0) text += ` ${t("complete_when_badge_for", L).replace("{minutes}", String(minutes))}`;
+      if (v.any_time === true) text += `, ${t("complete_when_badge_any_time", L)}`;
+      return text;
+    }
+    case "allow_skip":
+    case "notify_enabled":
+      // Labelled as the dialog asks: "Don't allow skipping", "No notifications".
+      return typeof v === "boolean" ? (v ? "✗" : "✓") : str(v);
+    case "rotation_strategy":
+      return t(`rotation_${str(v)}`, L);
+    case "required_completion_fields":
+      return Array.isArray(v) ? v.map((f) => t(REQUIRED_COMPLETION_LABELS[str(f)] ?? str(f), L)).join(", ") : "—";
     case "interval_days":
     case "warning_days":
     case "earliest_completion_days":
@@ -566,7 +625,7 @@ export function buildCycles(events: TraceEvent[], history: HistoryEntry[], lang:
   let order = 0;
   for (const e of events) {
     if (!e || typeof e.at !== "string" || typeof e.kind !== "string") continue;
-    steps.push({ item: eventItem(e, lang), ends: false, kind: e.kind, order: order++, type: "" });
+    steps.push({ item: eventItem(e, lang, opts), ends: false, kind: e.kind, order: order++, type: "" });
   }
   for (const h of history) {
     if (!h || typeof h.timestamp !== "string") continue;

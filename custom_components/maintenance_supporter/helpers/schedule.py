@@ -874,6 +874,45 @@ def preview_occurrences(
         times += 1
     return occurrences, series_ended
 
+#: How many coming dates a calendar-kind task carries for the Calendar tab;
+#: the frontend's MAX_OCCURRENCES_PER_TASK caps what it draws.
+UPCOMING_OCCURRENCES = 5
+
+
+def upcoming_occurrences(
+    task: Mapping[str, Any], *, today: date, times_performed: int = 0, count: int = UPCOMING_OCCURRENCES
+) -> list[str]:
+    """The coming due dates (ISO) of a weekdays / nth-weekday / day-of-month /
+    calendar task, from the engine (#266).
+
+    The Calendar tab projected only flat intervals, by adding days in the
+    frontend; a calendar kind showed its next date and nothing after. Those
+    dates cannot be stepped there (the #103 lesson), so the task summary
+    carries them. Other kinds return an empty list: an interval is stepped by
+    the frontend as before, and a one-off or manual task has no series.
+    """
+    try:
+        sched = Schedule.parse(task)
+        if sched.kind not in _CALENDAR_KINDS:
+            return []
+        lp_raw = task.get("last_performed")
+        lp = parse_iso_date(lp_raw[:10]) if isinstance(lp_raw, str) and lp_raw else None
+        dates, _ended = preview_occurrences(
+            sched, last_performed=lp, times_performed=times_performed, today=today, count=count, **cycle_state(task)
+        )
+        if dates and dates[0] < today:
+            # Overdue: the preview steps on from the missed date, one on-time
+            # completion each, and would list dates already gone. The grid of
+            # these kinds does not depend on when the task was last done, so
+            # the dates ahead are those of the same schedule counted from today.
+            dates, _ended = preview_occurrences(
+                sched, last_performed=None, times_performed=times_performed, today=today, count=count, created_at=today
+            )
+    except (TypeError, ValueError):  # pragma: no cover - malformed legacy data
+        return []
+    return [d.isoformat() for d in dates if d >= today]
+
+
 def is_recurring(task: Mapping[str, Any]) -> bool:
     """True iff the task dict has a cycling schedule (interval or calendar kind).
 
@@ -900,6 +939,56 @@ FLAT_RECURRENCE_KEYS = (
     "interval_anchor",
     "due_date",
 )
+
+
+#: The flat ``schedule_type`` values (const.ScheduleType).
+_FLAT_SCHEDULE_TYPES = ("time_based", "sensor_based", "manual", "one_time")
+
+#: The one refusal of :func:`flat_recurrence_refusal` the task dialog can
+#: reach (a time-based task with an empty interval), so the WS commands send
+#: it with a translation key (bug audit 2026-11-08, W8-1).
+TIME_BASED_NEEDS_INTERVAL = "A time-based task needs interval_days"
+
+
+def implied_schedule_type(*, interval_days: Any, due_date: Any, schedule: Mapping[str, Any] | None = None) -> str:
+    """What a create without ``schedule_type`` asks for: the kind its other
+    fields describe; a bare name stays a manual task. The ``add_task``
+    service read it so; ``task/create`` took ``time_based`` and made a
+    manual task of it (DRY audit 2026-10-30, BI6-B8)."""
+    if schedule:
+        kind = Schedule.from_dict(schedule).kind
+        return kind if kind in (KIND_ONE_TIME, KIND_MANUAL) else "time_based"
+    if due_date:
+        return KIND_ONE_TIME
+    return "time_based" if interval_days is not None else KIND_MANUAL
+
+
+def flat_recurrence_refusal(
+    schedule_type: str,
+    *,
+    interval_days: Any,
+    due_date: Any,
+    stored_kind: str | None = None,
+    stored_due: Any = None,
+) -> str | None:
+    """Why a flat recurrence request (no nested ``schedule``) contradicts
+    itself, or None: an unknown type, a one-time task without a date, a
+    manual task with an interval, a time-based one without. The storage
+    model resolves a contradiction by picking one side, so the task was
+    quietly something else than asked. ``stored_kind`` / ``stored_due``: an
+    edited task's kind and date (an interval task switched to time_based
+    keeps its interval, a one-time task its date). The WS task commands and
+    the ``add_task`` / ``update_task`` services each kept a part (DRY audit
+    2026-10-30, BI6-B8)."""
+    if schedule_type not in _FLAT_SCHEDULE_TYPES:
+        return f"Unknown schedule_type {schedule_type!r}"
+    if schedule_type == KIND_ONE_TIME and not due_date and not stored_due:
+        return "A one-time task needs a due_date"
+    if schedule_type == KIND_MANUAL and interval_days is not None:
+        return "A manual task has no interval — leave interval_days out"
+    if schedule_type == "time_based" and interval_days is None and stored_kind != KIND_INTERVAL:
+        return TIME_BASED_NEEDS_INTERVAL
+    return None
 
 
 def normalize_task_storage(task: Mapping[str, Any]) -> dict[str, Any]:

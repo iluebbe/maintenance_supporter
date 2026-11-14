@@ -1,0 +1,17 @@
+{
+  "_comment": "A language code as a table key. Read by tests/test_frontend_const_parity.py (helpers/i18n.normalize_language_code) and language-code-vectors.test.ts (helpers/locale-core normLang).",
+  "vectors": [
+    { "code": "de", "expected": "de" },
+    { "code": "DE", "expected": "de" },
+    { "code": "en-GB", "expected": "en" },
+    { "code": "pt-BR", "expected": "pt-br" },
+    { "code": "pt_br", "expected": "pt-br" },
+    { "code": "pt", "expected": "pt" },
+    { "code": "pt-PT", "expected": "pt" },
+    { "code": "zh-Hans", "expected": "zh" },
+    { "code": "zh-Hant", "expected": "zh" },
+    { "code": "nb", "expected": "nb" },
+    { "code": "", "expected": "en" },
+    { "code": null, "expected": "en" }
+  ]
+}

@@ -25,6 +25,8 @@ from .helpers.object_names import name_changed_onto_taken
 from .helpers.sanitize import cap_object_fields
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
 
@@ -38,6 +40,7 @@ class ObjectSettingsMixin:
         config_entry: ConfigEntry
 
         def _show_init_menu(self) -> ConfigFlowResult: ...
+        def _note_flow_write(self, new_data: Mapping[str, Any]) -> None: ...
         def async_show_form(self, **kwargs: Any) -> ConfigFlowResult: ...
         def add_suggested_values_to_schema(self, data_schema: vol.Schema, suggested_values: Any) -> vol.Schema: ...
 
@@ -93,6 +96,7 @@ class ObjectSettingsMixin:
             cap_object_fields(obj)
             new_data[CONF_OBJECT] = obj
 
+            self._note_flow_write(new_data)
             self.hass.config_entries.async_update_entry(
                 self.config_entry,
                 data=new_data,

@@ -22,6 +22,7 @@ type + range + length checks.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import dataclass
 from typing import Any
@@ -69,6 +70,7 @@ from ..const import (
     CONF_MIRROR_TODO_DEFAULT_ENTITIES,
     CONF_NOTIFICATION_BUNDLE_THRESHOLD,
     CONF_NOTIFICATION_BUNDLING_ENABLED,
+    CONF_NOTIFICATION_LANGUAGE,
     CONF_NOTIFICATION_TITLE_PREFIX,
     CONF_NOTIFICATION_TITLE_STYLE,
     CONF_NOTIFICATIONS_ENABLED,
@@ -119,6 +121,8 @@ from ..const import (
     DEFAULT_WARRANTY_REMINDER_DAYS,
     MAX_NOTIFY_EXTRA_DATA_LENGTH,
     MAX_PART_SEARCH_URL_TEMPLATE_LENGTH,
+    NOTIFICATION_LANGUAGE_AUTO,
+    ROW_ACTION_STYLES,
 )
 
 
@@ -225,6 +229,9 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     # D#248: trimmed + capped by the sanitiser like the panel title (no
     # max_len here: that would drop an over-long value instead).
     SettingSpec(CONF_NOTIFICATION_TITLE_PREFIX, str, ""),
+    # #251: "auto" (Home Assistant's) or a notification table language
+    # (enum-checked in settings_sanitize).
+    SettingSpec(CONF_NOTIFICATION_LANGUAGE, str, NOTIFICATION_LANGUAGE_AUTO, max_len=8),
     # #173 follow-up: completion notifications off / automatic / all (enum-checked in dashboard.py).
     SettingSpec(CONF_NOTIFY_COMPLETED, str, "off", max_len=16),
     SettingSpec(CONF_NOTIFY_SCOPE_VIEW_ID, str, "", max_len=64),
@@ -267,6 +274,20 @@ def setting_default(key: str) -> Any:
 def settings_defaults() -> dict[str, Any]:
     """``{key: default}`` for every registered setting (fresh copies)."""
     return {s.key: setting_default(s.key) for s in SETTING_SPECS}
+
+
+def shown_row_action_style(options: Mapping[str, Any]) -> str:
+    """How task rows show Complete / Skip now: the household's choice; while
+    nobody has chosen, icons with the new look, else the default. The twin of
+    the frontend's effectiveRowActionStyle (helpers/settings-cache.ts); the
+    options flow offered the bare default and stored it on every save, which
+    turned the new look's icons into buttons (DRY audit 2026-11-07, BI7-A1)."""
+    if CONF_ROW_ACTION_STYLE not in options and options.get(
+        CONF_ADVANCED_BETA_EDITOR, setting_default(CONF_ADVANCED_BETA_EDITOR)
+    ):
+        return "icons"
+    style = options.get(CONF_ROW_ACTION_STYLE)
+    return style if style in ROW_ACTION_STYLES else DEFAULT_ROW_ACTION_STYLE
 
 
 # ─── Derived views (single source → the tables the handler used to hand-keep) ─

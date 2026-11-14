@@ -305,8 +305,9 @@ def _task_block(hass: HomeAssistant, entry: Any, obj: Mapping[str, Any], task_id
         # with only the plural entity_ids read null).
         "sensor_entity_id": task_sensor_entity_id(hass, obj, task_id),
         "trigger_entity_id": primary_entity_id(trigger),
-        # #228: the trigger's detail attribute, as the reminder shows it.
-        "trigger_detail": trigger_detail(hass, trigger),
+        # #228: the trigger's detail attribute, rounded as the reminder shows
+        # it and with a decimal point: an automation may read the number.
+        "trigger_detail": trigger_detail(hass, trigger, "en"),
     }
 
 

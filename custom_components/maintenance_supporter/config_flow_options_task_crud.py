@@ -107,6 +107,8 @@ class TaskCrudMixin:
         def _update_config_entry(self, new_data: dict[str, Any]) -> None: ...
         def async_show_form(self, **kwargs: Any) -> ConfigFlowResult: ...
 
+        _flow_reload: bool
+
     async def async_step_manage_tasks(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """List and manage existing tasks."""
         tasks_data = self.config_entry.data.get(CONF_TASKS, {})
@@ -730,6 +732,7 @@ class TaskCrudMixin:
                 # The inline copy this replaced missed most of those.
                 if self._selected_task_id:
                     await async_delete_task(self.hass, self.config_entry, self._selected_task_id)
+                    self._flow_reload = True  # one task fewer
 
                 return self._show_init_menu()
 

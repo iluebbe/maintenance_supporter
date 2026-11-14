@@ -1,0 +1,205 @@
+{
+  "_doc": "Rules the panel and the server each implement, read by tests/test_frontend_const_parity.py and __tests__/twin-rules-vectors.test.ts (DRY audit 2026-10-30, X6-B8 / X6-B10 / X6-B13): which lists a task is mirrored into (todo_mirror.mirror_lists / mirrorListsOf), who it is for (assignees.task_user_ids / taskUserIds), whether Quick complete is on (completion_requirements.quick_complete_on / quickCompleteOn).",
+  "mirror_lists": [
+    {
+      "task": {},
+      "defaults": [
+        "todo.house"
+      ],
+      "lists": [
+        "todo.house"
+      ]
+    },
+    {
+      "task": {
+        "mirror_todo_entities": [
+          "todo.shop"
+        ]
+      },
+      "defaults": [
+        "todo.house"
+      ],
+      "lists": [
+        "todo.shop"
+      ]
+    },
+    {
+      "task": {
+        "mirror_todo_entities": []
+      },
+      "defaults": [
+        "todo.house"
+      ],
+      "lists": [
+        "todo.house"
+      ]
+    },
+    {
+      "task": {
+        "mirror_todo_use_default": false
+      },
+      "defaults": [
+        "todo.house"
+      ],
+      "lists": []
+    },
+    {
+      "task": {
+        "mirror_todo_entities": [
+          "todo.shop"
+        ],
+        "mirror_todo_use_default": false
+      },
+      "defaults": [
+        "todo.house"
+      ],
+      "lists": [
+        "todo.shop"
+      ]
+    },
+    {
+      "task": {
+        "mirror_todo_use_default": true
+      },
+      "defaults": [],
+      "lists": []
+    },
+    {
+      "task": {
+        "mirror_todo_entities": [
+          "",
+          5,
+          "todo.a"
+        ]
+      },
+      "defaults": [
+        "todo.house"
+      ],
+      "lists": [
+        "todo.a"
+      ]
+    },
+    {
+      "task": {
+        "mirror_todo_entities": null
+      },
+      "defaults": [
+        "todo.house",
+        "todo.b"
+      ],
+      "lists": [
+        "todo.house",
+        "todo.b"
+      ]
+    }
+  ],
+  "task_user_ids": [
+    {
+      "task": {},
+      "ids": []
+    },
+    {
+      "task": {
+        "responsible_user_id": "u1",
+        "assignee_pool": [
+          "u2"
+        ]
+      },
+      "ids": [
+        "u1"
+      ]
+    },
+    {
+      "task": {
+        "assignee_pool": [
+          "u2",
+          "u3",
+          "u2",
+          ""
+        ]
+      },
+      "ids": [
+        "u2",
+        "u3"
+      ]
+    },
+    {
+      "task": {
+        "responsible_user_id": "",
+        "assignee_pool": [
+          "u2"
+        ]
+      },
+      "ids": [
+        "u2"
+      ]
+    },
+    {
+      "task": {
+        "responsible_user_id": null,
+        "assignee_pool": null
+      },
+      "ids": []
+    },
+    {
+      "task": {
+        "assignee_pool": [
+          "u1",
+          5
+        ]
+      },
+      "ids": [
+        "u1"
+      ]
+    },
+    {
+      "task": {
+        "responsible_user_id": 5,
+        "assignee_pool": [
+          "u2"
+        ]
+      },
+      "ids": [
+        "u2"
+      ]
+    }
+  ],
+  "quick_complete_on": [
+    {
+      "task": {},
+      "on": false
+    },
+    {
+      "task": {
+        "quick_complete_defaults": {}
+      },
+      "on": true
+    },
+    {
+      "task": {
+        "quick_complete_defaults": {
+          "notes": "Filter rinsed"
+        }
+      },
+      "on": true
+    },
+    {
+      "task": {
+        "quick_complete_defaults": null
+      },
+      "on": false
+    },
+    {
+      "task": {
+        "quick_complete_defaults": []
+      },
+      "on": false
+    },
+    {
+      "task": {
+        "quick_complete_defaults": "yes"
+      },
+      "on": false
+    }
+  ]
+}

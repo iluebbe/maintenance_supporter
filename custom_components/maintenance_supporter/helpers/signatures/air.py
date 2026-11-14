@@ -613,17 +613,28 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "pura": IntegrationSignature(
         name="Pura fragrance diffusers",
-        verified="2026-09-27 @ natekspencer/ha-pura main (6166f16)",
+        verified="2026-11-09 @ natekspencer/ha-pura main (0d1c393, 1.12.2)",
         source=(
-            "HACS pura sensor.py: tk 'fragrance_remaining' (car/mini) and "
-            "'bay_fragrance_remaining' (wall/plus, one per bay with the "
-            "placeholder {bay}), PERCENTAGE — pypura's bay.remaining.percent, "
-            "else (expectedLifeHours − runtime) / expectedLife → % REMAINING. "
-            "Two-bay diffusers get one task per vial."
+            "HACS pura sensor.py: tk 'fragrance_remaining' (car/mini) and, per "
+            "slot from _bay_sensors(bay), tk f'bay_{bay}_fragrance_remaining' "
+            "('Slot N fragrance remaining'; wall/plus/luxe slots 1-2, luxe also "
+            "3-4) since 1.11.0 (ec3f00b, #171; the Luxe slots 4ea1afa, #179, "
+            "1.12.0); up to 1.10.0 one tk 'bay_fragrance_remaining' with the "
+            "placeholder {bay}, kept for those installs. PERCENTAGE — pypura's "
+            "get_fragrance_remaining (bay.remaining.percent, else "
+            "(expectedLifeHours − runtime) / expectedLife) → % REMAINING. "
+            "Multi-slot diffusers get one task per vial."
         ),
         tasks=(
             ConsumableSignature(
-                ("fragrance_remaining", "bay_fragrance_remaining"),
+                (
+                    "fragrance_remaining",
+                    "bay_1_fragrance_remaining",
+                    "bay_2_fragrance_remaining",
+                    "bay_3_fragrance_remaining",
+                    "bay_4_fragrance_remaining",
+                    "bay_fragrance_remaining",
+                ),
                 "Replace Air Freshener",
                 "percent_left",
                 per_entity=True,

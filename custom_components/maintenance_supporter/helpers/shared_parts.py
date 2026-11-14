@@ -24,11 +24,12 @@ import logging
 from collections.abc import Callable
 from typing import Any
 
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
 
 from ..const import (
+    BATTERY_FLEET_OBJECT_FLAG,
     CONF_OBJECT,
     CONF_PARTS,
     CONF_TASKS,
@@ -40,7 +41,7 @@ from ..storage import MaintenanceStore
 from .aggregate import async_store_even_unloaded, get_object_entries, is_object_entry, object_id_for_entry, object_name
 from .entry_tasks import write_tasks
 from .issues import SHARED_PARTS_MOVED_PREFIX, shared_parts_moved_issue_id
-from .parts import iter_part_links, map_part_links
+from .parts import MAX_PARTS_PER_OBJECT, iter_part_links, map_part_links, map_used_parts
 from .pause import is_task_inert
 
 _LOGGER = logging.getLogger(__name__)
@@ -180,21 +181,15 @@ def relink_history(store: Any, old_owner: str, new_owner: str, moved: dict[str, 
     history edit or delete looks the part up: after the owner was deleted
     the stock went back to nothing, after a replace into the archived
     predecessor's hidden copy (bug audit 2026-10-17, S-7)."""
+    def _relink(used: list[Any]) -> list[Any]:
+        return [_relinked(link, old_owner, new_owner, moved) if isinstance(link, dict) else link for link in used]
+
     changed = False
     for task_id, state in store.all_task_states().items():
         history = state.get("history")
         if not isinstance(history, list):
             continue
-        rewritten: list[Any] = []
-        touched = False
-        for entry in history:
-            used = entry.get("used_parts") if isinstance(entry, dict) else None
-            if isinstance(used, list):
-                relinked = [_relinked(link, old_owner, new_owner, moved) if isinstance(link, dict) else link for link in used]
-                if relinked != used:
-                    entry = {**entry, "used_parts": relinked}
-                    touched = True
-            rewritten.append(entry)
+        rewritten, touched = map_used_parts(history, _relink)
         if touched:
             store.set_history(task_id, rewritten)
             changed = True
@@ -224,6 +219,122 @@ def relink_borrowers(hass: HomeAssistant, old_owner: str, new_owner: str, moved:
             write_tasks(hass, entry, tasks)
             touched += 1
     return touched
+
+
+class PartMoveError(Exception):
+    """A part cannot move as asked; ``code`` names why for the caller."""
+
+    def __init__(self, code: str, message: str) -> None:
+        super().__init__(message)
+        self.code = code
+
+
+async def async_move_part(hass: HomeAssistant, source: ConfigEntry, target: ConfigEntry, part_id: str) -> str:
+    """Move one part to another object (#262). Returns its id there.
+
+    The part keeps everything that makes it that part: its definition, its
+    stock and the used ones waiting, the links of every task that draws on it
+    (the old owner's own tasks now borrow it from the new one) and where the
+    history says its parts came from. Its manual moves along unless another
+    part of the old owner uses the same document.
+
+    The old owner's open buy reminder goes with its next reconcile, and the
+    new owner's reconcile makes one if the part is low there. The stock
+    sensor is the new owner's from then on.
+    """
+    if source.entry_id == target.entry_id:
+        raise PartMoveError("invalid_target", "The part is already on this object")
+    if not is_object_entry(target):
+        raise PartMoveError("invalid_target", "The target is not a maintenance object")
+    source_obj = source.data.get(CONF_OBJECT) or {}
+    target_obj = target.data.get(CONF_OBJECT) or {}
+    # The battery fleet mints and removes its own type parts; nothing else
+    # may sit on that shelf, and its parts stay where the fleet looks.
+    if source_obj.get(BATTERY_FLEET_OBJECT_FLAG) is True or target_obj.get(BATTERY_FLEET_OBJECT_FLAG) is True:
+        raise PartMoveError("invalid_target", "Battery fleet parts cannot be moved")
+    if target_obj.get("archived_at") is not None:
+        raise PartMoveError("invalid_target", "The target object is archived")
+
+    source_parts = dict(source.data.get(CONF_PARTS) or {})
+    part = source_parts.get(part_id)
+    if not isinstance(part, dict):
+        raise PartMoveError("not_found", "Part not found")
+    target_parts = dict(target.data.get(CONF_PARTS) or {})
+    if len(target_parts) >= MAX_PARTS_PER_OBJECT:
+        raise PartMoveError("limit_reached", f"At most {MAX_PARTS_PER_OBJECT} parts per object")
+
+    source_store = await async_store_even_unloaded(hass, source)
+    target_store = await async_store_even_unloaded(hass, target)
+    if source_store is None or target_store is None:  # pragma: no cover - a Store always loads
+        raise PartMoveError("not_loaded", "The object's data could not be loaded")
+    stock = source_store.get_part_stock(part_id)
+    waiting = source_store.get_part_restoring(part_id)
+
+    new_id = part_id
+    while new_id in target_parts:
+        new_id = f"{new_id}_moved"
+    moved = {part_id: new_id}
+    moved_part = {**part, "id": new_id}
+
+    # The manual: documents are object-owned. Alone with this part it moves
+    # along; shared with another part of the old owner it stays there.
+    doc_id = part.get("doc_id")
+    if isinstance(doc_id, str) and doc_id:
+        shared = any(pid != part_id and isinstance(p, dict) and p.get("doc_id") == doc_id for pid, p in source_parts.items())
+        doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
+        if shared or doc_store is None:
+            moved_part.pop("doc_id", None)
+        else:
+            await doc_store.async_rehome({doc_id}, object_id_for_entry(target))
+
+    # The new owner: the part, its stock, and its own tasks' links (they
+    # borrowed it until now) and history pointing at themselves.
+    target_parts[new_id] = moved_part
+    target_tasks, _ = relink_tasks(dict(target.data.get(CONF_TASKS) or {}), source.entry_id, "", moved)
+    hass.config_entries.async_update_entry(target, data={**target.data, CONF_PARTS: target_parts, CONF_TASKS: target_tasks})
+    if stock is not None:
+        target_store.set_part_stock(new_id, stock)
+        target_store.set_part_restoring(new_id, waiting)
+    target_store.set_part_order(new_id, source_store.get_part_order(part_id))
+    relink_history(target_store, source.entry_id, "", moved)
+    await target_store.async_save()
+
+    # Everybody else who draws on it.
+    for other in object_entries(hass):
+        if other.entry_id in (source.entry_id, target.entry_id):
+            continue
+        tasks, changed = relink_tasks(dict(other.data.get(CONF_TASKS) or {}), source.entry_id, target.entry_id, moved)
+        if changed:
+            write_tasks(hass, other, tasks)
+        await async_relink_history(hass, other, source.entry_id, target.entry_id, moved)
+
+    # The old owner: the part is gone from its shelf, its own tasks (their
+    # links name no owner) now borrow it, and so does its history.
+    del source_parts[part_id]
+    source_tasks, _ = relink_tasks(dict(source.data.get(CONF_TASKS) or {}), "", target.entry_id, moved)
+    hass.config_entries.async_update_entry(source, data={**source.data, CONF_PARTS: source_parts, CONF_TASKS: source_tasks})
+    relink_history(source_store, "", target.entry_id, moved)
+    source_store.remove_part(part_id)
+    await source_store.async_save()
+
+    _LOGGER.info("Moved spare part %s from %s to %s", part.get("name"), object_name(source), object_name(target))
+    return new_id
+
+
+def pool_handover(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, Any] | None:
+    """What deleting ``entry`` hands on: the parts other objects draw on and
+    the object that takes them (D#256, #262). None when nothing moves.
+
+    The delete dialog says it before the delete; the transfer below decides
+    by the same two scans, so the dialog cannot promise another heir.
+    """
+    wanted = borrowed_part_ids(hass, entry.entry_id)
+    owner_parts = entry.data.get(CONF_PARTS) or {}
+    names = sorted(str(part.get("name") or "?") for pid, part in owner_parts.items() if pid in wanted and isinstance(part, dict))
+    heirs = borrowers_of(hass, entry.entry_id)
+    if not names or not heirs:
+        return None
+    return {"new_owner": object_name(heirs[0]), "new_owner_entry_id": heirs[0].entry_id, "parts": names}
 
 
 async def async_transfer_pools_on_removal(hass: HomeAssistant, entry: ConfigEntry) -> None:
@@ -302,6 +413,12 @@ async def async_transfer_pools_on_removal(hass: HomeAssistant, entry: ConfigEntr
             heir_store.set_part_restoring(target_id, waiting.get(pid, 0))
     relink_history(heir_store, owner_id, "", moved)
     await heir_store.async_save()
+    # The parts' stock sensors are made at setup, and its reconcile gives a
+    # low part its buy reminder: the heir had neither until something
+    # reloaded it, so the part actions could not reach the moved parts and
+    # the owner's buy reminder went with the owner (bug audit 2026-11-08, P8-1).
+    if heir.state is ConfigEntryState.LOADED:
+        hass.config_entries.async_schedule_reload(heir.entry_id)
 
     # Everybody else now points at the heir, its history included.
     for other in heirs[1:]:

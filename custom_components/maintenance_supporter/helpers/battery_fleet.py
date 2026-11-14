@@ -52,6 +52,7 @@ from itertools import pairwise
 
 from homeassistant.core import valid_entity_id
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import area_registry as ar
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
@@ -252,6 +253,10 @@ class Battery:
     # and one in a thermostat share nothing but the cell; devices of the same
     # model do. Empty when the device is unknown.
     model_key: str = ""
+    # D#267: the area the device (or the entity itself) sits in. Home
+    # Assistant's naming drops the room from device names ("Radiator valve"
+    # in every room), so the device name alone no longer tells rows apart.
+    area_name: str = ""
     # #180: ``low`` is held by the recovery latch — the reading itself is no
     # longer at/below the floor, but it has not risen above
     # ``battery_recovered_percent`` (and no replacement was recorded) since
@@ -339,7 +344,7 @@ def build_overview(
     ov = BatteryOverview(total=len(batteries))
     types_seen: OrderedDict[str, None] = OrderedDict()
 
-    for bat in sorted(batteries, key=lambda b: b.device_name.lower()):
+    for bat in sorted(batteries, key=lambda b: (b.device_name.lower(), b.area_name.lower())):
         # ONE normalisation for grouping, part ids and the lifetime table
         # (DRY audit 2026-09): before, grouping only upper-cased, so an LR6
         # note minted its own part/chip while the forecast read it as AA.
@@ -443,6 +448,7 @@ def _row(
         "lifetime_samples": lifetime.samples if lifetime else 0,
         "model_key": bat.model_key,
         "device_name": bat.device_name,
+        "area_name": bat.area_name,
         "battery_type": canon_type,
         "quantity": bat.quantity,
         "level": bat.level,
@@ -953,10 +959,14 @@ def device_model_key(hass: HomeAssistant, device_id: str | None) -> str:
     unknown — the learning pool key (see battery_lifetime)."""
     if not device_id:
         return ""
-
     device = dr.async_get(hass).async_get(device_id)
-    if device is None:
-        return ""
+    return model_key_of(device) if device is not None else ""
+
+
+def model_key_of(device: object) -> str:
+    """A device entry's learning pool key ("manufacturer|model", lowercased),
+    "" without a maker and a model. The lifetime table's names spelled it
+    again (DRY audit 2026-10-30, BR6-B5)."""
     # HA 2026.9 may hand back a ChildDeviceEntry, which has no make/model.
     manufacturer = str(getattr(device, "manufacturer", None) or "").strip().lower()
     model = str(getattr(device, "model", None) or getattr(device, "model_id", None) or "").strip().lower()
@@ -1452,7 +1462,31 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
     for bat in out:
         if bat.source == "battery_notes":
             bat.can_mark_replaced = has_replaced_button(hass, bat.entity_id)
+        bat.area_name = battery_area_name(hass, bat.entity_id)
     return out
+
+
+def battery_area_name(hass: HomeAssistant, entity_id: str) -> str:
+    """The area a battery's entity sits in: its own, else its device's (D#267)."""
+    reg = er.async_get(hass).async_get(entity_id)
+    if reg is None:
+        return ""
+    area_id = reg.area_id
+    if not area_id and reg.device_id:
+        device = dr.async_get(hass).async_get(reg.device_id)
+        area_id = device.area_id if device is not None else None
+    area = ar.async_get(hass).async_get_area(area_id) if area_id else None
+    return area.name if area is not None else ""
+
+
+def battery_label(row: Mapping[str, Any]) -> str:
+    """A battery row's name for a line of text: the device, with its area
+    in front unless the name already says it (D#267)."""
+    name = str(row.get("device_name") or "")
+    area = str(row.get("area_name") or "")
+    if not area or area.casefold() in name.casefold():
+        return name
+    return f"{area} {name}"
 
 
 def has_replaced_button(hass: HomeAssistant, entity_id: str) -> bool:

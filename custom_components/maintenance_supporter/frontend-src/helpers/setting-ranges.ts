@@ -51,8 +51,10 @@ export const VACATION_BUFFER_DAYS_RANGE: readonly [number, number] = [0, 14];
 // tests/test_frontend_const_parity.py pins every tuple here to its Python
 // source (DRY audit 2026-09-26). Inclusive [min, max].
 
-/** Trigger hold time in minutes (#136) — const.TRIGGER_FIELD_RANGES. */
-export const TRIGGER_FOR_MINUTES_RANGE: readonly [number, number] = [0, 1440];
+/** Trigger hold time in minutes (#136; thirty days since #255) — const.TRIGGER_FIELD_RANGES. */
+export const TRIGGER_FOR_MINUTES_RANGE: readonly [number, number] = [0, 43200];
+/** Done-when hold time in minutes (D#240), a day at most — const.COMPLETE_WHEN_FOR_MINUTES_RANGE. */
+export const COMPLETE_WHEN_FOR_MINUTES_RANGE: readonly [number, number] = [1, 1440];
 /** State-change trigger target count — const.TRIGGER_FIELD_RANGES. */
 export const TRIGGER_TARGET_CHANGES_RANGE: readonly [number, number] = [1, 10000];
 /** Due-date trigger lead time in days — const.TRIGGER_FIELD_RANGES. */

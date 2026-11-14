@@ -92,6 +92,7 @@ async def _handle_notification_action(hass: HomeAssistant, event: Event) -> None
                 await nm.async_dismiss_task_notification(task_id, user_ids=reminded_user_ids)
             return
 
+    sent_before = nm.sent_marks(entry_id, task_id)[0] if nm is not None else None
     try:
         if action_type == "complete":
             _LOGGER.info("Completing task %s via notification action", task_id)
@@ -132,8 +133,11 @@ async def _handle_notification_action(hass: HomeAssistant, event: Event) -> None
         )
         return
 
-    # Action succeeded — dismiss notification and clear NM rate-limit state
-    if nm is not None:
+    # Action succeeded — dismiss notification and clear NM rate-limit state.
+    # Not a reminder of the new cycle that the completion's refresh already
+    # sent: it replaced this one, and dismissed it went out again five
+    # minutes later (bug audit 2026-11-08, N8-1).
+    if nm is not None and nm.sent_marks(entry_id, task_id)[0] == sent_before:
         await nm.async_dismiss_task_notification(task_id, user_ids=reminded_user_ids)
         nm.clear_task_state(entry_id, task_id)
 

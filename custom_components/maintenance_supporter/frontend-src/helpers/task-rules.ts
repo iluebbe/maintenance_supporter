@@ -5,7 +5,8 @@
  *  dialog owns the state and applies what the user picks. */
 
 import type { TriggerConfig, TriggerType } from "../types";
-import { formatDate, formatNumber, formatUnit, t, weekdayName } from "../styles";
+import { calendarSuffix, formatDate, formatHold, formatNumber, formatUnit, t, weekdayName, withUnit } from "../styles";
+import { configFromTypeFields, type TriggerTypeFields } from "./trigger-fields";
 
 /** The rows the beta editor shows; each opens one section in the sidebar. */
 export type RuleRowId = "task" | "schedule" | "trigger" | "completion" | "people" | "notifications";
@@ -38,21 +39,19 @@ export interface RuleDraft {
   nthWeekday: string;
   domDay: string;
   domLastDay: boolean;
+  /** #83: the last day rolls back to the last business day. */
+  domBusiness?: boolean;
+  /** #83: the days a calendar pattern is shifted by ("0" = none). */
+  calOffset?: string;
+  /** The months an nth-weekday / day-of-month pattern keeps to. */
+  calMonths?: number[];
   calendarEntity: string;
   warningDays: string;
-  triggerType: TriggerType;
+  /** The flat sensor rule as the form holds it (its type is the rule's). */
+  trigger: TriggerTypeFields;
   triggerEntityIds: string[];
-  triggerAttribute: string;
-  above: string;
-  below: string;
-  forMinutes: string;
-  targetValue: string;
-  deltaMode: boolean;
-  fromState: string;
-  toState: string;
-  targetChanges: string;
-  runtimeHours: string;
-  daysBefore: string;
+  /** The watched sensor's unit, for the values in the sentence. */
+  triggerUnit?: string | null;
   triggerCombinator: "any" | "all";
   entityLogic: "any" | "all";
   compoundLogic: "AND" | "OR";
@@ -72,6 +71,8 @@ export interface RuleDraft {
   pool: string[];
   rotation: string;
   notifyEnabled: boolean;
+  /** #252: the task words some of its notifications itself. */
+  ownTexts?: boolean;
   mirrorLists: string[];
 }
 
@@ -120,11 +121,6 @@ export function intervalText(n: number, unit: string, lang: string): string {
   return formatUnit(n, UNIT_OF[unit] ?? "day", lang);
 }
 
-function num(text: string): number | null {
-  const v = parseFloat(text);
-  return Number.isFinite(v) ? v : null;
-}
-
 function fill(template: string, values: Record<string, string>): string {
   return Object.entries(values).reduce((s, [k, v]) => s.split(`{${k}}`).join(v), template);
 }
@@ -133,6 +129,8 @@ function fill(template: string, values: Record<string, string>): string {
  *  interval adds; the sensor rule is a row of its own. */
 export function scheduleSentence(d: RuleDraft, lang: string): string {
   const L = lang;
+  // The shift and the months of a calendar pattern, as the recurrence says them.
+  const shift = { offset: parseInt(d.calOffset ?? "0", 10) || 0, months: d.calMonths };
   const every = (): string | null => {
     const n = parseInt(d.intervalDays, 10);
     return Number.isFinite(n) && n > 0 ? intervalText(n, d.intervalUnit, L) : null;
@@ -148,16 +146,18 @@ export function scheduleSentence(d: RuleDraft, lang: string): string {
       return t("beta_rules_manual", L);
     case "weekdays": {
       const days = [...d.weekdays].sort((a, b) => a - b).map((w) => weekdayName(w, L, "short"));
-      return `${t("recurrence_on_days", L)}: ${days.length ? days.join(", ") : "—"}`;
+      return `${t("recurrence_on_days", L)}: ${days.length ? days.join(", ") : "—"}${calendarSuffix(shift, L, false)}`;
     }
     case "nth_weekday": {
       const ord = d.nth === "-1" ? t("ord_last", L) : t(`ord_${d.nth}`, L);
-      return `${t("nth_weekday", L)}: ${ord} ${weekdayName(parseInt(d.nthWeekday, 10) || 0, L, "long")}`;
+      return `${t("nth_weekday", L)}: ${ord} ${weekdayName(parseInt(d.nthWeekday, 10) || 0, L, "long")}${calendarSuffix(shift, L)}`;
     }
-    case "day_of_month":
-      return `${t("day_of_month", L)}: ${d.domLastDay ? t("recurrence_last_day", L) : d.domDay}`;
+    case "day_of_month": {
+      const day = d.domLastDay ? t(d.domBusiness ? "last_business_day_month" : "recurrence_last_day", L) : d.domDay;
+      return `${t("day_of_month", L)}: ${day}${calendarSuffix(shift, L)}`;
+    }
     case "calendar":
-      return `${t("calendar_entity_label", L)}: ${d.calendarEntity || "—"}`;
+      return `${t("calendar_entity_label", L)}: ${d.calendarEntity || "—"}${calendarSuffix(shift, L, false)}`;
     case "sensor_based": {
       const span = every();
       if (!span) return t("beta_rules_sensor_only", L);
@@ -181,71 +181,16 @@ export function scheduleBadges(d: RuleDraft, lang: string): string[] {
   return out;
 }
 
-/** The sensor rule as a sentence (its entities are the row's chips). */
+/** The sensor rule as a sentence (its entities are the row's chips): the
+ *  form read as the rule it saves, worded like the task page and the trace. */
 export function triggerSentence(d: RuleDraft, lang: string): string {
   const L = lang;
-  if (d.triggerType === "compound") {
+  if (d.trigger.type === "compound") {
     const key = d.compoundLogic === "OR" ? "beta_rules_any_of" : "beta_rules_all_of";
     return fill(t(key, L), { n: formatNumber(d.compoundCount, L) });
   }
   if (!d.triggerEntityIds.length) return t("beta_rules_pick_entity", L);
-  const parts: string[] = [];
-  const forMin = parseInt(d.forMinutes, 10);
-  const holds = Number.isFinite(forMin) && forMin > 0 ? fill(t("beta_rules_for", L), { duration: formatUnit(forMin, "minute", L) }) : "";
-  switch (d.triggerType) {
-    case "threshold": {
-      const above = num(d.above);
-      const below = num(d.below);
-      if (above !== null) parts.push(fill(t("beta_rules_above", L), { value: formatNumber(above, L) }));
-      if (below !== null) parts.push(fill(t("beta_rules_below", L), { value: formatNumber(below, L) }));
-      if (!parts.length) parts.push(t("threshold", L));
-      if (holds) parts.push(holds);
-      break;
-    }
-    case "counter": {
-      const v = num(d.targetValue);
-      const value = v === null ? "—" : formatNumber(v, L);
-      parts.push(fill(t(d.deltaMode ? "beta_rules_counter_delta" : "beta_rules_counter_reaches", L), { value }));
-      break;
-    }
-    case "state_change": {
-      const from = d.fromState.trim();
-      const to = d.toState.trim();
-      if (from) parts.push(fill(t("beta_rules_changes_from", L), { state: from }));
-      if (to) parts.push(fill(t("beta_rules_changes_to", L), { state: to }));
-      if (!from && !to) parts.push(t("beta_rules_changes", L));
-      const n = parseInt(d.targetChanges, 10);
-      if (Number.isFinite(n) && n > 1) parts.push(fill(t("beta_rules_times", L), { n: formatNumber(n, L) }));
-      if (holds) parts.push(holds);
-      break;
-    }
-    case "runtime": {
-      const h = num(d.runtimeHours);
-      parts.push(fill(t("beta_rules_runs_for", L), { duration: h === null ? "—" : formatUnit(h, "hour", L) }));
-      break;
-    }
-    case "due_date": {
-      const days = parseInt(d.daysBefore, 10);
-      parts.push(Number.isFinite(days) && days > 0
-        ? fill(t("beta_rules_date_before", L), { interval: formatUnit(days, "day", L) })
-        : t("beta_rules_date_on", L));
-      break;
-    }
-  }
-  const sentence = parts.join(" · ");
-  return d.triggerAttribute ? `${sentence} (${d.triggerAttribute})` : sentence;
-}
-
-/** Languages that put a space before "%" — Home Assistant's own list
- *  (blankBeforePercent), so "below 60 %" reads like the state next to it. */
-const BLANK_BEFORE_PERCENT = ["cs", "de", "fi", "fr", "sk", "sv"];
-
-/** A number with its unit the way Home Assistant writes a state. */
-export function withUnit(value: string, unit: string | null | undefined, lang: string): string {
-  if (!unit) return value;
-  if (unit === "%") return BLANK_BEFORE_PERCENT.includes(lang.split("-")[0]) ? `${value} %` : `${value}%`;
-  if (unit === "°") return `${value}°`;
-  return `${value} ${unit}`;
+  return conditionText(configFromTypeFields(d.trigger), d.triggerUnit, L);
 }
 
 /** One sensor's part of a stored rule, worded like the rule row of the beta
@@ -290,7 +235,7 @@ export function conditionText(tc: TriggerConfig, unit: string | null | undefined
       break;
   }
   if ((type === "threshold" || type === "state_change") && tc.trigger_for_minutes && tc.trigger_for_minutes > 0) {
-    parts.push(fill(t("beta_rules_for", L), { duration: formatUnit(tc.trigger_for_minutes, "minute", L) }));
+    parts.push(fill(t("beta_rules_for", L), { duration: formatHold(tc.trigger_for_minutes, L) }));
   }
   const sentence = parts.join(" · ");
   return tc.attribute ? `${sentence} (${tc.attribute})` : sentence;
@@ -343,13 +288,14 @@ export function buildRuleRows(d: RuleDraft, ctx: RuleContext): RuleRow[] {
     removable: sensor ? parseInt(d.intervalDays, 10) > 0 : d.scheduleType !== "manual",
   });
   if (sensor) {
-    const ids = d.triggerType === "compound" ? d.compoundEntityIds : d.triggerEntityIds;
+    const compound = d.trigger.type === "compound";
+    const ids = compound ? d.compoundEntityIds : d.triggerEntityIds;
     rows.push({
       id: "trigger",
-      icon: TRIGGER_ICONS[d.triggerType] ?? "mdi:gauge",
+      icon: TRIGGER_ICONS[d.trigger.type] ?? "mdi:gauge",
       text: triggerSentence(d, L),
       chips: [...new Set(ids)].map((id) => ctx.entityName(id)),
-      badges: d.triggerType !== "compound" && d.triggerEntityIds.length > 1
+      badges: !compound && d.triggerEntityIds.length > 1
         ? [t(d.entityLogic === "all" ? "entity_logic_all" : "entity_logic_any", L)]
         : [],
       removable: true,
@@ -368,7 +314,7 @@ export function buildRuleRows(d: RuleDraft, ctx: RuleContext): RuleRow[] {
     icon: d.notifyEnabled ? "mdi:bell-ring-outline" : "mdi:bell-off-outline",
     text: d.notifyEnabled ? t("beta_rules_reminders_on", L) : t("no_notifications", L),
     chips: d.mirrorLists.map((id) => ctx.entityName(id)),
-    badges: [],
+    badges: d.notifyEnabled && d.ownTexts ? [t("notify_texts_badge", L)] : [],
     removable: false,
   });
   return rows;

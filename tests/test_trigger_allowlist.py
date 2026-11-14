@@ -62,6 +62,8 @@ _RUNTIME_INJECTED_KEYS = frozenset(
         # #136 state-change hold window (pending transition anchor).
         "trigger_state_pending_since",
         "trigger_state_pending_state",
+        # #254: the state-change rule's last real state before a restart.
+        "trigger_state_last_state",
         # A counter re-baseline still waiting for a reading (audit 2026-10-17, T-7).
         "trigger_rebaseline_pending",
         # Compound trigger runtime state (per-condition triggered flags).

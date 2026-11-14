@@ -60,6 +60,7 @@ from ..const import (
     CONF_MIRROR_TODO_DEFAULT_ENTITIES,
     CONF_NOTIFICATION_BUNDLE_THRESHOLD,
     CONF_NOTIFICATION_BUNDLING_ENABLED,
+    CONF_NOTIFICATION_LANGUAGE,
     CONF_NOTIFICATION_TITLE_PREFIX,
     CONF_NOTIFICATION_TITLE_STYLE,
     CONF_NOTIFICATIONS_ENABLED,
@@ -113,8 +114,7 @@ from ..helpers.schedule import KIND_CALENDAR, Schedule, cycle_state, preview_occ
 from ..helpers.settings_registry import (
     setting_default,
 )
-from ..helpers.settings_sanitize import sanitize_settings_input
-from ..helpers.todo_mirror import mirror_todo_error
+from ..helpers.settings_sanitize import settings_write_refusal
 from ..helpers.vacation import VacationState
 from . import (
     ID_FIELD,
@@ -123,6 +123,7 @@ from . import (
     _get_object_entries,
     _get_runtime_data,
     _load_global_options,
+    _parse_iso_date,
     _save_global_options,
 )
 
@@ -278,6 +279,8 @@ def _build_full_settings(
             "title_style": _opt(options, CONF_NOTIFICATION_TITLE_STYLE),
             # D#248: in front of every title, any style ("" = none).
             "title_prefix": _opt(options, CONF_NOTIFICATION_TITLE_PREFIX),
+            # #251: "auto" = Home Assistant's language, else a table language.
+            "language": _opt(options, CONF_NOTIFICATION_LANGUAGE),
             # #173 follow-up: completion notifications (off | automatic | all).
             "completed": _opt(options, CONF_NOTIFY_COMPLETED),
             # Multiple lead-time reminders (days before due); [] = off.
@@ -622,10 +625,10 @@ async def ws_schedule_preview(
     lp: date_cls | None = None
     raw_lp = msg.get("last_performed")
     if raw_lp:
-        try:
-            lp = date_cls.fromisoformat(raw_lp)
-        except ValueError:
-            connection.send_error(msg["id"], "invalid_date", "Invalid last_performed (expected YYYY-MM-DD)")
+        # The one WS date check (its own fromisoformat here, DRY audit
+        # 2026-10-30, BI6-B9).
+        lp = _parse_iso_date(connection, msg["id"], raw_lp, field="last_performed")
+        if lp is None:
             return
 
     # An existing task's cycle state — the panel previewed every task as if
@@ -735,22 +738,16 @@ async def ws_update_global_settings(
 
     settings_input: dict[str, Any] = msg["settings"]
 
-    filtered, notify_error = sanitize_settings_input(settings_input)
-    if notify_error:
+    filtered, refusal = settings_write_refusal(hass, settings_input)
+    if refusal is not None:
         # The code names the problem; the panel shows its translated text
         # (ws-errors.ts). "Invalid setting value: <code>" came through raw,
         # in English, in every language (bug audit 2026-10-17, W-13).
-        connection.send_error(msg["id"], notify_error, notify_error.replace("_", " "))
+        connection.send_error(msg["id"], refusal[1], refusal[1].replace("_", " "))
         return
     if not filtered:
         connection.send_error(msg["id"], "invalid_input", "No valid setting keys provided")
         return
-    # #231: a default list cannot be one of our own (the per-task rule).
-    if CONF_MIRROR_TODO_DEFAULT_ENTITIES in filtered:
-        mirror_err = mirror_todo_error(hass, filtered[CONF_MIRROR_TODO_DEFAULT_ENTITIES])
-        if mirror_err:
-            connection.send_error(msg["id"], "invalid_mirror_todo", mirror_err)
-            return
 
     # Merge with existing options
     merged = current_options

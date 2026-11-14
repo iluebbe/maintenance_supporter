@@ -73,6 +73,12 @@
   "next_event_titles": [],
   "nfc_tag_id": "contract-nfc-1",
   "notes": "Contract notes",
+  "notification_texts": {
+    "due_soon": {
+      "message": "{task}: {days} day(s)",
+      "title": "Bins tonight"
+    }
+  },
   "notify_enabled": true,
   "notify_icon": "mdi:air-filter",
   "on_complete_action": {
@@ -182,6 +188,7 @@
   "trigger_current_delta": null,
   "trigger_current_value": null,
   "trigger_detail": null,
+  "trigger_detail_numbers": null,
   "trigger_entity_info": {
     "entity_id": "sensor.contract_a",
     "friendly_name": "Contract A",
@@ -210,5 +217,6 @@
   ],
   "trigger_entity_state": "available",
   "type": "service",
+  "upcoming_dates": [],
   "warning_days": 9
 }

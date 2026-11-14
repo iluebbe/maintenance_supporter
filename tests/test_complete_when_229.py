@@ -294,10 +294,10 @@ def test_hold_only_on_a_single_shot_state_change() -> None:
     errors, _ = _validate_trigger_config(hass, tc)
     assert any("trigger_hold_until_done" in e for e in errors)
 
-    # Inert where nothing ends by itself, kept like the other type-specific
-    # keys, and no conflict there: a counter, or a state change that counts.
-    # (A threshold and a date hold too since the follow-up:
-    # test_hold_until_done_levels.)
+    # Not stored where nothing ends by itself, as the options flow does (DRY
+    # audit 2026-10-30, BI6-B7), and no conflict there: a counter, or a state
+    # change that counts. (A threshold and a date hold too since the
+    # follow-up: test_hold_until_done_levels.)
     for other in (
         {**latch, "trigger_target_changes": 3},
         {"type": "state_change", "entity_id": WASHER},
@@ -305,7 +305,7 @@ def test_hold_only_on_a_single_shot_state_change() -> None:
     ):
         tc = {**other, "trigger_hold_until_done": True, "auto_complete_on_recovery": True}
         errors, _ = _validate_trigger_config(hass, tc)
-        assert not errors and tc["trigger_hold_until_done"] is True, other
+        assert not errors and "trigger_hold_until_done" not in tc, other
 
     compound = {
         "type": "compound",

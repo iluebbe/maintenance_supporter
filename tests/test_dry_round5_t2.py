@@ -403,8 +403,10 @@ async def test_unique_object_name(hass: HomeAssistant) -> None:
 
 
 async def test_a_duplicate_is_not_paused_or_chained_and_owns_its_tasks(hass: HomeAssistant) -> None:
-    """The copy kept the source's pause (a frozen new object), its "Replaces /
-    Replaced by" links, and the template origin of every task."""
+    """The copy kept the source's pause (a frozen new object) and its
+    "Replaces / Replaced by" links. A template task keeps its origin since the
+    template review (DRY audit 2026-11-07, BI7-B3: the copy keeps the
+    object's template; a duty's origin goes, test_dry_audit_2026_11_07)."""
     from custom_components.maintenance_supporter.websocket.objects import ws_duplicate_object
 
     paused = (dt_util.now() - timedelta(days=1)).isoformat()
@@ -426,7 +428,7 @@ async def test_a_duplicate_is_not_paused_or_chained_and_owns_its_tasks(hass: Hom
     copy = _live(hass, copy_id)
     for key in ("paused_at", "paused_until", "predecessor_entry_id", "replaced_by_entry_id"):
         assert not copy.data[CONF_OBJECT].get(key), key
-    assert all("origin" not in t for t in copy.data[CONF_TASKS].values())
+    assert all((t.get("origin") or {}).get("kind") == "template" for t in copy.data[CONF_TASKS].values())
 
 
 # ─── BI5-A3 / S8: every part link ────────────────────────────────────────

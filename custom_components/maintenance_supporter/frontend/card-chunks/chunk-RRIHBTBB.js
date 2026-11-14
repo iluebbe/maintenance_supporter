@@ -1,0 +1,2 @@
+/*! maintenance_supporter frontend 2.121.0 */
+function r(e){if(e.key!=="Enter"&&e.key!==" ")return;let n=e.target?.closest?.('[role="menuitem"], [role="button"]');!n||n.getAttribute("aria-disabled")==="true"||(e.preventDefault(),n.click())}function o(e,t){return n=>{n.key==="Enter"?e():n.key==="Escape"&&t()}}function i(e){let t=parseFloat(e);return Number.isFinite(t)&&t>0?t:null}export{r as a,o as b,i as c};

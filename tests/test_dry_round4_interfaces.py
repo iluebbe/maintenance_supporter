@@ -93,14 +93,16 @@ def test_task_schemas_accept_and_refuse_as_before() -> None:
     update = vol.Schema(_TASK_UPDATE_SCHEMA)
     base = {"type": "maintenance_supporter/task/create", "entry_id": "e1"}
     out = create({**base, "name": "Filter"})
-    assert {k: out[k] for k in ("task_type", "schedule_type", "interval_unit", "interval_anchor", "enabled", "dry_run")} == {
+    assert {k: out[k] for k in ("task_type", "interval_unit", "interval_anchor", "enabled", "dry_run")} == {
         "task_type": "custom",
-        "schedule_type": "time_based",
         "interval_unit": "days",
         "interval_anchor": "completion",
         "enabled": True,
         "dry_run": False,
     }
+    # No schedule_type default: the handler reads what the fields say (DRY
+    # audit 2026-10-30, BI6-B8).
+    assert "schedule_type" not in out
     with pytest.raises(vol.Invalid):
         create(base)  # name required
     with pytest.raises(vol.Invalid):

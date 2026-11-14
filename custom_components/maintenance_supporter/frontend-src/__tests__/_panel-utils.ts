@@ -67,7 +67,7 @@ export async function mountPanel(
   extraHandlers: Record<string, WsHandler> = {},
   opts: { user?: { id: string; is_admin: boolean }; embedded?: boolean; presets?: { tab?: string; view?: string } } = {},
 ) {
-  const { hass, sent, subscriptions } = createMockHass({
+  const { hass, sent, subscriptions, fire } = createMockHass({
     handlers: {
       "maintenance_supporter/objects": () => ({ objects }),
       "maintenance_supporter/statistics": () => ({
@@ -100,7 +100,7 @@ export async function mountPanel(
   await el.updateComplete;
   await new Promise((r) => setTimeout(r, 10));
   await el.updateComplete;
-  return { el, sent, subscriptions };
+  return { el, sent, subscriptions, fire };
 }
 
 export function sr(el: HTMLElement): ShadowRoot {

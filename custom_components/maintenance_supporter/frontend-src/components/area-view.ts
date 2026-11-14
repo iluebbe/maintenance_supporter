@@ -49,6 +49,7 @@ import { historyNoteText } from "../helpers/history-note";
 import { openHtmlInNewTab, preopenTab } from "../helpers/document-url";
 import "./ms-date-field";
 import type { HomeAssistant, MaintenanceObjectResponse } from "../types";
+import { completedByLabel } from "../helpers/object-history";
 
 /** Rows of the merged history shown before "Show all". */
 const HISTORY_PAGE = 25;
@@ -207,11 +208,7 @@ export class MaintenanceAreaView extends LitElement {
     const completed = filtered.filter((e) => e.type === "completed");
     const printable = filtered.map((e) => ({
       ...e,
-      completedBy: e.completedBy
-        ? e.completedVia
-          ? t("completed_via", L).replace("{person}", this.userName(e.completedBy) ?? "").replace("{device}", this.userName(e.completedVia) ?? "")
-          : this.userName(e.completedBy)
-        : null,
+      completedBy: completedByLabel(e, (id) => this.userName(id), L),
       notes: e.notes ? historyNoteText(e.notes, L) : null,
     }));
     const doc = buildAreaRecordHtml(

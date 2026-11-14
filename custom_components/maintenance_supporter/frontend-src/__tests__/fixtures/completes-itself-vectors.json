@@ -1,0 +1,24 @@
+{
+  "about": "D#250: completesItself (helpers/completes-itself.ts) and completes_itself (helpers/completes_itself.py) give every expected value. Read by completes-itself-vectors.test.ts and tests/test_completes_itself_250.py.",
+  "vectors": [
+    {"note": "threshold, records done, active", "trigger_config": {"type": "threshold", "auto_complete_on_recovery": true}, "trigger_active": true, "expected": true},
+    {"note": "threshold, records done, not active", "trigger_config": {"type": "threshold", "auto_complete_on_recovery": true}, "trigger_active": false, "expected": false},
+    {"note": "threshold, goes back to OK", "trigger_config": {"type": "threshold"}, "trigger_active": true, "expected": false},
+    {"note": "threshold, flag not a real true", "trigger_config": {"type": "threshold", "auto_complete_on_recovery": "yes"}, "trigger_active": true, "expected": false},
+    {"note": "date from a sensor", "trigger_config": {"type": "due_date", "auto_complete_on_recovery": true}, "trigger_active": true, "expected": true},
+    {"note": "counter never ends by itself", "trigger_config": {"type": "counter", "auto_complete_on_recovery": true}, "trigger_active": true, "expected": false},
+    {"note": "runtime never ends by itself", "trigger_config": {"type": "runtime", "auto_complete_on_recovery": true}, "trigger_active": true, "expected": false},
+    {"note": "state latch with a to-state", "trigger_config": {"type": "state_change", "auto_complete_on_recovery": true, "trigger_to_state": "on"}, "trigger_active": true, "expected": true},
+    {"note": "state latch with a from-state, one change", "trigger_config": {"type": "state_change", "auto_complete_on_recovery": true, "trigger_from_state": "off", "trigger_target_changes": 1}, "trigger_active": true, "expected": true},
+    {"note": "state counter of changes", "trigger_config": {"type": "state_change", "auto_complete_on_recovery": true, "trigger_to_state": "on", "trigger_target_changes": 3}, "trigger_active": true, "expected": false},
+    {"note": "state change without a from- or to-state", "trigger_config": {"type": "state_change", "auto_complete_on_recovery": true}, "trigger_active": true, "expected": false},
+    {"note": "compound AND: one level condition ends it", "trigger_config": {"type": "compound", "auto_complete_on_recovery": true, "compound_logic": "AND", "conditions": [{"type": "runtime"}, {"type": "threshold"}]}, "trigger_active": true, "expected": true},
+    {"note": "compound without a logic is AND", "trigger_config": {"type": "compound", "auto_complete_on_recovery": true, "conditions": [{"type": "counter"}, {"type": "due_date"}]}, "trigger_active": true, "expected": true},
+    {"note": "compound AND of two runtimes never ends", "trigger_config": {"type": "compound", "auto_complete_on_recovery": true, "compound_logic": "AND", "conditions": [{"type": "runtime"}, {"type": "runtime"}]}, "trigger_active": true, "expected": false},
+    {"note": "compound OR with a runtime never ends by itself", "trigger_config": {"type": "compound", "auto_complete_on_recovery": true, "compound_logic": "OR", "conditions": [{"type": "runtime"}, {"type": "threshold"}]}, "trigger_active": true, "expected": false},
+    {"note": "compound OR of levels and a latch ends", "trigger_config": {"type": "compound", "auto_complete_on_recovery": true, "compound_logic": "or", "conditions": [{"type": "threshold"}, {"type": "state_change", "trigger_to_state": "on"}]}, "trigger_active": true, "expected": true},
+    {"note": "compound without conditions", "trigger_config": {"type": "compound", "auto_complete_on_recovery": true}, "trigger_active": true, "expected": false},
+    {"note": "no trigger", "trigger_config": null, "trigger_active": true, "expected": false},
+    {"note": "trigger state unknown", "trigger_config": {"type": "threshold", "auto_complete_on_recovery": true}, "trigger_active": null, "expected": false}
+  ]
+}

@@ -48,7 +48,7 @@ import { openHistoryEditDialog, openTaskQuickActions } from "./dialog-mount";
 import { EDITABLE_HISTORY_TYPES } from "./status-constants";
 import { fetchTaskHistory } from "./helpers/task-history-fetch";
 import { fetchStatistics } from "./helpers/objects-fetch";
-import { firstObjects, watchObjects } from "./helpers/objects-hub";
+import { ObjectsFollower, firstObjects } from "./helpers/objects-hub";
 import { mergeSubscriptionEvent } from "./helpers/subscription-merge";
 import { StatesRedrawGate } from "./helpers/hass-changes";
 import type {
@@ -99,8 +99,14 @@ export class MaintenanceCalendarCard extends LitElement {
   private _pastHistorySig = "";
   private _pastSeq = 0;
 
-  private _dataLoaded = false;
-  private _lastConnection: unknown = null;
+  /** This card's watch of the page's one objects subscription
+   *  (helpers/objects-hub): only what changed arrives, empty keys stripped
+   *  (the full payload on every refresh was 13 MB in 10 minutes on a home
+   *  of 36 objects, perf 2026-11-06). */
+  private _follow = new ObjectsFollower((event) => {
+    const next = mergeSubscriptionEvent(this._objects, event);
+    if (next !== null) this._objects = next;
+  }, () => void this._loadData());
   /** The card draws no entity state: a change of only `states` redraws
    *  at most once a second, as in the panel. */
   private readonly _statesGate = new StatesRedrawGate(this);
@@ -177,10 +183,7 @@ export class MaintenanceCalendarCard extends LitElement {
   disconnectedCallback(): void {
     super.disconnectedCallback();
     window.removeEventListener("history-entry-saved", this._onHistorySaved);
-    this._release?.();
-    this._release = null;
-    this._dataLoaded = false;
-    this._lastConnection = null;
+    this._follow.stop();
   }
 
   protected shouldUpdate(changedProps: Map<string, unknown>): boolean {
@@ -203,18 +206,7 @@ export class MaintenanceCalendarCard extends LitElement {
     if (this.hass && this._pastDays > 0 && (changedProps.has("_objects") || changedProps.has("_pastDays"))) {
       void this._loadPastHistories();
     }
-    if (changedProps.has("hass") && this.hass && this.objects === undefined) {
-      if (!this._dataLoaded) {
-        this._dataLoaded = true;
-        this._lastConnection = this.hass.connection;
-        this._loadData();
-        this._subscribe();
-      } else if (this.hass.connection !== this._lastConnection) {
-        this._lastConnection = this.hass.connection;
-        this._subscribe();
-        this._loadData();
-      }
-    }
+    if (changedProps.has("hass") && this.hass && this.objects === undefined) this._follow.sync(this.hass.connection);
   }
 
   private async _loadData(): Promise<void> {
@@ -253,22 +245,6 @@ export class MaintenanceCalendarCard extends LitElement {
     }));
     if (seq !== this._pastSeq) return;
     this._pastHistory = Object.fromEntries(results.filter((r): r is readonly [string, HistoryEntryShape[]] => r !== null));
-  }
-
-  /** Releases this card's watch of the page's objects subscription. */
-  private _release: (() => void) | null = null;
-
-  /** Follow the page's one objects subscription (helpers/objects-hub): only
-   *  what changed arrives, empty keys stripped (the full payload on every
-   *  refresh was 13 MB in 10 minutes on a home of 36 objects, perf
-   *  2026-11-06). The hub owns it, so a card detached while it is still
-   *  being set up leaves nothing behind (bug audit 2026-10-16, FE-7). */
-  private _subscribe(): void {
-    this._release?.();
-    this._release = watchObjects(this.hass.connection, (event) => {
-      const next = mergeSubscriptionEvent(this._objects, event);
-      if (next !== null) this._objects = next;
-    });
   }
 
   private _onEventClick(ev: CalendarEvent): void {

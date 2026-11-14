@@ -60,3 +60,9 @@ export function isSafeLink(url: string | null | undefined): url is string {
 export function isSafeHttpUrl(url: string | null | undefined): url is string {
   return !!url && /^https?:\/\//i.test(url);
 }
+
+/** Where a spare part is bought: its shop page, or (#265) the address it
+ *  is ordered from by e-mail. */
+export function isPartLink(url: string | null | undefined): url is string {
+  return isSafeHttpUrl(url) || (!!url && /^mailto:[^\s@?]+@[^\s@?]+/i.test(url));
+}

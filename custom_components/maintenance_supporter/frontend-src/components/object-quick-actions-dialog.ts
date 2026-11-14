@@ -10,6 +10,7 @@
 
 import { LitElement, html, css, nothing } from "lit";
 import { isSafeHttpUrl, isSafeLink } from "../helpers/url";
+import { deleteObjectMessage } from "../helpers/delete-object-message";
 import { renderNotesMarkdown } from "../helpers/notes-markdown";
 import { property, state } from "lit/decorators.js";
 import { t, langOf, formatDate } from "../styles";
@@ -23,6 +24,7 @@ import { focusModalShell, modalShellStyles, renderModalShell, shellIsHa } from "
 import type { HomeAssistant, MaintenanceObject, MaintenanceTask } from "../types";
 import { clickOnActivationKey } from "../helpers/keyboard";
 import { notice } from "../helpers/notice";
+import { renderTaskTitle, triggerDetailText } from "../helpers/event-titles";
 
 interface ObjectFull {
   entry_id: string;
@@ -115,7 +117,7 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
     if (!this._entryId || !this._data) return;
     const ok = await confirmAction(this.hass, {
       title: t("delete", this._lang),
-      message: t("delete_object_confirm", this._lang),
+      message: await deleteObjectMessage(this.hass, this._entryId, this._lang),
       confirmText: t("delete", this._lang),
       danger: true,
     });
@@ -198,7 +200,7 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
                         ${tasks.map((task) => html`
                           <div class="task-row" role="button" tabindex="0" @click=${() => this._onTaskClick(task.id)} @keydown=${clickOnActivationKey}>
                             <span class="status-dot" style="background: ${statusColor(task)}"></span>
-                            <span class="task-name">${task.name}</span>
+                            <span class="task-name">${renderTaskTitle(task.name, task.next_event_titles, triggerDetailText(task, L))}</span>
                             <span class="task-status ${statusKey(task)}">${statusLabel(statusKey(task), L)}</span>
                           </div>
                         `)}
@@ -312,6 +314,7 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
     .task-row:focus-visible { outline: 2px solid var(--primary-color); outline-offset: -2px; }
     .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .task-name { flex: 1; font-size: 14px; }
+    .event-titles { color: var(--secondary-text-color); font-weight: 400; }
     .task-status { font-size: 11px; color: var(--secondary-text-color); text-transform: uppercase; }
     .notes-body { white-space: pre-wrap; font-size: 13px; padding: 8px; background: var(--secondary-background-color); border-radius: var(--ms-radius-6, 6px); }
     .notes-body ha-markdown { white-space: normal; }

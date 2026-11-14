@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import math
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Coroutine
+from collections.abc import Callable, Coroutine, Mapping
 from datetime import datetime
 from typing import Any, Protocol
 
@@ -17,6 +17,7 @@ from homeassistant.helpers.event import (
 from homeassistant.helpers.start import async_at_started
 
 from ...const import (
+    CONF_TRIGGER_HOLD_UNTIL_DONE,
     EVENT_TRIGGER_ACTIVATED,
     EVENT_TRIGGER_DEACTIVATED,
     HISTORY_DETAIL_CHARS,
@@ -137,7 +138,7 @@ class BaseTrigger(ABC):
         # done — a waste drawer that reads lower again, a frost forecast
         # that turns milder. Back in range then ends nothing; a completion
         # (reset) does. The state-change latch holds its own way.
-        self._holds_until_done = self.holds_level and bool(trigger_config.get("trigger_hold_until_done"))
+        self._holds_until_done = self.holds_level and bool(trigger_config.get(CONF_TRIGGER_HOLD_UNTIL_DONE))
         self._current_value: float | None = None
         self._unsub_listener: CALLBACK_TYPE | None = None
         # One timer per purpose (a retry and a subclass's for/hold window can
@@ -330,7 +331,12 @@ class BaseTrigger(ABC):
         was_triggered = self._triggered
         initial = not self._evaluated_once
         is_triggered = self.evaluate(value)
-        if not is_triggered and self._holds_until_done and (was_triggered or (initial and self._already_announced())):
+        # An activation that began before the trigger was seen on the normal
+        # side after the completion is the old reading still standing; inside
+        # the cooldown, where the task reads done, it is not held: held, the
+        # emptied task re-latched on every restart (bug audit 2026-11-08, T8-2).
+        held_edge = was_triggered and (self._recovered_since_reset or not self._in_completion_cooldown())
+        if not is_triggered and self._holds_until_done and (held_edge or (initial and self._already_announced())):
             # Held until done: back in range is no recovery. After a restart
             # or a reload the activation on record is held the same way (and
             # only repainted, below).
@@ -532,41 +538,52 @@ class BaseTrigger(ABC):
             # leaves was never complete: the task did not recover (T-2).
             return
 
-        # Fire event
-        self.hass.bus.async_fire(
-            EVENT_TRIGGER_DEACTIVATED,
+        # The trace says what ended the task's due state by itself: which
+        # sensor, at what reading or state (the history only knew it fired).
+        self._announce_task_recovered(
+            task_recovered,
             {
-                "entity_id": self.entity.entity_id,
-                **self._event_ids(),
                 "trigger_entity": self.entity_id,
                 "trigger_attribute": self.attribute,
                 "trigger_value": value,
                 "trigger_type": self.config.get("type"),
             },
+            trace=self._cleared_detail(value),
+            reading=self._recovery_reading(value),
         )
 
-        # The trace says what ended the task's due state by itself: which
-        # sensor, at what reading or state (the history only knew it fired).
-        # Like the opt-in below, only on the task's own recovery.
-        if task_recovered is not False and (entry_id := self._event_ids()["entry_id"]):
-            record_trace(self.hass, entry_id, self._task_id, KIND_TRIGGER_CLEARED, **self._cleared_detail(value))
-
+    def _announce_task_recovered(
+        self,
+        task_recovered: bool | None,
+        event: Mapping[str, Any],
+        *,
+        trace: Mapping[str, Any],
+        reading: float | None,
+    ) -> None:
+        """The task's rule let go of it by itself: the deactivation event,
+        the trace's step and the #53 opt-in. One sequence for a single rule
+        and a compound, which had a copy each (DRY audit 2026-11-07, BR7-B2).
+        The coordinator's sweep announces nothing (see
+        ``_evaluate_trigger_fallback``)."""
+        self.hass.bus.async_fire(EVENT_TRIGGER_DEACTIVATED, {"entity_id": self.entity.entity_id, **self._event_ids(), **event})
+        # The trace and the opt-in only on the task's own recovery (bug audit
+        # 2026-09-26, SCH-5): one of several sensors clearing while another
+        # still holds the task, or an "all" task whose set was never
+        # complete, is not the work being done.
+        if task_recovered is False:
+            return
+        if entry_id := self._event_ids()["entry_id"]:
+            record_trace(self.hass, entry_id, self._task_id, KIND_TRIGGER_CLEARED, **trace)
         # Opt-in (#53): the sensor recovering IS the maintenance being done
         # (salt refilled, filter swapped) — record the completion so
         # last_performed and the time-between-services statistics stay real.
         # This hook only fires on the evaluate path: a manual complete/skip
         # resets the trigger via reset(), which never lands here, so the
         # manual flow cannot double-record.
-        # Only on the task's own recovery (bug audit 2026-09-26, SCH-5): one of
-        # several sensors clearing while another still holds the task — or an
-        # "all" task whose set was never complete — is not the work being done.
-        if self.config.get("auto_complete_on_recovery") and task_recovered is not False:
+        if self.config.get("auto_complete_on_recovery"):
             # cancel_on_close=False: a completion in flight must land even
             # when the recovery coincides with a reload of the entry.
-            self._track(
-                self._coordinator.async_auto_complete_on_recovery(self._task_id, self._recovery_reading(value)),
-                cancel_on_close=False,
-            )
+            self._track(self._coordinator.async_auto_complete_on_recovery(self._task_id, reading), cancel_on_close=False)
 
     def _recovery_reading(self, value: float) -> float | None:
         """The reading a recovery records in its auto-completion note."""

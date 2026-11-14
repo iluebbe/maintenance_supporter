@@ -52,6 +52,7 @@ from .const import (
     CONF_TRIGGER_EQUALS,
     CONF_TRIGGER_FOR_MINUTES,
     CONF_TRIGGER_FROM_STATE,
+    CONF_TRIGGER_HOLD_UNTIL_DONE,
     CONF_TRIGGER_NOT_EQUALS,
     CONF_TRIGGER_ON_STATES,
     CONF_TRIGGER_RUNTIME_HOURS,
@@ -65,8 +66,14 @@ from .const import (
     ScheduleType,
     TriggerType,
 )
+from .helpers.completes_itself import holds_until_done
 from .helpers.global_options import get_default_warning_days
-from .helpers.task_fields import INTERVAL_DAYS_RANGE, WARNING_DAYS_RANGE
+from .helpers.task_fields import (
+    COMPOUND_FLOW_CARRIED_TRIGGER_KEYS,
+    INTERVAL_DAYS_RANGE,
+    WARNING_DAYS_RANGE,
+    carried_trigger_keys,
+)
 from .helpers.trigger_fallback import threshold_limits_overlap
 
 # Domains allowed for trigger entity selection.
@@ -123,7 +130,7 @@ def _apply_recovery_flag(tc: dict[str, Any], user_input: dict[str, Any]) -> None
         tc["auto_complete_on_recovery"] = True
         # D#229: completing on recovery and holding until done exclude each
         # other; the tick is the newer choice.
-        tc.pop("trigger_hold_until_done", None)
+        tc.pop(CONF_TRIGGER_HOLD_UNTIL_DONE, None)
     else:
         tc.pop("auto_complete_on_recovery", None)
 
@@ -454,11 +461,8 @@ class TriggerConfigMixin:
         # D#229: a single-shot state change, a threshold and a date from a
         # sensor hold until done (the rebuild carried the flag over whatever
         # type the edit chose).
-        holds = tc.get("type") in (TriggerType.THRESHOLD, TriggerType.DUE_DATE) or (
-            tc.get("type") == TriggerType.STATE_CHANGE and tc.get(CONF_TRIGGER_TARGET_CHANGES, 1) == 1
-        )
-        if not holds:
-            tc.pop("trigger_hold_until_done", None)
+        if not holds_until_done(tc):
+            tc.pop(CONF_TRIGGER_HOLD_UNTIL_DONE, None)
         _apply_combinator(tc, user_input)
         if len(tc.get("entity_ids", [])) > 1:
             tc[CONF_TRIGGER_ENTITY_LOGIC] = user_input.get(CONF_TRIGGER_ENTITY_LOGIC, DEFAULT_ENTITY_LOGIC)
@@ -546,45 +550,15 @@ class TriggerConfigMixin:
             entity_ids = getattr(self, "_trigger_entity_ids", [self._trigger_entity_id])
             # Rebuilding from form fields — carry over panel-managed keys the
             # flow has no fields for, so an options-flow trigger edit doesn't
-            # silently drop them: the recovery flag (#53) and the counting
-            # start value (#102/#103 class; the flow's counter step re-writes
-            # target+delta but never the baseline).
+            # silently drop them (#103 class; the combinator too: the type
+            # steps default their field from it, and rebuilt without it every
+            # edit turned "all" back into "any").
             prev_tc = self._current_task.get("trigger_config") or {}
             self._current_task["trigger_config"] = {
                 "entity_id": entity_ids[0] if entity_ids else self._trigger_entity_id,
                 "entity_ids": entity_ids,
                 "attribute": None if attr == "_state" else attr,
-                **({"auto_complete_on_recovery": True} if prev_tc.get("auto_complete_on_recovery") else {}),
-                **(
-                    {"trigger_baseline_value": prev_tc["trigger_baseline_value"]}
-                    if "trigger_baseline_value" in prev_tc
-                    else {}
-                ),
-                # #149: the session cap is panel-managed (the flow grew no
-                # field) — carry it so an options-flow trigger edit doesn't
-                # silently drop it.
-                **(
-                    {"trigger_runtime_max_session_seconds": prev_tc["trigger_runtime_max_session_seconds"]}
-                    if "trigger_runtime_max_session_seconds" in prev_tc
-                    else {}
-                ),
-                # The trigger∧interval combinator: the type steps default
-                # their field from it — rebuilt without it, every edit
-                # silently turned "all" back into "any".
-                **(
-                    {CONF_TRIGGER_COMBINATOR: prev_tc[CONF_TRIGGER_COMBINATOR]}
-                    if prev_tc.get(CONF_TRIGGER_COMBINATOR)
-                    else {}
-                ),
-                # #228: the detail shown with the triggered task is
-                # panel-managed too (no flow field).
-                **(
-                    {"detail_attribute": prev_tc["detail_attribute"]}
-                    if prev_tc.get("detail_attribute")
-                    else {}
-                ),
-                # D#229: so is holding the latch until the task is done.
-                **({"trigger_hold_until_done": True} if prev_tc.get("trigger_hold_until_done") else {}),
+                **carried_trigger_keys(prev_tc),
             }
             return await next_step()
 
@@ -994,15 +968,12 @@ class TriggerConfigMixin:
                 CONF_COMPOUND_LOGIC: logic,
                 CONF_COMPOUND_CONDITIONS: [],
             }
-            # How the trigger and the kept safety interval combine: no
-            # compound step asks, so the stored choice stays (an edit reset
-            # "both required" to "whichever first", audit 2026-10-17).
+            # How the trigger and the kept safety interval combine (no
+            # compound step asks: an edit reset "both required" to "whichever
+            # first", audit 2026-10-17), and the detail shown with the
+            # triggered task (#228): the stored choices stay.
             edited = (self._current_task.get("_edit_defaults") or {}).get("trigger_config") or {}
-            if CONF_TRIGGER_COMBINATOR in edited:
-                self._current_task["trigger_config"][CONF_TRIGGER_COMBINATOR] = edited[CONF_TRIGGER_COMBINATOR]
-            # #228: so does the detail shown with the triggered task.
-            if edited.get("detail_attribute"):
-                self._current_task["trigger_config"]["detail_attribute"] = edited["detail_attribute"]
+            self._current_task["trigger_config"].update(carried_trigger_keys(edited, COMPOUND_FLOW_CARRIED_TRIGGER_KEYS))
             _apply_recovery_flag(self._current_task["trigger_config"], user_input)
             if not hasattr(self, "_compound_conditions"):
                 self._compound_conditions: list[dict[str, Any]] = []

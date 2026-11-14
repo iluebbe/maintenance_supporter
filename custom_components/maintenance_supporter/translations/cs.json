@@ -675,6 +675,7 @@
           "notification_bundle_threshold": "Práh sdružování",
           "notification_title_style": "Styl titulku oznámení",
           "notification_title_prefix": "Předpona titulku oznámení",
+          "notification_language": "Jazyk oznámení",
           "notify_completed": "Oznámení o dokončení",
           "notify_event_only": "Pouze vyvolat událost, nic neodesílat",
           "notify_extra_data": "Další data oznámení (šablona)",
@@ -694,6 +695,7 @@
           "notification_bundle_threshold": "Minimální počet úkolů pro spuštění sdruženého oznámení.",
           "notification_title_style": "Co se zobrazuje jako TITULEK oznámení. Výchozí zachovává text podle stavu (např. „Údržba po termínu!“). Název objektu / úkolu pomáhá, když telefon stohuje oznámení.",
           "notification_title_prefix": "Vkládá se před titulek každého oznámení v každém stylu, např. název domu, když telefon dostává připomínky z více než jednoho Home Assistantu. Prázdné = bez předpony.",
+          "notification_language": "Jazyk nadpisů, textů a tlačítek oznámení. Jazyk Home Assistantu = jako dosud. Panel zůstává v jazyce každého uživatele.",
           "notify_completed": "Zpráva pro domácnost, když je úkol dokončen, s důvodem (panel, sken QR/NFC, seznam úkolů, hlas, zotavení senzoru…). „Jen automatická“ hlásí pouze dokončení, která nikdo neudělal na místě: zotavení senzoru, odškrtnutí v nákupním seznamu, volání služby automatizací.",
           "notify_event_only": "Každé oznámení vyvolá událost maintenance_supporter_notification. S touto volbou celé doručení zajišťuje vaše automatizace — intervaly opakování, tiché hodiny a denní limit stále rozhodují, kdy událost přijde.",
           "notify_extra_data": "JSON nebo YAML s Jinja, sloučí se do data každého volání notify (vaše klíče mají přednost). Proměnné: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
@@ -1892,6 +1894,10 @@
         "via_tag_scan": {
           "name": "Naskenováním štítku",
           "description": "Potvrzuje, že toto dokončení pochází z naskenování fyzického štítku/QR kódu, které automatizace sama zpracovala — splňuje nastavení úkolu „Dokončit pouze naskenováním štítku“."
+        },
+        "consume_parts": {
+          "name": "Spotřebovat díly",
+          "description": "Zaúčtuje díly propojené s úkolem pro toto dokončení, i když datum dokončení leží před posledním dokončením úkolu. Aktuální dokončení je zaúčtuje vždy, zpětně zadané jen s tímto přepínačem. Díly se odečtou z dnešní zásoby."
         }
       }
     },
@@ -1929,7 +1935,7 @@
       "fields": {
         "format": {
           "name": "Formát",
-          "description": "Výstupní formát exportovaných dat (json nebo yaml)."
+          "description": "Výstupní formát: json nebo yaml pro úplný export, history_csv pro historii jako tabulku s jedním řádkem na záznam (soubor maintenance_history.csv)."
         },
         "include_history": {
           "name": "Zahrnout historii",
@@ -2351,7 +2357,7 @@
     },
     "shared_parts_moved": {
       "title": "Sdílené náhradní díly přesunuty na {new_owner}",
-      "description": "Několik objektů údržby sdílelo jednu zásobu náhradních dílů, která byla u objektu **{deleted_object}**, a ten byl právě smazán. Aby ostatní objekty neodkazovaly na zásobu, která už neexistuje, přesunul Maintenance Supporter sdílené díly ({parts}) — i s aktuálním stavem — na **{new_owner}** a přesměroval na ně vazby úkolů všech ostatních objektů. Nic se neztratilo.\n\n**{new_owner}** byl vybrán automaticky: je to nejstarší objekt, který zásobu používal. Pokud se lépe hodí jiný objekt, přesuňte díly tam v panelu údržby.\n\nNic dalšího dělat nemusíte — po kontrole toto oznámení zavřete."
+      "description": "Několik objektů údržby sdílelo jednu zásobu náhradních dílů, která byla u objektu **{deleted_object}**, a ten byl právě smazán. Aby ostatní objekty neodkazovaly na zásobu, která už neexistuje, přesunul Maintenance Supporter sdílené díly ({parts}) — i s aktuálním stavem — na **{new_owner}** a přesměroval na ně vazby úkolů všech ostatních objektů. Nic se neztratilo.\n\n**{new_owner}** byl vybrán automaticky: je to nejstarší objekt, který zásobu používal.\n\nNic dalšího dělat nemusíte — po kontrole toto oznámení zavřete."
     },
     "broken_part_link": {
       "title": "Neplatné vazby na díly u {object_name}",
@@ -2538,6 +2544,9 @@
     "part_owner_archived": {
       "message": "„{object_name}“ je archivován. Obnovte jej, chcete-li zaznamenat nákup."
     },
+    "part_owner_not_loaded": {
+      "message": "{object_name} právě neběží (vypnuto nebo se ještě spouští), proto nelze zaúčtovat jeho náhradní díly. Zkuste to znovu, až poběží."
+    },
     "purchase_cost_too_high": {
       "message": "Nákup může stát celkem nejvýše {max}."
     },
@@ -2567,6 +2576,9 @@
     },
     "date_in_future": {
       "message": "Datum nesmí být v budoucnosti."
+    },
+    "time_based_needs_interval": {
+      "message": "Časová úloha potřebuje interval."
     },
     "range_end_before_start": {
       "message": "Konec nesmí být před začátkem."

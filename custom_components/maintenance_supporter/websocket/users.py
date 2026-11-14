@@ -19,7 +19,8 @@ from ..helpers.entry_tasks import write_task
 from ..helpers.global_options import get_global_options
 from ..helpers.member_display import member_display
 from ..helpers.permissions import require_write, user_may_write
-from ..helpers.sanitize import seed_rotation_assignee
+from ..helpers.sanitize import normalize_people
+from ..helpers.task_apply import note_task_edit
 from . import (
     ID_FIELD,
     _build_task_summary,
@@ -105,15 +106,16 @@ async def ws_assign_user(
         connection.send_error(msg["id"], "not_found", "Task not found")
         return
     task = dict(fresh)
-    if user_id is None:
-        # Unassign user - remove field if it exists
-        task.pop("responsible_user_id", None)
-    else:
-        task["responsible_user_id"] = user_id
-    # The rotation rule of task/update: a rotation keeps someone of its pool
-    # on duty (unassigning, or a user outside the pool, picks its first).
-    seed_rotation_assignee(task)
+    task["responsible_user_id"] = user_id
+    # The rule of every write (normalize_people): nobody (None or "") is
+    # absence, and a rotation keeps someone of its pool on duty (unassigning,
+    # or a user outside the pool, picks its first).
+    normalize_people(task)
     user_id = task.get("responsible_user_id")
+    # The one note of an edit (helpers/task_apply): the trace's "Responsible"
+    # line, and the reminder handed to the new person (bug audit 2026-11-08,
+    # N8-2).
+    note_task_edit(hass, entry.entry_id, task_id, fresh, task)
 
     # Patch only this task's key onto a fresh read — never write back a map
     # snapshot from before an await.

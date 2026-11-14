@@ -755,9 +755,10 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "connectlife": IntegrationSignature(
         name="ConnectLife (Hisense / Gorenje / ASKO)",
-        verified="2026-09-27 @ oyvindwe/connectlife-ha main (fa830d2, HACS default)",
+        verified="2026-11-09 @ oyvindwe/connectlife-ha main (870f375, after 0.56.0, HACS default)",
         source=(
-            "oyvindwe/connectlife-ha: entities come from data_dictionaries/<type>.yaml; "
+            "oyvindwe/connectlife-ha: entities come from mappings/<type>.yaml (named "
+            "data_dictionaries/ until d053891, #828, 2026-11-06: files moved, entries unchanged); "
             "entity.py to_translation_key = property lower-cased (spaces → '_'), set on "
             "every sensor/binary description; 'optional: true' → disabled by default. "
             "012.yaml (hood) 'GreaseFilterUsedHours' and 010.yaml (hob with extractor) "

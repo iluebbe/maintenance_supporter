@@ -44,7 +44,8 @@ from ..helpers.i18n import normalize_language
 from ..helpers.parts import MAX_CONSUME_QUANTITY, is_part_low, resolve_shopping_url
 from ..helpers.phases import current_phase_summary
 from ..helpers.places import object_place, zone_name
-from ..helpers.schedule import KIND_CALENDAR, Schedule, read_legacy_fields
+from ..helpers.schedule import KIND_CALENDAR, Schedule, read_legacy_fields, upcoming_occurrences
+from ..helpers.task_fields import COMPACT_KEEPS_EMPTY
 from ..helpers.trigger_detail import trigger_detail
 from ..helpers.ws_errors import send_translated_error
 from ..models.task_result import CoordinatorData, TaskResult
@@ -158,6 +159,10 @@ def _build_task_summary(
 
     # Enrich trigger config with entity friendly name and state info
     trigger_config = task_data.get("trigger_config")
+    # #228: what the active trigger is about. Its decimals come with a
+    # point and are named, so the panel writes them as its viewer does.
+    detail_numbers: list[str] = []
+    detail = trigger_detail(hass, trigger_config, "en", detail_numbers) if ct.trigger_active else None
     trigger_entity_info: dict[str, Any] | None = None
     trigger_entity_infos: list[dict[str, Any]] | None = None
 
@@ -224,6 +229,8 @@ def _build_task_summary(
         "notify_enabled": task_data.get("notify_enabled") is not False,
         # #185: per-task push-notification icon override (None = type default).
         "notify_icon": task_data.get("notify_icon"),
+        # #252: the task's own notification texts (None = the standard ones).
+        "notification_texts": task_data.get("notification_texts"),
         # v2.20 (#83): unit for `reading`-type tasks; values live in history.
         "reading_unit": task_data.get("reading_unit"),
         # #161 phase 2: reading slots [{id, name, unit}] ([] = single value).
@@ -310,9 +317,15 @@ def _build_task_summary(
         "next_due": ct.next_due,
         # #189: titles of the calendar events behind next_due (calendar kind).
         "next_event_titles": list(ct.next_event_titles),
+        # #266: the coming dates of a weekdays / nth-weekday / day-of-month /
+        # calendar task, from the engine; the Calendar tab cannot step those.
+        "upcoming_dates": upcoming_occurrences(
+            task_data, today=dt_util.now().date(), times_performed=ct.times_performed or 0
+        ),
         "trigger_active": ct.trigger_active,
         # #228: what the active trigger is about, from its detail attribute.
-        "trigger_detail": trigger_detail(hass, trigger_config) if ct.trigger_active else None,
+        "trigger_detail": detail,
+        "trigger_detail_numbers": detail_numbers or None,
         "trigger_current_value": ct.trigger_current_value,
         "trigger_entity_state": ct.trigger_entity_state,
         "trigger_current_delta": ct.trigger_current_delta,
@@ -349,10 +362,8 @@ def _build_task_summary(
 
 _EMPTY_LIST: list[Any] = []
 _EMPTY_DICT: dict[str, Any] = {}
-# Keys whose empty container is a value, not an absence: #233's Quick
-# complete is on while ``quick_complete_defaults`` is present, so ``{}``
-# reads "on, nothing to prefill" and must reach the client as such.
-COMPACT_KEEPS_EMPTY: frozenset[str] = frozenset({"quick_complete_defaults"})
+# COMPACT_KEEPS_EMPTY (helpers/task_fields): keys whose empty container is
+# a value, not an absence, and must reach the client as such.
 
 
 def _strip_empty(d: dict[str, Any]) -> dict[str, Any]:
@@ -430,6 +441,8 @@ def _build_object_response(
                 "stock": stock,
                 "restoring": restoring,
                 "is_low": is_part_low(part, stock, restoring),
+                # #261: ordered and not here yet: {quantity, expected, ordered_at, note}.
+                "on_order": part_store.get_part_order(part["id"]) if part_store else None,
                 "shopping_url": resolve_shopping_url(part, search_template, lang, hass.config.country),
             }
         )
@@ -734,6 +747,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_batch_generate_qr,
         ws_export_csv,
         ws_export_data,
+        ws_export_history_csv,
         ws_export_objects_csv,
         ws_export_settings,
         ws_generate_qr,
@@ -747,6 +761,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
         ws_create_from_template,
         ws_create_object,
         ws_delete_object,
+        ws_delete_object_preview,
         ws_duplicate_object,
         ws_entity_attributes,
         ws_get_object,
@@ -760,7 +775,10 @@ def async_register_commands(hass: HomeAssistant) -> None:
     from .parts import (
         ws_create_part,
         ws_delete_part,
+        ws_move_part,
         ws_part_dispose,
+        ws_part_order,
+        ws_part_order_cancel,
         ws_part_purchase,
         ws_part_ready_again,
         ws_part_use,
@@ -822,6 +840,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_create_object)
     websocket_api.async_register_command(hass, ws_update_object)
     websocket_api.async_register_command(hass, ws_delete_object)
+    websocket_api.async_register_command(hass, ws_delete_object_preview)
     websocket_api.async_register_command(hass, ws_duplicate_object)
     websocket_api.async_register_command(hass, ws_create_from_template)
     websocket_api.async_register_command(hass, ws_archive_object)
@@ -854,9 +873,12 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_create_part)
     websocket_api.async_register_command(hass, ws_update_part)
     websocket_api.async_register_command(hass, ws_delete_part)
+    websocket_api.async_register_command(hass, ws_move_part)
     websocket_api.async_register_command(hass, ws_parts_overview)
     websocket_api.async_register_command(hass, ws_restock_part)
     websocket_api.async_register_command(hass, ws_part_use)
+    websocket_api.async_register_command(hass, ws_part_order)
+    websocket_api.async_register_command(hass, ws_part_order_cancel)
     websocket_api.async_register_command(hass, ws_part_purchase)
     websocket_api.async_register_command(hass, ws_part_ready_again)
     websocket_api.async_register_command(hass, ws_part_dispose)
@@ -869,6 +891,7 @@ def async_register_commands(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_get_budget_status)
     websocket_api.async_register_command(hass, ws_schedule_preview)
     websocket_api.async_register_command(hass, ws_export_csv)
+    websocket_api.async_register_command(hass, ws_export_history_csv)
     websocket_api.async_register_command(hass, ws_export_objects_csv)
     websocket_api.async_register_command(hass, ws_import_csv)
     websocket_api.async_register_command(hass, ws_import_json)

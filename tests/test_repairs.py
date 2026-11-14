@@ -433,32 +433,36 @@ def test_entry_has_task_false_cases() -> None:
     assert _entry_has_task(entry, "") is False
 
 
-def test_replace_entity_in_dict_entity_ids_list() -> None:
-    """Lines 134-135 area: _replace_entity_in_dict replaces in entity_ids list."""
-    from custom_components.maintenance_supporter.repairs import _replace_entity_in_dict
+def test_replace_trigger_entity_in_a_flat_trigger() -> None:
+    """The entity_ids list and entity_id, which follows the first entity."""
+    from custom_components.maintenance_supporter.repairs import _replace_trigger_entity
 
     cfg = {"entity_ids": ["sensor.old", "sensor.other"], "entity_id": "sensor.old"}
-    result = _replace_entity_in_dict(cfg, "sensor.old", "sensor.new")
-    assert "sensor.new" in result["entity_ids"]
+    result = _replace_trigger_entity(cfg, "sensor.old", "sensor.new")
+    assert result["entity_ids"] == ["sensor.new", "sensor.other"]
     assert result["entity_id"] == "sensor.new"
 
     # entity_id field matches too
-    cfg2 = {"entity_id": "sensor.old"}
-    result2 = _replace_entity_in_dict(cfg2, "sensor.old", "sensor.new")
+    result2 = _replace_trigger_entity({"entity_id": "sensor.old"}, "sensor.old", "sensor.new")
     assert result2["entity_id"] == "sensor.new"
 
 
-def test_replace_entity_in_condition_with_nested() -> None:
-    """Lines 92-96: _replace_entity_in_condition replaces in nested trigger_config."""
-    from custom_components.maintenance_supporter.repairs import _replace_entity_in_condition
+def test_replace_trigger_entity_in_a_compound_with_nested_configs() -> None:
+    """A condition's own ids and its nested trigger_config (the shared walker,
+    DRY audit 2026-10-30 BR6-B4); the new sensor starts fresh."""
+    from custom_components.maintenance_supporter.repairs import _replace_trigger_entity
 
-    cond = {
-        "entity_id": "sensor.old",
-        "trigger_config": {"entity_id": "sensor.old"},
+    cfg = {
+        "type": "compound",
+        "conditions": [
+            {"entity_id": "sensor.old", "trigger_config": {"entity_id": "sensor.old"}},
+            {"entity_ids": ["sensor.b"], "_trigger_state": {"sensor.old": {"change_count": 2}}},
+        ],
     }
-    result = _replace_entity_in_condition(cond, "sensor.old", "sensor.new")
-    assert result["entity_id"] == "sensor.new"
-    assert result["trigger_config"]["entity_id"] == "sensor.new"
+    result = _replace_trigger_entity(cfg, "sensor.old", "sensor.new")
+    assert result["conditions"][0]["entity_id"] == "sensor.new"
+    assert result["conditions"][0]["trigger_config"]["entity_id"] == "sensor.new"
+    assert result["conditions"][1]["_trigger_state"] == {"sensor.old": {"change_count": 2}}
 
 
 def test_strip_entity_from_dict_multi_entity() -> None:

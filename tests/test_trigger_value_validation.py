@@ -65,13 +65,13 @@ def test_non_numbers_are_refused_with_the_field_named(hass: HomeAssistant, field
     assert len(errors) == 1 and errors[0].startswith(f"trigger_config.{field} must be a number")
 
 
-@pytest.mark.parametrize("value", ["abc", -1, 1441, 2.5, True, "1e9"])
+@pytest.mark.parametrize("value", ["abc", -1, 43201, 2.5, True, "1e9"])
 def test_for_minutes_must_be_a_whole_number_in_range(hass: HomeAssistant, value) -> None:
     errors, _ = _validate_trigger_config(hass, _threshold(trigger_for_minutes=value))
-    assert errors == [f"trigger_config.trigger_for_minutes must be a whole number between 0 and 1440, got {value!r}"]
+    assert errors == [f"trigger_config.trigger_for_minutes must be a whole number between 0 and 43200, got {value!r}"]
 
 
-@pytest.mark.parametrize("value", [0, 1440, "0", 60.0])
+@pytest.mark.parametrize("value", [0, 1440, 21600, 43200, "0", 60.0])
 def test_for_minutes_boundaries_pass(hass: HomeAssistant, value) -> None:
     tc = _threshold(trigger_for_minutes=value)
     errors, _ = _validate_trigger_config(hass, tc)
@@ -134,7 +134,7 @@ def test_compound_conditions_are_checked_with_their_index(hass: HomeAssistant) -
     errors, _ = _validate_trigger_config(hass, tc)
     assert errors == [
         "Condition 1: trigger_config.trigger_above must be a number, got 'high'",
-        "Condition 1: trigger_config.trigger_for_minutes must be a whole number between 0 and 1440, got -5",
+        "Condition 1: trigger_config.trigger_for_minutes must be a whole number between 0 and 43200, got -5",
     ]
 
 

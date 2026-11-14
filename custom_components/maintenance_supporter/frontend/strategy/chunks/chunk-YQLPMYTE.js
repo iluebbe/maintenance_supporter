@@ -1,0 +1,2 @@
+/*! maintenance_supporter frontend 2.121.0 */
+function s(n){return n==="use"?"use":"purchase"}function u(n,t,e=!1){if(e)return"purchase";let r=n?.cost_mode;return r==="use"||r==="purchase"?r:t}var o=n=>typeof n=="number"&&Number.isFinite(n)?n:null,c=n=>Math.round(n*100)/100;function i(n){let t=o(n?.cost);if(t===null)return null;let e=o(n?.package_size);return e&&e>0?t/e:t}export{s as a,u as b,c,i as d};

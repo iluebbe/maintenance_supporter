@@ -95,6 +95,11 @@ from .parts_runtime import (
     async_part_purchase,
     async_part_ready_again,
     async_part_use,
+    open_buy_task_id,
+    open_reminder_refusal,
+    part_counted,
+    part_reusable,
+    purchase_refusal,
 )
 
 # --- Service Schemas ---
@@ -116,6 +121,8 @@ SERVICE_COMPLETE_SCHEMA = vol.Schema(
         # completion). Future values are rejected by the coordinator.
         vol.Optional("completed_at"): cv.datetime,
         vol.Optional("via_tag_scan"): cv.boolean,
+        # D#264: book the task's linked parts even for a backfilled date.
+        vol.Optional("consume_parts"): cv.boolean,
     }
 )
 
@@ -145,7 +152,8 @@ SERVICE_SKIP_SCHEMA = vol.Schema(
 
 SERVICE_EXPORT_SCHEMA = vol.Schema(
     {
-        vol.Optional("format", default="json"): vol.In(["json", "yaml"]),
+        # history_csv (D#253): one row per history entry, for a spreadsheet.
+        vol.Optional("format", default="json"): vol.In(["json", "yaml", "history_csv"]),
         vol.Optional("include_history", default=True): cv.boolean,
     }
 )
@@ -530,6 +538,7 @@ async def _handle_complete(call: ServiceCall) -> None:
             # Proof of presence: an automation that reacted to the physical
             # scan itself passes via_tag_scan to satisfy require_tag_scan.
             tag_verified=bool(call.data.get("via_tag_scan")),
+            consume_linked_parts=bool(call.data.get("consume_parts")),
         )
 
     await _run_per_task(hass, _one, entity_ids, "complete")
@@ -559,12 +568,30 @@ async def _handle_skip(call: ServiceCall) -> None:
     await _run_per_task(call.hass, _one, call.data[ATTR_ENTITY_ID], "skip")
 
 
+def _write_text_file(file_path: str, content: str) -> None:
+    """Write an export file (runs in the executor)."""
+    from pathlib import Path
+
+    # newline="": the csv module already wrote its own row ends.
+    with Path(file_path).open("w", encoding="utf-8", newline="") as handle:
+        handle.write(content)
+
+
 async def _handle_export(call: ServiceCall) -> None:
     """Handle the export_data service call."""
     hass = call.hass
 
     fmt = call.data.get("format", "json")
     include_history = call.data.get("include_history", True)
+
+    if fmt == "history_csv":
+        from .helpers.csv_handler import async_export_history_csv
+
+        csv_text = await async_export_history_csv(hass)
+        file_path = hass.config.path("maintenance_history.csv")
+        await hass.async_add_executor_job(_write_text_file, file_path, csv_text)
+        hass.bus.async_fire(f"{DOMAIN}_export_completed", {"format": fmt, "file_path": file_path})
+        return
 
     # Phase 1: gather data on the event loop (accesses HA APIs)
     data = await async_attach_move_hints(hass, build_export_data(hass, include_history=include_history))
@@ -785,9 +812,16 @@ async def _handle_list_tasks(call: ServiceCall) -> dict[str, Any]:
 # and dashboard buttons — the panel's part actions, same tier (write) and
 # the same runtime calls, so the stock, its events and the buy tasks move
 # alike.
-def _resolve_part_targets(hass: HomeAssistant, entity_ids: list[str]) -> list[tuple[str, ConfigEntry, str]]:
+def _resolve_part_targets(
+    hass: HomeAssistant,
+    entity_ids: list[str],
+    refusal: Callable[[str, ConfigEntry, str], ServiceValidationError | None] | None = None,
+) -> list[tuple[str, ConfigEntry, str]]:
     """Each part stock sensor -> (entity_id, owner entry, part_id); all
-    resolved before anything is booked."""
+    resolved, and with ``refusal`` all checked, before anything is booked.
+    Only the use checked every part first; restock, ready again, dispose
+    and purchase booked the parts until the first refusal (DRY audit
+    2026-10-30, BI6-B3)."""
     registry = er.async_get(hass)
     targets: list[tuple[str, ConfigEntry, str]] = []
     for eid in dict.fromkeys(entity_ids):
@@ -804,8 +838,34 @@ def _resolve_part_targets(hass: HomeAssistant, entity_ids: list[str]) -> list[tu
                 translation_key="no_part_for_entity",
                 translation_placeholders={"entity_id": eid},
             )
+        if store_of(entry) is None:
+            # Disabled or still setting up: the sensor's registry entry stays,
+            # its stock does not answer. A purchase reported success and
+            # booked nothing, a use said "not a counted part" (bug audit
+            # 2026-11-08, P8-6).
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="part_owner_not_loaded",
+                translation_placeholders={"object_name": aggregate_object_name(entry)},
+            )
         targets.append((eid, entry, part_id))
+    if refusal is not None:
+        for eid, entry, part_id in targets:
+            if (err := refusal(eid, entry, part_id)) is not None:
+                raise err
     return targets
+
+
+def _not_counted(eid: str, entry: ConfigEntry, part_id: str) -> ServiceValidationError | None:
+    if part_counted(entry, part_id):
+        return None
+    return ServiceValidationError(translation_domain=DOMAIN, translation_key="part_not_counted", translation_placeholders={"entity_id": eid})
+
+
+def _not_reusable(eid: str, entry: ConfigEntry, part_id: str) -> ServiceValidationError | None:
+    if part_reusable(entry, part_id):
+        return None
+    return ServiceValidationError(translation_domain=DOMAIN, translation_key="part_not_reusable", translation_placeholders={"entity_id": eid})
 
 
 async def _handle_part_restock(call: ServiceCall) -> dict[str, Any] | None:
@@ -823,21 +883,11 @@ async def _handle_part_restock(call: ServiceCall) -> dict[str, Any] | None:
     return {"parts": results} if call.return_response else None
 
 
-def _reusable(eid: str, result: dict[str, float] | None) -> dict[str, float]:
-    if result is None:
-        raise ServiceValidationError(
-            translation_domain=DOMAIN,
-            translation_key="part_not_reusable",
-            translation_placeholders={"entity_id": eid},
-        )
-    return result
-
-
 async def _handle_part_ready_again(call: ServiceCall) -> dict[str, Any] | None:
     hass = call.hass
     results = [
-        {"entity_id": eid, **_reusable(eid, await async_part_ready_again(hass, entry, part_id, call.data.get("quantity")))}
-        for eid, entry, part_id in _resolve_part_targets(hass, call.data[ATTR_ENTITY_ID])
+        {"entity_id": eid, **(await async_part_ready_again(hass, entry, part_id, call.data.get("quantity")) or {})}
+        for eid, entry, part_id in _resolve_part_targets(hass, call.data[ATTR_ENTITY_ID], _not_reusable)
     ]
     return {"parts": results} if call.return_response else None
 
@@ -845,24 +895,16 @@ async def _handle_part_ready_again(call: ServiceCall) -> dict[str, Any] | None:
 async def _handle_part_dispose(call: ServiceCall) -> dict[str, Any] | None:
     hass = call.hass
     results = [
-        {"entity_id": eid, **_reusable(eid, await async_part_dispose(hass, entry, part_id, call.data.get("quantity")))}
-        for eid, entry, part_id in _resolve_part_targets(hass, call.data[ATTR_ENTITY_ID])
+        {"entity_id": eid, **(await async_part_dispose(hass, entry, part_id, call.data.get("quantity")) or {})}
+        for eid, entry, part_id in _resolve_part_targets(hass, call.data[ATTR_ENTITY_ID], _not_reusable)
     ]
     return {"parts": results} if call.return_response else None
 
 
 async def _handle_part_use(call: ServiceCall) -> dict[str, Any] | None:
     hass = call.hass
-    targets = _resolve_part_targets(hass, call.data[ATTR_ENTITY_ID])
     # Every one must have a stock to count down before any is booked.
-    for eid, entry, part_id in targets:
-        store = store_of(entry)
-        if store is None or store.get_part_stock(part_id) is None:
-            raise ServiceValidationError(
-                translation_domain=DOMAIN,
-                translation_key="part_not_counted",
-                translation_placeholders={"entity_id": eid},
-            )
+    targets = _resolve_part_targets(hass, call.data[ATTR_ENTITY_ID], _not_counted)
     results = []
     for eid, entry, part_id in targets:
         result = await async_part_use(hass, entry, part_id, call.data.get("quantity"))
@@ -872,7 +914,33 @@ async def _handle_part_use(call: ServiceCall) -> dict[str, Any] | None:
 
 async def _handle_part_purchase(call: ServiceCall) -> dict[str, Any] | None:
     hass = call.hass
-    targets = _resolve_part_targets(hass, call.data[ATTR_ENTITY_ID])
+    # Buy reminders the parts checked so far create, per object: two parts of
+    # an object one task below the cap each passed, the first one was booked
+    # and the second refused (bug audit 2026-11-08, P8-5).
+    planned: dict[str, int] = {}
+
+    def _refused(eid: str, entry: ConfigEntry, part_id: str) -> ServiceValidationError | None:
+        unit_price = call.data.get("unit_price")
+        cost = call.data.get("cost")
+        if (
+            err := purchase_refusal(
+                hass, entry, part_id, quantity=call.data.get("quantity"), unit_price=unit_price, cost=cost, day=call.data.get("date"),
+                new_reminders=planned.get(entry.entry_id, 0),
+            )
+        ) is not None:
+            return err
+        if open_buy_task_id(entry, part_id) is None:
+            planned[entry.entry_id] = planned.get(entry.entry_id, 0) + 1
+            return None
+        return open_reminder_refusal(
+            entry,
+            part_id,
+            notes=call.data.get("notes") or None,
+            with_cost=cost is not None or unit_price is not None,
+            completed_by=call.context.user_id if call.context else None,
+        )
+
+    targets = _resolve_part_targets(hass, call.data[ATTR_ENTITY_ID], _refused)
     if len(targets) > 1 and call.data.get("cost") is not None:
         # The total of ONE purchase: booked on every part it multiplied into
         # the spending, as a complete's cost would (DRY audit 2026-10-30,

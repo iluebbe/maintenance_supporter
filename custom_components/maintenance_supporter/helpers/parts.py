@@ -24,10 +24,10 @@ is passed in here as a plain ``{part_id: stock}`` map.
 from __future__ import annotations
 
 import re
-from collections.abc import Callable, Iterator, Mapping
+from collections.abc import Callable, Collection, Iterator, Mapping
 from datetime import date
 from typing import Any
-from urllib.parse import quote_plus
+from urllib.parse import quote, quote_plus
 from uuid import uuid4
 
 from ..const import DEFAULT_CURRENCY_DECIMALS, PARTS_COST_MODES
@@ -216,12 +216,31 @@ def is_http_url(url: str) -> bool:
     return len(url) <= MAX_PART_URL and bool(_HTTP_URL.match(url))
 
 
+# #265: a supplier without a web shop is ordered from by e-mail.
+_MAILTO_URL = re.compile(r"^mailto:[^\s@?,;]+@[^\s@?,;]+\.[^\s@?,;]+(\?\S*)?$", re.IGNORECASE)
+_BARE_EMAIL = re.compile(r"^[^\s@?,;:/]+@[^\s@?,;:/]+\.[^\s@?,;:/]+$")
+
+
+def is_mailto_url(url: str) -> bool:
+    """A ``mailto:`` link to one address, optionally with its own
+    ``?subject=…`` part, of at most MAX_PART_URL characters (#265)."""
+    return len(url) <= MAX_PART_URL and bool(_MAILTO_URL.match(url))
+
+
+def is_part_url(url: str) -> bool:
+    """What a part's ``product_url`` may be: a shop page or an order address."""
+    return is_http_url(url) or is_mailto_url(url)
+
+
 def _clean_url(raw: Any) -> str:
     s = str(raw or "").strip()
     if not s:
         return ""
-    if not is_http_url(s):
-        raise PartValidationError("product_url must be an http(s) URL")
+    # A bare address typed into the field is meant as one to write to.
+    if _BARE_EMAIL.match(s):
+        s = f"mailto:{s}"
+    if not is_part_url(s):
+        raise PartValidationError("product_url must be an http(s) URL or a mailto: address")
     return s
 
 
@@ -469,30 +488,26 @@ def iter_part_links(task: Mapping[str, Any]) -> Iterator[dict[str, Any]]:
                 yield from (link for link in plinks if isinstance(link, dict))
 
 
-def map_part_links(
-    task: Mapping[str, Any], rewrite: Callable[[dict[str, Any]], dict[str, Any] | None]
-) -> tuple[dict[str, Any], bool]:
-    """A copy of ``task`` with every part link (task level and per phase, see
-    :func:`iter_part_links`) passed through ``rewrite``; ``None`` drops the
-    link, and a list left empty is removed. Returns ``(task, changed)`` —
-    the input is never mutated."""
+def map_part_link_lists(task: Mapping[str, Any], rewrite: Callable[[list[Any]], list[Any]]) -> tuple[dict[str, Any], bool]:
+    """A copy of ``task`` with each list of part links (the task's and each
+    phase's, see :func:`iter_part_links`) passed through ``rewrite``; a list
+    left empty is removed. Returns ``(task, changed)``, the input is never
+    mutated. The one walker of where a task keeps part links: link by link
+    (:func:`map_part_links`) and the battery fleet's id migration, which folds
+    two links that now name one part (DRY audit 2026-10-30, BR6-B6)."""
     changed = False
 
-    def _rewrite_list(links: list[Any]) -> list[dict[str, Any]]:
+    def _apply(links: list[Any]) -> list[Any]:
         nonlocal changed
-        out: list[dict[str, Any]] = []
-        for link in links:
-            new = rewrite(dict(link)) if isinstance(link, dict) else None
-            if new != link:
-                changed = True
-            if new is not None:
-                out.append(new)
-        return out
+        new = rewrite(links)
+        if new != links:
+            changed = True
+        return new
 
     new_task = dict(task)
     links = task.get("consumes_parts")
     if isinstance(links, list):
-        kept = _rewrite_list(links)
+        kept = _apply(links)
         if kept:
             new_task["consumes_parts"] = kept
         else:
@@ -503,7 +518,7 @@ def map_part_links(
         for pid, pdef in phases.items():
             if isinstance(pdef, Mapping) and isinstance(pdef.get("consumes_parts"), list):
                 pdef = dict(pdef)
-                kept = _rewrite_list(pdef["consumes_parts"])
+                kept = _apply(pdef["consumes_parts"])
                 if kept:
                     pdef["consumes_parts"] = kept
                 else:
@@ -511,6 +526,43 @@ def map_part_links(
             new_phases[pid] = pdef
         new_task["phases"] = new_phases
     return new_task, changed
+
+
+def map_part_links(
+    task: Mapping[str, Any], rewrite: Callable[[dict[str, Any]], dict[str, Any] | None]
+) -> tuple[dict[str, Any], bool]:
+    """A copy of ``task`` with every part link (task level and per phase, see
+    :func:`iter_part_links`) passed through ``rewrite``; ``None`` drops the
+    link, and a list left empty is removed. Returns ``(task, changed)`` —
+    the input is never mutated."""
+
+    def _rewrite_list(links: list[Any]) -> list[Any]:
+        out: list[Any] = []
+        for link in links:
+            new = rewrite(dict(link)) if isinstance(link, dict) else None
+            if new is not None:
+                out.append(new)
+        return out
+
+    return map_part_link_lists(task, _rewrite_list)
+
+
+def map_used_parts(history: list[Any], rewrite: Callable[[list[Any]], list[Any]]) -> tuple[list[Any], int]:
+    """A copy of a task's history with each entry's ``used_parts`` passed
+    through ``rewrite``. Returns ``(history, entries changed)``. A pool's new
+    home (shared_parts) and the battery fleet's id migration each walked it
+    (DRY audit 2026-10-30, BR6-B6)."""
+    out: list[Any] = []
+    touched = 0
+    for entry in history:
+        used = entry.get("used_parts") if isinstance(entry, dict) else None
+        if isinstance(used, list):
+            new = rewrite(used)
+            if new != used:
+                entry = {**entry, "used_parts": new}
+                touched += 1
+        out.append(entry)
+    return out, touched
 
 
 # ── Stock rules ──────────────────────────────────────────────────────────────
@@ -597,11 +649,51 @@ def search_query(part: Mapping[str, Any]) -> str:
     return str(part.get("name") or "")
 
 
+def order_lines(part: Mapping[str, Any]) -> list[str]:
+    """What to order, as the buy task's notes and an order e-mail say it:
+    the amount and name, then the identifiers a supplier needs."""
+    lines: list[str] = []
+    qty = part.get("restock_quantity") or 1
+    unit = f" {part['unit']}" if part.get("unit") else ""
+    if part.get("package_size"):
+        # Bought in packages: "2 × Glass cleaner (500 ml)".
+        lines.append(f"{qty} × {part['name']} ({part['package_size']}{unit})")
+    else:
+        lines.append(f"{qty}×{unit} {part['name']}".replace("× ", "× ").strip())
+    idents = " · ".join(
+        p
+        for p in (
+            f"{part['vendor']}" if part.get("vendor") else "",
+            f"MPN: {part['mpn']}" if part.get("mpn") else "",
+            f"GTIN: {part['gtin']}" if part.get("gtin") else "",
+        )
+        if p
+    )
+    if idents:
+        lines.append(idents)
+    return lines
+
+
+def order_mail_url(part: Mapping[str, Any]) -> str | None:
+    """A part ordered by e-mail (#265): its ``mailto:`` address with the
+    part's name as the subject and what to order as the text. A link that
+    brings its own ``?subject=…`` is the user's wording and stays as it is.
+    None for any other link."""
+    url = str(part.get("product_url") or "")
+    if not is_mailto_url(url):
+        return None
+    if "?" in url:
+        return url
+    subject = quote(str(part.get("name") or ""), safe="")
+    body = quote("\n".join(order_lines(part)), safe="")
+    return f"{url}?subject={subject}&body={body}"
+
+
 def resolve_shopping_url(part: Mapping[str, Any], template: str | None, lang: str, country: str | None = None) -> str:
     """The link to buy this part: ``product_url`` wins; else the search
     template — the explicit one, or the default by country then language."""
     if part.get("product_url"):
-        return str(part["product_url"])
+        return order_mail_url(part) or str(part["product_url"])
     tpl = (template or "").strip() or default_search_template(lang, country)
     if "{q}" not in tpl:
         tpl = tpl.rstrip("/") + "?q={q}"
@@ -622,25 +714,9 @@ def buy_task_notes(part: Mapping[str, Any], stock: float | None, decimals: int =
     Deliberately mostly language-neutral (labels are identifiers like MPN/GTIN;
     the storage location is the user's own text).
     """
-    lines: list[str] = []
+    lines = order_lines(part)
     qty = part.get("restock_quantity") or 1
     unit = f" {part['unit']}" if part.get("unit") else ""
-    if part.get("package_size"):
-        # Bought in packages: "2 × Glass cleaner (500 ml)".
-        lines.append(f"{qty} × {part['name']} ({part['package_size']}{unit})")
-    else:
-        lines.append(f"{qty}×{unit} {part['name']}".replace("× ", "× ").strip())
-    idents = " · ".join(
-        p
-        for p in (
-            f"{part['vendor']}" if part.get("vendor") else "",
-            f"MPN: {part['mpn']}" if part.get("mpn") else "",
-            f"GTIN: {part['gtin']}" if part.get("gtin") else "",
-        )
-        if p
-    )
-    if idents:
-        lines.append(idents)
     if part.get("cost") is not None:
         lines.append(f"≈ {part['cost']:.{decimals}f} × {qty}")
     if stock is not None:
@@ -691,6 +767,7 @@ def reconcile_buy_tasks(
     decimals: int = DEFAULT_CURRENCY_DECIMALS,
     is_task_done: Any,
     country: str | None = None,
+    on_order: Collection[str] = (),
 ) -> tuple[dict[str, dict[str, Any]], list[str], list[str], bool]:
     """Compute the task map with auto "buy" reminders synced to low parts.
 
@@ -718,6 +795,11 @@ def reconcile_buy_tasks(
         for part_id, part in parts.items()
         if part_wants_buy_task(part) and part_is_low(part, stocks.get(part_id))
     }
+    # #261: a part on order keeps (or gets) its reminder whatever its stock
+    # says: it is what waits for the delivery and books the receipt. Not
+    # for a part whose reminders are switched off: its order is a note on
+    # the part, received with Bought or a restock.
+    desired |= {part_id for part_id in on_order if part_id in parts and part_wants_buy_task(parts[part_id])}
 
     result: dict[str, dict[str, Any]] = {tid: dict(t) for tid, t in tasks.items()}
     existing_by_part: dict[str, str] = {}

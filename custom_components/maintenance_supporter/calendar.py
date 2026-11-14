@@ -23,16 +23,18 @@ from .const import (
 from .entity.id_change import entity_id_changed
 from .helpers.aggregate import merged_tasks, task_results_of
 from .helpers.calendar_source import next_event_titles
-from .helpers.dates import interval_span_days, parse_hhmm
+from .helpers.dates import interval_span_days, parse_hhmm, parse_iso_date
 from .helpers.global_options import is_schedule_time_enabled
 from .helpers.i18n import format_text, normalize_language
 from .helpers.pause import is_task_inert
 from .helpers.phases import task_label
 from .helpers.places import object_place, zone_name
+from .helpers.status import needs_both_legs
 from .models.maintenance_task import MaintenanceTask
 
 if TYPE_CHECKING:
     from .models.runtime_data import MaintenanceSupporterConfigEntry
+    from .models.task_result import TaskResult
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -779,7 +781,7 @@ class MaintenanceCalendar(CalendarEntity):
                     task._trigger_current_value = live.trigger_current_value
 
                 event = self._create_event_for_task(
-                    task, obj_name, start_d, end_d, live_status=live.status if live is not None else None
+                    task, obj_name, start_d, end_d, live=live
                 )
                 if event:
                     if place_name:
@@ -800,15 +802,16 @@ class MaintenanceCalendar(CalendarEntity):
         start_d: date,
         end_d: date,
         *,
-        live_status: str | None = None,
+        live: TaskResult | None = None,
     ) -> CalendarEvent | None:
         """Create a calendar event for a task if within range.
 
-        ``live_status`` is the coordinator's computed status; the calendar
-        recomputed its own, without the schedule_time feature gate, and its
-        prefix disagreed with the task sensor (bug audit 2026-09-26, DRY
-        BR-A9). The model's status is only the fallback before the first
-        refresh.
+        ``live`` is the coordinator's result: its status, because the
+        calendar recomputed its own, without the schedule_time feature gate,
+        and its prefix disagreed with the task sensor (bug audit 2026-09-26,
+        DRY BR-A9); and the due date of a task that needs its trigger AND its
+        interval, the later of the two (#260). The model is only the fallback
+        before the first refresh.
         """
         lang = self._lang
 
@@ -829,6 +832,8 @@ class MaintenanceCalendar(CalendarEntity):
 
         # Time-based or sensor-based with interval
         next_due = task.next_due
+        if live is not None and needs_both_legs(task.trigger_config):
+            next_due = parse_iso_date(live.next_due)
         if next_due is None:
             if task._trigger_active:
                 # Sensor triggered without fixed date: show today
@@ -842,7 +847,7 @@ class MaintenanceCalendar(CalendarEntity):
                     )
             return None
 
-        status = live_status or task.status
+        status = (live.status if live is not None else None) or task.status
         prefix = STATUS_PREFIX.get(status, "")
 
         # An overdue or triggered task is something to do now: it sits on

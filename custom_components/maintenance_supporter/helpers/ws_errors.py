@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any
 
 from homeassistant.exceptions import HomeAssistantError
 
-from ..const import DOMAIN
+from ..const import DOMAIN, MAX_TASKS_PER_OBJECT
 
 if TYPE_CHECKING:
     from homeassistant.components.websocket_api.connection import ActiveConnection
@@ -51,6 +51,28 @@ def send_unsafe_url_error(connection: ActiveConnection, msg_id: int) -> None:
     object's documentation URL; the add_object action raises the same key).
     Five commands spelled it out word for word (DRY audit 2026-10-12)."""
     send_translated_error(connection, msg_id, "invalid_url", UNSAFE_URL_MESSAGE, translation_key="unsafe_url")
+
+
+def send_task_limit_error(connection: ActiveConnection, msg_id: int, message: str | None = None) -> None:
+    """Refuse a new task on an object that has the most it may have — the
+    refusal of every command that adds one (task/create, task/move,
+    task/duplicate, the template's new tasks). The duplicate and the
+    template apply let the cap through as an unknown error (DRY audit
+    2026-11-07, BI7-A2)."""
+    send_translated_error(
+        connection,
+        msg_id,
+        "limit_reached",
+        message or f"This object already has the maximum of {MAX_TASKS_PER_OBJECT} tasks",
+        translation_key="task_limit",
+        translation_placeholders={"max": str(MAX_TASKS_PER_OBJECT)},
+    )
+
+
+def send_archived_object_error(connection: ActiveConnection, msg_id: int) -> None:
+    """Refuse a new task on an archived object: it is hidden, and its tasks
+    would still notify (bug audit 2026-09-26)."""
+    send_translated_error(connection, msg_id, "archived", "An archived object cannot get new tasks", translation_key="archived_no_new_tasks")
 
 
 def send_exception_error(connection: ActiveConnection, msg_id: int, err: HomeAssistantError, fallback_code: str) -> None:

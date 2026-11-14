@@ -30,6 +30,7 @@ import {
 import { LS_KEYS, lsGet, lsSet } from "../helpers/storage-keys";
 import { haToday } from "../helpers/ha-time";
 import type { HomeAssistant, MaintenanceObjectResponse } from "../types";
+import { onActivationKey } from "../helpers/keyboard";
 
 /** The table's columns: sort key, header label key, numeric alignment. */
 const COLUMNS: ReadonlyArray<{ key: AreaSortKey; label: string; num: boolean }> = [
@@ -175,7 +176,7 @@ export class MaintenanceAreasView extends LitElement {
                 ${rows.map((r) => html`
                   <tr class="objects-table-row" tabindex="0"
                     @click=${() => this._open(r.key)}
-                    @keydown=${(e: KeyboardEvent) => { if (e.key === "Enter") this._open(r.key); }}>
+                    @keydown=${onActivationKey(() => this._open(r.key))}>
                     <td>
                       <ha-icon class="area-row-icon" .icon=${r.icon}></ha-icon>
                       <span class="objects-table-name">${r.name}</span>

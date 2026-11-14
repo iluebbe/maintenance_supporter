@@ -50,6 +50,25 @@ export function alreadyRecordedMessage(res: unknown, lang: string): string | nul
   return typeof seconds === "number" ? t("completion_already_recorded", lang).replace("{seconds}", String(seconds)) : null;
 }
 
+/** What a surface without a toast of its own says after a quick completion
+ *  (#233): Home Assistant's toast with Undo, else "Quickly marked complete".
+ *  The card said so; the quick-actions dialog closed silently when there was
+ *  nothing to undo (DRY audit 2026-10-30, FE6-A4). */
+export function confirmQuickComplete(
+  el: HTMLElement,
+  hass: HomeAssistant,
+  detail: { entryId: string; taskId: string; taskName: string },
+  undo: boolean,
+  lang: string,
+  after: () => void,
+): void {
+  if (undo) {
+    offerUndoToast(el, hass, detail, lang, after);
+    return;
+  }
+  el.dispatchEvent(new CustomEvent("hass-notification", { detail: { message: t("quick_complete_success", lang) }, bubbles: true, composed: true }));
+}
+
 /** Home Assistant's own toast with an Undo button — for surfaces without a
  *  toast of their own (the dashboard card). The outcome is a second toast;
  *  `after` runs after a successful undo (reload the list). */

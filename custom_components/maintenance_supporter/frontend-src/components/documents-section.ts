@@ -25,6 +25,7 @@ import { uploadDocument } from "../helpers/photo-upload";
 import "./ms-photo-picker";
 import { photoPickerStyles } from "./ms-photo-picker";
 import { confirmAction } from "../helpers/confirm";
+import { onActivationKey } from "../helpers/keyboard";
 
 interface MaintenanceDocument {
   id: string;
@@ -182,12 +183,7 @@ export class MaintenanceDocumentsSection extends LitElement {
   }
 
   /** Keyboard support for the file-picker <label>s (Enter/Space → open). */
-  private _labelKeydown(e: KeyboardEvent): void {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      (e.currentTarget as HTMLElement).querySelector("input")?.click();
-    }
-  }
+  private _labelKeydown = onActivationKey((e) => (e.currentTarget as HTMLElement).querySelector("input")?.click());
 
   private _onFileInput(e: Event): void {
     const input = e.target as HTMLInputElement;
@@ -509,12 +505,7 @@ export class MaintenanceDocumentsSection extends LitElement {
           tabindex="0"
           title=${t("doc_open", L)}
           @click=${() => this._openDoc(doc)}
-          @keydown=${(e: KeyboardEvent) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              this._openDoc(doc);
-            }
-          }}
+          @keydown=${onActivationKey(() => this._openDoc(doc))}
         >
           <div class="doc-title">${docDisplayName(doc)}</div>
           <div class="doc-meta">${meta}</div>

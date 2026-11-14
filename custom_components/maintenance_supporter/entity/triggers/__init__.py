@@ -156,6 +156,9 @@ def _inject_per_entity_state(config: dict[str, Any], entity_state: dict[str, Any
             config["trigger_state_pending_since"] = entity_state["pending_since"]
         if entity_state.get("pending_state"):
             config["trigger_state_pending_state"] = entity_state["pending_state"]
+        # #254: the last real state before the restart.
+        if entity_state.get("last_state"):
+            config["trigger_state_last_state"] = entity_state["last_state"]
     elif trigger_type == TriggerType.THRESHOLD:
         tes = entity_state.get("threshold_exceeded_since")
         if tes:

@@ -23,6 +23,10 @@ import { openCompleteDialog, openCreateTaskDialog } from "../dialog-mount";
 import { DEFAULT_CURRENCY_SYMBOL } from "../styles";
 import type { MaintenanceCompleteDialog } from "../components/complete-dialog";
 
+/** A first dynamic import compiles the chunk's whole module graph in the
+ *  test server; on a busy machine that took longer than waitUntil's 1 s. */
+const COLD_IMPORT_MS = 4000;
+
 const TASK_TAG = "maintenance-task-dialog";
 const COMPLETE_TAG = "maintenance-complete-dialog";
 
@@ -62,7 +66,7 @@ describe("dialog-mount argument forwarding", () => {
     const objs = [{ entry_id: "e1", object: { name: "Boiler" } }];
     const opened = openCreateTaskDialog("", objs);
     expect(opened).to.equal(true);
-    await waitUntil(() => got !== null, "openCreate called");
+    await waitUntil(() => got !== null, "openCreate called", { timeout: COLD_IMPORT_MS });
     expect(got![0]).to.equal("");
     expect(got![1]).to.equal(objs);
     expect(ha.shadowRoot!.querySelector(TASK_TAG), "adopted into HA root").to.exist;
@@ -80,7 +84,7 @@ describe("dialog-mount argument forwarding", () => {
     document.body.appendChild(stray);
 
     openCreateTaskDialog("entry_42");
-    await waitUntil(() => got !== null, "openCreate called");
+    await waitUntil(() => got !== null, "openCreate called", { timeout: COLD_IMPORT_MS });
     expect(got![0]).to.equal("entry_42");
   });
 

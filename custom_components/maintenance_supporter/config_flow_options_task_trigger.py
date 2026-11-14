@@ -25,6 +25,18 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
 
 
+def _hold_text(minutes: Any) -> str:
+    """A hold counted in minutes, for the summary line: "45min",
+    "2h 5min", "15d" (#255: up to 30 days read as 43200min)."""
+    total = int(minutes)
+    day = 24 * 60
+    if total < 2 * 60:
+        return f"{total}min"
+    days, rest = divmod(total, day) if total >= 2 * day else (0, total)
+    hours, mins = divmod(rest, 60)
+    return " ".join(f"{n}{unit}" for n, unit in ((days, "d"), (hours, "h"), (mins, "min")) if n)
+
+
 class TriggerStepsMixin(TriggerConfigMixin):
     """Sensor-trigger editing steps; opt_* wrappers delegate to the
     shared TriggerConfigMixin. Owns the compound step aliases."""
@@ -75,7 +87,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
             if cond.get("trigger_not_equals") is not None:
                 parts.append(f"≠ {cond['trigger_not_equals']}")
             if cond.get("trigger_for_minutes"):
-                parts.append(f"for: {cond['trigger_for_minutes']}min")
+                parts.append(f"for: {_hold_text(cond['trigger_for_minutes'])}")
         elif ctype == TriggerType.COUNTER:
             if cond.get("trigger_target_value") is not None:
                 parts.append(f"target: {cond['trigger_target_value']}")

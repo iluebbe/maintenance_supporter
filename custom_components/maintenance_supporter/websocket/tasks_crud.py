@@ -35,13 +35,11 @@ from ..const import (
     MAX_NFC_TAG_LENGTH,
     MAX_NOTIFY_ICON_LENGTH,
     MAX_READING_UNIT_LENGTH,
-    MAX_TASKS_PER_OBJECT,
     MAX_TEXT_LENGTH,
     MAX_TYPE_LENGTH,
     MAX_URL_LENGTH,
     MIRROR_TODO_ENTITY_PATTERN,
     HistoryEntryType,
-    ScheduleType,
 )
 from ..entity.triggers import trigger_runtime_stale
 from ..helpers.aggregate import check_nfc_tag_duplicate, get_store
@@ -61,6 +59,7 @@ from ..helpers.sanitize import (
     sanitize_complete_when,
     sanitize_labels,
     sanitize_mirror_todo_entities,
+    sanitize_notification_texts,
     settle_action_owner,
     stamp_action_owner,
     strip_task_runtime_state,
@@ -68,12 +67,14 @@ from ..helpers.sanitize import (
 from ..helpers.schedule import (
     FLAT_RECURRENCE_KEYS,
     KIND_INTERVAL,
+    TIME_BASED_NEEDS_INTERVAL,
     Schedule,
+    flat_recurrence_refusal,
+    implied_schedule_type,
     keep_month_filter,
-    normalize_task_storage,
 )
 from ..helpers.shared_parts import foreign_part_resolver
-from ..helpers.task_apply import async_apply_task_edits
+from ..helpers.task_apply import async_apply_task_edits, note_task_edit
 from ..helpers.task_fields import (
     EARLIEST_COMPLETION_RANGE,
     INTERVAL_ANCHORS,
@@ -85,15 +86,17 @@ from ..helpers.task_fields import (
 )
 from ..helpers.task_origin import ORIGIN_KEY
 from ..helpers.task_persist import TaskMoveRefused, async_delete_task, async_move_task, async_persist_task
-from ..helpers.task_trace import KIND_EDITED, changed_values
-from ..helpers.task_trace import record as record_trace
 from ..helpers.todo_mirror import mirror_todo_error
 from ..helpers.url_safety import is_safe_url
-from ..helpers.ws_errors import send_translated_error, send_unsafe_url_error
+from ..helpers.ws_errors import (
+    send_archived_object_error,
+    send_task_limit_error,
+    send_translated_error,
+    send_unsafe_url_error,
+)
 from ..models.shapes import HistoryEntry
 from ..parts_runtime import disable_buy_reminder
 from . import (
-    COMPACT_KEEPS_EMPTY,
     ID_FIELD,
     _load_object_entry,
     _load_object_task,
@@ -102,11 +105,6 @@ from . import (
 from .tasks_validation import _validate_trigger_config
 
 _ENTITY_SLUG_RE = re.compile(r"[a-z0-9_]+")
-
-
-def _blank(value: Any) -> bool:
-    """None, [] or {}: a field that says nothing (the trace's "—")."""
-    return value is None or value == [] or value == {}
 
 
 def _validate_entity_slug(connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> bool:
@@ -172,24 +170,8 @@ def _refuse_archived_object(connection: websocket_api.ActiveConnection, msg: dic
     """
     if not (entry.data.get(CONF_OBJECT) or {}).get("archived_at"):
         return False
-    send_translated_error(connection, msg["id"], "archived", "An archived object cannot get new tasks", translation_key="archived_no_new_tasks")
+    send_archived_object_error(connection, msg["id"])
     return True
-
-
-def _flat_recurrence_refusal(schedule_type: str, msg: dict[str, Any], *, stored_due: Any = None) -> str | None:
-    """Why a flat recurrence request contradicts itself, or None — the rules
-    the ``add_task`` / ``update_task`` services apply. The WS commands took
-    any text as the schedule type, a one-time task without a date and a
-    manual task with an interval, and stored something else than asked (DRY
-    audit 2026-10-12, BI5-A5). ``stored_due``: the due date an edited task
-    already has."""
-    if schedule_type not in {str(s) for s in ScheduleType}:
-        return f"Unknown schedule_type {schedule_type!r}"
-    if schedule_type == ScheduleType.ONE_TIME and not msg.get("due_date") and not stored_due:
-        return "A one-time task needs a due_date"
-    if schedule_type == ScheduleType.MANUAL and msg.get("interval_days") is not None:
-        return "A manual task has no interval — leave interval_days out"
-    return None
 
 
 def _valid_due_date(connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> bool:
@@ -204,6 +186,15 @@ def _valid_due_date(connection: websocket_api.ActiveConnection, msg: dict[str, A
         return False
     msg["due_date"] = parsed.isoformat()
     return True
+
+
+def _send_recurrence_refusal(connection: websocket_api.ActiveConnection, msg_id: int, refusal: str) -> None:
+    """Refuse a self-contradicting flat recurrence; the one the task dialog
+    can reach is translated (bug audit 2026-11-08, W8-1)."""
+    if refusal == TIME_BASED_NEEDS_INTERVAL:
+        send_translated_error(connection, msg_id, "invalid_input", refusal, translation_key="time_based_needs_interval")
+    else:
+        connection.send_error(msg_id, "invalid_input", refusal)
 
 
 async def _responsible_user_missing(
@@ -258,6 +249,8 @@ TASK_UPDATE_FIELD_MAP = {
     "notify_enabled": "notify_enabled",
     # #185: per-task push-notification icon override.
     "notify_icon": "notify_icon",
+    # #252: the task's own notification texts per kind.
+    "notification_texts": "notification_texts",
     "reading_unit": "reading_unit",
     "readings": "readings",
     "consumes_parts": "consumes_parts",
@@ -326,6 +319,10 @@ _TASK_FIELDS: dict[str, Any] = {
     # #185: per-task push-notification icon ("mdi:…"); null/"" = the
     # maintenance type's default. Shape-checked by _validate_notify_icon.
     "notify_icon": vol.Any(vol.All(str, vol.Length(max=MAX_NOTIFY_ICON_LENGTH)), None),
+    # #252: {kind: {title?, message?}} — loose here, cleaned by
+    # helpers/sanitize.sanitize_notification_texts at both write paths (None
+    # or nothing left clears it: the standard texts).
+    "notification_texts": vol.Any(dict, None),
     # v2.20 (#83): unit for `reading`-type tasks ("kWh", "m³", ...).
     "reading_unit": vol.Any(vol.All(str, vol.Length(max=MAX_READING_UNIT_LENGTH)), None),
     # #161 phase 2: reading slots [{id?, name, unit?}] — shape-validated
@@ -366,10 +363,11 @@ _TASK_FIELDS: dict[str, Any] = {
 #: The only field task/create requires.
 _TASK_CREATE_REQUIRED: frozenset[str] = frozenset({"name"})
 #: task/create's values for omitted fields (task/update has none — an omitted
-#: field there means "leave unchanged").
+#: field there means "leave unchanged"). No schedule_type: an omitted one is
+#: what the fields say (schedule.implied_schedule_type), as for the add_task
+#: action (DRY audit 2026-10-30, BI6-B8).
 _TASK_CREATE_DEFAULTS: dict[str, Any] = {
     "task_type": "custom",
-    "schedule_type": "time_based",
     "interval_unit": "days",
     "interval_anchor": "completion",
     "enabled": True,
@@ -455,10 +453,13 @@ async def ws_create_task(
             if msg.get("interval_anchor", "completion") != "completion":
                 task_data["interval_anchor"] = msg["interval_anchor"]
     else:
-        schedule_type = msg.get("schedule_type", "time_based")
-        refusal = _flat_recurrence_refusal(schedule_type, msg)
+        # The services' reading: without a type, the kind the fields describe
+        # (a bare name stays manual; "time_based" without an interval made a
+        # manual task of it anyway).
+        schedule_type = msg.get("schedule_type") or implied_schedule_type(interval_days=msg.get("interval_days"), due_date=msg.get("due_date"))
+        refusal = flat_recurrence_refusal(schedule_type, interval_days=msg.get("interval_days"), due_date=msg.get("due_date"))
         if refusal:
-            connection.send_error(msg["id"], "invalid_input", refusal)
+            _send_recurrence_refusal(connection, msg["id"], refusal)
             return
         task_data["schedule_type"] = schedule_type
         if msg.get("interval_days") is not None:
@@ -548,6 +549,9 @@ async def ws_create_task(
         return
     if msg.get("notify_icon"):
         task_data["notify_icon"] = msg["notify_icon"]
+    # #252: own notification texts, stored only when one is left.
+    if texts := sanitize_notification_texts(msg.get("notification_texts")):
+        task_data["notification_texts"] = texts
     # v2.20 (#83): unit for `reading`-type tasks.
     if msg.get("reading_unit") is not None:
         task_data["reading_unit"] = (msg["reading_unit"] or "").strip() or None
@@ -621,7 +625,7 @@ async def ws_create_task(
             history=initial_history,
         )
     except ValueError as err:
-        send_translated_error(connection, msg["id"], "limit_reached", str(err), translation_key="task_limit", translation_placeholders={"max": str(MAX_TASKS_PER_OBJECT)})
+        send_task_limit_error(connection, msg["id"], str(err))
         return
 
     result = {"task_id": task_id}
@@ -706,6 +710,22 @@ async def ws_update_task(
     if not _valid_due_date(connection, msg):
         return
 
+    # A flat recurrence that contradicts itself is refused here, before the
+    # Store writes below: a refused edit must not have stored its new last
+    # performed date and dropped the postpone (bug audit 2026-11-08, W8-1).
+    stored_schedule = Schedule.parse(stored_task)
+    if not msg.get("schedule") and msg.get("schedule_type") in FLAT_SCHEDULE_TYPES:
+        refusal = flat_recurrence_refusal(
+            msg["schedule_type"],
+            interval_days=msg.get("interval_days"),
+            due_date=msg.get("due_date"),
+            stored_kind=stored_schedule.kind,
+            stored_due=stored_schedule.due_date if "due_date" not in msg else None,
+        )
+        if refusal:
+            _send_recurrence_refusal(connection, msg["id"], refusal)
+            return
+
     # Validate last_performed date format if provided — stored canonical
     # (fromisoformat also reads "20261001", W6).
     if msg.get("last_performed") is not None:
@@ -739,6 +759,10 @@ async def ws_update_task(
             connection.send_error(msg["id"], "invalid_input", "complete_when needs an entity_id and a to_state")
             return
         msg["complete_when"] = rule
+
+    # #252: cleaned before the verbatim copy below; nothing left clears it.
+    if "notification_texts" in msg:
+        msg["notification_texts"] = sanitize_notification_texts(msg["notification_texts"])
 
     for msg_key, data_key in TASK_UPDATE_FIELD_MAP.items():
         if msg_key in msg:
@@ -777,6 +801,10 @@ async def ws_update_task(
     # (the verbatim copy above would persist a None literal).
     if "notify_icon" in msg and not msg["notify_icon"]:
         task.pop("notify_icon", None)
+    # #252: the standard texts are ABSENCE — the dialog sends null on every
+    # save, and a stored null would read as an edit (the first-save reload).
+    if "notification_texts" in msg and not msg["notification_texts"]:
+        task.pop("notification_texts", None)
     # D#183: an empty mirror list means "off" — drop the key, don't store [].
     if "mirror_todo_entities" in msg and not msg["mirror_todo_entities"]:
         task.pop("mirror_todo_entities", None)
@@ -792,13 +820,18 @@ async def ws_update_task(
     # `task/create` validates them and `task/update` did not, so an edit could
     # persist a link to a part — or, since #111, to an OBJECT — that does not
     # exist. Nothing complained: the consume path simply skipped it. Sanitize
-    # here so both write paths agree.
+    # here so both write paths agree. No links is absence, as on create, in
+    # a phase and after a part's removal (DRY audit 2026-11-07, BI7-B2).
     if "consumes_parts" in msg:
-        task["consumes_parts"] = sanitize_consumes_parts(
+        links = sanitize_consumes_parts(
             msg["consumes_parts"],
             set(entry.data.get(CONF_PARTS) or {}),
             foreign_part_ids=foreign_part_resolver(hass),
         )
+        if links:
+            task["consumes_parts"] = links
+        else:
+            task.pop("consumes_parts", None)
 
     # #161 phase 2: same raw-field-map lesson — validate the slot list here so
     # both write paths persist the identical shape; an empty list clears.
@@ -836,14 +869,18 @@ async def ws_update_task(
         any(k in msg for k in ("interval_days", "interval_unit", "interval_anchor", "due_date"))
         or msg.get("schedule_type") in FLAT_SCHEDULE_TYPES
     )
-    if not msg.get("schedule") and msg.get("schedule_type") in FLAT_SCHEDULE_TYPES:
-        stored = Schedule.parse(task)
-        refusal = _flat_recurrence_refusal(
-            msg["schedule_type"], msg, stored_due=stored.due_date if "due_date" not in msg else None
-        )
-        if refusal:
-            connection.send_error(msg["id"], "invalid_input", refusal)
-            return
+    # An interval task switched to time_based without an interval keeps its
+    # interval, as the refusal above promises: the flat fields overlay the
+    # stored schedule instead of rebuilding it from a missing interval, which
+    # made it a manual task (bug audit 2026-11-08, T8-7).
+    keeps_interval = (
+        not msg.get("schedule")
+        and msg.get("schedule_type") == "time_based"
+        and msg.get("interval_days") is None
+        and stored_schedule.kind == KIND_INTERVAL
+    )
+    if keeps_interval:
+        task.pop("interval_days", None)
     if msg.get("schedule"):
         incoming = Schedule.from_dict(msg["schedule"]).to_dict()
         keep_month_filter(incoming, msg["schedule"], task.get("schedule"))
@@ -860,7 +897,7 @@ async def ws_update_task(
         if not bare_interval:
             for key in FLAT_RECURRENCE_KEYS:
                 task.pop(key, None)
-    elif _flat_recurrence_edit:
+    elif _flat_recurrence_edit and not keeps_interval:
         task.pop("schedule", None)
     elif "schedule_type" in msg:
         # Calendar-kind schedule_type echo with no schedule → keep the nested
@@ -909,18 +946,8 @@ async def ws_update_task(
     # The task trace notes which settings changed, and from what to what
     # where the values are short (the new look only). Both sides as they are
     # stored: the dialog sends the interval flat and a missing rule as null,
-    # the store keeps the nested schedule and no rule. And both with who it
-    # is for in its one shape: a task stored before normalize_people kept an
-    # empty pool, and its first save read as "Shared with: — → —".
-    before, after = normalize_task_storage(stored_task), normalize_task_storage(task)
-    normalize_people(before)
-    edited = {k for k in {*after, *before} if not k.startswith("_") and after.get(k) != before.get(k)}
-    # The dialog sends every list on every save: a task's first save turned
-    # "no labels" into [] and read as "Labels: — → —". Nothing to nothing is
-    # no change worth telling (an empty Quick complete still is one).
-    changed = sorted(k for k in edited if k in COMPACT_KEEPS_EMPTY or not (_blank(before.get(k)) and _blank(after.get(k))))[:20]
-    if changed:
-        record_trace(hass, entry.entry_id, task_id, KIND_EDITED, fields=changed, changes=changed_values(before, after, changed))
+    # the store keeps the nested schedule and no rule (helpers/task_apply).
+    edited = note_task_edit(hass, entry.entry_id, task_id, stored_task, task)
 
     # Patch only this task's key onto a fresh read (normalized) — never write
     # back a whole-map snapshot taken before the store awaits above.
@@ -1020,7 +1047,11 @@ async def ws_duplicate_task(
     # original was created as (2.95 fingerprint).
     new_task.pop(ORIGIN_KEY, None)
 
-    await async_persist_task(hass, entry, new_task)
+    try:
+        await async_persist_task(hass, entry, new_task)
+    except ValueError as err:
+        send_task_limit_error(connection, msg["id"], str(err))
+        return
 
     connection.send_result(msg["id"], {"task_id": new_task["id"]})
 
@@ -1066,7 +1097,7 @@ async def ws_move_task(
         send_translated_error(connection, msg["id"], err.code, str(err), translation_key=err.translation_key)
         return
     except ValueError as err:
-        send_translated_error(connection, msg["id"], "limit_reached", str(err), translation_key="task_limit", translation_placeholders={"max": str(MAX_TASKS_PER_OBJECT)})
+        send_task_limit_error(connection, msg["id"], str(err))
         return
     await hass.config_entries.async_reload(entry.entry_id)
     await hass.config_entries.async_reload(target.entry_id)

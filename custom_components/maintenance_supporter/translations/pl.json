@@ -675,6 +675,7 @@
           "notification_bundle_threshold": "Próg łączenia",
           "notification_title_style": "Styl tytułu powiadomienia",
           "notification_title_prefix": "Prefiks tytułu powiadomienia",
+          "notification_language": "Język powiadomień",
           "notify_completed": "Powiadomienia o wykonaniu",
           "notify_event_only": "Tylko wyzwalaj zdarzenie, nic nie wysyłaj",
           "notify_extra_data": "Dodatkowe dane powiadomienia (szablon)",
@@ -694,6 +695,7 @@
           "notification_bundle_threshold": "Minimalna liczba zadań do wyzwolenia łączonego powiadomienia.",
           "notification_title_style": "Co pojawia się jako TYTUŁ powiadomienia. Domyślnie zachowywany jest tekst dla statusu (np. „Konserwacja przeterminowana!”). Nazwa obiektu / zadania pomaga, gdy telefon układa powiadomienia w stos.",
           "notification_title_prefix": "Umieszczany przed tytułem każdego powiadomienia, w każdym stylu, np. nazwa domu, gdy telefon dostaje przypomnienia z więcej niż jednego Home Assistant. Puste = bez prefiksu.",
+          "notification_language": "Język tytułów, treści i przycisków powiadomień. Język Home Assistanta = jak dotąd. Panel pozostaje w języku każdej osoby.",
           "notify_completed": "Wiadomość dla domowników, gdy zadanie zostanie wykonane, z powodem (panel, skan QR/NFC, lista zadań, głos, powrót czujnika do normy…). „Tylko automatyczne” zgłasza wyłącznie wykonania, których nikt nie zrobił na miejscu: powrót czujnika, odhaczenie na liście zakupów, wywołanie usługi przez automatyzację.",
           "notify_event_only": "Każde powiadomienie wyzwala zdarzenie maintenance_supporter_notification. Z tą opcją całą dostawę przejmuje Twoja automatyzacja — interwały powtórzeń, ciche godziny i dzienny limit nadal decydują, kiedy zdarzenie się pojawi.",
           "notify_extra_data": "JSON lub YAML z Jinja, scalane z data każdego wywołania notify (Twoje klucze mają pierwszeństwo). Zmienne: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
@@ -1892,6 +1894,10 @@
         "via_tag_scan": {
           "name": "Przez skan tagu",
           "description": "Potwierdza, że to wykonanie pochodzi ze skanu fizycznego tagu/kodu QR obsłużonego przez samą automatyzację — spełnia ustawienie zadania „Ukończenie tylko przez skan tagu”."
+        },
+        "consume_parts": {
+          "name": "Zużyj części",
+          "description": "Księguje części powiązane z zadaniem dla tego wykonania także wtedy, gdy data wykonania jest wcześniejsza niż ostatnie wykonanie zadania. Bieżące wykonanie księguje je zawsze, wpisane wstecz tylko z tą opcją. Części schodzą z dzisiejszego stanu."
         }
       }
     },
@@ -1929,7 +1935,7 @@
       "fields": {
         "format": {
           "name": "Format",
-          "description": "Format wyjściowy eksportowanych danych (json lub yaml)."
+          "description": "Format wyjściowy: json lub yaml dla pełnego eksportu, history_csv dla historii w postaci tabeli z jednym wierszem na wpis (plik maintenance_history.csv)."
         },
         "include_history": {
           "name": "Dołącz historię",
@@ -2351,7 +2357,7 @@
     },
     "shared_parts_moved": {
       "title": "Wspólne części zamienne przeniesione do {new_owner}",
-      "description": "Kilka obiektów konserwacji korzystało ze wspólnego zapasu części zamiennych, który znajdował się przy **{deleted_object}**, a ten obiekt został właśnie usunięty. Zamiast zostawiać pozostałe obiekty wskazujące na zapas, którego już nie ma, Maintenance Supporter przeniósł wspólne części ({parts}) — wraz z bieżącym stanem — do **{new_owner}** i przepiął na nie powiązania zadań wszystkich innych obiektów. Nic nie zostało utracone.\n\n**{new_owner}** został wybrany automatycznie: to najstarszy obiekt korzystający z tego zapasu. Jeśli lepszym miejscem jest inny obiekt, przenieś tam części w panelu konserwacji.\n\nNic więcej nie trzeba robić — zamknij to powiadomienie po sprawdzeniu."
+      "description": "Kilka obiektów konserwacji korzystało ze wspólnego zapasu części zamiennych, który znajdował się przy **{deleted_object}**, a ten obiekt został właśnie usunięty. Zamiast zostawiać pozostałe obiekty wskazujące na zapas, którego już nie ma, Maintenance Supporter przeniósł wspólne części ({parts}) — wraz z bieżącym stanem — do **{new_owner}** i przepiął na nie powiązania zadań wszystkich innych obiektów. Nic nie zostało utracone.\n\n**{new_owner}** został wybrany automatycznie: to najstarszy obiekt korzystający z tego zapasu.\n\nNic więcej nie trzeba robić — zamknij to powiadomienie po sprawdzeniu."
     },
     "broken_part_link": {
       "title": "Nieprawidłowe powiązania części w {object_name}",
@@ -2538,6 +2544,9 @@
     "part_owner_archived": {
       "message": "„{object_name}” jest zarchiwizowany. Przywróć go, aby zapisać zakup."
     },
+    "part_owner_not_loaded": {
+      "message": "{object_name} nie działa w tej chwili (wyłączony lub jeszcze się uruchamia), więc nie można zaksięgować jego części zamiennych. Spróbuj ponownie, gdy będzie działać."
+    },
     "purchase_cost_too_high": {
       "message": "Zakup może kosztować łącznie najwyżej {max}."
     },
@@ -2567,6 +2576,9 @@
     },
     "date_in_future": {
       "message": "Data nie może być w przyszłości."
+    },
+    "time_based_needs_interval": {
+      "message": "Zadanie oparte na czasie wymaga interwału."
     },
     "range_end_before_start": {
       "message": "Koniec nie może być wcześniejszy niż początek."

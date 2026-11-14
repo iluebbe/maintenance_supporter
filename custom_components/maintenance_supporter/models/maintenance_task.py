@@ -23,7 +23,7 @@ from ..helpers.dates import parse_iso_date, stamp_instant
 from ..helpers.history import completed_entries, finite_amount, latest_anchor_stamp, signed_amount, trim_history
 from ..helpers.phases import clamp_phase_cursor, current_phase
 from ..helpers.schedule import KIND_ONE_TIME, Schedule, read_legacy_fields
-from ..helpers.status import compute_status, effective_warning_days, is_past_schedule_time
+from ..helpers.status import compute_status, effective_warning_days, is_past_schedule_time, needs_both_legs
 from .shapes import (
     AdaptiveConfig,
     CompleteWhen,
@@ -293,7 +293,7 @@ class MaintenanceTask:
             enabled=self.enabled,
             days_until_due=self.days_until_due,
             trigger_active=self._trigger_active,
-            all_mode=(self.trigger_config or {}).get("trigger_combinator") == "all",
+            all_mode=needs_both_legs(self.trigger_config),
             warning_days=self.effective_warning_days,
             past_schedule_time=self._is_past_schedule_time(),
         )

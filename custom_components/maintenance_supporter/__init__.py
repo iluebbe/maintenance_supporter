@@ -43,7 +43,6 @@ from .const import (
     CONF_PANEL_ENABLED,
     CONF_ROW_ACTION_NOTICE,
     CONF_TASKS,
-    CONF_VACATION_EXEMPT_TASK_IDS,
     DOCUMENT_STORE_KEY,
     DOCUMENT_TEXT_INDEX_KEY,
     DOMAIN,
@@ -79,7 +78,7 @@ from .helpers.device_link import (
 )
 from .helpers.document_text import DocumentTextIndex
 from .helpers.documents import DocumentStore, async_forget_doc_ids
-from .helpers.global_options import cleanup_group_refs, entry_option, get_global_entry
+from .helpers.global_options import cleanup_group_refs, entry_option
 from .helpers.i18n import normalize_language
 from .helpers.issues import async_purge_entry_issues, device_link_lost_issue_id
 from .helpers.notification_manager import NotificationManager
@@ -88,6 +87,7 @@ from .helpers.reference_numbers import REFERENCE_NUMBERS_KEY, ReferenceNumbers
 from .helpers.sanitize import seed_rotation_assignee
 from .helpers.schedule import normalize_task_storage, set_calendar_occurrence_provider
 from .helpers.task_origin import backfill_origins
+from .helpers.task_persist import async_forget_tasks
 from .helpers.task_trace import TASK_TRACE_KEY, TaskTrace
 from .helpers.task_trace import forget_entry as forget_trace_entry
 from .helpers.template_updates import async_sync_entry_bases
@@ -927,35 +927,14 @@ async def async_unload_entry(hass: HomeAssistant, entry: MaintenanceSupporterCon
 
 async def _async_forget_removed_object_tasks(hass: HomeAssistant, entry: ConfigEntry, store: MaintenanceStore) -> None:
     """What a task delete cleans up per task, for every task of a deleted
-    object: its rows on the family's to-do lists (D#183 — the Store record
-    naming them goes with the object), its ids on the persistent vacation
-    exempt list, and the notification manager's bookkeeping. All three
-    outlived the object (bug audit 2026-09-27). And its reminder on the
-    phones (DRY audit 2026-10-30, BR6-A2)."""
-    task_ids = [str(tid) for tid in (entry.data.get(CONF_TASKS) or {})]
-
-    mirror = hass.data.get(DOMAIN, {}).get(TODO_MIRROR_KEY)
-    if mirror is not None:
-        for task_id in task_ids:
-            try:
-                await mirror.async_forget_task(store, task_id)
-            except Exception:  # a list provider error must not block the delete
-                _LOGGER.warning("Could not take the to-do rows of task %s off their lists", task_id, exc_info=True)
-
-    ge = get_global_entry(hass)
-    exempt = (ge.options.get(CONF_VACATION_EXEMPT_TASK_IDS) if ge is not None else None) or []
-    if ge is not None and isinstance(exempt, list) and any(t in exempt for t in task_ids):
-        gone = set(task_ids)
-        hass.config_entries.async_update_entry(
-            ge,
-            options={**dict(ge.options), CONF_VACATION_EXEMPT_TASK_IDS: [t for t in exempt if t not in gone]},
-        )
-
+    object (helpers/task_persist.async_forget_tasks: to-do rows, reminders,
+    trace, vacation exemption; they outlived the object, bug audit
+    2026-09-27 and DRY audit 2026-10-30 BR6-A2), then the object's own
+    notification and trace bookkeeping."""
+    tasks = {str(tid): task for tid, task in (entry.data.get(CONF_TASKS) or {}).items()}
+    await async_forget_tasks(hass, entry.entry_id, store, tasks)
     nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
     if isinstance(nm, NotificationManager):
-        for task_id, task in (entry.data.get(CONF_TASKS) or {}).items():
-            if isinstance(task, dict):
-                nm.clear_and_dismiss(entry.entry_id, str(task_id), task)
         nm.purge_entry(entry.entry_id)
     forget_trace_entry(hass, entry.entry_id)
 

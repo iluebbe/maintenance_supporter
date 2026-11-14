@@ -79,6 +79,7 @@ export const DEFAULT_SETTINGS_RESPONSE = {
     max_per_day: 0, bundling_enabled: false, bundle_threshold: 2,
     title_style: "default",
     title_prefix: "",
+    language: "auto",
   },
   actions: {
     complete_enabled: false, skip_enabled: false,
@@ -102,7 +103,9 @@ export interface CreateMockHassResult {
     language: string;
     connection: {
       sendMessagePromise: (msg: SentMessage) => Promise<unknown>;
-      subscribeMessage: (cb: (event: unknown) => void, msg: SentMessage) => Promise<() => void>;
+      subscribeMessage: (cb: (event: unknown) => void, msg: SentMessage, options?: Record<string, unknown>) => Promise<() => void>;
+      addEventListener: (event: ConnectionEvent, cb: () => void) => void;
+      removeEventListener: (event: ConnectionEvent, cb: () => void) => void;
     };
     callService: (
       domain: string, service: string,
@@ -114,8 +117,13 @@ export interface CreateMockHassResult {
   sent: SentMessage[];
   serviceCalls: ServiceCall[];
   /** Captured subscribeMessage registrations — push events via `.push(ev)`. */
-  subscriptions: Array<{ msg: SentMessage; push: (event: unknown) => void }>;
+  subscriptions: Array<{ msg: SentMessage; options?: Record<string, unknown>; push: (event: unknown) => void }>;
+  /** Fire a connection event, as Home Assistant's connection does on a
+   *  reconnect ("disconnected", then "ready"). */
+  fire: (event: ConnectionEvent) => void;
 }
+
+export type ConnectionEvent = "ready" | "disconnected";
 
 /**
  * Pick a value in an `<ms-date-field>` the way HA's selector would report it
@@ -187,12 +195,13 @@ export function createMockHass(opts: CreateMockHassOptions = {}): CreateMockHass
 
   // Captured subscriptions: tests push events into components via
   // `subscriptions.find(...).push(event)`.
-  const subscriptions: Array<{ msg: SentMessage; push: (event: unknown) => void }> = [];
+  const subscriptions: Array<{ msg: SentMessage; options?: Record<string, unknown>; push: (event: unknown) => void }> = [];
   const subscribeMessage = async (
     cb: (event: unknown) => void,
     msg: SentMessage,
+    options?: Record<string, unknown>,
   ): Promise<() => void> => {
-    const entry = { msg, push: (event: unknown) => cb(event) };
+    const entry = { msg, options, push: (event: unknown) => cb(event) };
     subscriptions.push(entry);
     return () => {
       const i = subscriptions.indexOf(entry);
@@ -200,10 +209,17 @@ export function createMockHass(opts: CreateMockHassOptions = {}): CreateMockHass
     };
   };
 
+  const listeners: Record<ConnectionEvent, Array<() => void>> = { ready: [], disconnected: [] };
+  const addEventListener = (event: ConnectionEvent, cb: () => void): void => { listeners[event].push(cb); };
+  const removeEventListener = (event: ConnectionEvent, cb: () => void): void => {
+    listeners[event] = listeners[event].filter((x) => x !== cb);
+  };
+  const fire = (event: ConnectionEvent): void => [...listeners[event]].forEach((cb) => cb());
+
   return {
     hass: {
       language: opts.language ?? "en",
-      connection: { sendMessagePromise, subscribeMessage },
+      connection: { sendMessagePromise, subscribeMessage, addEventListener, removeEventListener },
       callService,
       services: opts.services,
       states: opts.states,
@@ -211,5 +227,6 @@ export function createMockHass(opts: CreateMockHassOptions = {}): CreateMockHass
     sent,
     serviceCalls,
     subscriptions,
+    fire,
   };
 }

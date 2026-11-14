@@ -28,13 +28,16 @@ export function intervalSpanDays(
  * Progress through the current cycle, unit-aware.
  * Returns a clamped 0–100 % plus `overflow` (raw % > 100, i.e. past due).
  * Falls back to {0, false} when there is no usable interval/countdown.
+ * `spanDays` replaces the interval's span when the cycle is not one interval
+ * long (a task that needs its trigger too, #260).
  */
 export function daysProgress(
   intervalDays: number | null | undefined,
   daysUntilDue: number | null | undefined,
   unit?: string | null,
+  spanDays?: number | null,
 ): { pct: number; overflow: boolean } {
-  const span = intervalSpanDays(intervalDays, unit);
+  const span = spanDays != null && Number.isFinite(spanDays) ? spanDays : intervalSpanDays(intervalDays, unit);
   if (span <= 0 || daysUntilDue == null) return { pct: 0, overflow: false };
   const raw = ((span - daysUntilDue) / span) * 100;
   return { pct: Math.max(0, Math.min(100, raw)), overflow: raw > 100 };

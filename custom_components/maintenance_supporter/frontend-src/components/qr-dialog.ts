@@ -9,7 +9,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import type { HomeAssistant } from "../types";
-import { formatCost, formatDuration, langOf, t } from "../styles";
+import { ellipsize, formatCost, formatDuration, langOf, t } from "../styles";
 import { quickCompleteValues, type QuickCompleteValues } from "../helpers/quick-complete";
 import { downloadTextFile } from "../helpers/download";
 // document.write contexts: the apostrophe too (its own copy left it out).
@@ -173,7 +173,7 @@ export class MaintenanceQrDialog extends LitElement {
   private _quickRecords(L: string): string {
     const v: QuickCompleteValues = this._quickValues ?? {};
     const parts = [
-      v.notes ? `\u201c${v.notes.length > 40 ? `${v.notes.slice(0, 39)}\u2026` : v.notes}\u201d` : "",
+      v.notes ? `\u201c${ellipsize(v.notes)}\u201d` : "",
       // The dialog knows no household currency: the amount (in its
       // decimals) with its label.
       v.cost != null ? `${t("quick_complete_defaults_cost", L)} ${formatCost(v.cost, undefined, L)}` : "",

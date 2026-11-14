@@ -27,6 +27,7 @@ from typing import Any
 from homeassistant.core import valid_entity_id
 
 from ..const import (
+    COMPLETE_WHEN_FOR_MINUTES_RANGE,
     MAX_ASSIGNEE_POOL,
     MAX_CHECKLIST_ITEM_LENGTH,
     MAX_CHECKLIST_ITEMS,
@@ -45,6 +46,8 @@ from ..const import (
     MAX_MIRROR_TODO_LISTS,
     MAX_NAME_LENGTH,
     MAX_NFC_TAG_LENGTH,
+    MAX_NOTIFICATION_TEXT_MESSAGE_LENGTH,
+    MAX_NOTIFICATION_TEXT_TITLE_LENGTH,
     MAX_NOTIFY_ICON_LENGTH,
     MAX_READING_UNIT_LENGTH,
     MAX_SCHEDULE_TIME_LENGTH,
@@ -53,11 +56,11 @@ from ..const import (
     MAX_URL_LENGTH,
     MIN_COST,
     MIRROR_TODO_ENTITY_PATTERN,
+    NOTIFICATION_TEXT_KINDS,
     ROTATION_STRATEGIES,
-    TRIGGER_FIELD_RANGES,
     MaintenanceFeedback,
 )
-from ..models.shapes import CompleteWhen
+from ..models.shapes import CompleteWhen, NotificationText, NotificationTexts
 from .completion_requirements import sanitize_required_completion_fields
 from .places import normalize_place
 from .reading_slots import sanitize_reading_slots
@@ -300,6 +303,15 @@ def cap_task_fields(task_data: dict[str, Any], *, keep_action_owner: bool = Fals
         else:
             task_data.pop("complete_when", None)
 
+    # #252: the task's own notification texts; none left is absence (the
+    # standard texts).
+    if "notification_texts" in task_data:
+        texts = sanitize_notification_texts(task_data["notification_texts"])
+        if texts:
+            task_data["notification_texts"] = texts
+        else:
+            task_data.pop("notification_texts", None)
+
     normalize_people(task_data)
 
     if task_data.get("required_completion_fields") is not None:
@@ -349,20 +361,26 @@ def sanitize_labels(value: object) -> list[str]:
     return out[:MAX_LABELS]
 
 
+def is_todo_entity_id(value: str) -> bool:
+    """A ``todo.*`` entity id, by format only (the list may load later): the
+    mirror lists, Settings' default lists and the shopping list. The shopping
+    list had its own check (DRY audit 2026-10-30, BR6-B10)."""
+    return re.fullmatch(MIRROR_TODO_ENTITY_PATTERN, value) is not None
+
+
 def sanitize_mirror_todo_entities(value: object) -> list[str]:
     """Clean a mirror-target list (D#183): ``todo.*`` entity ids only,
     trimmed, deduped, at most ``MAX_MIRROR_TODO_LISTS``."""
     if not isinstance(value, list):
         return []
 
-    pattern = re.compile(MIRROR_TODO_ENTITY_PATTERN)
     seen: set[str] = set()
     out: list[str] = []
     for item in value:
         if not isinstance(item, str):
             continue
         v = item.strip()
-        if v and v not in seen and pattern.fullmatch(v):
+        if v and v not in seen and is_todo_entity_id(v):
             seen.add(v)
             out.append(v)
     return out[:MAX_MIRROR_TODO_LISTS]
@@ -392,8 +410,32 @@ def sanitize_complete_when(value: object) -> CompleteWhen | None:
         rule["any_time"] = True
     minutes = value.get("for_minutes")
     if isinstance(minutes, (int, float)) and not isinstance(minutes, bool) and minutes >= 1:
-        rule["for_minutes"] = min(int(minutes), TRIGGER_FIELD_RANGES["trigger_for_minutes"][1])
+        rule["for_minutes"] = min(int(minutes), COMPLETE_WHEN_FOR_MINUTES_RANGE[1])
     return rule
+
+
+def sanitize_notification_texts(value: object) -> NotificationTexts | None:
+    """Clean a task's own notification texts (#252): the known kinds only,
+    each with a title (one line) and/or a message (line breaks kept), both
+    trimmed and capped. An empty text leaves its field out, an empty kind
+    the kind; None when nothing is left (the standard texts)."""
+    if not isinstance(value, dict):
+        return None
+    cleaned: NotificationTexts = {}
+    for kind in NOTIFICATION_TEXT_KINDS:
+        entry = value.get(kind)
+        if not isinstance(entry, dict):
+            continue
+        texts = NotificationText()
+        title = entry.get("title")
+        if isinstance(title, str) and (one_line := " ".join(title.split())[:MAX_NOTIFICATION_TEXT_TITLE_LENGTH].strip()):
+            texts["title"] = one_line
+        message = entry.get("message")
+        if isinstance(message, str) and (body := message.replace("\r\n", "\n").strip()[:MAX_NOTIFICATION_TEXT_MESSAGE_LENGTH].strip()):
+            texts["message"] = body
+        if texts:
+            cleaned[kind] = texts
+    return cleaned or None
 
 
 def seed_rotation_assignee(task_data: dict[str, Any]) -> None:
@@ -436,6 +478,9 @@ def normalize_people(task_data: dict[str, Any]) -> None:
     * A rotation has one of its people on duty
       (:func:`seed_rotation_assignee`), and needs two people to rotate
       between: with fewer it is absent.
+    * Nobody responsible is absence: ``task/assign_user``, the bulk edit
+      and ``task/update`` stored an empty ``responsible_user_id`` as ``""``,
+      the services removed it (DRY audit 2026-10-30, BI6-B12).
 
     The WebSocket writes, the options flow, the adoption of a problem
     sensor, the imports and the services each had their own version: the
@@ -452,6 +497,9 @@ def normalize_people(task_data: dict[str, Any]) -> None:
             task_data.pop("assignee_pool")
     if task_data.get("rotation_strategy") not in ROTATION_STRATEGIES:
         task_data.pop("rotation_strategy", None)
+    responsible = task_data.get("responsible_user_id")
+    if "responsible_user_id" in task_data and not (isinstance(responsible, str) and responsible.strip()):
+        task_data.pop("responsible_user_id")
     # Seeded first: a pool edited down to one still hands the task to the
     # one left (seed_rotation_assignee's stale-assignee rule).
     seed_rotation_assignee(task_data)

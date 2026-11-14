@@ -213,7 +213,7 @@ describe("perf 2026-11-06: one objects subscription per page", () => {
     expect(ended).to.equal(1);
   });
 
-  it("a failed subscription is not kept, and a change before the snapshot is no list", async () => {
+  it("a failed subscription is tried again when the next card comes, and a change before the snapshot is no list", async () => {
     let attempts = 0;
     const live: { push?: (e: unknown) => void } = {};
     const connection = {

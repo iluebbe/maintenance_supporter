@@ -2,6 +2,255 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.121.0] - 2026-11-14
+
+### ✨ New
+
+- **A language of their own for the notifications** (#251, thanks @agusluques). The panel follows each person's
+  language, the notifications Home Assistant's, and in some homes the people who get them read neither. Settings →
+  Notifications → *Notification language* (or the options flow) sets the language of their titles, messages and
+  buttons, the test push included; *Home Assistant language*, the default, keeps them as they were.
+- **Tasks can word their own notifications** (#252, thanks @agusluques). *Own notification texts* in the task
+  dialog's Notifications section has a title and a message for due soon, overdue, triggered and completed: "Bins
+  tonight" says more than "Maintenance due soon". An empty field keeps the standard text, the standard texts'
+  placeholders work (`{task}`, `{object}`, `{days}`, `{due}`; `{detail}` for what the sensor rule shows with the task, `{reason}` and
+  `{person}` for a completion), and the buttons stay. A text whose placeholders come out empty keeps the standard
+  one. Saving the texts reloads nothing. Bundles and the quiet-hours summary list several tasks and keep the standard
+  texts; the title prefix still goes in front.
+
+- **Ordered now, received later** (#261, thanks @pkolbus). Buying online is two moments: the order, and the
+  parcel days later. *Ordered…* on a part's row records how many and, if you like, the expected delivery day. The
+  part then reads *On order: 2, expected 20 Nov*, its *Buy…* reminder (the open one, or a new one) waits until
+  that day instead of sitting on today's list, and the shopping list drops it. Completing the reminder, *Bought…*
+  (the ordered amount is prefilled) or a restock is the receipt: it books the stock and closes the order. *Cancel
+  order* takes it back.
+- **Move a part to another object** (#262, discussion #256, thanks @pkolbus). Edit the part and choose *Move to
+  another object*: it goes with its stock, an open order, its manual and the links of every task that uses it. The
+  old object's tasks keep using it, now shared from the new one, and the history still knows where its parts came
+  from. Deleting an object that owns shared parts now says before the delete which parts move to which object.
+- **Order a part by e-mail** (#265, thanks @Armsp0). A supplier without a web shop: put a `mailto:` address (or just
+  the address) into the part's link field. The part's name then opens a new e-mail with the part as the subject and
+  the amount, vendor and part numbers as the text.
+- **The history as a spreadsheet** (discussion #253, thanks @tyler78). Settings → Import / Export → *Export history
+  (CSV)* writes one row per history entry: object, task, local time, type, reference number, who, cost, parts cost,
+  duration, reading, feedback and notes, for the selected objects and an optional date range. The `export_data`
+  action writes the same with `format: history_csv`.
+- **A sensor rule may hold for up to 30 days** (#255, thanks @EcoHeliGuy). *For at least* took a day at most;
+  "above 3 °C for 15 days", to get past the last frost, did not fit. A threshold or state rule now holds for
+  up to 43,200 minutes, and a long hold is said in days and hours, to the minute, below the field, in the
+  rule's sentence, the chart's legend and the options flow (21600 = *15 days*, 125 = *2 hours 5 minutes*),
+  and when the hold began is kept across restarts as before. *Done when … for at least* stays at a day: that
+  wait starts over with a restart.
+- **The complete action can book a backfill's parts** (discussion #264, thanks @jcauble and @lukamaga).
+  `consume_parts: true` books the task's linked parts for a completion entered with `completed_at` in the past; a
+  current completion books them anyway.
+
+### 🐛 Fixed
+
+- **A reminder rounds the reading it shows.** The value of *Show with the task* was written with six
+  significant digits, so a reminder ended in `0.123457`, `21.4568` or `1.23457e+06`, and a reading an
+  integration reports as text (`21.456789`) went out as it came. A reminder is read at a glance: a number
+  now has two decimals at most (two significant digits below one), no exponent, and the decimal mark of the
+  notification language; numbers with a decimal comma are listed with `; `. The to-do list follows Home
+  Assistant's language, the panel and the card write the number in your own number format. The notification
+  event keeps a decimal point, for automations that read the number. The history is where one looks things
+  up: the note of an automatic completion (*sensor recovered (…)*) holds the reading to four decimals and
+  shows it in your number format. The budget event carries `spent` and `budget` to the cent instead of
+  `123.45000000000002`.
+- **A reminder writes its due date out.** *Due soon* ended in *(Due: 2026-11-20)*. It now reads *November 20*
+  or *20. November*, as the notification language writes a date, with the year only when it is not this one.
+  `{due}` in a task's own text gets the same; the notification event keeps the ISO date in `next_due`.
+- **The calendar shows the coming dates of weekday schedules** (#266, thanks @aam1972). A task on *Mon, Wed, Fri*
+  showed only its next date in the Calendar tab and the calendar card, while a task every 7 days showed its next
+  five. The dates of weekday, nth-weekday, day-of-month and calendar schedules now come from the schedule engine,
+  the same that fills *Next dates* in the task dialog.
+- **Battery rows say which room** (discussion #267, thanks @Se7enair). With Home Assistant's naming a device is
+  often just *Radiator valve* in every room, and the battery roster listed a column of identical names. Each row
+  now shows the device's area beside its name; the sensor's due lists and the voice answer put it in front.
+- **A state rule counts what its sensor did while Home Assistant was down** (#254, thanks @DUC750). A washer's
+  drum clean reminder that went on during a restart left its task OK for three days: the start only read the
+  sensor, and a state that is already on is no change. The rule now keeps the last state it saw and counts the
+  change at the start. A sensor that already read so before the restart (a task completed while it still read on)
+  stays as it is, and a hold window (*for at least* minutes) starts with the start.
+- **A dashboard that stays open keeps updating after Home Assistant restarts** (#258, thanks @randomletters).
+  Since 2.120.0 the cards on a page share one subscription. After a restart the browser asked for it again before
+  the integration was loaded, the answer "unknown command" ended it without a word, and a kiosk kept its list: a
+  task that fell overdue never showed. The subscription now subscribes again after every reconnect and keeps
+  trying until the integration answers. The panel's does the same.
+- **A task that needs its sensor and its interval is not overdue while the sensor has not got there** (#260,
+  thanks @pkolbus). With *Trigger and interval (both required)* the status stayed OK, but the due date was the
+  interval's alone, so the card, the rows, the task page and its bar, the due sensors and Assist said "30 days
+  overdue". The task is now due at the later of the two: the sensor's predicted date when there is one, the
+  interval's date while it lies ahead, and no date after that (only the sensor can tell then). Once the sensor
+  fired, it is due from that day. The calendar puts it on that date, and the lead reminders ("due in 3 days")
+  wait for the sensor.
+- **The repair for spare parts moved to another object no longer points to a move in the panel** (D#256, thanks
+  @pkolbus). There is no such action; the repair says which object took the parts and why.
+- **A task that completes itself has no Complete button on the phone either** (D#250 follow-up, thanks
+  @tracymckibben). 2.120.0 told the rows of the panel and the card, but the reminder of a robot vacuum's empty water
+  tank still offered Complete and Skip. It now offers Snooze only; the dishwasher filter, a counter, keeps its
+  buttons, and so does a task due by its safety interval.
+- **A rule with an AND and an OR side said "completes itself" too often.** 2.120.0 treated every compound rule as
+  one that ends by itself. Now an AND rule does when one of its conditions can end, an OR rule only when all of
+  them can: a pump's runtime OR its pressure keeps Complete.
+- **Nothing to press on a paused or switched-off task.** The card hid Complete and Skip for them, but the panel's
+  rows, the task page and the quick actions still offered Complete, Skip and Reset (the page Postpone and Snooze
+  too, its history *Add a past completion*), and Home Assistant refused each one. The badges say why there is
+  nothing to do.
+- **Saving the options flow's General page kept the rows as they were.** It stored the compact buttons as if
+  someone had picked them, and with the new look the task rows changed from icons to buttons. The page now shows
+  the style the rows have and stores one only when it is changed.
+- **Template improvements without a reload.** Taking a template's new schedule, note or warning now takes effect
+  like an edit in the task dialog, as a refresh; only a new name or new tasks set the object up again. New tasks
+  for an archived object, or past 200 tasks, are refused before anything is written and in your language (they
+  were an "unknown error" after the field changes had been stored). Duplicating a task on a full object says why
+  too.
+- **"Done" in the options flow reloads only when it has to.** After a task edit there it reloaded the object
+  every time, which on a home with slow buttons stalled Home Assistant; now a schedule or note edit is a refresh,
+  and closing the flow without a change does nothing. What changed elsewhere while it was open (the next person of
+  a rotation, a panel edit, a part's purchase price) is not taken for the flow's edit.
+- **The Trace tells every edit, and tells it right.** Bulk edits, the `update_task` action, the options flow and
+  template improvements now appear as edits too, not only the task dialog. A task's first save no longer reads
+  "Priority: — → Normal". *Don't allow skipping* and *No notifications* read the right way round, the required
+  details and the entity name have their names, a rotation reads as its option, and the values say what changed:
+  a one-time task's date, an interval from the planned date, a season, an end, how long a *Done when* state must
+  hold, and what happens when a sensor rule ends. *Trigger ended* names the sensor and the reading's unit.
+- **The task editor's schedule line says all of it**: the months a pattern keeps to, the last business day and a
+  shift ("Day of month: 1 · Sep"), a calendar's too ("Calendar: Bins −1d").
+- **The task editor's sensor rule line reads like the task page**: with the sensor's unit and the = / ≠ limits
+  ("below 60%"). Its to-do list chips show the lists the save keeps, without Maintenance Supporter's own list.
+- **Readings with a unit are written the way Home Assistant writes a state.** A percentage has no space in English
+  and one in German, French and a few more, in the trace, a trigger's value, the charts, the readings, spare-part
+  quantities and the dialog's hint. One trace showed "below 60%" next to "58 %".
+- **A card whose settings could not be read** used the classic look; it now uses the new one, the default, with
+  the row icons it shows while nobody has chosen a style. A look the panel or another card already read stays.
+- **A duplicated object keeps its template review for renamed tasks too.** The copy kept the template it was made
+  from, but its tasks lost where they came from; a task still named as in the template found it again, a renamed
+  one never did, and *Template improvements* left it out for good. A task adopted from a device's sensor still
+  starts as the copy's own.
+- **Quick complete says what it did in the task's quick actions too**, when there is nothing to undo ("Quickly
+  marked complete", as on the card), and the quick actions name the task with its calendar events and its trigger
+  detail, like the row that opened them.
+- **A part action for several parts books nothing when one of them is refused.** *Used* checked every part first;
+  restock, ready again, dispose and *Bought* booked the parts until the first refusal. *Bought* also counts the buy
+  reminders it makes against the 200-task limit, and asks an open reminder for what it needs (a photo, a note)
+  before the first part is booked.
+- **A task's NFC tag can move on from a switched-off or archived task** in the options flow too: a scan completes
+  the active task, so only an active one counts as using the tag. The panel already let it through with a warning.
+- **A recurrence that contradicts itself is refused the same way everywhere.** `task/create` made a task with
+  *time based* and no interval a manual one; it now refuses it like the `add_task` action, in your language, and
+  without a type it reads what the fields say, as the action does (a bare name stays a manual task). The task
+  dialog fills in 30 days when *Time based* is picked with an empty interval and waits for one before it saves. A
+  refused edit stores nothing (its new *last performed* date was kept), and an interval task set to *time based*
+  without an interval keeps its interval instead of becoming a manual task.
+- **The dispose field of the battery fleet marks a count that is not one**, as the spare-parts section does.
+- **The areas table opens a row with Space too**, like every other row.
+- **The own notification texts and the Quick complete values stay open** when the last value is cleared while
+  typing.
+- **A triggered task keeps its push over a restart.** The first refresh after a restart or an object reload runs
+  before the sensor rules are set up, so a rule only they can judge (an AND/OR rule, *for at least* minutes, a
+  sensor that is not back yet, a level held until done) read "not triggered": the push left the phones, the to-do
+  row left the lists and came back, and the push was not sent again. The activation on record now stands until a
+  reading ends it; an AND/OR rule that ended while Home Assistant was down lets go quietly once it sees all its
+  sensors.
+- **The battery fleet keeps its entities when the server language changes.** Its name follows the language, but
+  the entities' ids did not follow the name: each came back as a new entity and the old ones as no longer
+  provided.
+- **The next reminder is not taken back right after a completion.** When the next cycle was due at once (a weekly
+  task done a day late, a reset to an old date, a skip), the completion's refresh sent its reminder and then took it
+  off the phones with the old one, to send it again five minutes later. The reminder's own Complete button did the
+  same.
+- **A task handed to someone else hands over its reminder.** The push stayed on the old person's phone and the new
+  person heard nothing until the repeat interval ran out, for a triggered task never. The Trace says *handed to
+  someone else*, and assigning a task from the person list is an edit in the Trace like any other.
+- **Copy a task brings adaptive scheduling and the environmental sensor along.** The copy showed both and saved
+  neither.
+- **Combining two sensor rules keeps the first one's settings**: *all entities must*, the counting start value and
+  the session cap. Removing the second condition keeps them as well.
+- **Held until done holds a new episode, not the old reading.** Completed while the drawer still read full, then
+  read empty within ten minutes, the task latched again on every restart. And a cloud sensor that reports the
+  emptied drawer late kept the task triggered from its old value until a second completion.
+- **An update of Home Assistant itself is recorded as done.** Core and OS updates restart Home Assistant, so the
+  install happened while nothing watched and the rule went back to OK with nothing in the history. When the
+  installed version moved since the rule fired, the install now counts like one seen live.
+- **A date from a sensor held until done fires again for the next date**, with its history entry and event; after
+  the completion only the next refresh noticed it.
+- **The retention sweep leaves an object alone while it is not running.** Without its history the sweep saw no
+  booked money and deleted such a task anyway.
+- **Deleting a task of a disabled object removes its to-do rows too.**
+- **The object that inherits a deleted object's spare parts gets their stock sensors and buy reminder at once**,
+  not after the next restart.
+- **A moved task's history remembers where its parts came from.** Removing or changing a completion after the move
+  put no stock back.
+- **Spare-part actions on an object that is not running say so.** *Bought* reported success and booked nothing,
+  *Used* said the part was not counted.
+
+### 🔧 Developer
+
+- `TRIGGER_FIELD_RANGES["trigger_for_minutes"]` is `(0, 43200)`; the done-when hold has its own
+  `COMPLETE_WHEN_FOR_MINUTES_RANGE` `(1, 1440)` (TypeScript twins in `setting-ranges.ts`).
+- `helpers/i18n.plain_number(value, lang=None, digits=2)` writes a reading (never `:g`), and
+  `DECIMAL_COMMA_LANGUAGES` is the one list for voice and reminders; `trigger_detail(hass, config, lang=None,
+  numbers=None)` and `format_attribute_value(value, lang=None, numbers=None)` take the reader's language and
+  collect the decimals they wrote. The task summary carries `trigger_detail` with a point and
+  `trigger_detail_numbers` (`triggerDetailText` in `event-titles.ts` localises them). `formatHold(minutes,
+  lang)` in `styles.ts` says a hold in days, hours and minutes.
+- A part's stock sensor keeps its entity id when the part moves (`helpers/aggregate.part_stock_unique_id`);
+  a restock takes what arrived off an open order (`parts_runtime._receive_order`); a reminder the reconcile
+  creates for a part on order waits for its delivery day.
+- New commands: `csv/history` (admin), `part/move`, `part/order`, `part/order_cancel` (write) and
+  `object/delete_preview` (read); 119 in all. The task summary carries `upcoming_dates` (calendar kinds only), a
+  part `on_order`, a battery row `area_name`; `batteries_due_detailed` gains `area`.
+- `helpers/schedule.upcoming_occurrences`, `helpers/shared_parts.async_move_part` / `pool_handover`,
+  `parts_runtime.async_part_order` / `async_part_order_cancel`, `helpers/parts.order_mail_url` / `is_part_url`,
+  `helpers/csv_handler.export_history_csv`. The buy-task reconcile keeps a reminder for a part on order.
+- `helpers/task_apply.py`: `note_task_edit` records the trace for every writer (dialog, bulk, `update_task`, the
+  options flow, template improvements); `apply_entry_edits` takes the options flow's edits like the dialog's.
+  `UNSTORED_TASK_FIELDS` (`helpers/task_fields.py`) are the defaults a task never stores.
+- `helpers/completes_itself.py`: `LEVEL_TRIGGER_TYPES`, `is_state_latch` and `can_hold_until_done`, the one rule for
+  which triggers can hold a task until it is done (twins in `helpers/completes-itself.ts`).
+- `helpers/task_persist.async_forget_tasks`: what a task delete and an object delete clean up outside the entry.
+- `task/update` with `consumes_parts: []` removes the field, as `task/create` leaves it out.
+- Frontend: `helpers/trigger-fields.ts` (a sensor rule's form fields, shared by the dialog and its rule line),
+  `withUnit` in `styles.ts`, `mirrorChoice` in `helpers/mirror-lists.ts`, `ObjectsFollower` in
+  `helpers/objects-hub.ts` (the task card's and the calendar card's watch of the page's objects).
+- One rule each where two or more copies were (DRY audit rounds 6 and 7): a trigger letting go of its task
+  (`BaseTrigger._announce_task_recovered`; the coordinator's sweep only closes the episode), holding a task until
+  done (`holds_until_done`; WebSocket writes no longer keep the flag on a rule that cannot hold), the reminder's
+  Complete button (`coordinator.unattended_refusal`), a settings write (`settings_write_refusal`), a flat
+  recurrence (`schedule.flat_recurrence_refusal` / `implied_schedule_type`), the trigger keys the options flow
+  carries (`task_fields.FLOW_CARRIED_TRIGGER_KEYS`), a task's part-link lists and a history's `used_parts`
+  (`map_part_link_lists`, `map_used_parts`), the device registry walk (`device_link.appliance_devices`), the
+  repair's entity replacement (`entity_rename.map_trigger_entity_ids`), state comparison
+  (`helpers/state_match.py`), the to-do entity check, the persistent-notification id and the lead reminder's
+  days (the published ones).
+- `task/update` refuses a flat recurrence that contradicts itself before it writes anything; the time-based one
+  carries the translation key `time_based_needs_interval`. A part action on an object that is not loaded raises
+  `part_owner_not_loaded`.
+- `NotificationManager.sent_marks`: what went out about a task. A completion, skip or reset forgets only the old
+  cycle's marks when its refresh already reminded of the new one; `clear_and_dismiss` takes a `reason` for the trace
+  (`reassigned`).
+- A compound rule's logic is `compound_logic` only, in the panel too: an old `operator` key read as OR there and as
+  AND in the engine.
+- `task/postpone` beyond the limit answers `postpone_too_far` (was `invalid_date` with that translation key).
+  `task/assign_user` with `""` removes the assignee, like `null`.
+- A task that needs its trigger and its interval publishes the later of the two as `next_due` / `days_until_due`;
+  `TaskResult.interval_days_until_due` is the interval leg the status twin weighs (`helpers/status.combined_due`,
+  `needs_both_legs`). A state rule's runtime keeps `last_state`.
+- Frontend: `helpers/live-subscription.ts` (`subscribeAcrossReconnects`), the objects subscription of the cards
+  and the panel; `daysProgress` takes an explicit span.
+- Weekly signature drift check (#257): connectlife (its data dictionaries moved to `mappings/`, entries unchanged),
+  pura (1.11 names each slot's sensor `bay_<n>_fragrance_remaining`, which the catalog now matches, so a renamed
+  slot sensor is found) and wellbeing (entity ids from the appliance's display name, the suffix unchanged)
+  re-checked against their sources.
+- Frontend: `quickComplete` (the panel used its own copy), `confirmQuickComplete`, `renderTaskTitle` /
+  `taskTitleText`, `onActivationKey`, `commitOnEnter`, `positiveCount`, `completedByLabel`, `ellipsize`,
+  `mirrorListsOf` and the shared part pill styles.
+- Tripwires: the object and part payloads, the battery fleet row and the closed vocabularies against
+  `types.ts`; the settings paths the frontend reads; the codes that open the completion dialog; every raised
+  refusal has its translation; row styles and part cost modes; shared vectors for the mirror lists, who a task
+  is for and whether Quick complete is on (`twin-rules-vectors.json`).
+
 ## [2.120.0] - 2026-11-06
 
 ### ✨ New

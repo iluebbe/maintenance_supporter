@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any
 
 import voluptuous as vol
@@ -21,7 +21,6 @@ from ..const import (
     MAX_COST,
     MAX_DATE_LENGTH,
     MAX_DURATION_MINUTES,
-    MAX_INTERVAL_DAYS,
     MAX_TEXT_LENGTH,
     MAX_TIMESTAMP_LENGTH,
     MIN_COST,
@@ -494,12 +493,10 @@ async def ws_postpone_task(
     until = _parse_iso_date(connection, msg["id"], msg["until"], field="until")
     if until is None:
         return
-    # Bug audit 2026-09-27: an override in year 9999 overflowed the calendar
-    # entity's "next day" — a postpone reaches at most one maximum interval out.
-    if until > dt_util.now().date() + timedelta(days=MAX_INTERVAL_DAYS):
-        send_translated_error(connection, msg["id"], "invalid_date", f"until must be within {MAX_INTERVAL_DAYS} days", translation_key="postpone_too_far", translation_placeholders={"days": str(MAX_INTERVAL_DAYS)})
-        return
-
+    # How far and how early a postpone may go is the coordinator's rule (a
+    # day in the past, more than one maximum interval out: bug audit
+    # 2026-09-27); this command had its own copy of the second (DRY audit
+    # 2026-10-30, BI6-B10).
     try:
         await rd.coordinator.async_postpone_task(msg["task_id"], until)
     except ServiceValidationError as err:

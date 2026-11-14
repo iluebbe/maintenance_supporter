@@ -17,6 +17,7 @@ import { isSafeLink } from "../helpers/url";
 import { formatBytes } from "../helpers/format-bytes";
 import type { HomeAssistant } from "../types";
 import { notice } from "../helpers/notice";
+import { onActivationKey } from "../helpers/keyboard";
 
 interface StorageSummary {
   total_bytes: number;
@@ -295,14 +296,7 @@ export class MaintenanceStorageSectionCard extends LitElement {
         tabindex=${eid ? "0" : nothing}
         aria-label=${eid ? r.name : nothing}
         @click=${eid ? () => this._openObject(eid) : undefined}
-        @keydown=${eid
-          ? (e: KeyboardEvent) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                this._openObject(eid);
-              }
-            }
-          : undefined}
+        @keydown=${eid ? onActivationKey(() => this._openObject(eid)) : undefined}
       >
         <span class="obj-name">${r.name}</span>
         <span class="obj-meta">

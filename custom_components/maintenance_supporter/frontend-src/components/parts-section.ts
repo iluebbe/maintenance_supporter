@@ -15,13 +15,14 @@
  */
 
 import { LitElement, html, css, nothing } from "lit";
-import { isSafeHttpUrl } from "../helpers/url";
+import { isPartLink } from "../helpers/url";
 import { property, state } from "lit/decorators.js";
-import { t, ensureLocale, langOf, formatCost, formatNumber, formatQty } from "../styles";
+import { t, ensureLocale, langOf, formatCost, formatDate, formatNumber, formatQty } from "../styles";
+import "./ms-date-field";
 import { reuseWaitingText } from "../helpers/part-reuse";
 import { runWs } from "../helpers/ws-run";
 import type { HomeAssistant, MaintenancePart } from "../types";
-import { partCostMode, restockUnits, unitPrice, type PartsCostMode } from "../helpers/parts-cost";
+import { packagesBought, partCostMode, restockUnits, unitPrice, type PartsCostMode } from "../helpers/parts-cost";
 // Per-part document links (v2.26) — the task-documents component in part mode.
 import "./task-documents";
 // #226: use some outside a task.
@@ -32,6 +33,7 @@ import "./ms-part-purchase";
 import type { PartBoughtDetail } from "./ms-part-purchase";
 import { confirmAction } from "../helpers/confirm";
 import { notice } from "../helpers/notice";
+import { commitOnEnter, positiveCount } from "../helpers/keyboard";
 
 /** #208: what readies a used part again (helpers/parts.py REUSE_KINDS). */
 export const REUSE_KINDS = ["charge", "sharpen", "clean", "dry", "refill", "restore"] as const;
@@ -92,6 +94,8 @@ export class MaintenancePartsSection extends LitElement {
   /** The battery fleet's cells count when bought whatever is chosen (S-6),
    *  so its parts offer no choice. */
   @property({ type: Boolean }) public fleet = false;
+  /** #262: the objects a part of this one can move to. */
+  @property({ attribute: false }) public moveTargets: { entry_id: string; name: string }[] = [];
 
   @state() private _editing: PartForm | null = null;
   /** The form as it was opened — an edit sends the stock only when changed. */
@@ -106,6 +110,13 @@ export class MaintenancePartsSection extends LitElement {
   @state() private _disposeQty = "1";
   @state() private _disposeInvalid = false;
   @state() private _docsFor: string | null = null;
+  /** #261: the part whose order form is open, its count and delivery day. */
+  @state() private _orderFor: string | null = null;
+  @state() private _orderQty = "1";
+  @state() private _orderDate = "";
+  @state() private _orderInvalid = false;
+  /** #262: the object chosen in the open form's "Move to" list. */
+  @state() private _moveTo = "";
 
   private get _lang(): string {
     return langOf(this.hass);
@@ -134,6 +145,24 @@ export class MaintenancePartsSection extends LitElement {
   private _openAdd(): void {
     this._editing = { ...EMPTY_FORM };
     this._opened = null;
+    this._moveTo = "";
+  }
+
+  /** #262: move the part being edited to the chosen object, with its
+   *  stock, the links of the tasks that use it and its history. */
+  private async _move(): Promise<void> {
+    const f = this._editing;
+    if (this._busy || !f?.id || !this._moveTo) return;
+    const result = await this._send<{ success: boolean }>({
+      type: "maintenance_supporter/part/move",
+      entry_id: this.entryId,
+      part_id: f.id,
+      target_entry_id: this._moveTo,
+    });
+    if (result === undefined) return;
+    this._editing = null;
+    this._moveTo = "";
+    this._notifyChanged();
   }
 
   private _openEdit(part: MaintenancePart): void {
@@ -158,6 +187,7 @@ export class MaintenancePartsSection extends LitElement {
       notes: part.notes || "",
     };
     this._opened = { ...this._editing };
+    this._moveTo = "";
   }
 
   private _formValue(f: PartForm): Record<string, unknown> {
@@ -271,12 +301,9 @@ export class MaintenancePartsSection extends LitElement {
    *  past sharpening) leave the pile without going back to the stock. */
   private async _dispose(part: MaintenancePart): Promise<void> {
     if (this._busy) return;
-    const qty = parseFloat(this._disposeQty);
-    if (!Number.isFinite(qty) || qty <= 0) {
-      this._disposeInvalid = true;
-      return;
-    }
-    this._disposeInvalid = false;
+    const qty = positiveCount(this._disposeQty);
+    this._disposeInvalid = qty === null;
+    if (qty === null) return;
     const result = await this._send<{ stock: number; restoring: number }>({
       type: "maintenance_supporter/part/dispose",
       entry_id: this.entryId,
@@ -326,7 +353,7 @@ export class MaintenancePartsSection extends LitElement {
     return html`<ms-part-purchase
       .hass=${this.hass}
       .entryId=${this.entryId}
-      .sparePart=${part}
+      .sparePart=${part.on_order ? { ...part, restock_quantity: part.on_order.quantity } : part}
       .currencySymbol=${this.currencySymbol}
       ?onUse=${partCostMode(part, this.partsCostMode, this.fleet) === "use"}
       @part-bought=${(e: CustomEvent<PartBoughtDetail>) => this._onBought(part, e.detail)}
@@ -353,10 +380,7 @@ export class MaintenancePartsSection extends LitElement {
         aria-label=${t("part_dispose_how_many", L)}
         title=${t("part_dispose_how_many", L)}
         @input=${(e: Event) => (this._disposeQty = (e.target as HTMLInputElement).value)}
-        @keydown=${(e: KeyboardEvent) => {
-          if (e.key === "Enter") this._dispose(part);
-          if (e.key === "Escape") this._disposeFor = null;
-        }}
+        @keydown=${commitOnEnter(() => void this._dispose(part), () => (this._disposeFor = null))}
       />
       <button class="ready-again dispose confirm" title=${t("part_dispose_hint", L)} .disabled=${this._busy} @click=${() => this._dispose(part)}>
         <ha-icon icon="mdi:check"></ha-icon>${t("part_dispose", L)}
@@ -364,6 +388,106 @@ export class MaintenancePartsSection extends LitElement {
       <ha-icon-button title=${t("cancel", L)} @click=${() => (this._disposeFor = null)}
         ><ha-icon icon="mdi:close"></ha-icon
       ></ha-icon-button>`;
+  }
+
+  /** #261: the part was ordered and arrives later. */
+  private async _order(part: MaintenancePart): Promise<void> {
+    if (this._busy) return;
+    const qty = positiveCount(this._orderQty);
+    this._orderInvalid = qty === null;
+    if (qty === null) return;
+    const result = await this._send<{ on_order: MaintenancePart["on_order"] }>({
+      type: "maintenance_supporter/part/order",
+      entry_id: this.entryId,
+      part_id: part.id,
+      quantity: qty,
+      ...(this._orderDate ? { expected_date: this._orderDate } : {}),
+    });
+    if (result === undefined) return;
+    this._orderFor = null;
+    part.on_order = result?.on_order ?? { quantity: qty, expected: this._orderDate || null };
+    this.requestUpdate();
+    this._notifyChanged();
+  }
+
+  /** #261: the order fell through. */
+  private async _cancelOrder(part: MaintenancePart): Promise<void> {
+    if (this._busy) return;
+    const result = await this._send<{ success: boolean }>({
+      type: "maintenance_supporter/part/order_cancel",
+      entry_id: this.entryId,
+      part_id: part.id,
+    });
+    if (result === undefined) return;
+    part.on_order = null;
+    this.requestUpdate();
+    this._notifyChanged();
+  }
+
+  /** #261: the order line of a part: what is on order and until when, or the
+   *  small form that records an order. */
+  private _renderOrder(part: MaintenancePart, L: string) {
+    const order = part.on_order;
+    if (order) {
+      const qty = formatNumber(order.quantity, L);
+      const text = order.expected
+        ? t("part_ordered_arrives", L).replace("{qty}", qty).replace("{date}", formatDate(order.expected, L))
+        : t("part_ordered", L).replace("{qty}", qty);
+      return html`<div class="part-waiting part-order">
+        <span class="waiting-badge order-badge" title=${t("part_order_hint", L)}
+          ><ha-icon icon="mdi:truck-delivery-outline"></ha-icon>${text}</span
+        >
+        ${this.canWrite
+          ? html`<button class="ready-again dispose order-cancel" .disabled=${this._busy} @click=${() => this._cancelOrder(part)}>
+              <ha-icon icon="mdi:close"></ha-icon>${t("part_order_cancel", L)}
+            </button>`
+          : nothing}
+      </div>`;
+    }
+    if (!this.canWrite || this.fleet) return nothing;
+    if (this._orderFor !== part.id) {
+      return html`<div class="part-waiting part-order">
+        <button class="ready-again dispose order-open" title=${t("part_order_hint", L)} .disabled=${this._busy}
+          @click=${() => {
+            this._orderFor = part.id;
+            this._orderQty = String(packagesBought(part));
+            this._orderDate = "";
+            this._orderInvalid = false;
+          }}>
+          <ha-icon icon="mdi:truck-delivery-outline"></ha-icon>${t("part_order_btn", L)}
+        </button>
+      </div>`;
+    }
+    return html`<div class="part-waiting part-order">
+      <input
+        class="restock-input order-qty${this._orderInvalid ? " invalid" : ""}"
+        type="number"
+        min="0"
+        step="any"
+        .value=${this._orderQty}
+        aria-label=${t("part_order_qty", L)}
+        title=${t("part_order_qty", L)}
+        @input=${(e: Event) => (this._orderQty = (e.target as HTMLInputElement).value)}
+        @keydown=${commitOnEnter(() => void this._order(part), () => (this._orderFor = null))}
+      />
+      <ms-date-field
+        class="order-date"
+        kind="date"
+        clearable
+        .hass=${this.hass}
+        .lang=${L}
+        .label=${t("part_order_date", L)}
+        .value=${this._orderDate}
+        @value-changed=${(e: CustomEvent) => (this._orderDate = (e.detail.value as string) || "")}
+      ></ms-date-field>
+      <button class="ready-again order-confirm" .disabled=${this._busy} @click=${() => this._order(part)}>
+        <ha-icon icon="mdi:check"></ha-icon>${t("part_order_confirm", L)}
+      </button>
+      <ha-icon-button title=${t("cancel", L)} @click=${() => (this._orderFor = null)}
+        ><ha-icon icon="mdi:close"></ha-icon
+      ></ha-icon-button>
+      <div class="form-hint order-hint">${t("part_order_hint", L)}</div>
+    </div>`;
   }
 
   private _identLine(part: MaintenancePart): string {
@@ -382,7 +506,7 @@ export class MaintenancePartsSection extends LitElement {
         <ha-icon class="part-icon" icon=${part.is_low ? "mdi:cart-arrow-down" : "mdi:package-variant-closed"}></ha-icon>
         <div class="part-main">
           <div class="part-name">
-            ${isSafeHttpUrl(part.shopping_url)
+            ${isPartLink(part.shopping_url)
               ? html`<a href=${part.shopping_url} target="_blank" rel="noopener noreferrer">${part.name}</a>`
               : part.name}
             ${tracked
@@ -407,6 +531,7 @@ export class MaintenancePartsSection extends LitElement {
                   : nothing}
               </div>`
             : nothing}
+          ${this._renderOrder(part, L)}
           <div class="part-meta">
             ${ident ? html`<span>${ident}</span>` : nothing}
             ${part.storage_location
@@ -431,10 +556,7 @@ export class MaintenancePartsSection extends LitElement {
                       .value=${this._restockQty}
                       placeholder="+1"
                       @input=${(e: Event) => (this._restockQty = (e.target as HTMLInputElement).value)}
-                      @keydown=${(e: KeyboardEvent) => {
-                        if (e.key === "Enter") this._restock(part);
-                        if (e.key === "Escape") this._restockFor = null;
-                      }}
+                      @keydown=${commitOnEnter(() => void this._restock(part), () => (this._restockFor = null))}
                     />
                     <ha-icon-button title=${t("save", L)} .disabled=${this._busy} @click=${() => this._restock(part)}
                       ><ha-icon icon="mdi:check"></ha-icon
@@ -530,7 +652,7 @@ export class MaintenancePartsSection extends LitElement {
           ${this._field("MPN", "mpn")}
           ${this._field("GTIN / EAN", "gtin", { placeholder: "4006381333931" })}
           ${this._field(t("part_storage_location", L), "storage_location")}
-          ${this._field(t("part_product_url", L), "product_url", { placeholder: "https://…" })}
+          ${this._field(t("part_product_url", L), "product_url", { placeholder: "https://… / mailto:…" })}
           ${this._field(t("part_unit", L), "unit")}
           ${this._field(t("part_cost", L), "cost", { type: "number" })}
           ${this.fleet ? nothing : this._renderCostMode(L)}
@@ -587,6 +709,31 @@ export class MaintenancePartsSection extends LitElement {
             ></textarea>
           </label>
         </div>
+        ${f.id && !this.fleet && this.moveTargets.length
+          ? html`
+              <div class="part-move">
+                <label class="form-field">
+                  <span>${t("part_move_label", L)}</span>
+                  <select
+                    class="move-select"
+                    .value=${this._moveTo}
+                    @change=${(e: Event) => {
+                      this._moveTo = (e.target as HTMLSelectElement).value;
+                    }}
+                  >
+                    <option value="" ?selected=${!this._moveTo}>${t("part_move_choose", L)}</option>
+                    ${this.moveTargets.map(
+                      (o) => html`<option value=${o.entry_id} ?selected=${this._moveTo === o.entry_id}>${o.name}</option>`,
+                    )}
+                  </select>
+                </label>
+                <ha-button class="move-btn" appearance="plain" .disabled=${this._busy || !this._moveTo} @click=${() => this._move()}
+                  >${t("part_move_btn", L)}</ha-button
+                >
+                <div class="form-hint">${t("part_move_hint", L)}</div>
+              </div>
+            `
+          : nothing}
         <div class="form-actions">
           <ha-button appearance="plain" @click=${() => (this._editing = null)}>${t("cancel", L)}</ha-button>
           <ha-button .disabled=${this._busy || !f.name.trim()} @click=${() => this._save()}
@@ -757,6 +904,20 @@ export class MaintenancePartsSection extends LitElement {
     .ready-again ha-icon {
       --mdc-icon-size: 16px;
     }
+    .order-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .order-badge ha-icon {
+      --mdc-icon-size: 16px;
+    }
+    .order-date {
+      min-width: 150px;
+    }
+    .order-hint {
+      flex-basis: 100%;
+    }
     .ready-again.dispose {
       border-color: var(--divider-color, #ccc);
       color: var(--secondary-text-color);
@@ -854,6 +1015,22 @@ export class MaintenancePartsSection extends LitElement {
       justify-content: flex-end;
       gap: 8px;
       margin-top: 10px;
+    }
+    .part-move {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 8px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--divider-color);
+    }
+    .part-move .form-field {
+      flex: 1 1 200px;
+      min-width: 0;
+    }
+    .part-move .form-hint {
+      flex-basis: 100%;
     }
     .error {
       color: var(--error-color);

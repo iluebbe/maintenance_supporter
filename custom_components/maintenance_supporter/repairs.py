@@ -11,8 +11,7 @@ from __future__ import annotations
 
 import logging
 import re
-from collections.abc import Mapping
-from typing import Any, cast
+from typing import Any
 
 import voluptuous as vol
 from homeassistant.components.repairs import RepairsFlow, RepairsFlowResult
@@ -37,7 +36,8 @@ from .entity.triggers import normalize_entity_ids
 from .helpers.action_listener import action_entity_ids, map_action_entity_ids
 from .helpers.aggregate import async_store_even_unloaded, object_name
 from .helpers.area_leftovers import async_leftover_areas
-from .helpers.device_link import is_maintenance_device
+from .helpers.device_link import appliance_devices, is_maintenance_device
+from .helpers.entity_rename import map_trigger_entity_ids
 from .helpers.entry_tasks import write_task
 from .helpers.global_options import entry_option
 from .helpers.issues import DEVICE_LINK_LOST_PREFIX, STALE_ACTION_PREFIX
@@ -94,28 +94,18 @@ def _entry_has_task(entry: Any, task_id: str | None) -> bool:
     return task_id in entry.data.get(CONF_TASKS, {})
 
 
-def _replace_entity_in_dict(cfg: dict[str, Any], old: str, new: str) -> dict[str, Any]:
-    """Return a copy of ``cfg`` with entity_id/entity_ids replaced if matching."""
-    cfg = dict(cfg)
-    eids = cfg.get("entity_ids")
-    if isinstance(eids, list) and old in eids:
-        cfg["entity_ids"] = [new if e == old else e for e in eids]
-    if cfg.get("entity_id") == old:
-        cfg["entity_id"] = new
-    return cfg
-
-
-def _replace_entity_in_condition(cond: dict[str, Any], old: str, new: str) -> dict[str, Any]:
-    """Replace ``old`` entity with ``new`` in a compound trigger condition.
-
-    Conditions may have entity references at top level OR in a nested
-    ``trigger_config`` sub-dict.
-    """
-    cond = _replace_entity_in_dict(cond, old, new)
-    nested = cond.get("trigger_config")
-    if isinstance(nested, dict):
-        cond["trigger_config"] = _replace_entity_in_dict(nested, old, new)
-    return cond
+def _replace_trigger_entity(trigger_config: dict[str, Any], old: str, new: str) -> dict[str, Any]:
+    """The trigger with ``old`` replaced by ``new`` wherever it names it: the
+    one walker of the entity rename and the device swap (a compound's
+    conditions and their nested configs too), with the new sensor starting
+    fresh like a swapped device's. A flat trigger's ``entity_id`` follows its
+    first entity. The repair had its own walker (DRY audit 2026-10-30,
+    BR6-B4)."""
+    replaced, _changed = map_trigger_entity_ids(trigger_config, lambda e: new if e == old else e, move_state=False)
+    replaced = dict(replaced)
+    if replaced.get("type") != "compound" and replaced.get("entity_ids"):
+        replaced["entity_id"] = replaced["entity_ids"][0]
+    return replaced
 
 
 def _strip_entity_from_dict(cfg: dict[str, Any], target: str) -> tuple[dict[str, Any], bool]:
@@ -300,26 +290,7 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
         # Read static task data from ConfigEntry
         tasks_data = dict(entry.data.get(CONF_TASKS, {}))
         task_dict = dict(tasks_data[task_id])
-        trigger_config = dict(task_dict.get("trigger_config") or {})
-
-        if trigger_config.get("type") == "compound":
-            # Recurse into conditions
-            new_conditions = [
-                _replace_entity_in_condition(cond, old_entity_id, new_entity_id) for cond in trigger_config.get("conditions", [])
-            ]
-            trigger_config["conditions"] = new_conditions
-        else:
-            # Flat trigger: update entity_ids list if present
-            entity_ids = trigger_config.get("entity_ids", [])
-            if entity_ids and old_entity_id in entity_ids:
-                entity_ids = [new_entity_id if eid == old_entity_id else eid for eid in entity_ids]
-                trigger_config["entity_ids"] = entity_ids
-
-            # Update entity_id (for backwards compat / single-entity)
-            if trigger_config.get("entity_id") == old_entity_id:
-                trigger_config["entity_id"] = new_entity_id
-            if entity_ids:
-                trigger_config["entity_id"] = entity_ids[0]
+        trigger_config = _replace_trigger_entity(dict(task_dict.get("trigger_config") or {}), old_entity_id, new_entity_id)
 
         # Reset runtime values
         trigger_config.pop("trigger_baseline_value", None)
@@ -798,27 +769,8 @@ class DeviceLinkRepairFlow(RepairsFlow):
         words |= {w for w in (norm(obj.get("manufacturer")), norm(obj.get("model"))) if w}
 
         best, best_score = None, 0
-        # HA 2026.9 deprecates mapping-style access on `DeviceRegistry.devices`
-        # (calling .values() raises a deprecation ERROR there) and makes the
-        # collection itself iterate over ENTRIES; 2026.7 iterates over ids, so
-        # .values() is required there. ChildDeviceEntry's existence is the
-        # cleanest capability marker for the new world.
-        registry_devices = dr.async_get(self.hass).devices
-        # cast(Any): the .values() branch only ever runs on 2026.7, but the
-        # 2026.9 stubs type `devices` as a Collection without it.
-        # Probe the COLLECTION, not a neighbouring symbol (#144 lesson): a
-        # Mapping (2026.8 and older UserDict) iterates ids and needs .values();
-        # the 2026.9 view iterates entries and has no Mapping base.
-        device_iter: Any = (
-            cast(Any, registry_devices).values() if isinstance(registry_devices, Mapping) else registry_devices
-        )
-        for device in device_iter:
+        for device in appliance_devices(self.hass):
             if is_maintenance_device(self.hass, device):
-                continue
-            # 2026.9 sub-devices: reading manufacturer/model on a
-            # ChildDeviceEntry logs a deprecation report per access, and a
-            # sub-device is never the appliance itself.
-            if getattr(device, "parent_device_id", None) is not None:
                 continue
             hay = norm(
                 f"{getattr(device, 'name_by_user', None) or ''} {getattr(device, 'name', None) or ''} "

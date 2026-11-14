@@ -41,6 +41,7 @@ from .helpers.notify_hooks import KIND_LEAD_TIME
 from .helpers.pause import is_task_inert
 from .helpers.phases import task_label
 from .helpers.retention import async_run_retention_sweep
+from .helpers.status import needs_both_legs
 from .models.maintenance_task import MaintenanceTask
 
 
@@ -158,10 +159,21 @@ async def async_maybe_send_lead_reminders(hass: HomeAssistant) -> None:
             if not task_may_notify(hass, entry.entry_id, task_id, MaintenanceStatus.DUE_SOON, task_data, kind=KIND_LEAD_TIME, manager=nm):
                 continue
             task = MaintenanceTask.from_dict(task_data)
-            days = task.days_until_due
+            # The days the panel shows: the published result (the refresh
+            # applies what the model alone does not, the schedule-time
+            # switch), the model only for a task not published yet (DRY audit
+            # 2026-10-30, BR6-B12).
+            published = payload.get(task_id)
+            days = published.days_until_due if published is not None else task.days_until_due
+            next_due = published.next_due if published is not None else (task.next_due.isoformat() if task.next_due else None)
             # days == 0 is a valid lead ("on the due date"); negatives are the
             # overdue path's job (notify_overdue_interval_hours).
             if days is None or days < 0 or days not in leads:
+                continue
+            # A task that needs its trigger too is not due on a date while
+            # the trigger is off: its "due in 3 days" came from the interval
+            # alone, and on the day nothing fell due (#260).
+            if needs_both_legs(task.trigger_config) and not (published.trigger_active if published is not None else task._trigger_active):
                 continue
             await nm.async_send_lead_reminder(
                 entry_id=entry.entry_id,
@@ -169,11 +181,13 @@ async def async_maybe_send_lead_reminders(hass: HomeAssistant) -> None:
                 # The label every other reminder carries (due phase #139,
                 # next calendar events #189) — this one sent the bare name
                 # (bug audit 2026-09-26).
-                task_name=task_label(task_data, published.next_event_titles if (published := payload.get(task_id)) else None),
+                task_name=task_label(task_data, published.next_event_titles if published else None),
                 object_name=obj_name,
                 days=days,
-                next_due=task.next_due.isoformat() if task.next_due else None,
+                next_due=next_due,
                 responsible_user_id=task.responsible_user_id,
+                # D#250: a task its sensor completes gets no Complete / Skip.
+                trigger_active=published.trigger_active if published else None,
             )
 
 

@@ -19,6 +19,8 @@ import { t, langOf } from "../styles";
 import { runWs } from "../helpers/ws-run";
 import type { HomeAssistant, MaintenancePart } from "../types";
 import { notice } from "../helpers/notice";
+import { commitOnEnter } from "../helpers/keyboard";
+import { partPillStyles } from "./part-pill-styles";
 
 export type UsablePart = Pick<MaintenancePart, "id" | "unit" | "package_size">;
 
@@ -100,7 +102,7 @@ export class MsPartUse extends LitElement {
   protected render() {
     const L = this._lang;
     if (!this._open) {
-      return html`<button class="use-pill" title=${t("part_use_hint", L)} @click=${() => this._start()}>
+      return html`<button class="use-pill part-pill" title=${t("part_use_hint", L)} @click=${() => this._start()}>
         <ha-icon icon="mdi:package-variant-minus"></ha-icon>${t("part_use", L)}
       </button>`;
     }
@@ -115,13 +117,10 @@ export class MsPartUse extends LitElement {
           aria-label=${t("part_use_how_many", L)}
           title=${t("part_use_how_many", L)}
           @input=${(e: Event) => (this._qty = (e.target as HTMLInputElement).value)}
-          @keydown=${(e: KeyboardEvent) => {
-            if (e.key === "Enter") void this._use();
-            if (e.key === "Escape") this._open = false;
-          }}
+          @keydown=${commitOnEnter(() => void this._use(), () => (this._open = false))}
         />
         ${this.sparePart.unit ? html`<span class="unit">${this.sparePart.unit}</span>` : nothing}
-        <button class="use-pill confirm" title=${t("part_use_hint", L)} .disabled=${this._busy} @click=${() => this._use()}>
+        <button class="use-pill part-pill confirm" title=${t("part_use_hint", L)} .disabled=${this._busy} @click=${() => this._use()}>
           <ha-icon icon="mdi:check"></ha-icon>${t("part_use", L)}
         </button>
         <ha-icon-button class="use-cancel" title=${t("cancel", L)} @click=${() => (this._open = false)}
@@ -133,7 +132,7 @@ export class MsPartUse extends LitElement {
     `;
   }
 
-  static styles = css`
+  static styles = [partPillStyles, css`
     :host {
       display: inline-flex;
       flex-direction: column;
@@ -150,33 +149,6 @@ export class MsPartUse extends LitElement {
     }
     :host([nowrap]) .use-field {
       flex-wrap: nowrap;
-    }
-    .use-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font: inherit;
-      font-size: 12px;
-      font-weight: 400;
-      padding: 2px 10px;
-      min-height: 28px;
-      border-radius: 14px;
-      border: 1px solid var(--divider-color, #ccc);
-      background: transparent;
-      color: var(--secondary-text-color);
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .use-pill:hover {
-      border-color: var(--primary-color);
-      color: var(--primary-color);
-    }
-    .use-pill.confirm {
-      border-color: var(--primary-color);
-      color: var(--primary-color);
-    }
-    .use-pill ha-icon {
-      --mdc-icon-size: 16px;
     }
     input {
       width: 72px;
@@ -210,7 +182,7 @@ export class MsPartUse extends LitElement {
     .error {
       color: var(--error-color);
     }
-  `;
+  `];
 }
 
 if (!customElements.get("ms-part-use")) {

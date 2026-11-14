@@ -30,7 +30,10 @@ import "./ms-date-field";
 import { confirmAction } from "../helpers/confirm";
 import { collapsible } from "../helpers/collapsible";
 import { selectField, selectIsHa } from "../helpers/select-field";
+import { NOTIFICATION_LANGUAGE_AUTO, NOTIFICATION_LANGUAGES, notificationLanguageName } from "../helpers/notification-languages";
+import { normLang } from "../helpers/locale-core";
 import { checkField } from "../helpers/check-field";
+import { onActivationKey } from "../helpers/keyboard";
 
 /** One household member and the notify services they actually resolve to.
  *  Empty `services` means no Companion device is linked, so their reminders
@@ -134,6 +137,8 @@ interface SettingsResponse {
     title_style?: string;
     /** D#248: in front of every title, any style ("" = none). */
     title_prefix?: string;
+    /** #251: "auto" (Home Assistant's) or a notification table language. */
+    language?: string;
   };
   actions: {
     complete_enabled: boolean;
@@ -211,6 +216,9 @@ export class MaintenanceSettingsView extends LitElement {
   @state() private _importUnmatched: string[] = [];
   @state() private _importLoading = false;
   @state() private _includeHistory = true;
+  /** D#253: the history CSV's optional date range (YYYY-MM-DD, "" = open). */
+  @state() private _historyCsvFrom = "";
+  @state() private _historyCsvTo = "";
   @state() private _toast = "";
   @state() private _testingNotification = false;
   @state() private _personTargets: PersonNotifyTarget[] = [];
@@ -942,12 +950,7 @@ export class MaintenanceSettingsView extends LitElement {
                 role="button"
                 tabindex="0"
                 @click=${() => this._toggleTplGroupOpen(catId)}
-                @keydown=${(e: KeyboardEvent) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    this._toggleTplGroupOpen(catId);
-                  }
-                }}
+                @keydown=${onActivationKey(() => this._toggleTplGroupOpen(catId))}
               >
                 <ha-icon class="tpl-chevron" icon=${open ? "mdi:chevron-down" : "mdi:chevron-right"}></ha-icon>
                 <ha-icon icon=${(this._templateCategories[catId]?.icon as string) || "mdi:folder-outline"}></ha-icon>
@@ -1358,6 +1361,14 @@ export class MaintenanceSettingsView extends LitElement {
           </datalist>
         </label>
         <div class="setting-hint">${t("settings_title_prefix_hint", L)}</div>
+        <label class="setting-row">
+          <span class="setting-label">${t("settings_notification_language", L)}</span>
+          ${selectField({ cls: "notify-language", value: n.language || NOTIFICATION_LANGUAGE_AUTO, live: true, onChange: (e: Event) => this._updateSetting("notification_language", (e.target as HTMLSelectElement).value) }, html`
+            <option value=${NOTIFICATION_LANGUAGE_AUTO}>${t("notification_language_auto", L).replace("{language}", notificationLanguageName(normLang(this.hass?.config?.language ?? undefined)))}</option>
+            ${NOTIFICATION_LANGUAGES.map(([code, name]) => html`<option value=${code}>${name}</option>`)}
+          `)}
+        </label>
+        <div class="setting-hint">${t("settings_notification_language_hint", L)}</div>
 
         <div class="notify-rule">
         <h4 style="margin: 16px 0 8px; font-size: 14px;">${t("settings_notify_rule", L)}</h4>
@@ -2039,6 +2050,15 @@ export class MaintenanceSettingsView extends LitElement {
           <button @click=${this._exportCsv}>${t("settings_export_csv", L)}</button>
           <button @click=${this._exportSettings}>${t("settings_export_settings", L)}</button>
         </div>
+        <div class="settings-actions history-csv-block">
+          <ms-date-field class="history-csv-date history-csv-from" kind="date" clearable .hass=${this.hass} .lang=${L}
+            .label=${t("settings_export_history_from", L)} .value=${this._historyCsvFrom}
+            @value-changed=${(e: CustomEvent) => { this._historyCsvFrom = (e.detail.value as string) || ""; }}></ms-date-field>
+          <ms-date-field class="history-csv-date history-csv-to" kind="date" clearable .hass=${this.hass} .lang=${L}
+            .label=${t("settings_export_history_to", L)} .value=${this._historyCsvTo}
+            @value-changed=${(e: CustomEvent) => { this._historyCsvTo = (e.detail.value as string) || ""; }}></ms-date-field>
+          <button class="history-csv-btn" @click=${this._exportHistoryCsv}>${t("settings_export_history_csv", L)}</button>
+        </div>
         <div class="settings-actions docs-archive-block">
           <h4>${t("settings_docs_archive", L)}</h4>
           <p class="section-desc">${t("settings_docs_archive_hint", L)}</p>
@@ -2146,6 +2166,21 @@ export class MaintenanceSettingsView extends LitElement {
     if (!result) return;
     const ts = haToday();
     this._downloadFile(result.csv, `maintenance_export_${ts}.csv`, "text/csv");
+    this._showToast(t("settings_export_success", this._lang));
+  }
+
+  /** D#253: the history as CSV, one row per entry, for the chosen objects
+   *  and (optionally) a date range. */
+  private async _exportHistoryCsv(): Promise<void> {
+    const ids = this._selectedEntryIds;
+    const result = await this._ws<{ csv: string }>({
+      type: "maintenance_supporter/csv/history",
+      ...(ids ? { entry_ids: ids } : {}),
+      ...(this._historyCsvFrom ? { date_from: this._historyCsvFrom } : {}),
+      ...(this._historyCsvTo ? { date_to: this._historyCsvTo } : {}),
+    });
+    if (!result) return;
+    this._downloadFile(result.csv, `maintenance_history_${haToday()}.csv`, "text/csv");
     this._showToast(t("settings_export_success", this._lang));
   }
 
@@ -2428,6 +2463,12 @@ export class MaintenanceSettingsView extends LitElement {
     .docs-archive-block {
       flex-direction: column;
       align-items: flex-start;
+    }
+    .history-csv-block {
+      align-items: flex-end;
+    }
+    .history-csv-date {
+      min-width: 160px;
     }
     .docs-archive-block h4, .docs-archive-block .section-desc { margin: 0; }
     /* The buttons outside an action row (and the .ha-button / .btn ones,

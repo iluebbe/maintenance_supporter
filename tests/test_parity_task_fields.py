@@ -108,6 +108,11 @@ PANEL_ONLY = {
     # dialog, enforced surface-independently (helpers/complete_when.py); an
     # options-flow task edit keeps it (the flow never rebuilds the task).
     "complete_when",
+    # #252: the task's own notification texts — four kinds with a title and
+    # a message each and the placeholders beside them; the panel dialog is
+    # the editor, the notification manager reads them on every surface, and
+    # an options-flow task edit keeps them (the flow never rebuilds the task).
+    "notification_texts",
 }
 # Config-flow-only: none at the top-level task-field layer. Compound triggers
 # and per-entity trigger removal are *within* trigger_config and are covered by

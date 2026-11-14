@@ -36,7 +36,8 @@ import { confirmDialog } from "../helpers/confirm";
 import { askDeleteTask } from "../helpers/delete-task";
 import { ToastTimer } from "../helpers/toast";
 import { quickComplete, quickCompleteOn } from "../helpers/quick-complete";
-import { offerUndoToast } from "../helpers/undo-completion";
+import { confirmQuickComplete } from "../helpers/undo-completion";
+import { renderTaskTitle, taskTitleText, triggerDetailText } from "../helpers/event-titles";
 import { renderWeibullSection } from "../renderers/weibull";
 import { renderPredictionSection } from "../renderers/prediction";
 import { renderRecommendationBars } from "../renderers/recommendation";
@@ -278,7 +279,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
         return;
       }
       this._notifyChanged("complete");
-      if (outcome.undo) offerUndoToast(this, this.hass, { entryId, taskId: task.id, taskName: task.name }, this._lang, () => undefined);
+      confirmQuickComplete(this, this.hass, { entryId, taskId: task.id, taskName: task.name }, outcome.undo, this._lang, () => undefined);
       this.close();
     } finally {
       this._busy = false;
@@ -607,8 +608,8 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     const L = this._lang;
     const task = this._task;
     const writer = canWrite(this.hass?.user, this._access);
-    // The server refuses to postpone an archived, disabled or paused task,
-    // and such a task sends no reminders to snooze.
+    // The server refuses to complete, skip, reset or postpone an archived,
+    // disabled or paused task, and such a task sends no reminders to snooze.
     const inert = !!task && isInertTask(task);
 
     return renderModalShell(() => this.close(), html`
@@ -617,7 +618,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
               <div class="header">
                 <div class="title">
                   <span class="status-dot" style="background: ${statusColor(task)}"></span>
-                  ${shellIsHa() ? nothing : html`<span class="task-name">${task.name}</span>`}
+                  ${shellIsHa() ? nothing : html`<span class="task-name">${renderTaskTitle(task.name, task.next_event_titles, triggerDetailText(task, L))}</span>`}
                   ${renderStatusBadge(task, L)}
                 </div>
                 <div class="object">
@@ -711,7 +712,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                     </div>
                   `
                 : html`
-                    <div class="actions primary-row">
+                    ${inert ? nothing : html`<div class="actions primary-row">
                       <ha-button appearance="accent" variant="success" @click=${() => this._onComplete()} .disabled=${this._busy}
                         title=${quickCompleteOn(task) ? t("qr_action_quick_complete", L) : t("complete", L)}>
                         <ha-icon slot="start" icon="mdi:check"></ha-icon>
@@ -735,7 +736,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                         <ha-icon slot="start" icon="mdi:restart"></ha-icon>
                         ${t("reset", L)}
                       </ha-button>
-                    </div>
+                    </div>`}
                     <!-- QR is read tier (the panel offers it to operators too);
                          Edit / Archive / Delete follow canWrite() — the panel's
                          operator delegation, not is_admin alone. -->
@@ -805,7 +806,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
           : this._error
             ? notice("error", this._error)
             : html`<div class="loading">${t("loading", L)}</div>`}
-    `, { title: task?.name });
+    `, { title: task ? taskTitleText(task.name, task.next_event_titles, triggerDetailText(task, L)) : undefined });
   }
 
   protected updated(changed: Map<string, unknown>): void {

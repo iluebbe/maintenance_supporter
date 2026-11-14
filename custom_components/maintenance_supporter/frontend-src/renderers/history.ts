@@ -12,7 +12,7 @@
  */
 
 import { html, nothing } from "lit";
-import { t, formatDateTime, formatNumber, formatCost, formatDuration, formatEntryCost, STATUS_ICONS, historyTypeColor } from "../styles";
+import { t, formatDateTime, formatNumber, formatCost, formatDuration, formatEntryCost, STATUS_ICONS, historyTypeColor, withUnit } from "../styles";
 import type { MaintenanceTask, HistoryEntry, HistoryEntryType, HomeAssistant } from "../types";
 import "../components/history-photo";
 import { historyPhotoIds } from "../helpers/history-photos";
@@ -187,14 +187,14 @@ function renderHistoryReadings(entry: HistoryEntry, ctx: HistoryEntryContext) {
     return html`<div class="history-readings">
       ${values.map((v) => html`<span class="history-reading">
         <span class="history-reading-name">${v.name}</span>
-        <span class="history-reading-value">${fmt(v.value)}${v.unit ? ` ${v.unit}` : ""}${delta(ctx.readingSlotDelta?.(entry, v.id))}</span>
+        <span class="history-reading-value">${withUnit(fmt(v.value), v.unit, L)}${delta(ctx.readingSlotDelta?.(entry, v.id))}</span>
       </span>`)}
     </div>`;
   }
   if (entry.reading_value != null) {
     return html`<div class="history-readings"><span class="history-reading">
       <span class="history-reading-name">${t("reading_label", L)}</span>
-      <span class="history-reading-value">${fmt(entry.reading_value)}${ctx.readingUnit ? ` ${ctx.readingUnit}` : ""}${delta(ctx.readingDelta?.(entry))}</span>
+      <span class="history-reading-value">${withUnit(fmt(entry.reading_value), ctx.readingUnit, L)}${delta(ctx.readingDelta?.(entry))}</span>
     </span></div>`;
   }
   return nothing;

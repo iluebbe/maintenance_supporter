@@ -20,6 +20,16 @@ export function entityName(hass: { states?: Record<string, { attributes?: { frie
   return typeof name === "string" && name ? name : entityId;
 }
 
+/** A compound rule's logic as the backend reads it (entity/triggers/
+ *  compound.py): any case, AND unless it says otherwise. The dialog read
+ *  "and" as AND and "or" as AND, the sensor card "and" as OR (DRY audit
+ *  2026-11-07, FE7-B2). Only `compound_logic`: a legacy `operator` key the
+ *  backend never reads made the panel say OR for a rule that runs as AND
+ *  (bug audit 2026-11-08, E8-8). */
+export function compoundLogic(tc: Pick<TriggerConfig, "compound_logic"> | null | undefined): "AND" | "OR" {
+  return String(tc?.compound_logic || "AND").toUpperCase() === "AND" ? "AND" : "OR";
+}
+
 export function triggerEntityIds(tc: TriggerConfig | null | undefined): string[] {
   if (!tc) return [];
   if (Array.isArray(tc.entity_ids) && tc.entity_ids.length > 0) return [...tc.entity_ids];

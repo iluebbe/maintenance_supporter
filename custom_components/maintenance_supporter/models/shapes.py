@@ -120,6 +120,18 @@ class CompleteWhen(TypedDict):
     for_minutes: NotRequired[int]
 
 
+class NotificationText(TypedDict, total=False):
+    """#252: a task's own title and/or message for one kind of notification
+    (const.NOTIFICATION_TEXT_KINDS); one left out takes the standard text."""
+
+    title: str
+    message: str
+
+
+#: #252: kind (due_soon / overdue / triggered / completed) → its own texts.
+NotificationTexts = dict[str, NotificationText]
+
+
 class ScheduleEnds(TypedDict, total=False):
     """Finite-series end condition: after N completions and/or past a date."""
 
@@ -264,6 +276,7 @@ class StoredTask(TypedDict, total=False):
     # Notifications and to-do lists
     notify_enabled: bool
     notify_icon: str | None
+    notification_texts: NotificationTexts | None
     mirror_todo_entities: list[str]
     mirror_todo_use_default: bool
     # Retired or paused

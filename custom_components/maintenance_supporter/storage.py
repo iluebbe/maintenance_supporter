@@ -362,7 +362,11 @@ class MaintenanceStore:
         the SUM past it — this chokepoint clamp keeps every writer honest."""
         parts: dict[str, Any] = self._data.setdefault("parts", {})
         if stock is None:
+            # An open order (#261) outlives the count it was placed under.
+            order = (parts.get(part_id) or {}).get("on_order")
             parts.pop(part_id, None)
+            if isinstance(order, dict) and order:
+                parts[part_id] = {"on_order": order}
         else:
             parts.setdefault(part_id, {})["stock"] = min(max(0, round_qty(stock)), MAX_PART_STOCK)
 
@@ -383,6 +387,31 @@ class MaintenanceStore:
             state["restoring"] = value
         else:
             state.pop("restoring", None)
+
+    # --- a part on order (#261): ordered, not yet on the shelf ---
+
+    def get_part_order(self, part_id: str) -> dict[str, Any] | None:
+        """The open order of a part: ``{quantity, expected, ordered_at,
+        note}``, or None. ``quantity`` counts packages for a part bought
+        in packages, like a purchase; ``expected`` is the delivery day
+        (ISO) or None."""
+        order = self._data.get("parts", {}).get(part_id, {}).get("on_order")
+        return dict(order) if isinstance(order, dict) and order else None
+
+    def set_part_order(self, part_id: str, order: dict[str, Any] | None) -> None:
+        """Record (or with None clear) a part's open order. A part whose
+        stock is not counted can be on order too: the state then holds
+        only the order, and the stock stays untracked."""
+        parts: dict[str, Any] = self._data.setdefault("parts", {})
+        if order:
+            parts.setdefault(part_id, {})["on_order"] = dict(order)
+            return
+        state = parts.get(part_id)
+        if state is None:
+            return
+        state.pop("on_order", None)
+        if not state:
+            parts.pop(part_id, None)
 
     def remove_part(self, part_id: str) -> None:
         """Drop a deleted part's stock state."""

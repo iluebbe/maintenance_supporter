@@ -102,7 +102,8 @@ describe("D#250: which tasks complete themselves", () => {
     expect(completesItself({ trigger_active: false, trigger_config: selfDone }), "due by its safety interval").to.equal(false);
     expect(completesItself({ trigger_active: true, trigger_config: { ...selfDone, auto_complete_on_recovery: false } })).to.equal(false);
     expect(completesItself({ trigger_active: true, trigger_config: { type: "due_date", auto_complete_on_recovery: true } })).to.equal(true);
-    expect(completesItself({ trigger_active: true, trigger_config: { type: "compound", auto_complete_on_recovery: true } })).to.equal(true);
+    const threshold = { type: "threshold" as const, entity_id: "sensor.level" };
+    expect(completesItself({ trigger_active: true, trigger_config: { type: "compound", auto_complete_on_recovery: true, conditions: [threshold] } })).to.equal(true);
     expect(completesItself({ trigger_active: true, trigger_config: { type: "state_change", trigger_to_state: "empty", auto_complete_on_recovery: true } })).to.equal(true);
     expect(completesItself({ trigger_active: true, trigger_config: { type: "state_change", trigger_to_state: "x", trigger_target_changes: 30, auto_complete_on_recovery: true } }), "a count of changes").to.equal(false);
     expect(completesItself({ trigger_active: true, trigger_config: { type: "counter", auto_complete_on_recovery: true } })).to.equal(false);

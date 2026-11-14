@@ -675,6 +675,7 @@
           "notification_bundle_threshold": "Samlingstærskel",
           "notification_title_style": "Stil for notifikationstitel",
           "notification_title_prefix": "Præfiks for notifikationstitel",
+          "notification_language": "Sprog for notifikationer",
           "notify_completed": "Notifikationer om udførelse",
           "notify_event_only": "Udløs kun hændelsen, send intet selv",
           "notify_extra_data": "Ekstra notifikationsdata (skabelon)",
@@ -694,6 +695,7 @@
           "notification_bundle_threshold": "Minimum antal opgaver for at udløse en samlet notifikation.",
           "notification_title_style": "Hvad der vises som notifikationens TITEL. Standard bevarer teksten pr. status (f.eks. 'Vedligeholdelse overskredet!'). Objektnavn / Opgavenavn hjælper, når telefonnotifikationer stables.",
           "notification_title_prefix": "Sættes foran titlen på hver notifikation, uanset stil, f.eks. boligens navn, når telefonen får påmindelser fra mere end én Home Assistant. Tom = intet præfiks.",
+          "notification_language": "Sproget i notifikationernes titler, tekster og knapper. Home Assistants sprog = som hidtil. Panelet bliver ved hver persons eget sprog.",
           "notify_completed": "En besked til husstanden, når en opgave er udført, med årsagen (panel, QR-/NFC-scanning, to-do-liste, stemme, sensorgendannelse …). \"Kun automatiske\" melder kun udførelser, som ingen lavede på stedet: sensorgendannelse, afkrydsning på indkøbslisten, et servicekald fra en automatisering.",
           "notify_event_only": "Hver notifikation udløser hændelsen maintenance_supporter_notification. Med dette slået til står din automatisering for hele leveringen — gentagelsesintervaller, stille timer og dagsgrænsen afgør stadig, hvornår hændelsen kommer.",
           "notify_extra_data": "JSON eller YAML med Jinja, flettes ind i data i hvert notify-kald (dine nøgler vinder). Variabler: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
@@ -1892,6 +1894,10 @@
         "via_tag_scan": {
           "name": "Via tag-scanning",
           "description": "Angiver, at denne udførelse stammer fra en scanning af et fysisk tag/QR-kode, som automatiseringen selv har håndteret — opfylder opgavens indstilling „Kan kun udføres ved tag-scanning“."
+        },
+        "consume_parts": {
+          "name": "Forbrug dele",
+          "description": "Bogfører de dele, der er knyttet til opgaven, for denne udførelse, også når udførelsesdatoen ligger før opgavens seneste udførelse. En aktuel udførelse bogfører dem altid, en efterregistreret kun med dette valg. Delene trækkes fra dagens lager."
         }
       }
     },
@@ -1929,7 +1935,7 @@
       "fields": {
         "format": {
           "name": "Format",
-          "description": "Outputformat for de eksporterede data (json eller yaml)."
+          "description": "Outputformat: json eller yaml til den fulde eksport, history_csv til historikken som tabel med én række pr. post (filen maintenance_history.csv)."
         },
         "include_history": {
           "name": "Inkludér historik",
@@ -2351,7 +2357,7 @@
     },
     "shared_parts_moved": {
       "title": "Delte reservedele flyttet til {new_owner}",
-      "description": "Flere vedligeholdelsesobjekter delte ét og samme reservedelslager, som lå på **{deleted_object}**, og det objekt er netop blevet slettet. I stedet for at lade de øvrige objekter pege på et lager, der ikke længere findes, flyttede Maintenance Supporter de delte dele ({parts}) — med deres nuværende beholdning — til **{new_owner}** og pegede alle andre objekters opgavelinks derhen. Intet gik tabt.\n\n**{new_owner}** blev valgt automatisk: det er det ældste objekt, der brugte lageret. Passer et andet objekt bedre, så flyt delene derhen i vedligeholdelsespanelet.\n\nDer skal ikke gøres mere — luk denne notifikation, når du har set den efter."
+      "description": "Flere vedligeholdelsesobjekter delte ét og samme reservedelslager, som lå på **{deleted_object}**, og det objekt er netop blevet slettet. I stedet for at lade de øvrige objekter pege på et lager, der ikke længere findes, flyttede Maintenance Supporter de delte dele ({parts}) — med deres nuværende beholdning — til **{new_owner}** og pegede alle andre objekters opgavelinks derhen. Intet gik tabt.\n\n**{new_owner}** blev valgt automatisk: det er det ældste objekt, der brugte lageret.\n\nDer skal ikke gøres mere — luk denne notifikation, når du har set den efter."
     },
     "broken_part_link": {
       "title": "Ugyldige reservedelslinks på {object_name}",
@@ -2538,6 +2544,9 @@
     "part_owner_archived": {
       "message": "“{object_name}” er arkiveret. Gendan det for at registrere et køb."
     },
+    "part_owner_not_loaded": {
+      "message": "{object_name} kører ikke lige nu (deaktiveret eller starter stadig), så dets reservedele kan ikke bogføres. Prøv igen, når det kører."
+    },
     "purchase_cost_too_high": {
       "message": "Et køb kan højst koste {max} i alt."
     },
@@ -2567,6 +2576,9 @@
     },
     "date_in_future": {
       "message": "Datoen må ikke ligge i fremtiden."
+    },
+    "time_based_needs_interval": {
+      "message": "En tidsbaseret opgave skal have et interval."
     },
     "range_end_before_start": {
       "message": "Slutningen skal ligge på eller efter starten."

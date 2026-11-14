@@ -17,13 +17,10 @@ from ...const import (
     CONF_COMPOUND_CONDITIONS,
     CONF_COMPOUND_LOGIC,
     EVENT_TRIGGER_ACTIVATED,
-    EVENT_TRIGGER_DEACTIVATED,
     TRIGGER_COMPLETION_COOLDOWN_SECONDS,
     UNAVAILABLE_STATES,
 )
 from ...helpers.managed_timer import ManagedTimer
-from ...helpers.task_trace import KIND_TRIGGER_CLEARED
-from ...helpers.task_trace import record as record_trace
 from .base_trigger import BaseTrigger
 
 _LOGGER = logging.getLogger(__name__)
@@ -308,6 +305,24 @@ class CompoundTrigger(BaseTrigger):
         """Seen inactive with full information: later activations are edges."""
         if not self._settled and not self._setting_up and not self._triggered and self._all_conditions_reporting():
             self._settled = True
+            self._release_seed()
+
+    def settle(self) -> None:
+        """Settle now if every condition entity reports: a late entity that
+        came back on the normal side changed no condition, so nothing called
+        :meth:`_maybe_settle` (the coordinator asks while it holds a seed)."""
+        self._maybe_settle()
+
+    def _release_seed(self) -> None:
+        """The first refresh after a restart or a reload kept the activation
+        on record (MaintenanceCoordinator._evaluate_trigger_fallback). Seen
+        inactive with every condition reporting, it ended while nothing
+        watched: withdrawn quietly, like a latch the state rule finds
+        recovered at setup (no event, no completion). Class lookup like
+        :meth:`_already_announced`."""
+        check = getattr(type(self._coordinator), "holds_trigger_seed", None)
+        if callable(check) and check(self._coordinator, self._task_id) is True:
+            self.entity.async_update_trigger_state(is_triggered=False)
 
     async def async_teardown(self) -> None:
         """Tear down all sub-triggers."""
@@ -524,27 +539,20 @@ class CompoundTrigger(BaseTrigger):
             trigger_entity_id=None,
         )
         self._request_coordinator_refresh()
-        self.hass.bus.async_fire(
-            EVENT_TRIGGER_DEACTIVATED,
+        # The conditions' sub-triggers leave the announcement to the compound
+        # (they are not the task's trigger): the #53 opt-in did nothing on an
+        # AND/OR trigger (bug audit 2026-10-16, T4), and only the TASK's
+        # recovery counts: an activation the cooldown held back never
+        # latched the task, and its end recorded a second completion for the
+        # one job (bug audit 2026-10-17, T-4). The trace has no single sensor
+        # to name, and no reading.
+        self._announce_task_recovered(
+            task_recovered,
             {
-                "entity_id": self.entity.entity_id,
-                **self._event_ids(),
                 "trigger_type": "compound",
                 "compound_logic": self._compound_logic,
                 "condition_states": list(self._condition_states),
             },
+            trace={},
+            reading=None,
         )
-        # The trace notes the rule letting go of the task (see BaseTrigger);
-        # a compound has no single sensor to name.
-        if task_recovered is not False and (entry_id := self._event_ids()["entry_id"]):
-            record_trace(self.hass, entry_id, self._task_id, KIND_TRIGGER_CLEARED)
-
-        # The opt-in the dialog offers for every trigger kind (#53). The
-        # conditions' sub-triggers leave it to the compound (they are not the
-        # task's trigger), and the compound never ran it: "complete when it
-        # recovers" did nothing on an AND/OR trigger (bug audit 2026-10-16, T4).
-        # Only when the TASK recovered, as BaseTrigger checks: an activation
-        # the cooldown held back never latched the task, and its end recorded
-        # a second completion for the one job (bug audit 2026-10-17, T-4).
-        if self.config.get("auto_complete_on_recovery") and task_recovered is not False:
-            self._track(self._coordinator.async_auto_complete_on_recovery(self._task_id, None), cancel_on_close=False)

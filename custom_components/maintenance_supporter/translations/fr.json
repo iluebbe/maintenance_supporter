@@ -675,6 +675,7 @@
           "notification_bundle_threshold": "Seuil de regroupement",
           "notification_title_style": "Style du titre de notification",
           "notification_title_prefix": "Préfixe du titre de notification",
+          "notification_language": "Langue des notifications",
           "notify_completed": "Notifications d'achèvement",
           "notify_event_only": "Déclencher seulement l'événement, ne rien envoyer moi-même",
           "notify_extra_data": "Données de notification supplémentaires (modèle)",
@@ -694,6 +695,7 @@
           "notification_bundle_threshold": "Nombre minimum de tâches pour déclencher une notification groupée.",
           "notification_title_style": "Ce qui apparaît comme TITRE de la notification. Par défaut, le texte par statut est conservé (p. ex. « Maintenance en retard ! »). Nom de l'objet / tâche aide quand le téléphone empile les notifications.",
           "notification_title_prefix": "Placé devant le titre de chaque notification, quel que soit le style, p. ex. le nom du logement quand le téléphone reçoit des rappels de plusieurs Home Assistant. Vide = aucun préfixe.",
+          "notification_language": "La langue des titres, textes et boutons des notifications. Langue de Home Assistant = comme avant. Le panneau garde la langue de chaque personne.",
           "notify_completed": "Une info pour le foyer quand une tâche est terminée, avec la raison (panneau, scan QR/NFC, liste de tâches, voix, retour du capteur…). « Automatiques seulement » n'annonce que les achèvements que personne n'a faits sur place : retour du capteur, case cochée dans la liste de courses, appel de service d'une automatisation.",
           "notify_event_only": "Chaque notification déclenche l'événement maintenance_supporter_notification. Avec cette option, votre automatisation assure toute la livraison — les intervalles de rappel, les heures calmes et la limite quotidienne décident toujours du moment de l'événement.",
           "notify_extra_data": "JSON ou YAML avec Jinja, fusionné dans les data de chaque appel notify (vos clés l'emportent). Variables : kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
@@ -1892,6 +1894,10 @@
         "via_tag_scan": {
           "name": "Via scan du tag",
           "description": "Atteste que cette réalisation provient du scan d'un tag/QR code physique traité par l'automatisation elle-même — satisfait le réglage « Terminer uniquement en scannant le tag » de la tâche."
+        },
+        "consume_parts": {
+          "name": "Consommer les pièces",
+          "description": "Décompte les pièces liées à la tâche pour cette réalisation, même si la date de réalisation précède la dernière réalisation de la tâche. Une réalisation actuelle les décompte de toute façon, une réalisation saisie après coup seulement avec cette option. Les pièces sont retirées du stock actuel."
         }
       }
     },
@@ -1929,7 +1935,7 @@
       "fields": {
         "format": {
           "name": "Format",
-          "description": "Format de sortie pour les données exportées (json ou yaml)."
+          "description": "Format de sortie : json ou yaml pour l'export complet, history_csv pour l'historique sous forme de tableau avec une ligne par entrée (fichier maintenance_history.csv)."
         },
         "include_history": {
           "name": "Inclure l'historique",
@@ -2351,7 +2357,7 @@
     },
     "shared_parts_moved": {
       "title": "Pièces de rechange partagées déplacées vers {new_owner}",
-      "description": "Plusieurs objets de maintenance partageaient un même stock de pièces de rechange rattaché à **{deleted_object}**, et cet objet vient d'être supprimé. Plutôt que de laisser les autres objets pointer vers un stock qui n'existe plus, Maintenance Supporter a déplacé les pièces partagées ({parts}) — avec leur stock actuel — vers **{new_owner}**, et a redirigé vers elles les liens des tâches de tous les autres objets. Rien n'a été perdu.\n\n**{new_owner}** a été choisi automatiquement : c'est le plus ancien objet qui utilisait ce stock. Si un autre objet convient mieux, déplacez-y les pièces depuis le panneau Maintenance.\n\nIl n'y a rien d'autre à faire — fermez cette notification une fois que vous l'avez vérifiée."
+      "description": "Plusieurs objets de maintenance partageaient un même stock de pièces de rechange rattaché à **{deleted_object}**, et cet objet vient d'être supprimé. Plutôt que de laisser les autres objets pointer vers un stock qui n'existe plus, Maintenance Supporter a déplacé les pièces partagées ({parts}) — avec leur stock actuel — vers **{new_owner}**, et a redirigé vers elles les liens des tâches de tous les autres objets. Rien n'a été perdu.\n\n**{new_owner}** a été choisi automatiquement : c'est le plus ancien objet qui utilisait ce stock.\n\nIl n'y a rien d'autre à faire — fermez cette notification une fois que vous l'avez vérifiée."
     },
     "broken_part_link": {
       "title": "Liens de pièces invalides sur {object_name}",
@@ -2538,6 +2544,9 @@
     "part_owner_archived": {
       "message": "« {object_name} » est archivé. Restaurez-le pour enregistrer un achat."
     },
+    "part_owner_not_loaded": {
+      "message": "{object_name} ne fonctionne pas en ce moment (désactivé ou encore en démarrage), ses pièces de rechange ne peuvent donc pas être enregistrées. Réessayez quand il fonctionnera."
+    },
     "purchase_cost_too_high": {
       "message": "Un achat peut coûter au plus {max} au total."
     },
@@ -2567,6 +2576,9 @@
     },
     "date_in_future": {
       "message": "La date ne doit pas être dans le futur."
+    },
+    "time_based_needs_interval": {
+      "message": "Une tâche temporelle a besoin d'un intervalle."
     },
     "range_end_before_start": {
       "message": "La fin doit être identique ou postérieure au début."

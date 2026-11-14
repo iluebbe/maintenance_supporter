@@ -12,7 +12,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Mapping, Sequence
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -35,10 +35,12 @@ from .const import (
     EVENT_PART_STOCK_LOW,
     EVENT_PART_STOCK_OUT,
     MAX_COST,
+    MAX_INTERVAL_DAYS,
     MAX_TASKS_PER_OBJECT,
 )
 from .helpers.aggregate import object_name as _object_name
 from .helpers.aggregate import store_of, store_or_cached
+from .helpers.completion_requirements import missing_completion_fields
 from .helpers.entry_tasks import ArchivedObjectError
 from .helpers.global_options import global_option
 from .helpers.i18n import normalize_language
@@ -54,6 +56,7 @@ from .helpers.parts import (
     packages_bought,
     reconcile_buy_tasks,
     restock_units,
+    round_qty,
     stock_transition,
     unit_price,
 )
@@ -137,6 +140,33 @@ def _owned(store: Any, part: dict[str, Any], stock: float | None = None) -> floa
     part, #208) — what the low / out / restocked edges compare."""
     pid = part["id"]
     return on_hand(part, store.get_part_stock(pid) if stock is None else stock, store.get_part_restoring(pid))
+
+
+def _receive_order(store: Any, part: Mapping[str, Any], units: float) -> None:
+    """#261: what arrived comes off the part's open order, and the order is
+    closed once all of it is here. A first parcel of two closed the whole
+    order, and the rest was no longer expected."""
+    part_id = part["id"]
+    order = store.get_part_order(part_id)
+    if order is None:
+        return
+    left = round_qty(restock_units(part, order.get("quantity")) - units)
+    if left <= 0:
+        store.set_part_order(part_id, None)
+        return
+    # The order counts packages for a part bought in packages.
+    size = part.get("package_size")
+    store.set_part_order(part_id, {**order, "quantity": round_qty(left / float(size)) if size else left})
+
+
+def _order_expected(store: Any, part_id: str | None) -> date | None:
+    """The delivery day of the part's open order, if it names one."""
+    order = store.get_part_order(part_id) if part_id else None
+    raw = order.get("expected") if order else None
+    try:
+        return date.fromisoformat(raw) if isinstance(raw, str) else None
+    except ValueError:
+        return None
 
 
 def _book_use(store: Any, part: dict[str, Any], qty: float, *, keeps_used: bool = True) -> tuple[float | None, float | None] | None:
@@ -226,6 +256,9 @@ async def async_change_part_stock(
         else:
             target = max(0.0, (old or 0) + float(delta or 0))
         store.set_part_stock(part_id, target)
+        # #261: a restock is a delivery; what arrived is no longer on order.
+        if absolute is None and float(delta or 0) > 0:
+            _receive_order(store, part, float(delta or 0))
         if restoring is not None:
             store.set_part_restoring(part_id, restoring)
         new_owned = _owned(store, part)
@@ -283,6 +316,8 @@ async def async_handle_completion_parts(
         old_owned = _owned(store, part)
         new = max(0, (store.get_part_stock(part["id"]) or 0) + qty)
         store.set_part_stock(part["id"], new)
+        # #261: the completed reminder is the receipt of what was on order.
+        store.set_part_order(part["id"], None)
         _fire_transition(hass, entry, part, new, stock_transition(part, old_owned, _owned(store, part)))
         changed = True
 
@@ -512,6 +547,92 @@ def open_buy_task_id(entry: ConfigEntry, part_id: str) -> str | None:
     )
 
 
+def purchase_refusal(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    part_id: str,
+    *,
+    quantity: float | None = None,
+    unit_price: float | None = None,
+    cost: float | None = None,
+    day: date | None = None,
+    new_reminders: int = 0,
+) -> ServiceValidationError | None:
+    """What :func:`async_part_purchase` refuses a purchase with, before
+    anything is booked, or None: an archived object (unless live objects
+    still draw on its pool, #111), a day in the future, a total above what
+    one completion books, and a new buy reminder for an object that holds
+    the most tasks it may. The ``part_purchase`` service checks every part
+    with it before it books any (DRY audit 2026-10-30, BI6-B3), counting the
+    ``new_reminders`` its earlier parts create on the same object."""
+    part = (entry.data.get(CONF_PARTS) or {}).get(part_id)
+    if part is None or store_of(entry) is None:
+        return None
+    if (entry.data.get(CONF_OBJECT) or {}).get("archived_at") is not None and part_id not in live_parts(hass, entry):
+        return ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="part_owner_archived",
+            translation_placeholders={"object_name": _object_name(entry)},
+        )
+    if day is not None and day > dt_util.now().date():
+        return ServiceValidationError(translation_domain=DOMAIN, translation_key="date_in_future")
+    if cost is None and unit_price is not None:
+        cost = round2(float(unit_price) * packages_bought(part, quantity))
+    if cost is not None and cost > MAX_COST:
+        # Booked anyway, the history editor refused the entry later and an
+        # import dropped its cost (BI6-A6).
+        return ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="purchase_cost_too_high",
+            translation_placeholders={"max": str(MAX_COST)},
+        )
+    if open_buy_task_id(entry, part_id) is None and len(entry.data.get(CONF_TASKS) or {}) + new_reminders >= MAX_TASKS_PER_OBJECT:
+        return ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="task_limit",
+            translation_placeholders={"max": str(MAX_TASKS_PER_OBJECT)},
+        )
+    return None
+
+
+def open_reminder_refusal(
+    entry: ConfigEntry, part_id: str, *, notes: str | None, with_cost: bool, completed_by: str | None
+) -> ServiceValidationError | None:
+    """Why the completion of the part's open buy reminder would be refused
+    from a surface that brings only these answers (a service call; a price
+    is a cost): details it demands (a photo, a note) or a tag scan; None
+    without an open reminder. The rules of ``complete_maintenance`` — a
+    multi-part purchase asks before it books its first part (bug audit
+    2026-11-08, P8-5)."""
+    task_id = open_buy_task_id(entry, part_id)
+    task = (entry.data.get(CONF_TASKS) or {}).get(task_id) if task_id is not None else None
+    if not task:
+        return None
+    name = str(task.get("name", task_id))
+    missing = missing_completion_fields(task, notes=notes, cost=0.0 if with_cost else None, completed_by=completed_by)
+    if missing:
+        return ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="completion_details_required",
+            translation_placeholders={"task_name": name, "fields": ", ".join(missing)},
+        )
+    if task.get("require_tag_scan"):
+        return ServiceValidationError(translation_domain=DOMAIN, translation_key="tag_scan_required", translation_placeholders={"task_name": name})
+    return None
+
+
+def part_counted(entry: ConfigEntry, part_id: str) -> bool:
+    """Whether the part's stock is tracked: what a use counts down."""
+    store = store_of(entry)
+    return store is not None and store.get_part_stock(part_id) is not None
+
+
+def part_reusable(entry: ConfigEntry, part_id: str) -> bool:
+    """A tracked reusable part (#208): what ready-again and dispose move."""
+    part = (entry.data.get(CONF_PARTS) or {}).get(part_id)
+    return part is not None and bool(part.get("reuse")) and part_counted(entry, part_id)
+
+
 async def async_part_purchase(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -553,26 +674,13 @@ async def async_part_purchase(
     store = store_of(entry)
     if part is None or store is None:
         return None
+    refusal = purchase_refusal(hass, entry, part_id, quantity=quantity, unit_price=unit_price, cost=cost, day=day)
+    if refusal is not None:
+        raise refusal
     obj = entry.data.get(CONF_OBJECT) or {}
-    if obj.get("archived_at") is not None and part_id not in live_parts(hass, entry):
-        raise ServiceValidationError(
-            translation_domain=DOMAIN,
-            translation_key="part_owner_archived",
-            translation_placeholders={"object_name": _object_name(entry)},
-        )
-    if day is not None and day > dt_util.now().date():
-        raise ServiceValidationError(translation_domain=DOMAIN, translation_key="date_in_future")
     packages = packages_bought(part, quantity)
     if cost is None and unit_price is not None:
         cost = round2(float(unit_price) * packages)
-    if cost is not None and cost > MAX_COST:
-        # Booked anyway, the history editor refused the entry later and an
-        # import dropped its cost (BI6-A6).
-        raise ServiceValidationError(
-            translation_domain=DOMAIN,
-            translation_key="purchase_cost_too_high",
-            translation_placeholders={"max": str(MAX_COST)},
-        )
     completed_at: datetime | None = None
     if day is not None and day != dt_util.now().date():
         # Noon of that day: far from a midnight a time zone could tip over.
@@ -634,6 +742,90 @@ async def async_part_purchase(
     return {"task_id": task_id, "stock": after.get_part_stock(part_id) or 0, "cost": cost}
 
 
+async def async_part_order(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    part_id: str,
+    *,
+    quantity: float | None = None,
+    expected: date | None = None,
+    note: str | None = None,
+) -> dict[str, Any] | None:
+    """A part was ordered and is not here yet (#261).
+
+    Buying online is two moments: placing the order (the to-do is done) and
+    the delivery days later (the stock changes). The order is recorded on the
+    part; its buy reminder, the open one or a new one, waits for the
+    delivery: with an ``expected`` day ahead it is postponed to that day and
+    so off today's list. Completing the reminder (or the Bought action, or a
+    restock) is the receipt: it books the stock and closes the order.
+
+    ``quantity`` counts packages for a part bought in packages, like a
+    purchase; the part's restock amount when left out. None for an unknown part.
+    """
+    part = (entry.data.get(CONF_PARTS) or {}).get(part_id)
+    store = store_of(entry)
+    if part is None or store is None:
+        return None
+    # Refused before anything is written: the reminder cannot wait longer
+    # than a task may be postponed, and an order stored ahead of that
+    # refusal showed as placed next to the error.
+    today = dt_util.now().date()
+    if expected is not None and expected > today + timedelta(days=MAX_INTERVAL_DAYS):
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="postpone_too_far",
+            translation_placeholders={"days": str(MAX_INTERVAL_DAYS)},
+        )
+    order: dict[str, Any] = {
+        "quantity": packages_bought(part, quantity),
+        "expected": expected.isoformat() if expected is not None else None,
+        "ordered_at": dt_util.now().isoformat(),
+        "note": (note or "").strip() or None,
+    }
+    store.set_part_order(part_id, order)
+    await store.async_save()
+
+    # The reminder the order waits on: the reconcile keeps or creates it
+    # (and reloads the entry when it creates one).
+    await async_reconcile_buy_tasks(hass, entry)
+    current = hass.config_entries.async_get_entry(entry.entry_id) or entry
+    task_id = open_buy_task_id(current, part_id)
+    coordinator = getattr(getattr(current, "runtime_data", None), "coordinator", None)
+    if task_id is not None and coordinator is not None and expected is not None and expected > today:
+        try:
+            await coordinator.async_postpone_task(task_id, expected)
+        except ServiceValidationError as err:
+            # The order stands; a reminder that may not be postponed (its
+            # object is paused) stays where it is.
+            _LOGGER.debug("Order of %s recorded, its reminder not postponed: %s", part.get("name"), err)
+    _signal_parts_updated(hass, current)
+    return {"on_order": order, "task_id": task_id}
+
+
+async def async_part_order_cancel(hass: HomeAssistant, entry: ConfigEntry, part_id: str) -> bool:
+    """The order fell through (#261): the part is no longer on order, its
+    reminder is due again if the part is low and goes if it is not. False
+    when the part had no open order."""
+    store = store_of(entry)
+    order = store.get_part_order(part_id) if store is not None else None
+    if store is None or order is None:
+        return False
+    store.set_part_order(part_id, None)
+    task_id = open_buy_task_id(entry, part_id)
+    # The wait for the delivery is over: the reminder is due again. Only
+    # the wait the order set: a day the user postponed it to stays.
+    if task_id is not None and order.get("expected") and store.get_task_state(task_id).get("due_override") == order["expected"]:
+        store.update_task_state(task_id, due_override=None)
+    await store.async_save()
+    if not await async_reconcile_buy_tasks(hass, entry):
+        coordinator = getattr(getattr(entry, "runtime_data", None), "coordinator", None)
+        if coordinator is not None:
+            await coordinator.async_refresh_now()
+    _signal_parts_updated(hass, hass.config_entries.async_get_entry(entry.entry_id) or entry)
+    return True
+
+
 async def async_part_ready_again(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -644,13 +836,10 @@ async def async_part_ready_again(
     cells are charged, the blades sharpened. ``quantity`` defaults to every
     waiting one and is capped at them. None for an unknown, untracked or
     not reusable part. What is owned does not change, so no edge fires."""
-    part = (entry.data.get(CONF_PARTS) or {}).get(part_id)
     store = store_of(entry)
-    if part is None or store is None or not part.get("reuse"):
+    if store is None or not part_reusable(entry, part_id):
         return None
-    stock = store.get_part_stock(part_id)
-    if stock is None:
-        return None
+    stock = store.get_part_stock(part_id) or 0
     waiting = store.get_part_restoring(part_id)
     moved = waiting if quantity is None else min(waiting, max(0.0, float(quantity)))
     store.set_part_restoring(part_id, waiting - moved)
@@ -671,9 +860,8 @@ async def async_part_dispose(
     going back to the stock, so what is owned shrinks and the reorder
     threshold sees it. ``quantity`` defaults to one and is capped at the
     waiting ones. None for an unknown, untracked or not reusable part."""
-    part = (entry.data.get(CONF_PARTS) or {}).get(part_id)
     store = store_of(entry)
-    if part is None or store is None or not part.get("reuse") or store.get_part_stock(part_id) is None:
+    if store is None or not part_reusable(entry, part_id):
         return None
     waiting = store.get_part_restoring(part_id)
     gone = min(waiting, max(0.0, 1.0 if quantity is None else float(quantity)))
@@ -776,6 +964,7 @@ async def _reconcile_buy_tasks_locked(hass: HomeAssistant, entry: ConfigEntry) -
         today=dt_util.now().date(),
         decimals=int(global_option(hass, CONF_CURRENCY_DECIMALS)),
         is_task_done=lambda td: store.get_last_performed(td["id"]) is not None,
+        on_order={pid for pid in parts if store.get_part_order(pid) is not None},
     )
     # The buy tasks that stay live although their owner is paused: every one
     # left on an inert owner is for a pool in use (``parts`` was narrowed to
@@ -838,8 +1027,14 @@ async def _reconcile_buy_tasks_locked(hass: HomeAssistant, entry: ConfigEntry) -
     new_data[CONF_OBJECT] = obj
     hass.config_entries.async_update_entry(current, data=new_data)
 
+    today = dt_util.now().date()
     for tid in created:
         store.init_task(tid)
+        # #261: a reminder made for a part on order waits for the delivery,
+        # also the one a moved part gets on its new object.
+        expected = _order_expected(store, buy_task_part_id(new_tasks[tid]))
+        if expected is not None and expected > today:
+            store.update_task_state(tid, due_override=expected.isoformat())
     await store.async_save()
 
     _LOGGER.debug(

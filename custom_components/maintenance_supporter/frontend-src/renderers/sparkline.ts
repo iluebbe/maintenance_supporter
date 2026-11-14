@@ -12,16 +12,17 @@
  */
 
 import { html, nothing, svg } from "lit";
-import { t, fireMoreInfo, formatDueDays } from "../styles";
+import { t, fireMoreInfo, formatDueDays, formatHold, formatNumber, withUnit } from "../styles";
 import { fmtNum, fmtVal, px } from "./chart-utils";
 import { dueDaysOf } from "./progress";
 import { stampMs } from "../helpers/ha-time";
-import { primaryTriggerEntity, ruleSensors, triggerEntityIds, triggerUnit, type RuleSensor } from "../helpers/trigger-entities";
+import { compoundLogic, primaryTriggerEntity, ruleSensors, triggerEntityIds, triggerUnit, type RuleSensor } from "../helpers/trigger-entities";
 import { betaUi } from "../helpers/beta-ui";
 import { conditionText } from "../helpers/task-rules";
 import "../components/trigger-chart";
 import type { ChartPoint, ChartEvent } from "../components/trigger-chart";
 import type { HomeAssistant, MaintenanceTask, TriggerConfig, StatisticsPoint } from "../types";
+import { onActivationKey } from "../helpers/keyboard";
 
 export interface SparklineContext {
   lang: string;
@@ -204,11 +205,11 @@ export function renderTriggerSection(task: MaintenanceTask, ctx: SparklineContex
 
       <div class="trigger-limits">
         ${triggerType === "threshold" ? html`
-          ${tc.trigger_above != null ? html`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${t("threshold_above", L)}: ${tc.trigger_above} ${unit}</span>` : nothing}
-          ${tc.trigger_below != null ? html`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${t("threshold_below", L)}: ${tc.trigger_below} ${unit}</span>` : nothing}
-          ${tc.trigger_equals != null ? html`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> = ${tc.trigger_equals} ${unit}</span>` : nothing}
-          ${tc.trigger_not_equals != null ? html`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ≠ ${tc.trigger_not_equals} ${unit}</span>` : nothing}
-          ${tc.trigger_for_minutes ? html`<span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${t("for_minutes", L)}: ${tc.trigger_for_minutes}</span>` : nothing}
+          ${tc.trigger_above != null ? html`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${t("threshold_above", L)}: ${withUnit(formatNumber(tc.trigger_above, L), unit, L)}</span>` : nothing}
+          ${tc.trigger_below != null ? html`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${t("threshold_below", L)}: ${withUnit(formatNumber(tc.trigger_below, L), unit, L)}</span>` : nothing}
+          ${tc.trigger_equals != null ? html`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> = ${withUnit(formatNumber(tc.trigger_equals, L), unit, L)}</span>` : nothing}
+          ${tc.trigger_not_equals != null ? html`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ≠ ${withUnit(formatNumber(tc.trigger_not_equals, L), unit, L)}</span>` : nothing}
+          ${tc.trigger_for_minutes ? html`<span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${t("beta_rules_for", L).replace("{duration}", formatHold(tc.trigger_for_minutes, L))}</span>` : nothing}
         ` : nothing}
         ${triggerType === "state_change" ? html`
           ${tc.trigger_target_changes != null ? html`<span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${t("target_changes", L)}: ${tc.trigger_target_changes}</span>` : nothing}
@@ -220,7 +221,7 @@ export function renderTriggerSection(task: MaintenanceTask, ctx: SparklineContex
           <span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${t("days_before", L)}: ${tc.trigger_days_before ?? 0}</span>
         ` : nothing}
         ${triggerType === "compound" ? html`
-          <span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${t("compound_logic", L)}: ${tc.compound_logic || (tc as any).operator || "AND"}</span>
+          <span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${t("compound_logic", L)}: ${compoundLogic(tc)}</span>
           ${(tc.conditions || []).map((cond: any, i: number) => html`
             <span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${i + 1}. ${t(cond.type === "due_date" ? "trigger_type_due_date" : cond.type || "unknown", L)}: ${triggerEntityIds(cond).map((eid, j) => html`${j > 0 ? ", " : ""}<span class="entity-link" @click=${(ev: Event) => fireMoreInfo(ev, eid)}>${eid}</span>`)}</span>
           `)}
@@ -319,14 +320,14 @@ function renderSensorRow(s: RuleSensor, ctx: SparklineContext, task: Maintenance
     if (s.cond.attribute) {
       state = h?.formatEntityAttributeValue?.(so, s.cond.attribute) ?? String(so.attributes?.[s.cond.attribute] ?? "—");
     } else {
-      state = h?.formatEntityState?.(so) ?? `${so.state}${unit ? ` ${unit}` : ""}`;
+      state = h?.formatEntityState?.(so) ?? withUnit(so.state, unit, L);
     }
   }
   const open = (ev: Event) => fireMoreInfo(ev, s.entityId);
   return html`
     <div class="sensor-row" role="button" tabindex="0" data-entity=${s.entityId} title=${name}
       @click=${open}
-      @keydown=${(ev: KeyboardEvent) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); open(ev); } }}>
+      @keydown=${onActivationKey(open)}>
       ${so && customElements.get("state-badge")
         ? html`<state-badge class="sensor-badge" .hass=${hass} .stateObj=${so} stateColor></state-badge>`
         : html`<ha-icon class="sensor-badge" icon=${(so?.attributes?.icon as string | undefined) || "mdi:eye"}></ha-icon>`}
@@ -353,7 +354,7 @@ function renderSensorRule(task: MaintenanceTask, ctx: SparklineContext) {
   const unit = triggerUnit(ctx.hass, task);
   const spec = progressSpec(task, unit, ctx);
   const many = tc.type === "compound" ? (tc.conditions || []).length : ids.length;
-  const all = tc.type === "compound" ? (tc.compound_logic || "AND") === "AND" : tc.entity_logic === "all";
+  const all = tc.type === "compound" ? compoundLogic(tc) === "AND" : tc.entity_logic === "all";
   const subtitle = many > 1 ? t(all ? "beta_rules_all_of" : "beta_rules_any_of", L).split("{n}").join(String(many)) : "";
   return html`
     <div class="trigger-card sensor-rule">

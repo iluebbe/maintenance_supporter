@@ -675,6 +675,7 @@
           "notification_bundle_threshold": "合并阈值",
           "notification_title_style": "通知标题样式",
           "notification_title_prefix": "通知标题前缀",
+          "notification_language": "通知语言",
           "notify_completed": "完成通知",
           "notify_event_only": "仅触发事件，自己不发送",
           "notify_extra_data": "额外通知数据（模板）",
@@ -694,6 +695,7 @@
           "notification_bundle_threshold": "触发合并通知所需的最少任务数量。",
           "notification_title_style": "通知的标题显示内容。默认保持状态文本（如：‘维护已超期！’）。当手机通知堆叠时，‘维护项名称 / 任务名称’ 更有帮助。",
           "notification_title_prefix": "加在每条通知标题的前面，适用于所有标题样式，例如当手机收到多个 Home Assistant 的提醒时填写住所名称。留空 = 不加前缀。",
+          "notification_language": "通知标题、正文和按钮的语言。Home Assistant 的语言 = 与以前相同。面板仍使用每个人自己的语言。",
           "notify_completed": "任务完成时通知家庭成员，并附上原因（面板、二维码/NFC 扫描、待办清单、语音、传感器恢复等）。“仅自动”只通报无人现场操作的完成：传感器恢复、购物清单勾选、自动化的服务调用。",
           "notify_event_only": "每条通知都会触发事件 maintenance_supporter_notification。开启后由你的自动化负责全部投递——重复间隔、静默时段和每日上限仍决定事件何时触发。",
           "notify_extra_data": "含 Jinja 的 JSON 或 YAML，合并到每次 notify 调用的 data 中（你的键优先）。变量：kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message。",
@@ -1892,6 +1894,10 @@
         "via_tag_scan": {
           "name": "通过标签扫描",
           "description": "声明此次完成来自自动化自行处理的实体标签/二维码扫描 — 满足任务的“仅可通过扫描标签完成”设置。"
+        },
+        "consume_parts": {
+          "name": "消耗备件",
+          "description": "即使完成时间早于该任务最近一次完成，也为本次完成记录任务关联的备件。当前的完成始终会记录，补录的完成只有开启此项才会记录。备件从今天的库存中扣除。"
         }
       }
     },
@@ -1929,7 +1935,7 @@
       "fields": {
         "format": {
           "name": "格式",
-          "description": "导出数据的输出格式 (json 或 yaml)。"
+          "description": "输出格式：json 或 yaml 用于完整导出，history_csv 将历史记录导出为表格，每条记录一行（文件 maintenance_history.csv）。"
         },
         "include_history": {
           "name": "包含历史记录",
@@ -2351,7 +2357,7 @@
     },
     "shared_parts_moved": {
       "title": "共用备件已移至 {new_owner}",
-      "description": "多个维护对象共用同一份备件库存，该库存原本挂在 **{deleted_object}** 上，而该对象刚刚被删除。为避免其他对象指向一份已不存在的库存，Maintenance Supporter 已将共用备件（{parts}）连同当前库存一起移到 **{new_owner}** 上，并把其他所有对象的任务关联重新指向它们。没有任何数据丢失。\n\n**{new_owner}** 是自动选定的：它是使用该库存的最早的对象。如果另一个对象更合适，请在维护面板中把备件移到那里。\n\n无需其他操作——确认后关闭此通知即可。"
+      "description": "多个维护对象共用同一份备件库存，该库存原本挂在 **{deleted_object}** 上，而该对象刚刚被删除。为避免其他对象指向一份已不存在的库存，Maintenance Supporter 已将共用备件（{parts}）连同当前库存一起移到 **{new_owner}** 上，并把其他所有对象的任务关联重新指向它们。没有任何数据丢失。\n\n**{new_owner}** 是自动选定的：它是使用该库存的最早的对象。\n\n无需其他操作——确认后关闭此通知即可。"
     },
     "broken_part_link": {
       "title": "{object_name} 上的备件关联已失效",
@@ -2538,6 +2544,9 @@
     "part_owner_archived": {
       "message": "“{object_name}”已归档。请先恢复，才能记录购买。"
     },
+    "part_owner_not_loaded": {
+      "message": "{object_name} 当前未运行（已停用或仍在启动），因此无法记录其备件。请在其运行后重试。"
+    },
     "purchase_cost_too_high": {
       "message": "一次购买的总额最多为 {max}。"
     },
@@ -2567,6 +2576,9 @@
     },
     "date_in_future": {
       "message": "日期不能是将来的时间。"
+    },
+    "time_based_needs_interval": {
+      "message": "基于时间的任务需要一个间隔。"
     },
     "range_end_before_start": {
       "message": "结束时间不能早于开始时间。"

@@ -84,6 +84,21 @@ describe("task-dialog live trigger hint", () => {
     expect(text).to.include("anything but 0 d");
   });
 
+  it("writes a percentage the way Home Assistant does (DRY audit 2026-11-07, FE7-B4)", async () => {
+    const tank = { "sensor.tank": { state: "58", attributes: { unit_of_measurement: "%" } } };
+    for (const [lang, now, limit] of [["en", "58%", "60%"], ["de", "58 %", "60 %"]]) {
+      const el = await mountCreate(tank, lang);
+      (el as any)._triggerEntityId = "sensor.tank";
+      (el as any)._triggerEntityIds = ["sensor.tank"];
+      (el as any)._triggerType = "threshold";
+      (el as any)._triggerBelow = "60";
+      await el.updateComplete;
+      const text = hint(el)!;
+      expect(text, lang).to.include(now);
+      expect(text, lang).to.include(limit);
+    }
+  });
+
   it("formats the figures in the user's number format (bug review 2026-09-04)", async () => {
     // Decimal comma + thousands separators for a de user — like the entity
     // card next to the dialog; the hint used raw String(n).

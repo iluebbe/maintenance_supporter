@@ -675,6 +675,7 @@
           "notification_bundle_threshold": "묶음 기준 수",
           "notification_title_style": "알림 제목 스타일",
           "notification_title_prefix": "알림 제목 접두사",
+          "notification_language": "알림 언어",
           "notify_completed": "완료 알림",
           "notify_event_only": "이벤트만 발생시키고 직접 보내지 않음",
           "notify_extra_data": "추가 알림 데이터(템플릿)",
@@ -694,6 +695,7 @@
           "notification_bundle_threshold": "묶음 알림을 보내기 위한 최소 작업 수입니다.",
           "notification_title_style": "알림의 제목으로 표시할 내용입니다. 기본값은 상태별 문구(예: '유지보수 기한 초과!')를 유지합니다. 휴대폰에 알림이 쌓일 때는 대상 이름/작업 이름이 도움이 됩니다.",
           "notification_title_prefix": "모든 제목 스타일에서 각 알림 제목 앞에 붙습니다. 예를 들어 휴대폰이 여러 Home Assistant에서 알림을 받을 때 집 이름을 넣으세요. 비우면 접두사 없음.",
+          "notification_language": "알림 제목, 내용, 버튼의 언어입니다. Home Assistant 언어 = 기존과 동일. 패널은 각 사용자의 언어를 유지합니다.",
           "notify_completed": "작업이 완료되면 사유와 함께 가족에게 알립니다(패널, QR/NFC 스캔, 할 일 목록, 음성, 센서 복구 등). \"자동만\"은 현장에서 아무도 하지 않은 완료만 알립니다: 센서 복구, 쇼핑 목록 체크, 자동화의 서비스 호출.",
           "notify_event_only": "모든 알림은 maintenance_supporter_notification 이벤트를 발생시킵니다. 켜면 전달 전체를 자동화가 담당합니다. 반복 간격, 무음 시간, 일일 한도는 여전히 이벤트 발생 시점을 결정합니다.",
           "notify_extra_data": "Jinja가 포함된 JSON 또는 YAML로, 모든 notify 호출의 data에 병합됩니다(사용자 키가 우선). 변수: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
@@ -1892,6 +1894,10 @@
         "via_tag_scan": {
           "name": "태그 스캔으로",
           "description": "이 완료가 자동화가 직접 처리한 실물 태그/QR 스캔에서 비롯되었음을 확인합니다 — 작업의 “태그 스캔으로만 완료 가능” 설정을 충족합니다."
+        },
+        "consume_parts": {
+          "name": "부품 소모",
+          "description": "완료 시각이 작업의 최근 완료보다 이전이어도 이 완료에 대해 작업에 연결된 부품을 기록합니다. 현재 완료는 항상 기록하고, 소급 입력한 완료는 이 스위치를 켠 경우에만 기록합니다. 부품은 오늘 재고에서 차감됩니다."
         }
       }
     },
@@ -1929,7 +1935,7 @@
       "fields": {
         "format": {
           "name": "형식",
-          "description": "내보낼 데이터의 출력 형식입니다(json 또는 yaml)."
+          "description": "출력 형식: 전체 내보내기는 json 또는 yaml, 기록을 항목당 한 행의 표로 내보내려면 history_csv (파일 maintenance_history.csv)."
         },
         "include_history": {
           "name": "이력 포함",
@@ -2351,7 +2357,7 @@
     },
     "shared_parts_moved": {
       "title": "공유 예비 부품을 {new_owner}(으)로 옮겼습니다",
-      "description": "여러 유지보수 객체가 **{deleted_object}**에 있던 하나의 예비 부품 재고를 함께 사용하고 있었는데, 그 객체가 방금 삭제되었습니다. 나머지 객체가 더 이상 없는 재고를 가리키지 않도록 Maintenance Supporter가 공유 부품({parts})을 현재 재고와 함께 **{new_owner}**(으)로 옮기고, 다른 모든 객체의 작업 연결도 그쪽으로 바꿨습니다. 손실된 것은 없습니다.\n\n**{new_owner}**는 자동으로 선택되었습니다. 해당 재고를 사용하던 객체 중 가장 오래된 것입니다. 다른 객체가 더 적합하다면 유지보수 패널에서 부품을 그쪽으로 옮기세요.\n\n더 할 일은 없습니다 — 확인한 뒤 이 알림을 닫으세요."
+      "description": "여러 유지보수 객체가 **{deleted_object}**에 있던 하나의 예비 부품 재고를 함께 사용하고 있었는데, 그 객체가 방금 삭제되었습니다. 나머지 객체가 더 이상 없는 재고를 가리키지 않도록 Maintenance Supporter가 공유 부품({parts})을 현재 재고와 함께 **{new_owner}**(으)로 옮기고, 다른 모든 객체의 작업 연결도 그쪽으로 바꿨습니다. 손실된 것은 없습니다.\n\n**{new_owner}**는 자동으로 선택되었습니다. 해당 재고를 사용하던 객체 중 가장 오래된 것입니다.\n\n더 할 일은 없습니다 — 확인한 뒤 이 알림을 닫으세요."
     },
     "broken_part_link": {
       "title": "{object_name}의 부품 연결이 끊어졌습니다",
@@ -2538,6 +2544,9 @@
     "part_owner_archived": {
       "message": "“{object_name}”이(가) 보관되었습니다. 구매를 기록하려면 복원하세요."
     },
+    "part_owner_not_loaded": {
+      "message": "{object_name}이(가) 지금 실행 중이 아닙니다(비활성화되었거나 아직 시작 중). 그래서 예비 부품을 기록할 수 없습니다. 실행된 후 다시 시도하세요."
+    },
     "purchase_cost_too_high": {
       "message": "한 번 구매의 합계는 최대 {max}입니다."
     },
@@ -2567,6 +2576,9 @@
     },
     "date_in_future": {
       "message": "날짜는 미래일 수 없습니다."
+    },
+    "time_based_needs_interval": {
+      "message": "시간 기반 작업에는 간격이 필요합니다."
     },
     "range_end_before_start": {
       "message": "종료는 시작과 같거나 그 이후여야 합니다."

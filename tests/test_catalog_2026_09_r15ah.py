@@ -816,6 +816,7 @@ def test_round15ah_entries_cite_their_sources() -> None:
     new = ("homewhiz", "connectlife", "wellbeing", "roomba_rest980", "roomba_plus", "viomise", "petsafe", "philips_sonicare_ble")
     for domain in new:
         catalog = SIGNATURES[domain]
-        assert catalog.verified.startswith("2026-09-27") and catalog.source, domain
+        # Verified in round 15, or later by a re-dive (connectlife, wellbeing, #257).
+        assert catalog.verified[:10] >= "2026-09-27" and catalog.source, domain
     for domain in ("dreame_vacuum", "robovac_mqtt", "ilife", "petkit", "petlibro", "homeconnect_ws", "candy", "philips_shaver", "anycubic_cloud"):
         assert any(s.resets for s in SIGNATURES[domain].tasks), domain

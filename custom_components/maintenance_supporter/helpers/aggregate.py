@@ -83,6 +83,13 @@ def object_name(entry: ConfigEntry) -> str:
     return name_or_title(entry.data.get(CONF_OBJECT), entry.title)
 
 
+def part_stock_unique_id(obj_data: Mapping[str, Any], part_id: str) -> str:
+    """The unique id of a part's stock sensor on its object. The sensor
+    sets it, and a part that moves takes its sensor along under the new
+    object's id (#262)."""
+    return f"maintenance_supporter_{object_slug(obj_data)}_part_{part_id}"
+
+
 def object_slug(obj_data: Mapping[str, Any]) -> str:
     """The object slug every per-task entity's unique_id is built from.
 
@@ -143,15 +150,22 @@ def get_object_entries(hass: HomeAssistant, entry_ids: set[str] | None = None) -
 
 
 def check_nfc_tag_duplicate(hass: HomeAssistant, nfc_tag_id: str, exclude_task_id: str | None = None) -> str | None:
-    """Check if an NFC tag ID is already in use by another task.
+    """Check if an NFC tag ID is already in use by another ACTIVE task.
 
-    Returns a warning message if duplicate, or None.
+    Returns a warning message if duplicate, or None. An archived, disabled or
+    paused task keeps its tag and hands it over: a scan completes the active
+    one (listeners._handle_tag_scanned), so a sticker that stays on the
+    appliance can move on to the new task. The panel warns and the options
+    flow refused either way (DRY audit 2026-10-30, BI6-B11).
     """
+    from .pause import is_task_inert
+
     for entry in get_object_entries(hass):
         tasks = entry.data.get(CONF_TASKS, {})
+        obj = entry.data.get(CONF_OBJECT) or {}
         obj_name = object_name(entry)
         for tid, tdata in tasks.items():
-            if tid == exclude_task_id:
+            if tid == exclude_task_id or is_task_inert(tdata, obj):
                 continue
             if tdata.get("nfc_tag_id") == nfc_tag_id:
                 return f"NFC tag '{nfc_tag_id}' is already linked to task '{tdata.get('name', tid)}' on object '{obj_name}'"

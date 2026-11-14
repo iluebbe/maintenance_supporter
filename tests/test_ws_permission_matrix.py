@@ -48,6 +48,7 @@ from .conftest import build_global_entry_data, setup_integration
 _EXPECTED_TIERS: dict[str, str] = {
     # ── admin (global config / bulk IO / vacation) ──
     "maintenance_supporter/csv/export": "admin",
+    "maintenance_supporter/csv/history": "admin",
     "maintenance_supporter/csv/import": "admin",
     "maintenance_supporter/export": "admin",
     "maintenance_supporter/global/test_notification": "admin",
@@ -82,6 +83,7 @@ _EXPECTED_TIERS: dict[str, str] = {
     "maintenance_supporter/object/archive": "write",
     "maintenance_supporter/object/create": "write",
     "maintenance_supporter/object/delete": "write",
+    "maintenance_supporter/object/delete_preview": "read",
     "maintenance_supporter/object/duplicate": "write",
     "maintenance_supporter/object/from_template": "write",
     "maintenance_supporter/object/pause": "write",
@@ -92,6 +94,9 @@ _EXPECTED_TIERS: dict[str, str] = {
     "maintenance_supporter/parts/overview": "read",
     "maintenance_supporter/part/create": "write",
     "maintenance_supporter/part/delete": "write",
+    "maintenance_supporter/part/move": "write",
+    "maintenance_supporter/part/order": "write",
+    "maintenance_supporter/part/order_cancel": "write",
     "maintenance_supporter/part/restock": "write",
     "maintenance_supporter/part/use": "write",
     "maintenance_supporter/part/purchase": "write",

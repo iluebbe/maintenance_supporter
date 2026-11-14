@@ -1,0 +1,13 @@
+{
+  "_comment": "The style task rows show, from the hub's stored options. Read by tests/test_row_action_style.py (helpers/settings_registry.shown_row_action_style, the options flow) and row-actions-beta-default.test.ts (helpers/settings-cache effectiveRowActionStyle, the panel).",
+  "vectors": [
+    { "note": "nobody chose, new look on by default: icons", "options": {}, "expected": "icons" },
+    { "note": "nobody chose, classic look: the default", "options": { "advanced_beta_editor_visible": false }, "expected": "buttons_compact" },
+    { "note": "nobody chose, new look switched on: icons", "options": { "advanced_beta_editor_visible": true }, "expected": "icons" },
+    { "note": "the default chosen on purpose stays", "options": { "row_action_style": "buttons_compact" }, "expected": "buttons_compact" },
+    { "note": "buttons chosen, new look", "options": { "row_action_style": "buttons", "advanced_beta_editor_visible": true }, "expected": "buttons" },
+    { "note": "buttons chosen, classic look", "options": { "row_action_style": "buttons", "advanced_beta_editor_visible": false }, "expected": "buttons" },
+    { "note": "icons chosen, classic look", "options": { "row_action_style": "icons", "advanced_beta_editor_visible": false }, "expected": "icons" },
+    { "note": "an unknown stored style reads as the default", "options": { "row_action_style": "neon", "advanced_beta_editor_visible": true }, "expected": "buttons_compact" }
+  ]
+}

@@ -13,12 +13,14 @@ from typing import Any
 from homeassistant.core import HomeAssistant, valid_entity_id
 
 from ..const import (
+    CONF_TRIGGER_HOLD_UNTIL_DONE,
     TRIGGER_FIELD_RANGES,
     TRIGGER_RUNTIME_HOURS_MAX,
     UNAVAILABLE_STATES,
     TriggerType,
 )
 from ..entity.triggers import normalize_entity_ids
+from ..helpers.completes_itself import holds_until_done
 from ..helpers.trigger_fallback import threshold_limits_overlap
 
 # ---------------------------------------------------------------------------
@@ -62,7 +64,7 @@ _TRIGGER_ALLOWED_KEYS: set[str] = {
     "trigger_to_state",
     "trigger_target_changes",
     # D#229: the single-shot latch stays triggered until the task is done
-    "trigger_hold_until_done",
+    CONF_TRIGGER_HOLD_UNTIL_DONE,
     # due_date
     "trigger_days_before",
     # compound
@@ -206,20 +208,17 @@ def _normalize_hold_until_done(trigger_type: str, trigger_config: dict[str, Any]
 
     It acts on the triggers that recover by themselves: a single-shot state
     change (one transition, with a from- or to-state), a threshold and a date
-    from a sensor (the follow-up); on a counter or a runtime, which only a
-    completion resets, the engine ignores it, kept like the other
-    type-specific keys. A held trigger never recovers, so there it cannot
-    also auto-complete on recovery."""
-    if not trigger_config.get("trigger_hold_until_done"):
-        trigger_config.pop("trigger_hold_until_done", None)
+    from a sensor (the follow-up). On a counter or a runtime, which only a
+    completion resets, it is not stored, as the options flow does
+    (``holds_until_done``). A held trigger never recovers, so it cannot also
+    auto-complete on recovery: refused here, where the dialog shows both
+    choices (the options flow, which has no hold field, lets the newer tick
+    win)."""
+    if not holds_until_done({**trigger_config, "type": trigger_type}):
+        trigger_config.pop(CONF_TRIGGER_HOLD_UNTIL_DONE, None)
         return
-    trigger_config["trigger_hold_until_done"] = True
-    holds = trigger_type in ("threshold", "due_date") or (
-        trigger_type == "state_change"
-        and trigger_config.get("trigger_target_changes", 1) == 1
-        and bool(trigger_config.get("trigger_from_state") or trigger_config.get("trigger_to_state"))
-    )
-    if holds and trigger_config.get("auto_complete_on_recovery"):
+    trigger_config[CONF_TRIGGER_HOLD_UNTIL_DONE] = True
+    if trigger_config.get("auto_complete_on_recovery"):
         errors.append(
             "trigger_config.trigger_hold_until_done and auto_complete_on_recovery exclude each other: "
             "a trigger held until the task is done never recovers by itself"
@@ -386,7 +385,7 @@ def _validate_compound_trigger(
     warnings: list[str] = []
 
     _validate_combinator(trigger_config, errors)
-    trigger_config.pop("trigger_hold_until_done", None)
+    trigger_config.pop(CONF_TRIGGER_HOLD_UNTIL_DONE, None)
 
     # null / a non-string read as AND by the trigger, but ``.upper()`` on it
     # here answered unknown_error (bug audit 2026-10-16, W small).
@@ -411,7 +410,7 @@ def _validate_compound_trigger(
         # D#229: holding is offered for a plain trigger only — the panel's
         # condition editor has no field for it and would drop it on the next
         # edit, so a condition never stores it (nor the compound, above).
-        condition.pop("trigger_hold_until_done", None)
+        condition.pop(CONF_TRIGGER_HOLD_UNTIL_DONE, None)
         # Validate each condition as a regular trigger
         cond_errors, cond_warnings = _validate_trigger_config(hass, condition)
         for err in cond_errors:

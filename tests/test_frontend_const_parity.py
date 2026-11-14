@@ -673,6 +673,7 @@ def test_ts_field_ranges_match_backend() -> None:
     tuple to the Python source it mirrors."""
     from custom_components.maintenance_supporter.const import (
         ADAPTIVE_EWA_ALPHA_RANGE,
+        COMPLETE_WHEN_FOR_MINUTES_RANGE,
         SCHEDULE_OFFSET_MAX_DAYS,
         TRIGGER_FIELD_RANGES,
     )
@@ -683,6 +684,7 @@ def test_ts_field_ranges_match_backend() -> None:
 
     src = _SETTING_RANGES_TS.read_text(encoding="utf-8")
     assert _ts_range(src, "TRIGGER_FOR_MINUTES_RANGE") == TRIGGER_FIELD_RANGES["trigger_for_minutes"]
+    assert _ts_range(src, "COMPLETE_WHEN_FOR_MINUTES_RANGE") == COMPLETE_WHEN_FOR_MINUTES_RANGE
     assert _ts_range(src, "TRIGGER_TARGET_CHANGES_RANGE") == TRIGGER_FIELD_RANGES["trigger_target_changes"]
     assert _ts_range(src, "TRIGGER_DAYS_BEFORE_RANGE") == TRIGGER_FIELD_RANGES["trigger_days_before"]
     m = re.search(r"export const SCHEDULE_OFFSET_MAX_DAYS = (\d+);", src)
@@ -759,3 +761,304 @@ def test_ts_mirror_list_cap_matches_backend() -> None:
     path = _SETTINGS_VIEW_TS.parent.parent / "helpers" / "mirror-lists.ts"
     m = re.search(r"export const MAX_MIRROR_TODO_LISTS = (\d+);", path.read_text(encoding="utf-8"))
     assert m and int(m.group(1)) == MAX_MIRROR_TODO_LISTS, "mirror-lists.ts MAX_MIRROR_TODO_LISTS drifted from const.py"
+
+
+def test_ts_notification_languages_match_backend() -> None:
+    """#251: the panel offers exactly the notification tables' languages, each
+    by the name the options flow shows, in the same order."""
+    from custom_components.maintenance_supporter.const import NOTIFICATION_LANGUAGE_AUTO, NOTIFICATION_LANGUAGE_NAMES
+
+    src = (_FRONTEND / "helpers" / "notification-languages.ts").read_text(encoding="utf-8")
+    block = _block(src, "export const NOTIFICATION_LANGUAGES")
+    pairs = re.findall(r'\["([^"]+)", "([^"]+)"\]', block)
+    assert pairs == list(NOTIFICATION_LANGUAGE_NAMES.items()), "notification-languages.ts drifted from const.NOTIFICATION_LANGUAGE_NAMES"
+    assert f'NOTIFICATION_LANGUAGE_AUTO = "{NOTIFICATION_LANGUAGE_AUTO}"' in src
+
+
+def test_ts_notification_text_placeholders_and_caps_match_backend() -> None:
+    """#252: the dialog lists the placeholders the manager fills, and cuts the
+    texts where the sanitiser does."""
+    from custom_components.maintenance_supporter.const import (
+        MAX_NOTIFICATION_TEXT_MESSAGE_LENGTH,
+        MAX_NOTIFICATION_TEXT_TITLE_LENGTH,
+        NOTIFICATION_TEXT_PLACEHOLDERS,
+    )
+
+    src = (_FRONTEND / "helpers" / "notification-texts.ts").read_text(encoding="utf-8")
+    start = src.index("export const NOTIFICATION_TEXT_PLACEHOLDERS")
+    block = src[start : src.index("};", start)]
+    ts = {kind: re.findall(r'"([^"]+)"', names) for kind, names in re.findall(r"(\w+): \[([^\]]*)\]", block)}
+    assert ts == {k: list(v) for k, v in NOTIFICATION_TEXT_PLACEHOLDERS.items()}, "notification-texts.ts placeholders drifted from const.py"
+    assert list(ts) == list(NOTIFICATION_TEXT_PLACEHOLDERS), "kinds in the same order"
+    assert f"MAX_NOTIFICATION_TEXT_TITLE_LENGTH = {MAX_NOTIFICATION_TEXT_TITLE_LENGTH};" in src
+    assert f"MAX_NOTIFICATION_TEXT_MESSAGE_LENGTH = {MAX_NOTIFICATION_TEXT_MESSAGE_LENGTH};" in src
+
+
+# The stored task fields the trace never names: written by the integration,
+# not by an edit (an id, the history, a cycle's runtime state, the archive,
+# the pause), or the template's own bookkeeping (helpers/task_apply).
+_TRACE_UNLABELLED = frozenset(
+    {
+        "id",
+        "object_id",
+        "created_at",
+        "ref_no",
+        "origin",
+        "history",
+        "last_planned_due",
+        "planned_day",
+        "phase_cursor",
+        "checklist_progress",
+        "battery_replacements",
+        "battery_low_latch",
+        "battery_installed_cells",
+        "next_history_ref",
+        "part_ref",
+        "battery_fleet_task",
+        "archived_at",
+        "archived_reason",
+        "paused_at",
+        "paused_until",
+    }
+)
+
+
+def test_ts_trace_labels_every_edited_task_field() -> None:
+    """DRY audit 2026-11-07 (FE7-B7): the trace names a changed field by the
+    dialog's label; a stored field without one read as "other settings" (the
+    Done-when, notification and entity-name edits did). Every StoredTask key
+    is labelled or listed above, and every label is a locale key."""
+    from custom_components.maintenance_supporter.models.shapes import StoredTask
+
+    src = (_FRONTEND / "helpers" / "task-trace.ts").read_text(encoding="utf-8")
+    block = re.search(r"export const FIELD_LABELS: Record<string, string> = \{(.*?)\n\};", src, re.S)
+    assert block, "FIELD_LABELS not found in task-trace.ts"
+    labels = dict(re.findall(r"^\s*([a-z_]+): \"([a-z0-9_]+)\",", block.group(1), re.M))
+    assert len(labels) > 30
+    stored = set(StoredTask.__annotations__)
+    missing = sorted(stored - set(labels) - _TRACE_UNLABELLED)
+    assert not missing, f"stored task fields the trace calls 'other settings': {missing}"
+    stray = sorted(set(labels) - stored)
+    assert not stray, f"FIELD_LABELS names fields a task does not store: {stray}"
+    unknown = sorted(set(_TRACE_UNLABELLED) - stored)
+    assert not unknown, f"_TRACE_UNLABELLED names fields a task does not store: {unknown}"
+    en = json.loads((_LOCALES_DIR / "en.json").read_text(encoding="utf-8"))
+    no_text = sorted(f"{f} → {k}" for f, k in labels.items() if k not in en)
+    assert not no_text, f"FIELD_LABELS keys missing from en.json: {no_text}"
+
+
+def test_ts_settings_fallback_features_are_the_server_defaults() -> None:
+    """DRY audit 2026-11-07 (X7-A3): a card or dialog whose settings read
+    fails runs on FALLBACK_SETTINGS. Its features said the new look was off,
+    the server's default is on: the classic look came up on a failed read."""
+    from custom_components.maintenance_supporter.websocket.dashboard import _build_full_settings
+
+    src = (_FRONTEND / "helpers" / "settings-cache.ts").read_text(encoding="utf-8")
+    block = re.search(r"export const FALLBACK_SETTINGS: SettingsCache = \{.*?features: \{(.*?)\},", src, re.S)
+    assert block, "FALLBACK_SETTINGS.features not found in settings-cache.ts"
+    fallback = {k: v == "true" for k, v in re.findall(r"([a-z_]+): (true|false)", block.group(1))}
+    server = _build_full_settings({})["features"]
+    assert fallback == server
+
+
+# ─── DRY audit 2026-11-07 (X7-B2..B7): twins that nothing held together ────
+
+
+def test_language_codes_read_as_the_panel_reads_them() -> None:
+    """language-code-vectors.test.ts checks normLang against the same vectors."""
+    from custom_components.maintenance_supporter.helpers.i18n import normalize_language_code
+
+    vectors = json.loads((_FRONTEND / "__tests__" / "fixtures" / "language-code-vectors.json").read_text(encoding="utf-8"))["vectors"]
+    assert len(vectors) > 5
+    for v in vectors:
+        assert normalize_language_code(v["code"]) == v["expected"], v["code"]
+
+
+def test_ts_template_review_knows_the_template_fields() -> None:
+    """The fields a template's improvement can change: the review panel
+    labels each, the server words each in the task's history."""
+    from custom_components.maintenance_supporter.helpers.template_fingerprint import FIELDS
+    from custom_components.maintenance_supporter.websocket.template_updates import _FIELD_WORDS
+
+    src = (_FRONTEND / "components" / "template-updates.ts").read_text(encoding="utf-8")
+    block = re.search(r"const FIELD_LABELS: Record<Field, string> = \{(.*?)\};", src, re.S)
+    assert block
+    assert set(re.findall(r"^\s*([a-z_]+):", block.group(1), re.M)) == set(FIELDS) == set(_FIELD_WORDS)
+
+
+def test_ts_trace_knows_every_event_kind_and_done_when_result() -> None:
+    from custom_components.maintenance_supporter.helpers.task_trace import DONE_WHEN_RESULTS, TRACE_KINDS
+
+    src = (_FRONTEND / "helpers" / "task-trace.ts").read_text(encoding="utf-8")
+    body = src[src.index("export function eventItem(") : src.index("/** A stored task field")]
+    assert set(re.findall(r'^\s*case "([a-z_]+)":', body, re.M)) == set(TRACE_KINDS)
+    block = re.search(r"const DONE_WHEN_KEYS: Record<string, string> = \{(.*?)\};", src, re.S)
+    assert block
+    assert set(re.findall(r"^\s*([a-z_]+):", block.group(1), re.M)) == set(DONE_WHEN_RESULTS)
+
+
+def test_ts_title_prefix_field_takes_what_the_server_keeps() -> None:
+    from custom_components.maintenance_supporter.const import MAX_NOTIFICATION_TITLE_PREFIX_LENGTH
+
+    m = re.search(r'class="notify-title-prefix"[^>]*maxlength="(\d+)"', _SETTINGS_VIEW_TS.read_text(encoding="utf-8"))
+    assert m, "the title-prefix input lost its maxlength"
+    assert int(m.group(1)) == MAX_NOTIFICATION_TITLE_PREFIX_LENGTH
+
+
+def test_ts_trigger_change_has_the_keys_a_firing_writes() -> None:
+    """A state rule's firing names its transition (from, to) and an update
+    entity's versions (installed, latest); the history and the trace read
+    them by those names."""
+    from unittest.mock import MagicMock
+
+    from custom_components.maintenance_supporter.entity.triggers.base_trigger import update_versions
+
+    state = MagicMock(entity_id="update.core", attributes={"installed_version": "1", "latest_version": "2"})
+    written = {"from", "to", *update_versions(state)}
+    src = (_FRONTEND / "types.ts").read_text(encoding="utf-8")
+    m = re.search(r"trigger_change\?: \{([^}]*)\}", src)
+    assert m
+    assert set(re.findall(r"([a-z_]+)\?:", m.group(1))) == written
+
+
+# ─── DRY round 6 leftovers (2026-11-07): codes the frontend reads ──────────
+
+_PKG_DIR = _FRONTEND.parent
+_RAISED_KEY_RE = re.compile(r'ServiceValidationError\([^)]*?translation_key="([a-z_]+)"', re.S)
+
+
+def _raised_translation_keys(*modules: str) -> set[str]:
+    keys: set[str] = set()
+    for name in modules:
+        keys |= set(_RAISED_KEY_RE.findall((_PKG_DIR / name).read_text(encoding="utf-8")))
+    return keys
+
+
+def test_quick_complete_opens_the_dialog_on_codes_the_server_sends() -> None:
+    """quick-complete.ts NEEDS_DIALOG: the refusals the card, the dialog and
+    the panel answer with the completion dialog. The panel kept its own
+    list; a renamed translation key turned the dialog into an error (DRY
+    audit 2026-10-30, X6-B3)."""
+    src = (_FRONTEND / "helpers" / "quick-complete.ts").read_text(encoding="utf-8")
+    m = re.search(r"export const NEEDS_DIALOG = new Set\(\[([^\]]+)\]\)", src)
+    assert m, "NEEDS_DIALOG not found in quick-complete.ts"
+    codes = set(_quoted_strings(m.group(1)))
+    sent = _backend_error_codes() | _raised_translation_keys("coordinator.py")
+    assert codes and codes <= sent, f"codes the server never sends: {sorted(codes - sent)}"
+    panel = (_FRONTEND / "maintenance-panel.ts").read_text(encoding="utf-8")
+    assert '"completion_details_required"' not in panel, "the panel keeps no list of its own"
+
+
+def test_a_raised_refusal_has_its_words() -> None:
+    """A refusal relayed with send_exception_error is coded by its
+    translation key (completion_details_required, task_inactive, ...): the
+    WS code scan above only reads literal codes. Each key the completion,
+    skip, reset, postpone and purchase paths raise has its translated
+    message, or the panel shows the raw English text (DRY audit 2026-10-30,
+    X6-B4)."""
+    strings = json.loads((_PKG_DIR / "strings.json").read_text(encoding="utf-8"))
+    exceptions = set(strings.get("exceptions") or {})
+    raised = _raised_translation_keys("coordinator.py", "parts_runtime.py")
+    assert len(raised) >= 8, f"raise scan looks broken: {sorted(raised)}"
+    missing = raised - exceptions
+    assert not missing, f"raised without a strings.json exceptions entry: {sorted(missing)}"
+    fallbacks = set()
+    for path in _WEBSOCKET_DIR.glob("*.py"):
+        fallbacks |= set(re.findall(r'send_exception_error\(connection, msg\["id"\], err, "([a-z_]+)"\)', path.read_text(encoding="utf-8")))
+    assert fallbacks and fallbacks <= exceptions | set(_ts_error_code_keys()), sorted(fallbacks - exceptions)
+
+
+def _ts_wire_paths(src: str, interface: str) -> set[str]:
+    """The dotted property paths of an ``export interface`` with nested
+    object types ("general.row_action_style")."""
+    start = re.search(rf"export interface {interface}\b[^{{]*\{{", src)
+    assert start, interface
+    paths: set[str] = set()
+    stack: list[str] = []
+    depth, statement = 1, ""
+    for ch in src[start.end() :]:
+        if ch == "{":
+            prop = re.match(r"\s*(\w+)\??\s*:", statement)
+            stack.append(prop.group(1) if prop else "")
+            depth += 1
+            statement = ""
+            continue
+        if ch == "}":
+            # The last property before the brace has no ";".
+            prop = re.match(r"\s*(\w+)\??\s*:", statement)
+            if prop:
+                paths.add(".".join([*filter(None, stack), prop.group(1)]))
+            depth -= 1
+            if depth == 0:
+                break
+            if stack:
+                stack.pop()
+            statement = ""
+            continue
+        if ch in ";\n,":
+            prop = re.match(r"\s*(\w+)\??\s*:", statement)
+            if prop:
+                paths.add(".".join([*filter(None, stack), prop.group(1)]))
+            statement = ""
+            continue
+        statement += ch
+    return paths
+
+
+def test_ts_settings_reads_paths_the_server_sends() -> None:
+    """parseSettings reads ``SettingsWire``: a key moved or renamed on the
+    server fell back to the default without a word (DRY audit 2026-10-30,
+    X6-B5). The defaults FALLBACK_SETTINGS holds are the server's."""
+    from custom_components.maintenance_supporter.websocket.dashboard import _build_full_settings
+
+    src = (_FRONTEND / "helpers" / "settings-cache.ts").read_text(encoding="utf-8")
+    server = _build_full_settings({})
+    paths = _ts_wire_paths(src, "SettingsWire")
+    assert {"general.row_action_style", "budget.parts_cost_mode", "features"} <= paths, f"SettingsWire parse looks broken: {sorted(paths)}"
+    missing = []
+    for path in sorted(paths):
+        node: object = server
+        for part in path.split("."):
+            if not isinstance(node, dict) or part not in node:
+                missing.append(path)
+                break
+            node = node[part]
+    assert not missing, f"settings-cache.ts reads paths the server does not send: {missing}"
+    fallback = re.search(r"export const FALLBACK_SETTINGS: SettingsCache = \{(.*?)\n\};", src, re.S)
+    assert fallback, "FALLBACK_SETTINGS not found"
+    body = fallback.group(1)
+    assert re.search(rf"defaultWarningDays: {server['general']['default_warning_days']},", body)
+    assert f'partsCostMode: "{server["budget"]["parts_cost_mode"]}",' in body
+
+
+def test_ts_row_styles_and_cost_modes_are_the_backends() -> None:
+    """The row action styles the settings offer (#145) and the two ways a
+    part counts (#104): each side kept its own list and nothing compared
+    them (DRY audit 2026-10-30, X6-B6 / X6-B7)."""
+    from custom_components.maintenance_supporter.const import PARTS_COST_MODES, ROW_ACTION_STYLES
+
+    cache = (_FRONTEND / "helpers" / "settings-cache.ts").read_text(encoding="utf-8")
+    m = re.search(r"export const ROW_ACTION_STYLES = \[([^\]]+)\]", cache)
+    assert m, "ROW_ACTION_STYLES not found in settings-cache.ts"
+    assert _quoted_strings(m.group(1)) == list(ROW_ACTION_STYLES)
+    cost = (_FRONTEND / "helpers" / "parts-cost.ts").read_text(encoding="utf-8")
+    m = re.search(r"export type PartsCostMode = ([^;]+);", cost)
+    assert m, "PartsCostMode not found in parts-cost.ts"
+    assert set(_quoted_strings(m.group(1))) == set(PARTS_COST_MODES)
+
+
+def test_twin_rules_read_as_the_panel_reads_them() -> None:
+    """twin-rules-vectors.test.ts checks the TS side against the same vectors
+    (DRY audit 2026-10-30, X6-B8 / X6-B10 / X6-B13)."""
+    from custom_components.maintenance_supporter.helpers.assignees import task_user_ids
+    from custom_components.maintenance_supporter.helpers.completion_requirements import quick_complete_on
+    from custom_components.maintenance_supporter.helpers.todo_mirror import mirror_lists
+
+    vectors = json.loads((_FRONTEND / "__tests__" / "fixtures" / "twin-rules-vectors.json").read_text(encoding="utf-8"))
+    for c in vectors["mirror_lists"]:
+        assert mirror_lists(c["task"], c["defaults"]) == c["lists"], c
+    for c in vectors["task_user_ids"]:
+        assert task_user_ids(c["task"]) == c["ids"], c
+    for c in vectors["quick_complete_on"]:
+        assert quick_complete_on(c["task"]) is c["on"], c
+

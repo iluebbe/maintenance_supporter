@@ -220,6 +220,21 @@ export function formatUnit(n: number, unit: "day" | "week" | "month" | "year" | 
   }
 }
 
+/** #255: a hold counted in minutes, said in the units it reads best in
+ *  and to the minute: minutes below two hours, hours and minutes below
+ *  two days, days, hours and minutes from there (21600 is "15 days",
+ *  125 "2 hours 5 minutes"). Never rounded: it is what the rule waits
+ *  for. The rule sentence, the hint below the task dialog's field and
+ *  the chart's legend say it the same way. */
+export function formatHold(minutes: number, lang?: string): string {
+  if (!(minutes >= 120)) return formatUnit(minutes, "minute", lang);
+  const days = minutes >= 2880 ? Math.floor(minutes / 1440) : 0;
+  const rest = minutes - days * 1440;
+  const hours = Math.floor(rest / 60);
+  const parts: Array<[number, "day" | "hour" | "minute"]> = [[days, "day"], [hours, "hour"], [rest - hours * 60, "minute"]];
+  return parts.filter(([n]) => n > 0).map(([n, unit]) => formatUnit(n, unit, lang)).join(" ");
+}
+
 export function formatNumber(n: number, lang?: string, digits?: number | Intl.NumberFormatOptions): string {
   if (!Number.isFinite(n)) return String(n);
   const opts: Intl.NumberFormatOptions =
@@ -235,6 +250,30 @@ export function formatNumber(n: number, lang?: string, digits?: number | Intl.Nu
   } catch {
     return numberFormat(undefined, opts).format(n);
   }
+}
+
+/** A text cut to ``max`` characters with "…" at the end, whole when it fits:
+ *  a preview in a choice or a summary line. The task dialog's attribute
+ *  preview and the QR dialog's note each cut by hand (DRY audit 2026-10-30,
+ *  FE6-B11). */
+export function ellipsize(text: string, max = 40): string {
+  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+}
+
+/** Languages that put a space before "%" — Home Assistant's own list
+ *  (blankBeforePercent), so "below 60 %" reads like the state next to it. */
+const BLANK_BEFORE_PERCENT = ["cs", "de", "fi", "fr", "sk", "sv"];
+
+/** A number with its unit the way Home Assistant writes a state: "60%" in
+ *  English, "60 %" in German, "21°", "8,000 km". Every reading with its unit
+ *  goes through here: the rule sentences, a firing's value, the trace, the
+ *  charts and the readings. Four copies always put a space, so one trace
+ *  showed "below 60%" next to "58 %" (DRY audit 2026-11-07, FE7-B4). */
+export function withUnit(value: string, unit: string | null | undefined, lang?: string): string {
+  if (!unit) return value;
+  if (unit === "%") return BLANK_BEFORE_PERCENT.includes((lang || "en").split("-")[0]) ? `${value} %` : `${value}%`;
+  if (unit === "°") return `${value}°`;
+  return `${value} ${unit}`;
 }
 
 /** Amount + currency symbol ("13 €" / "12.50 €"; the symbol is optional) —
@@ -262,8 +301,7 @@ export function formatCost(amount: number, symbol?: string, lang?: string, digit
  *  interpolated the raw number (`${stock} ${unit}`), bypassing the profile
  *  number format (DRY audit 2026-09-26; tripwired in dry-round4.test.ts). */
 export function formatQty(n: number, unit?: string | null, lang?: string): string {
-  const num = formatNumber(n, lang);
-  return unit ? `${num} ${unit}` : num;
+  return withUnit(formatNumber(n, lang), unit, lang);
 }
 
 /** BCP-47 locale for the "language" default: the UI language regionalized
@@ -485,6 +523,18 @@ interface RecurrenceLike {
 /** A task's recurrence as a localized human label, for ANY schedule kind.
  *  The single recurrence formatter (DRY) — interval / weekdays / nth_weekday /
  *  day_of_month / one_time / manual. Used by the panel, card, and quick-actions. */
+/** What a calendar pattern adds to its day: its shift ("+2d", #83) and the
+ *  months it keeps to (" · Sep" for a yearly task). The recurrence text and
+ *  the editor's schedule row say it the same way; the row left both out
+ *  (DRY audit 2026-11-07, FE7-A4). */
+export function calendarSuffix(s: { offset?: number | null; months?: number[] | null } | null | undefined, lang?: string, withMonths = true): string {
+  const off = s?.offset ? ` ${s.offset > 0 ? "+" : "−"}${Math.abs(s.offset)}d` : "";
+  const months = withMonths && s?.months?.length
+    ? ` · ${[...s.months].sort((a, b) => a - b).map((m) => monthName(m - 1, lang, "short")).join(", ")}`
+    : "";
+  return off + months;
+}
+
 export function formatRecurrence(task: RecurrenceLike, lang?: string): string {
   const s = task.schedule;
   // A sensor-driven task is not "Manual": say so, and append the safety
@@ -495,12 +545,10 @@ export function formatRecurrence(task: RecurrenceLike, lang?: string): string {
     const every = s && s.kind === "interval" && s.every ? s.every : task.interval_days;
     return every ? `${base} · ${formatInterval(every, (s && s.kind === "interval" ? s.unit : task.interval_unit) || "days", lang)}` : base;
   }
-  // (#83) ±N-day shift suffix shared by the calendar kinds.
-  const off = s?.offset ? ` ${s.offset > 0 ? "+" : "−"}${Math.abs(s.offset)}d` : "";
-  // The month restriction of a pattern: "Day 1 · Sep" for a yearly task.
-  const inMonths = s?.months?.length
-    ? ` · ${[...s.months].sort((a, b) => a - b).map((m) => monthName(m - 1, lang, "short")).join(", ")}`
-    : "";
+  // (#83) ±N-day shift suffix shared by the calendar kinds, and the month
+  // restriction of a pattern: "Day 1 · Sep" for a yearly task.
+  const off = calendarSuffix(s, lang, false);
+  const inMonths = calendarSuffix({ months: s?.months }, lang);
   switch (s?.kind) {
     case "weekdays":
       return ((s.weekdays || []).map((d) => weekdayName(d, lang, "short")).join(" & ") || "—") + off;

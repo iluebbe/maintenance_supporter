@@ -21,6 +21,8 @@ const TASK_LIST_KEYS = [
   "mirror_todo_entities",
   // #189: titles of the calendar events behind next_due (empty = none).
   "next_event_titles",
+  // #266: coming dates of a calendar-kind schedule (empty = none to draw).
+  "upcoming_dates",
   "history",
   // #161 phase 2: reading slots (empty = single-value task).
   "readings",

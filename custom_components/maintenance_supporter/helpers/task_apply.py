@@ -20,10 +20,20 @@ from collections.abc import Iterable, Mapping
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 
+from ..const import CONF_TASKS, DOMAIN, NOTIFICATION_MANAGER_KEY
 from .aggregate import get_runtime_data
+from .assignees import task_user_ids
+from .sanitize import normalize_people
 from .schedule import normalize_task_storage
+from .task_fields import COMPACT_KEEPS_EMPTY, UNSTORED_TASK_FIELDS
+from .task_trace import KIND_EDITED, changed_values
+from .task_trace import record as record_trace
+
+#: helpers/task_origin's ORIGIN_KEY: importing it here closes an import
+#: cycle through the triggers (tests/test_dry_audit_2026_11_07 pins it).
+ORIGIN_KEY = "origin"
 
 #: The stored task fields the entities, the panel and every completion read
 #: from the coordinator's refresh, never from what the setup saw.
@@ -56,6 +66,7 @@ LIVE_FIELDS = frozenset(
         "allow_skip",
         "notify_enabled",
         "notify_icon",
+        "notification_texts",
         "on_complete_action",
         "quick_complete_defaults",
         "required_completion_fields",
@@ -65,17 +76,103 @@ LIVE_FIELDS = frozenset(
         # by the setup. The dialog sends the list on every save, so a task
         # that never stored one reloaded its object on its first save.
         "consumes_parts",
+        # Where the task came from and what its template gave it: read by the
+        # template review and the reset wiring, kept in step by
+        # async_sync_entry_bases below (a template apply writes it).
+        ORIGIN_KEY,
     }
 )
 #: A changed sensor rule: rebuilt on the task's sensor.
 TRIGGER_FIELD = "trigger_config"
 
 
+#: A changed task names at most this many fields in its trace.
+_MAX_TRACED_FIELDS = 20
+
+
+def _as_stored(task: Mapping[str, Any]) -> dict[str, Any]:
+    """A task as a write leaves it: the nested schedule, who it is for in its
+    one shape (a task stored before normalize_people kept an empty pool, and
+    its first save read as "Shared with: — → —"), an unstored field as what
+    it means."""
+    stored = normalize_task_storage(task)
+    normalize_people(stored)
+    return {**UNSTORED_TASK_FIELDS, **stored}
+
+
+def _changed(old: Mapping[str, Any], new: Mapping[str, Any]) -> set[str]:
+    return {k for k in {*old, *new} if not k.startswith("_") and old.get(k) != new.get(k)}
+
+
 def edited_fields(before: Mapping[str, Any], after: Mapping[str, Any]) -> set[str]:
     """The stored fields an edit changed, both sides as stored (the runtime
-    keys, ``_…``, are no edit)."""
-    old, new = normalize_task_storage(before), normalize_task_storage(after)
-    return {k for k in {*old, *new} if not k.startswith("_") and old.get(k) != new.get(k)}
+    keys, ``_…``, are no edit; a field the dialog sends as its default is
+    none either)."""
+    return _changed(_as_stored(before), _as_stored(after))
+
+
+def _blank(value: Any) -> bool:
+    """None, [] or {}: a field that says nothing (the trace's "—")."""
+    return value is None or value == [] or value == {}
+
+
+def note_task_edit(
+    hass: HomeAssistant, entry_id: str, task_id: str, before: Mapping[str, Any], after: Mapping[str, Any]
+) -> set[str]:
+    """:func:`edited_fields`, noted in the task's trace (the new look): which
+    settings changed, and from what to what where the values are short. The
+    one note of an edit for every way a task is edited: the dialog, a bulk
+    edit, the update_task action, the options flow and a template's changes.
+    Only the dialog's edits reached the trace (DRY audit 2026-11-07, BI7-A3).
+    Returns the fields for :func:`async_apply_task_edits`."""
+    old, new = _as_stored(before), _as_stored(after)
+    edited = _changed(old, new)
+    # The dialog sends every list on every save: a task's first save turned
+    # "no labels" into [] and read as "Labels: — → —". Nothing to nothing is
+    # no change worth telling (an empty Quick complete still is one), and
+    # neither is what a template remembers of itself (its origin).
+    told = sorted(
+        k
+        for k in edited - {ORIGIN_KEY}
+        if k in COMPACT_KEEPS_EMPTY or not (_blank(old.get(k)) and _blank(new.get(k)))
+    )
+    if told:
+        told = told[:_MAX_TRACED_FIELDS]
+        record_trace(hass, entry_id, task_id, KIND_EDITED, fields=told, changes=changed_values(old, new, told))
+    if task_user_ids(old) != task_user_ids(new):
+        _hand_over_reminder(hass, entry_id, task_id, old)
+    return edited
+
+
+def _hand_over_reminder(hass: HomeAssistant, entry_id: str, task_id: str, before: Mapping[str, Any]) -> None:
+    """The people a task is for changed: its reminder leaves the phones it
+    went to, and the next refresh tells the new people. Only a completion's
+    rotation handed it on; an edit left the push on the old person's phone
+    and told the new one nothing until the repeat ran out, or never for a
+    status that notifies once (bug audit 2026-11-08, N8-2)."""
+    nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
+    if nm is not None:
+        nm.clear_and_dismiss(entry_id, task_id, before, reason="reassigned")
+
+
+def note_entry_edits(
+    hass: HomeAssistant, entry_id: str, before: Mapping[str, Any], after: Mapping[str, Any]
+) -> dict[str, set[str]] | None:
+    """Task id → the fields that changed between two versions of an object's
+    data, each noted in its trace; None when more than its tasks' fields
+    changed (a task added or removed, the object's own settings): then the
+    object sets up again."""
+    old_tasks, new_tasks = before.get(CONF_TASKS) or {}, after.get(CONF_TASKS) or {}
+    edits = {
+        task_id: fields
+        for task_id, task in new_tasks.items()
+        if task_id in old_tasks and (fields := note_task_edit(hass, entry_id, task_id, old_tasks[task_id], task))
+    }
+    rest_before = {k: v for k, v in before.items() if k != CONF_TASKS}
+    rest_after = {k: v for k, v in after.items() if k != CONF_TASKS}
+    if set(old_tasks) != set(new_tasks) or rest_before != rest_after:
+        return None
+    return edits
 
 
 def needs_reload(fields: Iterable[str]) -> bool:
@@ -106,3 +203,17 @@ async def async_apply_task_edits(hass: HomeAssistant, entry: ConfigEntry, edits:
 
     await async_sync_entry_bases(hass, entry)
     await coordinator.async_refresh_now()
+
+
+@callback
+def apply_entry_edits(hass: HomeAssistant, entry: ConfigEntry, edits: Mapping[str, Iterable[str]] | None) -> None:
+    """Make what an options-flow session wrote take effect (its writes, each
+    noted by :func:`note_entry_edits`): the tasks' edits like the dialog's (a
+    refresh, or a reload where one needs it); None, more than its tasks'
+    fields, a reload. "Done" reloaded the object whatever was changed,
+    nothing included (DRY audit 2026-11-07, BR7-A1)."""
+    if edits is None:
+        hass.config_entries.async_schedule_reload(entry.entry_id)
+    else:
+        # Nothing edited is still a refresh: the flow saves the Store too.
+        hass.async_create_task(async_apply_task_edits(hass, entry, edits))

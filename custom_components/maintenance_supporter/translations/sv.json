@@ -675,6 +675,7 @@
           "notification_bundle_threshold": "Buntningströskel",
           "notification_title_style": "Stil för aviseringstitel",
           "notification_title_prefix": "Prefix för aviseringstitel",
+          "notification_language": "Språk för aviseringar",
           "notify_completed": "Aviseringar om slutförande",
           "notify_event_only": "Utlös bara händelsen, skicka inget själv",
           "notify_extra_data": "Extra aviseringsdata (mall)",
@@ -694,6 +695,7 @@
           "notification_bundle_threshold": "Minsta antal uppgifter för att utlösa en buntad avisering.",
           "notification_title_style": "Vad som visas som aviseringens TITEL. Standard behåller texten per status (t.ex. ”Underhåll försenat!”). Objektnamn / uppgiftsnamn hjälper när telefonen staplar aviseringar.",
           "notification_title_prefix": "Sätts framför titeln på varje avisering, oavsett stil, t.ex. hemmets namn när telefonen får påminnelser från mer än en Home Assistant. Tomt = inget prefix.",
+          "notification_language": "Språket i aviseringarnas rubriker, texter och knappar. Home Assistants språk = som hittills. Panelen behåller varje persons eget språk.",
           "notify_completed": "Ett meddelande till hushållet när en uppgift slutförts, med orsaken (panel, QR-/NFC-skanning, att-göra-lista, röst, sensoråterhämtning …). \"Endast automatiska\" meddelar bara slutföranden som ingen gjorde på plats: sensoråterhämtning, avbockning i inköpslistan, ett tjänsteanrop från en automation.",
           "notify_event_only": "Varje avisering utlöser händelsen maintenance_supporter_notification. Med detta på sköter din automation hela leveransen — upprepningsintervall, tysta timmar och dagsgränsen avgör fortfarande när händelsen kommer.",
           "notify_extra_data": "JSON eller YAML med Jinja, slås ihop med data i varje notify-anrop (dina nycklar vinner). Variabler: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
@@ -1892,6 +1894,10 @@
         "via_tag_scan": {
           "name": "Via tagg-skanning",
           "description": "Intygar att detta slutförande kommer från en skanning av en fysisk tagg/QR-kod som automationen själv hanterade — uppfyller uppgiftens inställning ”Kan endast slutföras via tagg-skanning”."
+        },
+        "consume_parts": {
+          "name": "Förbruka delar",
+          "description": "Bokför de delar som är kopplade till uppgiften för detta slutförande även när slutförandedatumet ligger före uppgiftens senaste slutförande. Ett aktuellt slutförande bokför dem ändå, ett efterregistrerat bara med detta val. Delarna dras från dagens lager."
         }
       }
     },
@@ -1929,7 +1935,7 @@
       "fields": {
         "format": {
           "name": "Format",
-          "description": "Utdataformat för exporterade data (json eller yaml)."
+          "description": "Utdataformat: json eller yaml för hela exporten, history_csv för historiken som tabell med en rad per post (filen maintenance_history.csv)."
         },
         "include_history": {
           "name": "Inkludera historik",
@@ -2351,7 +2357,7 @@
     },
     "shared_parts_moved": {
       "title": "Delade reservdelar flyttade till {new_owner}",
-      "description": "Flera underhållsobjekt delade på ett och samma reservdelslager som låg på **{deleted_object}**, och det objektet har just raderats. I stället för att låta de övriga objekten peka på ett lager som inte längre finns flyttade Maintenance Supporter de delade delarna ({parts}) — med sitt nuvarande saldo — till **{new_owner}** och riktade om alla andra objekts uppgiftskopplingar dit. Ingenting gick förlorat.\n\n**{new_owner}** valdes automatiskt: det är det äldsta objektet som använde lagret. Passar ett annat objekt bättre, flytta delarna dit i underhållspanelen.\n\nMer än så behöver du inte göra — stäng den här aviseringen när du har kontrollerat den."
+      "description": "Flera underhållsobjekt delade på ett och samma reservdelslager som låg på **{deleted_object}**, och det objektet har just raderats. I stället för att låta de övriga objekten peka på ett lager som inte längre finns flyttade Maintenance Supporter de delade delarna ({parts}) — med sitt nuvarande saldo — till **{new_owner}** och riktade om alla andra objekts uppgiftskopplingar dit. Ingenting gick förlorat.\n\n**{new_owner}** valdes automatiskt: det är det äldsta objektet som använde lagret.\n\nMer än så behöver du inte göra — stäng den här aviseringen när du har kontrollerat den."
     },
     "broken_part_link": {
       "title": "Trasiga reservdelskopplingar på {object_name}",
@@ -2538,6 +2544,9 @@
     "part_owner_archived": {
       "message": "”{object_name}” är arkiverat. Återställ det för att registrera ett köp."
     },
+    "part_owner_not_loaded": {
+      "message": "{object_name} körs inte just nu (inaktiverad eller startar fortfarande), så dess reservdelar kan inte bokföras. Försök igen när den körs."
+    },
     "purchase_cost_too_high": {
       "message": "Ett köp kan kosta högst {max} totalt."
     },
@@ -2567,6 +2576,9 @@
     },
     "date_in_future": {
       "message": "Datumet får inte ligga i framtiden."
+    },
+    "time_based_needs_interval": {
+      "message": "En tidsbaserad uppgift behöver ett intervall."
     },
     "range_end_before_start": {
       "message": "Slutet måste vara samtidigt med eller efter starten."

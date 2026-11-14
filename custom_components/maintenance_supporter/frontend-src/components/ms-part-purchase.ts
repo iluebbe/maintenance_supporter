@@ -23,6 +23,8 @@ import { packagesBought, restockUnits, round2 } from "../helpers/parts-cost";
 import type { HomeAssistant, MaintenancePart } from "../types";
 import "./ms-date-field";
 import { notice } from "../helpers/notice";
+import { commitOnEnter } from "../helpers/keyboard";
+import { partPillStyles } from "./part-pill-styles";
 
 export type PurchasablePart = Pick<MaintenancePart, "id" | "unit" | "package_size" | "cost" | "restock_quantity">;
 
@@ -141,14 +143,13 @@ export class MsPartPurchase extends LitElement {
   private _keys(e: KeyboardEvent): void {
     // Our own fields only: Enter in the date field's typed input commits the day.
     if ((e.target as HTMLElement | null)?.tagName !== "INPUT") return;
-    if (e.key === "Enter") void this._record();
-    if (e.key === "Escape") this._open = false;
+    commitOnEnter(() => void this._record(), () => (this._open = false))(e);
   }
 
   protected render() {
     const L = this._lang;
     if (!this._open) {
-      return html`<button class="buy-pill" title=${t("part_bought_hint", L)} @click=${() => this._start()}>
+      return html`<button class="buy-pill part-pill" title=${t("part_bought_hint", L)} @click=${() => this._start()}>
         <ha-icon icon="mdi:cart-plus"></ha-icon>${t("part_bought", L)}
       </button>`;
     }
@@ -195,16 +196,16 @@ export class MsPartPurchase extends LitElement {
         ${this.onUse ? html`<div class="note">${t("part_bought_on_use", L)}</div>` : nothing}
         ${this._error ? notice("error", this._error) : nothing}
         <div class="actions">
-          <button class="buy-pill confirm" .disabled=${this._busy} @click=${() => this._record()}>
+          <button class="buy-pill part-pill confirm" .disabled=${this._busy} @click=${() => this._record()}>
             <ha-icon icon="mdi:check"></ha-icon>${t("part_bought_confirm", L)}
           </button>
-          <button class="buy-pill" @click=${() => (this._open = false)}>${t("cancel", L)}</button>
+          <button class="buy-pill part-pill" @click=${() => (this._open = false)}>${t("cancel", L)}</button>
         </div>
       </div>
     `;
   }
 
-  static styles = css`
+  static styles = [partPillStyles, css`
     :host {
       display: inline-flex;
       max-width: 100%;
@@ -214,30 +215,6 @@ export class MsPartPurchase extends LitElement {
       display: block;
       width: 100%;
       min-width: min(100%, 280px);
-    }
-    .buy-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font: inherit;
-      font-size: 12px;
-      font-weight: 400;
-      padding: 2px 10px;
-      min-height: 28px;
-      border-radius: 14px;
-      border: 1px solid var(--divider-color, #ccc);
-      background: transparent;
-      color: var(--secondary-text-color);
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .buy-pill:hover,
-    .buy-pill.confirm {
-      border-color: var(--primary-color);
-      color: var(--primary-color);
-    }
-    .buy-pill ha-icon {
-      --mdc-icon-size: 16px;
     }
     /* Wraps instead of a grid: the date picker needs its width, and on a
        narrow shelf or in a table cell every field takes a line. */
@@ -305,7 +282,7 @@ export class MsPartPurchase extends LitElement {
       flex-wrap: wrap;
       gap: 8px;
     }
-  `;
+  `];
 }
 
 if (!customElements.get("ms-part-purchase")) {

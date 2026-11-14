@@ -73,6 +73,17 @@ class DueDateTrigger(BaseTrigger):
         # in the past and spun the event loop until that hour was over.
         self._due_timer.schedule_at(dt_util.as_utc(self._due_at) - timedelta(days=self._days_before), self._on_due)
 
+    def reset(self) -> None:
+        """Done: wake up for the date the sensor reports. A held date the
+        device had already moved disarmed the timer, and with no new state
+        event only the coordinator's sweep latched the next one, without a
+        history entry or an event (bug audit 2026-11-08, T8-4). A date still
+        within reach waits for the sensor, as before: the device reports the
+        new one after the completion's button press."""
+        super().reset()
+        if self._due_at is not None and dt_util.as_utc(self._due_at) - timedelta(days=self._days_before) > dt_util.utcnow():
+            self._arm()
+
     @callback
     def _on_due(self, _now: datetime) -> None:
         state = self.hass.states.get(self.entity_id)

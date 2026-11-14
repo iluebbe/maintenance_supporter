@@ -57,7 +57,8 @@ async def test_a_postpone_reaches_at_most_one_maximum_interval_out(hass: HomeAss
         return conn
 
     far = await _postpone("9999-12-31")
-    assert far.send_error.call_args[0][1] == "invalid_date"
+    # The coordinator's refusal, its key the code (DRY audit 2026-10-30, BI6-B10).
+    assert far.send_error.call_args[0][1] == "postpone_too_far"
     ok = await _postpone((today + timedelta(days=MAX_INTERVAL_DAYS)).isoformat())
     assert ok.send_error.call_count == 0
 

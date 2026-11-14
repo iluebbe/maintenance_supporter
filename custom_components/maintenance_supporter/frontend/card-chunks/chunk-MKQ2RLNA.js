@@ -1,0 +1,2 @@
+/*! maintenance_supporter frontend 2.121.0 */
+async function s(n,t,o=300){return(await n.connection.sendMessagePromise({type:"auth/sign_path",path:t,expires:o})).path}async function r(n,t,o=300){return s(n,`/api/maintenance_supporter/document/${t}`,o)}async function p(n,t,o=""){let e=window.open("about:blank","_blank");try{let i=await r(n,t);e&&(e.location.href=new URL(i+o,window.location.origin).href)}catch(i){throw e&&e.close(),i}}export{r as a,p as b};

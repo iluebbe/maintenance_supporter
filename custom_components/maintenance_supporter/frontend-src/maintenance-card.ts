@@ -3,7 +3,7 @@
 import { LitElement, html, css, nothing } from "lit";
 import { StatesRedrawGate } from "./helpers/hass-changes";
 import { fetchObjects, fetchStatistics } from "./helpers/objects-fetch";
-import { firstObjects, liveObjects, watchObjects } from "./helpers/objects-hub";
+import { ObjectsFollower, firstObjects, liveObjects } from "./helpers/objects-hub";
 import { mergeSubscriptionEvent } from "./helpers/subscription-merge";
 import { taskIsFor, taskUserIds } from "./helpers/assignees";
 import { quickComplete, quickCompleteOn } from "./helpers/quick-complete";
@@ -31,7 +31,7 @@ import type {
 import { UserService } from "./user-service";
 import { personOf, renderPeopleAvatars, type PersonDisplay } from "./helpers/person";
 import { phaseLabel } from "./helpers/phases";
-import { renderEventTitles, renderTriggerDetail } from "./helpers/event-titles";
+import { renderTaskTitle, triggerDetailText } from "./helpers/event-titles";
 import { buildCompleteDialogArgs, fillAndOpenCompleteDialog } from "./helpers/complete-dialog-args";
 import { fetchSettingsOnce, FALLBACK_SETTINGS, type SettingsCache } from "./helpers/settings-cache";
 import { canWrite } from "./helpers/permissions";
@@ -39,7 +39,7 @@ import { statusColor } from "./renderers/status";
 import { renderLastDone } from "./renderers/progress";
 import { ACTIONABLE_STATUSES, isActionableStatus, isInertTask, statusRank } from "./status-constants";
 import type { MaintenanceCompleteDialog, TaskCompletedDetail } from "./components/complete-dialog";
-import { offerUndoToast } from "./helpers/undo-completion";
+import { confirmQuickComplete, offerUndoToast } from "./helpers/undo-completion";
 // The Battery Fleet card ships in this globally-loaded bundle so it is
 // available on every dashboard without another extra_module_url entry.
 import "./components/battery-fleet-card";
@@ -142,7 +142,7 @@ export class MaintenanceSupporterCard extends LitElement {
     this._config = config;
     // Config can change after the initial load (editor preview) — re-resolve
     // the referenced view then; the initial resolve happens in _loadData.
-    if (viewChanged && this._dataLoaded && this.hass) {
+    if (viewChanged && this._follow.started && this.hass) {
       this._loadViewFilters();
     }
   }
@@ -151,8 +151,12 @@ export class MaintenanceSupporterCard extends LitElement {
     return 3;
   }
 
-  private _dataLoaded = false;
-  private _lastConnection: unknown = null;
+  /** This card's watch of the page's one objects subscription
+   *  (helpers/objects-hub). */
+  private _follow = new ObjectsFollower((event) => {
+    const next = mergeSubscriptionEvent(this._objects, event);
+    if (next !== null) this._objects = next;
+  }, () => void this._loadData());
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -160,10 +164,7 @@ export class MaintenanceSupporterCard extends LitElement {
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
-    this._release?.();
-    this._release = null;
-    this._dataLoaded = false;
-    this._lastConnection = null;
+    this._follow.stop();
   }
 
   updated(changedProps: Map<string, unknown>): void {
@@ -183,18 +184,7 @@ export class MaintenanceSupporterCard extends LitElement {
       this._loadUserNames();
     }
     this._loadMissingDocuments();
-    if (changedProps.has("hass") && this.hass) {
-      if (!this._dataLoaded) {
-        this._dataLoaded = true;
-        this._lastConnection = this.hass.connection;
-        this._loadData();
-        this._subscribe();
-      } else if (this.hass.connection !== this._lastConnection) {
-        this._lastConnection = this.hass.connection;
-        this._subscribe();
-        this._loadData();
-      }
-    }
+    if (changedProps.has("hass") && this.hass) this._follow.sync(this.hass.connection);
   }
 
   private async _loadData(): Promise<void> {
@@ -394,20 +384,6 @@ export class MaintenanceSupporterCard extends LitElement {
     }
   }
 
-  /** Releases this card's watch of the page's objects subscription. */
-  private _release: (() => void) | null = null;
-
-  /** Follow the page's one objects subscription (helpers/objects-hub); the
-   *  hub owns it, so a card detached while it is still being set up leaves
-   *  nothing behind (bug audit 2026-10-16, FE-7). */
-  private _subscribe(): void {
-    this._release?.();
-    this._release = watchObjects(this.hass.connection, (event) => {
-      const next = mergeSubscriptionEvent(this._objects, event);
-      if (next !== null) this._objects = next;
-    });
-  }
-
   /** Every task the card's filters (and saved view) select, sorted — the
    *  rows before the `max_items` cap, and what the header badges count. */
   private get _selectedTasks(): FlatTask[] {
@@ -550,11 +526,7 @@ export class MaintenanceSupporterCard extends LitElement {
       return;
     }
     await this._loadData();
-    if (outcome.undo) {
-      offerUndoToast(this, this.hass, { entryId, taskId: task.id, taskName: task.name }, this._lang, () => void this._loadData());
-    } else {
-      this.dispatchEvent(new CustomEvent("hass-notification", { detail: { message: t("quick_complete_success", this._lang) }, bubbles: true, composed: true }));
-    }
+    confirmQuickComplete(this, this.hass, { entryId, taskId: task.id, taskName: task.name }, outcome.undo, this._lang, () => void this._loadData());
   }
 
   /** Header badges from the LIVE object list — the statistics call ran once
@@ -647,7 +619,7 @@ export class MaintenanceSupporterCard extends LitElement {
                         <div class="task-name">
                           ${compact && this._assigneeName(task)
                             ? html`<span class="compact-assignee" title="${this._assigneeName(task)}">${this._assigneeAvatars(task)}</span>`
-                            : nothing}${task.name}${renderEventTitles(task.next_event_titles)}${renderTriggerDetail(task.trigger_detail)}
+                            : nothing}${renderTaskTitle(task.name, task.next_event_titles, triggerDetailText(task, this._lang))}
                           ${(task as any).due_override
                             ? html`<ha-svg-icon
                                 class="postponed-icon"

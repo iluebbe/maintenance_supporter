@@ -415,6 +415,39 @@ part that counts when bought, and appears in the history, the budget and the
 area report like a completed reminder. The `part_purchase` service does the
 same for automations.
 
+**Ordered now, received later** (2.121+, #261): buying online is two moments.
+*Ordered…* on a part's row records how many were ordered and, if you like, the
+expected delivery day. The part then reads *On order: 2, expected 20 Nov*, its
+*Buy…* reminder (the open one, or a new one) waits until that day instead of
+sitting on today's list, and the configured shopping list drops it. A part
+whose buy reminders are switched off gets none: its order is a note on the
+part. When the parcel arrives, complete the reminder or use *Bought…* (the
+ordered amount is prefilled): that books the stock and closes the order. A
+restock takes what arrived off the order, so a first parcel of two leaves the
+rest on order. *Cancel order* takes it back; the reminder is then due again
+if the part is low and goes if it is not (a day you postponed it to yourself
+stays).
+
+![A cabin air filter on order, expected in four days; the wiper blades offer Ordered…](images/part-order.png)
+
+**Ordered by e-mail** (2.121+, #265): a supplier without a web shop is ordered
+from by mail. Put a `mailto:` address (or just the address) into the part's
+link field: the part's name then opens a new e-mail to that address, with the
+part as the subject and the amount, vendor and part numbers as the text. An
+address that brings its own `?subject=…` keeps your wording.
+
+**Move a part to another object** (2.121+, #262): edit the part and choose
+*Move to another object*. The part goes with its stock, an open order (its
+reminder keeps waiting for the delivery on the new object), its stock sensor
+(same entity id, so its history, dashboards and automations stay), its
+manual (unless another part of the old object uses the same document) and the
+links of every task that uses it: the old object's tasks keep using it, now as
+a part shared from the new one, and the history still knows where its parts
+came from. Deleting an object that owns shared parts says before the delete
+which parts move to which object.
+
+![The part form: Move to another object, the Lawn Mower chosen](images/part-move.png)
+
 **Bought in packages, used in their unit** (2.96+, discussion #98): give a part
 a *package size* — a 400 ml can of contact spray, a 25 kg bag of salt — and it
 is bought per package but used per unit. The stock, what a task uses and the
@@ -668,7 +701,10 @@ wrote, so a trigger you changed yourself is left alone.
 If you have many battery devices, 30–70+ of them would mean 30–70 maintenance
 tasks — noise. Instead, **one click** sets up a single *Battery Fleet*: **one
 object, one task** that aggregates every battery, and one managed spare-part per
-battery **type**.
+battery **type**. Each row names the device and, beside it, its **area**
+(2.121+): with Home Assistant's naming a device is often just *Radiator valve*
+in every room, and the area tells the rows apart. The sensor's due lists and
+the voice answer put the area in front of such a name as well.
 
 It works best with the [Battery Notes](https://github.com/andrew-codechimp/HA-Battery-Notes)
 integration, which supplies each battery's **type, quantity, low-threshold and
@@ -964,7 +1000,9 @@ green), per-event source icon (clock = time-based,
 trending-up = sensor-based), per-event average cost, and a prediction-confidence
 pill (green / amber / red, 1.5.1+) on sensor-predicted events. Time-based
 recurring tasks additionally project up to 5 future occurrences into the window
-at 55 % opacity — hypothetical cycles assuming you stay on schedule.
+at 55 % opacity — hypothetical cycles assuming you stay on schedule. Weekday,
+nth-weekday, day-of-month and calendar schedules project their real coming
+dates too (2.121+, #266), computed by the schedule engine.
 
 ### Calendar (HA-native entity)
 The integration's calendar entity in Home Assistant's own calendar panel —
@@ -1154,11 +1192,11 @@ where doing it is all there is to record.
 - **Due date** (2.96+): for a sensor that reports *when* the maintenance is due — a timestamp or date such as a purifier's *Filter change due*. The task becomes due N days before that date (0 = on the date itself) and fires on time even though the sensor keeps reporting the same date until then. When the device moves its date forward — usually its own *filter changed* button, which can be the task's completion action — the trigger clears and, with *auto-complete on recovery*, the task records the completion
 - **Compound**: combine multiple conditions with AND/OR logic (e.g., threshold AND runtime); *auto-complete on recovery* works here too (2.104+)
 - Multi-entity support for all trigger types (any/all entity logic)
-- **Trigger ∧ interval combinator**: a trigger task can also carry a safety interval — by default whichever is met first makes the task due; with the `all` combinator the task only becomes due once the trigger fired *and* the interval elapsed (the interval acts as a minimum age, e.g. "when the sensor says so, but never more often than every 3 months")
+- **Trigger ∧ interval combinator**: a trigger task can also carry a safety interval — by default whichever is met first makes the task due; with the `all` combinator the task only becomes due once the trigger fired *and* the interval elapsed (the interval acts as a minimum age, e.g. "when the sensor says so, but never more often than every 3 months"); its due date is then the later of the two, the sensor's predicted date when there is one (2.121+, #260)
 - **Auto-complete on sensor recovery** (2.12.0+, opt-in per task, #53) — when the trigger clears itself (salt refilled, filter swapped, pressure topped up), the task records a completion automatically: `last performed` and the time-between-services statistics stay real without opening the app. Manual completes are unaffected, and a just-completed task never double-records
 - **Keep it until it is done** (2.110+, D#229) — a state that lasts only a moment, like a washer's *finished* before it switches *off*, no longer takes the task with it: *When the state ends → Keep the task triggered until it is done* holds the task, its reminders and its to-do items until someone completes it, or until its *Done when* entity changes. A threshold and a due date hold the same way (2.120+): a waste drawer that reads lower by measurement error, or a frost forecast that turns milder, no longer ends a job that still waits
-- **Completes itself** (2.120+, D#250) — while the trigger of a task that records the completion when the sensor recovers is active, the rows of the panel and the card say *Completes itself* instead of offering Complete and Skip: refilling the water tank is what completes it. The task's page and menu still complete it by hand, for a sensor that fails
-- **Show with the task** (2.109+, #228) — the trigger section can name an attribute of the watched entity whose value says what the trigger is about. While the trigger is active, the value follows the task's name in every list (*Buy medicine · Trulicity: 3 left*), ends its reminder, becomes the item's description in the integration's to-do list, and rides on the notification event as `trigger_detail`. The value is read when it is shown, so it stays current while the task waits; lists read as *a, b*, and with several watched entities each value is named after its entity
+- **Completes itself** (2.120+, D#250) — while the trigger of a task that records the completion when the sensor recovers is active, the rows of the panel and the card say *Completes itself* instead of offering Complete and Skip: refilling the water tank is what completes it. Its reminders on the phone carry no Complete and Skip buttons either, only Snooze (2.121+). The task's page and menu still complete it by hand, for a sensor that fails
+- **Show with the task** (2.109+, #228) — the trigger section can name an attribute of the watched entity whose value says what the trigger is about. While the trigger is active, the value follows the task's name in every list (*Buy medicine · Trulicity: 3 left*), ends its reminder, becomes the item's description in the integration's to-do list, and rides on the notification event as `trigger_detail`. The value is read when it is shown, so it stays current while the task waits; lists read as *a, b*, a number is rounded to two decimals so a reminder reads at a glance (*21.46*; in a reminder with a decimal comma where the notification language writes one, in the panel in your own number format), and with several watched entities each value is named after its entity
 - **Entity attribute introspection** — trigger setup shows domain-specific attribute suggestions (e.g., `current_temperature` for climate entities)
 - Automatic entity availability tracking with grace periods
 - Repair issues for missing or unavailable trigger entities (replace / remove / dismiss)
@@ -1207,6 +1245,8 @@ where doing it is all there is to record.
 - **Triggers notify promptly** (2.81+, #175) — a sensor trigger flipping on or off asks the coordinator for a refresh right away (debounced ten seconds), so the *triggered* reminder and the notification event follow within seconds instead of waiting for the next 5-minute update tick
 - **Notification title style** (1.4.0+) — choose what appears as the notification's *title*: per-status text (default), the object name, or the task name. Helps when phones stack notifications and only the title is visible without expanding the stack
 - **Title prefix** (2.118+) — free text in front of every notification's title, with every style (*"Rental · Maintenance Overdue!"*), so a phone that hears from more than one Home Assistant tells them apart. Empty by default; the field suggests the home's name
+- **Notification language** (2.121+, #251) — the notifications can speak another language than Home Assistant: titles, messages, the action buttons and the test push. Settings → Notifications → *Notification language*, or the options flow; *Home Assistant language* (the default) keeps them as before. The panel keeps each person's own language
+- **Own notification texts** (2.121+, #252) — a task can word its notifications itself: *Own notification texts* in the task dialog's Notifications section has a title and a message for due soon, overdue, triggered (tasks with a sensor rule) and completed. *"Bins tonight"* says more than *"Maintenance due soon"*. An empty field keeps the standard text, the placeholders of the standard texts work (`{task}`, `{object}`, `{days}`, `{due}`; `{detail}` for what the sensor rule shows with the task, `{reason}` and `{person}` for a completion), and the action buttons stay. Bundles and the quiet-hours summary keep the standard texts; the title prefix still goes in front
 
 ### Budget Tracking
 - Monthly and yearly maintenance budgets
@@ -1317,7 +1357,7 @@ announcement, the shopping list at the store) are in
 - **Description and order** (2.84+, #164) — every document takes a free-text **description** (shown under its title, searched by the document search), and the list can be ordered **newest / oldest / by title / by category**, remembered per browser. *By title* sorts naturally — "Construct 2" before "Construct 10", "#1, #2, #3" — so numbering your documents gives the sequence you typed. The description also shows under the title in the task's document list and prints next to the task's linked documents in the service booklet, behind the *Document descriptions* print switch (2.85+)
 - **Documents at the task** — link an object's documents to a specific task so the right manual sits on the task-detail page where the work happens; each task row shows a **paperclip badge** with its document count, and the link **survives a backup/restore** (task ids are remapped like the spare-part links). For a PDF you can set a **jump-to page** so opening it lands on the relevant section (`#page=N`)
 - **Lifecycle & hygiene** — deleting a document frees its bytes only when the *last* reference goes; archiving an object keeps its documents (inert); a boot-time **storage-hygiene repair issue** flags orphaned or dangling blobs after a crash or partial restore and cleans them up in one click
-- **Portable backup** — three exports that together carry everything: the **objects** (JSON or YAML, with history and document metadata), the **settings** (a second file: groups, saved views, vacation, notification and budget settings, feature switches) and the **documents archive** (a ZIP with the files themselves). CSV carries objects and tasks only. Exports can be **limited to selected objects** to migrate a single asset — see [Moving to another Home Assistant](#moving-to-another-home-assistant-296)
+- **Portable backup** — three exports that together carry everything: the **objects** (JSON or YAML, with history and document metadata), the **settings** (a second file: groups, saved views, vacation, notification and budget settings, feature switches) and the **documents archive** (a ZIP with the files themselves). CSV carries objects and tasks only; *Export history (CSV)* (2.121+) writes the history as a table, one row per entry (object, task, local time, type, reference number, who, cost, parts cost, duration, reading, feedback, notes), for the selected objects and an optional date range. Exports can be **limited to selected objects** to migrate a single asset — see [Moving to another Home Assistant](#moving-to-another-home-assistant-296)
 
 ![Documents & parts below the task list, with a per-task paperclip badge](images/task-documents.png)
 
@@ -1364,7 +1404,7 @@ Archives from before 2.96 (files stored as `blobs/<hash>`) still restore.
 - Localized UI in **all 22 languages across all three surfaces** (since 1.4.2; 22 since 2.42): English, German, Spanish, French, Italian, Dutch, Portuguese, Brazilian Portuguese, Russian, Ukrainian, Polish, Czech, Swedish, Simplified Chinese, Danish, Finnish, Norwegian Bokmål, Japanese, Hindi, Hungarian, Korean, Turkish — covers panel UI, HA config-flow + Repairs UI, and phone notification messages
 
 ### WebSocket API
-- 114 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock / use / purchase), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / discard an unattached photo / storage summary / search)
+- 119 commands for full CRUD operations on objects, tasks, triggers, groups, spare parts (create / update / delete / restock / use / purchase), vacation mode, completion actions, quick-complete, and document management (list / upload-link / update / delete / discard an unattached photo / storage summary / search)
 - Global settings update and test notification via WS
 - Real-time subscription for live updates
 - User assignment and listing
@@ -1464,6 +1504,10 @@ create those in the panel (2.96+ refuses `sensor_based` instead of quietly
 building a plain task). `list_tasks` filters by `ok`, `due_soon`, `overdue`,
 `triggered` or `paused`, and its `person` (a person entity, #210) returns the tasks meant for
 that person: their own, and the ones shared with them that nobody is responsible for.
+`complete` takes `consume_parts: true` (2.121+) to book the task's linked parts
+for a completion backfilled with `completed_at`; a current completion books
+them anyway. `export_data` writes the history as a table with
+`format: history_csv` (2.121+, to `maintenance_history.csv`).
 `complete` also accepts `via_tag_scan: true` (2.67+) so an automation that
 reacts to a physical scan can complete a tag-gated task — see
 [Examples](EXAMPLES.md#complete-a-tag-gated-task-from-an-automation-267) —
@@ -1483,7 +1527,7 @@ when left out) for the used ones of a reusable part. They need
 write access like the panel's buttons, accept several parts at once, book
 nothing unless every entity is a part's stock sensor, and return the new counts
 when asked for a response.
-For the full WebSocket API (114 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
+For the full WebSocket API (119 commands), see [Architecture — WebSocket API](ARCHITECTURE.md#websocket-api).
 
 ### Voice & Assist (2.26+)
 

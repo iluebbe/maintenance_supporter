@@ -675,6 +675,7 @@
           "notification_bundle_threshold": "Bundle threshold",
           "notification_title_style": "Notification title style",
           "notification_title_prefix": "Notification title prefix",
+          "notification_language": "Notification language",
           "notify_completed": "Completion notifications",
           "notify_event_only": "Only fire the event, send nothing myself",
           "notify_extra_data": "Extra notification data (template)",
@@ -694,6 +695,7 @@
           "notification_bundle_threshold": "Minimum number of tasks to trigger a bundled notification.",
           "notification_title_style": "What appears as the notification's TITLE. Default keeps the per-status text (e.g. 'Maintenance overdue!'). Object name / Task name help when phone notifications stack.",
           "notification_title_prefix": "Put in front of every notification's title, with every title style, e.g. the home's name when your phone gets reminders from more than one Home Assistant. Empty = no prefix.",
+          "notification_language": "The language of the notifications' titles, messages and buttons. Home Assistant language = as before. The panel keeps each person's own language.",
           "notify_completed": "Household news when a task is completed, with the reason (panel, QR / NFC scan, to-do list, voice, sensor recovery …). \"Automatic only\" announces just the completions nobody made on the spot — sensor recovery, shopping-list check-off, an automation's service call.",
           "notify_event_only": "Every notification fires the event maintenance_supporter_notification. With this on, your automation is the whole delivery — repeat intervals, quiet hours and the daily cap still decide when the event fires.",
           "notify_extra_data": "JSON or YAML with Jinja, merged into every notify call's data (your keys win). Variables: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
@@ -1892,6 +1894,10 @@
         "via_tag_scan": {
           "name": "Via tag scan",
           "description": "Assert that this completion came from a physical tag/QR scan the automation handled itself — satisfies a task's \"Only complete by scanning the tag\" setting."
+        },
+        "consume_parts": {
+          "name": "Consume parts",
+          "description": "Book the parts linked to the task for this completion even when Completed at lies before the task's latest completion. A current completion books them anyway; a backfilled one only does with this switched on. The parts come off today's stock."
         }
       }
     },
@@ -1929,7 +1935,7 @@
       "fields": {
         "format": {
           "name": "Format",
-          "description": "Output format for the exported data (json or yaml)."
+          "description": "Output format: json or yaml for the full export, history_csv for the history as a table with one row per entry (written to maintenance_history.csv)."
         },
         "include_history": {
           "name": "Include History",
@@ -2351,7 +2357,7 @@
     },
     "shared_parts_moved": {
       "title": "Shared spare parts moved to {new_owner}",
-      "description": "Several maintenance objects were sharing one spare-part stock pool that lived on **{deleted_object}**, and that object has just been deleted. Rather than leave the others pointing at a pool that no longer exists, Maintenance Supporter moved the shared parts ({parts}) — together with their current stock — onto **{new_owner}**, and repointed every other object's task links at them. Nothing was lost.\n\n**{new_owner}** was picked automatically: it is the oldest object that was using the pool. If a different object is the better home for these parts, move them there in the Maintenance panel.\n\nNothing else needs doing — dismiss this notification once you have checked it."
+      "description": "Several maintenance objects were sharing one spare-part stock pool that lived on **{deleted_object}**, and that object has just been deleted. Rather than leave the others pointing at a pool that no longer exists, Maintenance Supporter moved the shared parts ({parts}) — together with their current stock — onto **{new_owner}**, and repointed every other object's task links at them. Nothing was lost.\n\n**{new_owner}** was picked automatically: it is the oldest object that was using the pool.\n\nNothing else needs doing — dismiss this notification once you have checked it."
     },
     "broken_part_link": {
       "title": "Broken spare-part links on {object_name}",
@@ -2538,6 +2544,9 @@
     "part_owner_archived": {
       "message": "“{object_name}” is archived. Restore it to record a purchase."
     },
+    "part_owner_not_loaded": {
+      "message": "{object_name} is not running right now (disabled or still starting), so its spare parts cannot be booked. Try again once it is."
+    },
     "purchase_cost_too_high": {
       "message": "A purchase can cost at most {max} in total."
     },
@@ -2567,6 +2576,9 @@
     },
     "date_in_future": {
       "message": "The date must not be in the future."
+    },
+    "time_based_needs_interval": {
+      "message": "A time-based task needs an interval."
     },
     "range_end_before_start": {
       "message": "The end must be on or after the start."

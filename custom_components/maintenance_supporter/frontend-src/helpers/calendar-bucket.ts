@@ -10,6 +10,11 @@
  * at MAX_OCCURRENCES_PER_TASK to prevent absurdly small intervals (e.g. a
  * 1-day-interval task in a 30-day window would otherwise produce 30 entries).
  *
+ * Weekdays / nth-weekday / day-of-month / calendar schedules (#266): their
+ * dates cannot be stepped by adding days, so the backend sends them as
+ * `upcoming_dates` (computed by the schedule engine) and they are drawn as
+ * given, under the same cap.
+ *
  * Sensor-triggered tasks: only next_due is shown — we have no honest way to
  * predict when a sensor will next fire.
  */
@@ -134,9 +139,24 @@ function projectTask(input: ProjectionInput): CalendarEvent[] {
     1, Math.round(intervalSpanDays(task.interval_days, task.interval_unit)),
   );
 
+  // #266: a calendar-kind schedule brings its coming dates from the engine.
+  const upcoming: string[] = Array.isArray(task.upcoming_dates)
+    ? task.upcoming_dates.filter((d: unknown): d is string => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d))
+    : [];
+  const pushUpcoming = (after: string): void => {
+    for (const d of upcoming) {
+      if (out.length >= MAX_OCCURRENCES_PER_TASK) break;
+      if (d > after && d >= windowStart && d <= windowEnd) out.push(baseEvent(d, true));
+    }
+  };
+
   // Overdue / triggered → bucket on today (windowStart) regardless of next_due
   if (isUrgentStatus(task.status)) {
     out.push(baseEvent(windowStart, false));
+    if (upcoming.length) {
+      pushUpcoming(windowStart);
+      return out;
+    }
     // Continue projecting from "today" forward for time-based tasks
     if (task.schedule_type === "time_based" && task.interval_days && task.interval_days > 0) {
       let cursor = addDaysIso(windowStart, stepDays);
@@ -162,6 +182,11 @@ function projectTask(input: ProjectionInput): CalendarEvent[] {
     out.push(baseEvent(firstDate, false));
   } else if (firstDate > windowEnd) {
     return out;  // entire occurrence chain is past window
+  }
+
+  if (upcoming.length) {
+    pushUpcoming(firstDate);
+    return out;
   }
 
   // Subsequent projected occurrences (time-based only, with interval_days)

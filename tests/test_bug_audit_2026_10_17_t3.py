@@ -416,7 +416,8 @@ def test_w5_text_fields_take_text_only() -> None:
 
     task = cap_task_fields({"name": "Filter", "documentation_url": ["https://a"], "notes": 5, "custom_icon": {"x": 1}, "responsible_user_id": None})
     assert "documentation_url" not in task and "custom_icon" not in task
-    assert task["notes"] == "5" and task["responsible_user_id"] is None
+    # Nobody responsible is absence (DRY audit 2026-10-30, BI6-B12).
+    assert task["notes"] == "5" and "responsible_user_id" not in task
     obj = {"name": "Boiler", "manufacturer": ["Acme"], "model": 3000, "notes": True}
     cap_object_fields(obj)
     assert "manufacturer" not in obj and "notes" not in obj and obj["model"] == "3000"

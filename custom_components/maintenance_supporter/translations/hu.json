@@ -675,6 +675,7 @@
           "notification_bundle_threshold": "Összevonási küszöb",
           "notification_title_style": "Értesítés címének stílusa",
           "notification_title_prefix": "Értesítés címének előtagja",
+          "notification_language": "Értesítések nyelve",
           "notify_completed": "Elvégzési értesítések",
           "notify_event_only": "Csak az eseményt váltsa ki, ne küldjön semmit",
           "notify_extra_data": "További értesítési adatok (sablon)",
@@ -694,6 +695,7 @@
           "notification_bundle_threshold": "Az összevont értesítéshez szükséges minimális feladatszám.",
           "notification_title_style": "Mi jelenjen meg az értesítés CÍMEKÉNT. Az alapértelmezés az állapotonkénti szöveget tartja meg (pl. „Karbantartás lejárt!”). Az objektumnév / feladatnév akkor segít, ha a telefonon egymásra tornyosulnak az értesítések.",
           "notification_title_prefix": "Minden értesítés címe elé kerül, bármely stílusnál, pl. az otthon neve, ha a telefon több Home Assistanttól is kap emlékeztetőt. Üres = nincs előtag.",
+          "notification_language": "Az értesítések címének, szövegének és gombjainak nyelve. A Home Assistant nyelve = mint eddig. A panel mindenkinek a saját nyelvén marad.",
           "notify_completed": "Üzenet a háztartásnak, ha egy feladat elkészült, az okkal együtt (panel, QR-/NFC-beolvasás, teendőlista, hang, érzékelő helyreállása…). A „Csak automatikus” csak azokat jelenti, amelyeket senki nem végzett el a helyszínen: érzékelő helyreállása, kipipálás a bevásárlólistán, automatizálás szolgáltatáshívása.",
           "notify_event_only": "Minden értesítés kiváltja a maintenance_supporter_notification eseményt. Bekapcsolva a teljes kézbesítést az automatizálásod végzi — az ismétlési időközök, a csendes órák és a napi korlát továbbra is meghatározzák, mikor jön az esemény.",
           "notify_extra_data": "JSON vagy YAML Jinjával, minden notify hívás data mezőjébe beolvasztva (a te kulcsaid nyernek). Változók: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
@@ -1892,6 +1894,10 @@
         "via_tag_scan": {
           "name": "Címke beolvasásával",
           "description": "Igazolja, hogy ez az elvégzés egy fizikai címke/QR-kód beolvasásából származik, amelyet az automatizálás maga kezelt — teljesíti a feladat „Csak címke beolvasásával fejezhető be” beállítását."
+        },
+        "consume_parts": {
+          "name": "Alkatrészek felhasználása",
+          "description": "A feladathoz kapcsolt alkatrészeket akkor is elkönyveli ehhez az elvégzéshez, ha az elvégzés dátuma a feladat legutóbbi elvégzése előtti. Az aktuális elvégzés mindig elkönyveli őket, az utólag rögzített csak ezzel a kapcsolóval. Az alkatrészek a mai készletből fogynak."
         }
       }
     },
@@ -1929,7 +1935,7 @@
       "fields": {
         "format": {
           "name": "Formátum",
-          "description": "Az exportált adatok kimeneti formátuma (json vagy yaml)."
+          "description": "Kimeneti formátum: json vagy yaml a teljes exporthoz, history_csv az előzményekhez táblázatként, bejegyzésenként egy sorral (maintenance_history.csv fájl)."
         },
         "include_history": {
           "name": "Előzményekkel együtt",
@@ -2351,7 +2357,7 @@
     },
     "shared_parts_moved": {
       "title": "A megosztott alkatrészek átkerültek ide: {new_owner}",
-      "description": "Több karbantartási objektum ugyanazt az alkatrészkészletet használta, amely a(z) **{deleted_object}** objektumon volt, és ezt az objektumot most törölték. Ahelyett, hogy a többi objektum egy már nem létező készletre mutatna, a Maintenance Supporter átmozgatta a megosztott alkatrészeket ({parts}) — a jelenlegi készlettel együtt — a(z) **{new_owner}** objektumra, és minden más objektum feladat-hivatkozását erre irányította át. Semmi nem veszett el.\n\nA(z) **{new_owner}** választása automatikus volt: ez a legrégebbi objektum, amely a készletet használta. Ha egy másik objektum alkalmasabb, mozgassa oda az alkatrészeket a karbantartási panelen.\n\nMás teendő nincs — a megtekintés után zárja be ezt az értesítést."
+      "description": "Több karbantartási objektum ugyanazt az alkatrészkészletet használta, amely a(z) **{deleted_object}** objektumon volt, és ezt az objektumot most törölték. Ahelyett, hogy a többi objektum egy már nem létező készletre mutatna, a Maintenance Supporter átmozgatta a megosztott alkatrészeket ({parts}) — a jelenlegi készlettel együtt — a(z) **{new_owner}** objektumra, és minden más objektum feladat-hivatkozását erre irányította át. Semmi nem veszett el.\n\nA(z) **{new_owner}** választása automatikus volt: ez a legrégebbi objektum, amely a készletet használta.\n\nMás teendő nincs — a megtekintés után zárja be ezt az értesítést."
     },
     "broken_part_link": {
       "title": "Hibás alkatrész-hivatkozások itt: {object_name}",
@@ -2538,6 +2544,9 @@
     "part_owner_archived": {
       "message": "„{object_name}” archiválva van. Állítsa vissza egy vásárlás rögzítéséhez."
     },
+    "part_owner_not_loaded": {
+      "message": "{object_name} most nem fut (letiltva vagy még indul), ezért a pótalkatrészei nem könyvelhetők. Próbáld újra, amikor fut."
+    },
     "purchase_cost_too_high": {
       "message": "Egy vásárlás összesen legfeljebb {max} lehet."
     },
@@ -2567,6 +2576,9 @@
     },
     "date_in_future": {
       "message": "A dátum nem lehet a jövőben."
+    },
+    "time_based_needs_interval": {
+      "message": "Az időalapú feladathoz intervallum kell."
     },
     "range_end_before_start": {
       "message": "A vége nem lehet korábbi a kezdeténél."

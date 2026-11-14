@@ -2,7 +2,7 @@
 
 import { LitElement, html, nothing, render, type TemplateResult } from "lit";
 import { isSafeLink } from "./helpers/url";
-import { clickOnActivationKey } from "./helpers/keyboard";
+import { clickOnActivationKey, onActivationKey } from "./helpers/keyboard";
 import { matchesQuery, queryTokens, scoreFields } from "./helpers/search-match";
 import { objectRef, parseRef, renderRefChip, taskRef, type HasRef } from "./helpers/reference";
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
@@ -24,8 +24,9 @@ import { openHtmlInNewTab, openSignedDocument, preopenTab, signApiPath } from ".
 import { readObjectsCache, writeObjectsCache } from "./helpers/objects-cache";
 import { askDeleteTask } from "./helpers/delete-task";
 import { hydrateObjects } from "./helpers/hydrate-objects";
+import { subscribeAcrossReconnects } from "./helpers/live-subscription";
 import { taskIsFor, taskUserIds } from "./helpers/assignees";
-import { quickCompleteOn } from "./helpers/quick-complete";
+import { quickComplete, quickCompleteOn } from "./helpers/quick-complete";
 import { completesItself } from "./helpers/completes-itself";
 import { daysProgress } from "./helpers/interval";
 import { buildObjectReportHtml, type ReportLabels } from "./helpers/report";
@@ -37,7 +38,7 @@ import { buildTaskWorksheetHtml, type WorksheetExcerpt, type WorksheetLabels } f
 import { describePartLink } from "./helpers/shared-parts";
 import { docDisplayName } from "./helpers/document-categories";
 import { effectivePhase } from "./helpers/phases";
-import { renderEventTitles, renderTriggerDetail } from "./helpers/event-titles";
+import { renderTaskTitle, triggerDetailText } from "./helpers/event-titles";
 import { recommendationReason, type HomeProfile, type TemplateRecommendation } from "./helpers/home-profile";
 import { buildCompleteDialogArgs, fillAndOpenCompleteDialog } from "./helpers/complete-dialog-args";
 import { areaDisplayName, areaKeyOf, areaLabel } from "./helpers/area-history";
@@ -108,7 +109,7 @@ import "./components/template-updates";
 import "./components/task-documents";
 import type { MaintenanceTaskDialog } from "./components/task-dialog";
 import type { MaintenanceCompleteDialog, TaskCompletedDetail } from "./components/complete-dialog";
-import { alreadyRecordedMessage, undoCompletion } from "./helpers/undo-completion";
+import { undoCompletion } from "./helpers/undo-completion";
 import type { MaintenanceQrDialog } from "./components/qr-dialog";
 import type { MaintenanceAdoptProblemSensorsDialog } from "./components/adopt-problem-sensors-dialog";
 import "./components/battery-fleet-section";
@@ -134,6 +135,7 @@ import "./components/saved-views-dialog";
 import type { MaintenanceSavedViewsDialog } from "./components/saved-views-dialog";
 import { ruleSensors, type SparklineContext } from "./renderers/sparkline";
 import { buildCalendarBuckets, type CalendarEvent } from "./helpers/calendar-bucket";
+import { deleteObjectMessage } from "./helpers/delete-object-message";
 import { haToday } from "./helpers/ha-time";
 import { renderTriggerProgress, renderMiniSparkline, computeTrend, renderDueText, renderLastDone } from "./renderers/progress";
 import { type HistoryContext } from "./renderers/history";
@@ -163,7 +165,7 @@ import { buildHistoryEntryDraft } from "./helpers/history-draft";
 import { readingSlotDelta } from "./helpers/reading-slots";
 import { bulkResultMessage, codedFailures, runWs, runWsEach } from "./helpers/ws-run";
 import { snoozedMessage, type SnoozeResult } from "./helpers/snooze";
-import { STATUS_ORDER, isUrgentStatus, statusRank } from "./status-constants";
+import { STATUS_ORDER, isInertTask, isUrgentStatus, statusRank } from "./status-constants";
 import { collapsible } from "./helpers/collapsible";
 import { selectField, selectIsHa } from "./helpers/select-field";
 import { checkField } from "./helpers/check-field";
@@ -749,7 +751,6 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
-    this._subGen++;
     window.removeEventListener("popstate", this._popstateHandler);
     window.removeEventListener("location-changed", this._locationChangedHandler);
     window.removeEventListener("keydown", this._paletteKeydown);
@@ -1514,56 +1515,46 @@ export class MaintenanceSupporterPanel extends LitElement {
     this._miniStatsData = new Map([...this._miniStatsData, ...batchResult]);
   }
 
-  /** Each subscribe attempt's number: one still in flight when the element
-   *  was detached and attached again resolved next to the new one, and its
-   *  subscription was never released (bug audit 2026-10-16, FE-7). */
-  private _subGen = 0;
-
-  private async _subscribe(): Promise<void> {
-    const gen = ++this._subGen;
-    try {
-      const unsub = await this.hass.connection.subscribeMessage(
-        (msg: unknown) => {
-          const ev = msg as SubscriptionEvent<MaintenanceObjectResponse>;
-          const next = applySubscriptionEvent(this._objects, ev);
-          if (next !== null) {
-            this._objects = next;
-            // Full snapshots are rare (subscribe start) — keep the skeleton
-            // cache fresh from them; per-delta writes would churn storage.
-            if ((msg as SubscriptionEvent<MaintenanceObjectResponse>).objects) {
-              writeObjectsCache(next, this._stats ?? null);
-            }
-            // The KPI row (_stats) and the budget card come from their own
-            // endpoints — a pushed change (completion from the card, a timer
-            // wave flipping a task overdue) left them frozen at the last
-            // _loadData until the next user action.
-            void this._refreshKpis();
-            // The open task's full history is a separate fetch too; the
-            // truncated list payload never wins the "longer list" comparison
-            // in _historyCtx, so a pushed completion stayed invisible there.
-            if (
-              this._detailOpen()
-              && (!!ev.objects || (ev.delta || []).some((d) => d.entry_id === this._selectedEntryId))
-            ) {
-              void this._fetchFullHistory(this._selectedEntryId!, this._selectedTaskId!);
-            }
+  /** The objects subscription, across Home Assistant restarts (#258: the
+   *  library's own resubscribe fails while the integration is still loading,
+   *  and the panel then kept its list until a reload). Closed through
+   *  `_unsub`; one still being set up when the element is detached ends once
+   *  it is (bug audit 2026-10-16, FE-7). */
+  private _subscribe(): void {
+    const live = subscribeAcrossReconnects(
+      this.hass.connection,
+      (msg: unknown) => {
+        const ev = msg as SubscriptionEvent<MaintenanceObjectResponse>;
+        const next = applySubscriptionEvent(this._objects, ev);
+        if (next !== null) {
+          this._objects = next;
+          // Full snapshots are rare (subscribe start) — keep the skeleton
+          // cache fresh from them; per-delta writes would churn storage.
+          if ((msg as SubscriptionEvent<MaintenanceObjectResponse>).objects) {
+            writeObjectsCache(next, this._stats ?? null);
           }
-        },
-        // deltas: only entries whose rebuilt response actually changed —
-        // no-op timer waves send nothing, a real change ships one object.
-        // compact: empty keys stripped server-side, hydrated above.
-        { type: "maintenance_supporter/subscribe", deltas: true, compact: true }
-      );
-      // If the element was detached while the subscribe was in flight, drop the
-      // now-orphaned subscription instead of storing it on a dead component.
-      if (!this.isConnected || gen !== this._subGen) {
-        unsub();
-        return;
-      }
-      this._unsub = unsub;
-    } catch {
-      // Subscription failed; fall back to polling
-    }
+          // The KPI row (_stats) and the budget card come from their own
+          // endpoints — a pushed change (completion from the card, a timer
+          // wave flipping a task overdue) left them frozen at the last
+          // _loadData until the next user action.
+          void this._refreshKpis();
+          // The open task's full history is a separate fetch too; the
+          // truncated list payload never wins the "longer list" comparison
+          // in _historyCtx, so a pushed completion stayed invisible there.
+          if (
+            this._detailOpen()
+            && (!!ev.objects || (ev.delta || []).some((d) => d.entry_id === this._selectedEntryId))
+          ) {
+            void this._fetchFullHistory(this._selectedEntryId!, this._selectedTaskId!);
+          }
+        }
+      },
+      // deltas: only entries whose rebuilt response actually changed —
+      // no-op timer waves send nothing, a real change ships one object.
+      // compact: empty keys stripped server-side, hydrated above.
+      { type: "maintenance_supporter/subscribe", deltas: true, compact: true },
+    );
+    this._unsub = () => live.close();
   }
 
   /** Refetch the KPI statistics + budget status after a pushed object change.
@@ -1670,7 +1661,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           last_performed: task.last_performed ?? null,
           next_event_titles: task.next_event_titles ?? [],
           trigger_active: task.trigger_active,
-          trigger_detail: task.trigger_detail ?? null,
+          trigger_detail: triggerDetailText(task, this._lang),
           trigger_current_value: task.trigger_current_value ?? null,
           trigger_current_delta: task.trigger_current_delta ?? null,
           trigger_config: task.trigger_config ?? null,
@@ -3137,7 +3128,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const dlg = this.shadowRoot!.querySelector<MaintenanceConfirmDialog>("maintenance-confirm-dialog");
     const ok = await dlg?.confirm({
       title: t("delete", this._lang),
-      message: t("delete_object_confirm", this._lang),
+      message: await deleteObjectMessage(this.hass, entryId, this._lang),
       confirmText: t("delete", this._lang),
       danger: true,
     });
@@ -3504,42 +3495,25 @@ export class MaintenanceSupporterPanel extends LitElement {
   private async _handleQuickComplete(
     entryId: string, taskId: string, task: MaintenanceTask, source: "qr" | "panel" = "qr",
   ): Promise<void> {
-    let failure: { message: string; code: string } | null = null;
-    const res = await runWs(
-      this,
-      { type: "maintenance_supporter/task/quick_complete", entry_id: entryId, task_id: taskId, source },
-      {
-        fallbackKey: "action_error",
-        onError: (message, e) => { failure = { message, code: (e as { code?: string })?.code || "" }; },
-      },
-    );
-    if (res === undefined) {
-      const { message, code } = failure ?? { message: "", code: "" };
-      // These refusals mean "the dialog has to collect something": Quick
-      // complete is off, the task demands completion details the prefill
-      // does not cover, or a tag scan a tap is not. The dialog opens as
-      // the fallback — after a QR scan via_tag_scan keeps the proof of
-      // presence.
-      if (code === "no_defaults" || code === "completion_details_required" || code === "tag_scan_required") {
-        this._openCompleteDialog(
-          entryId, taskId, task.name,
-          this._features.checklists ? task.checklist : undefined,
-          this._features.adaptive && !!task.adaptive_config?.enabled,
-          { viaTagScan: source === "qr", details: true },
-        );
-      } else {
-        // Relay the server's reason (too_early carries the earliest date)
-        // instead of a generic "action failed".
-        this._showToast(message);
-      }
+    const outcome = await quickComplete(this.hass, entryId, taskId, this._lang, source);
+    if (outcome.result === "dialog") {
+      // The dialog has to collect something; after a QR scan via_tag_scan
+      // keeps the proof of presence.
+      this._openCompleteDialog(
+        entryId, taskId, task.name,
+        this._features.checklists ? task.checklist : undefined,
+        this._features.adaptive && !!task.adaptive_config?.enabled,
+        { viaTagScan: source === "qr", details: true },
+      );
       return;
     }
-    const already = alreadyRecordedMessage(res, this._lang);
-    if (already) {
-      this._showToast(already, "info");
+    if (outcome.result === "failed" || outcome.result === "already") {
+      // The server's reason (too_early carries the earliest date), not a
+      // generic "action failed"; a double tap says when it was recorded.
+      this._showToast(outcome.message, outcome.result === "already" ? "info" : undefined);
       return;
     }
-    if ((res as { undo?: boolean } | null)?.undo) this._offerUndo(entryId, taskId, t("quick_complete_success", this._lang));
+    if (outcome.undo) this._offerUndo(entryId, taskId, t("quick_complete_success", this._lang));
     else this._showToast(t("quick_complete_success", this._lang), "info");
     // Silent success: the list must reflect the completion right away — the
     // subscription delta may lag or be coalesced.
@@ -4180,7 +4154,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           <div class="today-row" @click=${() => this._showTask(row.entry_id, row.task_id)}>
             <span class="today-dot ${row.trigger_active ? "triggered" : row.status}"></span>
             <div class="today-main">
-              <div class="today-task">${this._listRef(row.entry_id, row.task_id)}${row.task_name}${renderEventTitles(row.next_event_titles)}${renderTriggerDetail(row.trigger_detail)}</div>
+              <div class="today-task">${this._listRef(row.entry_id, row.task_id)}${renderTaskTitle(row.task_name, row.next_event_titles, row.trigger_detail)}</div>
               <div class="today-object">
                 <span class="today-object-text">${row.object_name} · ${row.days_until_due == null
                   // No due date (a triggered sensor task): when it was last
@@ -4190,7 +4164,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                 ${renderPeopleChip(peopleOf(row), "today-person")}
               </div>
             </div>
-            ${this._renderRowActions(L, () => this._openCompleteDialogForRow(row), undefined, false, this._isQuick(row), completesItself(row))}
+            ${this._renderRowActions(L, () => this._openCompleteDialogForRow(row), undefined, false, this._isQuick(row), completesItself(row), isInertTask(row))}
           </div>
         `)}
       </div>
@@ -4797,12 +4771,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                 tabindex="0"
                 aria-expanded=${open ? "true" : "false"}
                 @click=${() => this._toggleGroup(key)}
-                @keydown=${(e: KeyboardEvent) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    this._toggleGroup(key);
-                  }
-                }}
+                @keydown=${onActivationKey(() => this._toggleGroup(key))}
               >
                 <ha-svg-icon .path=${icon}></ha-svg-icon>
                 <span>${key}</span>
@@ -5650,7 +5619,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         </span>
         <span class="row-head">
           <span class="cell object-name" @click=${(e: Event) => { e.stopPropagation(); this._showObject(row.entry_id); }}>${row.object_name}</span>
-          <span class="cell task-name" @click=${() => this._showTask(row.entry_id, row.task_id)}>${this._listRef(row.entry_id, row.task_id)}${row.task_name}${renderEventTitles(row.next_event_titles)}${renderTriggerDetail(row.trigger_detail)}</span>
+          <span class="cell task-name" @click=${() => this._showTask(row.entry_id, row.task_id)}>${this._listRef(row.entry_id, row.task_id)}${renderTaskTitle(row.task_name, row.next_event_titles, row.trigger_detail)}</span>
         </span>
         <span class="task-sub${hasSub ? '' : ' task-sub-empty'}">
           ${row.group_names.length > 0 ? html`
@@ -5680,7 +5649,7 @@ export class MaintenanceSupporterPanel extends LitElement {
             : nothing}
           ${renderMiniSparkline(row, this._miniStatsData, this._lang)}
         </span>
-        ${this._renderRowActions(L, () => this._openCompleteDialogForRow(row), () => this._promptSkipTask(row.entry_id, row.task_id), row.allow_skip, this._isQuick(row), completesItself(row))}
+        ${this._renderRowActions(L, () => this._openCompleteDialogForRow(row), () => this._promptSkipTask(row.entry_id, row.task_id), row.allow_skip, this._isQuick(row), completesItself(row), isInertTask(row))}
       </div>
     `;
   }
@@ -5712,8 +5681,11 @@ export class MaintenanceSupporterPanel extends LitElement {
    *  tap, and the icon forms show an open circle to tick off (the to-do
    *  idiom) instead of a check that reads as done already. `selfCompleting`
    *  (D#250): only its sensor completes the task now, and the row says so
-   *  instead (helpers/completes-itself); its page still has Complete. */
-  private _renderRowActions(L: string, onComplete: () => void, onSkip?: () => void, allowSkip = true, quick = false, selfCompleting = false): TemplateResult {
+   *  instead (helpers/completes-itself); its page still has Complete.
+   *  `inert`: archived, switched off or paused, the server refuses both,
+   *  and the row's badges already say why (the card's isInertTask rule). */
+  private _renderRowActions(L: string, onComplete: () => void, onSkip?: () => void, allowSkip = true, quick = false, selfCompleting = false, inert = false): TemplateResult {
+    if (inert) return html`<span class="row-actions"></span>`;
     if (selfCompleting) {
       return html`<span class="row-actions"><span class="self-completing" title=${t("completes_itself_help", L)}>${t("completes_itself", L)}</span></span>`;
     }
@@ -5948,7 +5920,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                     ? html`<span class="doc-badge" title="${docBadgeTitle(task.document_count, L)}"><ha-icon icon="mdi:paperclip"></ha-icon>${task.document_count}</span>`
                     : nothing}
                 </span>
-                <span class="cell task-name" @click=${() => this._showTask(obj.entry_id, task.id)}>${this._listRef(obj.entry_id, task.id)}${task.name}${renderEventTitles(task.next_event_titles)}${renderTriggerDetail(task.trigger_detail)}</span>
+                <span class="cell task-name" @click=${() => this._showTask(obj.entry_id, task.id)}>${this._listRef(obj.entry_id, task.id)}${renderTaskTitle(task.name, task.next_event_titles, triggerDetailText(task, this._lang))}</span>
                 <span class="task-sub${taskUserIds(task).length ? '' : ' task-sub-empty'}">${renderUserBadge(task, (id) => this._userService?.getUserName(id) ?? null, (id) => this._userService?.getPerson(id) ?? null)}</span>
                 <span class="cell type">${t(task.type, L)}</span>
                 <span class="due-cell" @click=${() => this._showTask(obj.entry_id, task.id)}>
@@ -5965,6 +5937,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                   task.allow_skip,
                   quickCompleteOn(task),
                   completesItself(task),
+                  isInertTask(task),
                 )}
               </div>
             `)}</div>`}
@@ -5989,6 +5962,10 @@ export class MaintenanceSupporterPanel extends LitElement {
           .currencySymbol=${this._currencySymbol}
           .partsCostMode=${this._partsCostMode}
           .fleet=${!!o.battery_fleet}
+          .moveTargets=${this._objects
+            .filter((x) => x.entry_id !== sectionId && !x.object.battery_fleet && !x.object.archived_at)
+            .map((x) => ({ entry_id: x.entry_id, name: x.object.name }))
+            .sort((a, b) => a.name.localeCompare(b.name))}
           @parts-changed=${() => this._loadData()}
         ></maintenance-parts-section>
         `) : nothing}

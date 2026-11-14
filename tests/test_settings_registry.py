@@ -56,6 +56,7 @@ _EXPECTED_STR_MAX_LENGTHS = {
     "part_search_url_template": 500,  # D#182 user-settable shopping search
     "home_type": 16,  # v2.93 home profile: auto | house | apartment
     "home_region": 8,  # 2.94: auto | ISO 3166-2 code (US-NY, BE-VLG)
+    "notification_language": 8,  # #251: auto | a notification table language
 }
 
 
@@ -80,12 +81,12 @@ def test_allowed_keys_count_and_types() -> None:
     # advanced_predictions_visible; 2026-10 advanced_places_visible; #219
     # battery_low_delay_minutes; #231 mirror_todo_default_entities; #233
     # follow-up shared_device_user_ids; 2026-10 advanced_beta_editor_visible;
-    # D#248 notification_title_prefix).
-    assert len(ALLOWED_SETTING_KEYS) == 71
+    # D#248 notification_title_prefix; #251 notification_language).
+    assert len(ALLOWED_SETTING_KEYS) == 72
     assert all(isinstance(t, type) for t in ALLOWED_SETTING_KEYS.values())
     # No duplicate keys crept into the spec tuple.
     keys = [s.key for s in SETTING_SPECS]
-    assert len(keys) == len(set(keys)) == 71
+    assert len(keys) == len(set(keys)) == 72
 
 
 def test_every_ranged_key_is_declared_with_matching_type() -> None:

@@ -33,7 +33,6 @@ from ..const import (
     BATTERY_FLEET_TRACK_SELF_CHARGING,
     CONF_OBJECT,
     CONF_PARTS,
-    CONF_TASK_CONSUMES_PARTS,
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
@@ -57,8 +56,8 @@ from .battery_fleet import (
 from .battery_lifetime import cell_size, charged_kind
 from .entry_tasks import write_task, write_tasks
 from .global_options import get_default_warning_days
-from .i18n import normalize_language, normalize_language_code
-from .parts import PART_REF_FIELD, iter_part_links, normalize_part
+from .i18n import normalize_language, request_language
+from .parts import PART_REF_FIELD, iter_part_links, map_part_link_lists, map_used_parts, normalize_part
 from .task_persist import async_persist_task
 from .trigger_fallback import threshold_limits_overlap
 
@@ -100,7 +99,7 @@ async def async_setup_battery_fleet(hass: HomeAssistant, language: str | None = 
     """
     from .object_create import async_create_object
 
-    lang = normalize_language_code(language) if language else normalize_language(hass)
+    lang = request_language(hass, language)
     types = discover_battery_types(hass)  # {TYPE: total_qty}
     # #208: rechargeable cells get a reusable part; it starts untracked — a
     # device charged in place must not grow a "to charge" pile.
@@ -327,6 +326,13 @@ def retranslate_seeded_texts(hass: HomeAssistant, entry: ConfigEntry, lang: str)
 
     obj = dict(data.get(CONF_OBJECT) or {})
     if obj.get("name") in _template_variants("Battery Fleet") and obj.get("name") != _localized("Battery Fleet"):
+        from .entity_rename import migrate_object_unique_ids
+
+        # The entities' unique_ids carry the name's slug; like every other
+        # rename this one takes them along, or each fleet entity came back as
+        # a new one when the server language changed (bug audit 2026-11-08,
+        # O8-1). Before the update: the platforms set up right after it.
+        migrate_object_unique_ids(hass, entry, obj.get("name"), _localized("Battery Fleet"))
         obj["name"] = _localized("Battery Fleet")
         data[CONF_OBJECT] = obj
         changed = True
@@ -1223,52 +1229,33 @@ def _repoint_links(links: Any, moves: dict[str, str], *, owner_id: str, foreign:
 
 def _repoint_store_history(store: Any, task_ids: list[str], moves: dict[str, str], *, owner_id: str, foreign: bool) -> int:
     """``used_parts`` on history entries in ONE Store. Returns entries touched."""
+    def _repoint(used: list[Any]) -> list[Any]:
+        return _repoint_links(used, moves, owner_id=owner_id, foreign=foreign)[0]
+
     touched = 0
     for tid in task_ids:
-        history = store.get_history(tid)
-        new_history: list[dict[str, Any]] = []
-        changed = False
-        for entry in history:
-            used = entry.get("used_parts") if isinstance(entry, dict) else None
-            if used is None:
-                new_history.append(entry)
-                continue
-            new_used, c = _repoint_links(used, moves, owner_id=owner_id, foreign=foreign)
-            if c:
-                entry = {**entry, "used_parts": new_used}
-                changed = True
-                touched += 1
-            new_history.append(entry)
-        if changed:
+        new_history, n = map_used_parts(store.get_history(tid), _repoint)
+        if n:
             store.set_history(tid, new_history)
+            touched += n
     return touched
 
 
 def _repoint_tasks(tasks: dict[str, Any], moves: dict[str, str], *, owner_id: str, foreign: bool) -> tuple[dict[str, Any], bool]:
     """Consumption links (and, on the fleet itself, the auto-buy ``part_ref``)."""
+    def _repoint(links: list[Any]) -> list[Any]:
+        return _repoint_links(links, moves, owner_id=owner_id, foreign=foreign)[0]
+
     out: dict[str, Any] = {}
     changed = False
     for tid, task in tasks.items():
-        links, c = _repoint_links(task.get(CONF_TASK_CONSUMES_PARTS), moves, owner_id=owner_id, foreign=foreign)
+        # The task's links and each phase's (#139): a phase's links kept the
+        # alias id and the next completion raised a broken part link (bug
+        # audit 2026-10-16, S7).
+        new_task, c = map_part_link_lists(task, _repoint)
         if c:
-            task = {**task, CONF_TASK_CONSUMES_PARTS: links}
+            task = new_task
             changed = True
-        # A phase consumes too (#139): its links kept the alias id and the
-        # next completion raised a broken part link (bug audit 2026-10-16, S7).
-        phases = task.get("phases")
-        if isinstance(phases, dict):
-            new_phases: dict[str, Any] = {}
-            phases_changed = False
-            for phase_id, pdef in phases.items():
-                if isinstance(pdef, dict) and isinstance(pdef.get(CONF_TASK_CONSUMES_PARTS), list):
-                    plinks, pc = _repoint_links(pdef[CONF_TASK_CONSUMES_PARTS], moves, owner_id=owner_id, foreign=foreign)
-                    if pc:
-                        pdef = {**pdef, CONF_TASK_CONSUMES_PARTS: plinks}
-                        phases_changed = True
-                new_phases[phase_id] = pdef
-            if phases_changed:
-                task = {**task, "phases": new_phases}
-                changed = True
         ref = task.get(PART_REF_FIELD) if not foreign else None
         if isinstance(ref, dict) and str(ref.get("part_id") or "") in moves:
             task = {**task, PART_REF_FIELD: {**ref, "part_id": moves[str(ref["part_id"])]}}

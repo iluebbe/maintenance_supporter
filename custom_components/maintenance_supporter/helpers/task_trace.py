@@ -44,7 +44,7 @@ _SAVE_DELAY = 10
 # The event kinds; the panel's trace view knows the same set.
 KIND_STATUS = "status"  # {"from", "to"}
 KIND_REMINDER = "reminder"  # {"reminder": "status"|"lead"|"bundle", "status"?, "days"?}
-KIND_REMINDER_CLEARED = "reminder_cleared"  # {"reason": "done"|"status_left"|"inert"}
+KIND_REMINDER_CLEARED = "reminder_cleared"  # {"reason": "done"|"status_left"|"inert"|"reassigned"}
 KIND_SNOOZED = "snoozed"  # {"until", "hours"}
 KIND_DONE_WHEN = "done_when"  # {"entity", "state", "result", "minutes"?, "status"?}
 KIND_EDITED = "edited"  # {"fields": [...], "changes"?: {field: [old, new]}}

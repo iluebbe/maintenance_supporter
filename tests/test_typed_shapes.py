@@ -113,6 +113,131 @@ def test_ws_task_summary_carries_the_keys_of_maintenance_task() -> None:
     assert summary == ts, f"summary only {sorted(summary - ts)}, frontend only {sorted(ts - summary)}"
 
 
+def _dict_keys(func: ast.FunctionDef, key: str | None = None) -> set[str]:
+    """The literal keys of the dict ``func`` returns (or of the dict under
+    ``key`` in it)."""
+    found: set[str] = set()
+    for node in ast.walk(func):
+        if not isinstance(node, ast.Dict):
+            continue
+        if key is None:
+            target: ast.AST | None = node
+        else:
+            target = next((v for k, v in zip(node.keys, node.values, strict=True) if isinstance(k, ast.Constant) and k.value == key), None)
+        if isinstance(target, ast.Dict):
+            found |= {k.value for k in target.keys if isinstance(k, ast.Constant) and isinstance(k.value, str)}
+            if key is not None:
+                return found
+    return found
+
+
+def test_ws_object_payload_carries_the_keys_of_maintenance_object() -> None:
+    """``_build_object_response``'s ``object`` is the frontend's
+    ``MaintenanceObject``: only the task summary was pinned, and
+    ``template_id`` went out undeclared (DRY audit 2026-10-30, X6-B1)."""
+    tree = ast.parse((_PKG / "websocket" / "__init__.py").read_text(encoding="utf-8"))
+    funcs = {n.name: n for n in tree.body if isinstance(n, ast.FunctionDef)}
+    payload = _dict_keys(funcs["_build_object_response"], "object") | _dict_keys(funcs["_place_fields"])
+    ts = _ts_interface_keys("MaintenanceObject")
+    assert payload == ts, f"payload only {sorted(payload - ts)}, frontend only {sorted(ts - payload)}"
+
+
+def test_ws_part_payload_carries_the_keys_of_maintenance_part() -> None:
+    """A part goes out as stored (``normalize_part``) with its stock, its
+    used ones, whether it is low and its shopping link: the frontend's
+    ``MaintenancePart`` (DRY audit 2026-10-30, X6-B1)."""
+    parts_tree = ast.parse((_PKG / "helpers" / "parts.py").read_text(encoding="utf-8"))
+    normalize = next(n for n in parts_tree.body if isinstance(n, ast.FunctionDef) and n.name == "normalize_part")
+    ws_tree = ast.parse((_PKG / "websocket" / "__init__.py").read_text(encoding="utf-8"))
+    builder = next(n for n in ws_tree.body if isinstance(n, ast.FunctionDef) and n.name == "_build_object_response")
+    added = next(
+        {k.value for k in node.keys if isinstance(k, ast.Constant) and isinstance(k.value, str)}
+        for node in ast.walk(builder)
+        if isinstance(node, ast.Dict) and None in node.keys and any(isinstance(k, ast.Constant) and k.value == "is_low" for k in node.keys)
+    )
+    stored = {
+        k.value
+        for node in ast.walk(normalize)
+        if isinstance(node, ast.Dict) and any(isinstance(k, ast.Constant) and k.value == "reorder_threshold" for k in node.keys)
+        for k in node.keys
+        if isinstance(k, ast.Constant) and isinstance(k.value, str)
+    }
+    payload = stored | added
+    ts = _ts_interface_keys("MaintenancePart")
+    assert payload == ts, f"payload only {sorted(payload - ts)}, frontend only {sorted(ts - payload)}"
+
+
+def _ts_union(name: str) -> set[str]:
+    """The string literals of ``export type <name> = "a" | "b" | Other``,
+    with the literals of a named type it unites."""
+    src = _ts_source()
+    match = re.search(rf"export type {name} = ([^;]+);", src)
+    assert match, f"type {name} not found in types.ts"
+    values = set(re.findall(r'"([^"]+)"', match.group(1)))
+    for other in re.findall(r"\b([A-Z]\w+)\b", match.group(1)):
+        values |= _ts_union(other)
+    return values
+
+
+def _ts_field_union(interface: str, field: str) -> set[str]:
+    """The string literals of an inline union field inside an interface."""
+    src = _ts_source()
+    start = re.search(rf"export interface {interface}\b", src)
+    assert start, interface
+    match = re.search(rf"\b{field}\?: ([^;\n]+)", src[start.end() :])
+    assert match, f"{interface}.{field}"
+    return set(re.findall(r'"([^"]+)"', match.group(1)))
+
+
+def test_the_typescript_vocabularies_are_the_backends() -> None:
+    """The shape test compared key names only: a status, a history type or a
+    cost mode the backend adds stayed outside the frontend's union, and the
+    switch over it silently fell through (DRY audit 2026-10-30, X6-B2)."""
+    from custom_components.maintenance_supporter.const import (
+        PARTS_COST_MODES,
+        HistoryEntryType,
+        MaintenanceFeedback,
+        MaintenanceStatus,
+        MaintenanceTypeEnum,
+        ScheduleType,
+        TriggerType,
+    )
+    from custom_components.maintenance_supporter.helpers.dates import INTERVAL_UNITS
+    from custom_components.maintenance_supporter.helpers.schedule import KIND_CALENDAR, KIND_DAY_OF_MONTH, KIND_NTH_WEEKDAY, KIND_WEEKDAYS
+
+    calendar_kinds = {KIND_WEEKDAYS, KIND_NTH_WEEKDAY, KIND_DAY_OF_MONTH, KIND_CALENDAR}
+    pairs = {
+        "MaintenanceStatus": {str(s) for s in MaintenanceStatus},
+        "HistoryEntryType": {str(s) for s in HistoryEntryType},
+        "MaintenanceType": {str(s) for s in MaintenanceTypeEnum},
+        "TriggerType": {str(s) for s in TriggerType},
+        "IntervalUnit": set(INTERVAL_UNITS),
+        "CalendarKind": calendar_kinds,
+        "ScheduleType": {str(s) for s in ScheduleType} | calendar_kinds,
+    }
+    drift = {name: (sorted(_ts_union(name) - py), sorted(py - _ts_union(name))) for name, py in pairs.items() if _ts_union(name) != py}
+    assert not drift, f"frontend only / backend only: {drift}"
+    assert _ts_field_union("MaintenanceTask", "feedback") == {str(f) for f in MaintenanceFeedback}
+    assert _ts_field_union("MaintenancePart", "cost_mode") == set(PARTS_COST_MODES)
+
+
+def test_battery_fleet_row_carries_the_keys_of_its_interface() -> None:
+    """A roster row is ``_row`` plus the cells a battery may take
+    (``roster_cell_choices``); the TS interface lived in its component and
+    nothing compared them: #223 added two keys on both sides by hand (DRY
+    audit 2026-10-30, X6-B11)."""
+    fleet = ast.parse((_PKG / "helpers" / "battery_fleet.py").read_text(encoding="utf-8"))
+    row = next(n for n in fleet.body if isinstance(n, ast.FunctionDef) and n.name == "_row")
+    setup = ast.parse((_PKG / "helpers" / "battery_fleet_setup.py").read_text(encoding="utf-8"))
+    choices = next(n for n in setup.body if isinstance(n, ast.FunctionDef) and n.name == "roster_cell_choices")
+    backend = _dict_keys(row) | _dict_keys(choices, None) - {"type", "name", "rechargeable"}
+    src = (_PKG / "frontend-src" / "components" / "battery-fleet-section.ts").read_text(encoding="utf-8")
+    block = re.search(r"interface BatteryRow \{(.*?)\n\}", src, re.S)
+    assert block, "BatteryRow not found"
+    ts = set(re.findall(r"^  (\w+)\??:", block.group(1), re.M))
+    assert backend == ts, f"backend only {sorted(backend - ts)}, frontend only {sorted(ts - backend)}"
+
+
 # --- key accesses in the integration's own code ------------------------------
 
 

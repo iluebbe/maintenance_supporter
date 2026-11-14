@@ -17,7 +17,13 @@ the TS dialog wasn't updated.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+from types import MappingProxyType
+from typing import Any
+
 from ..const import (
+    CONF_TRIGGER_COMBINATOR,
+    CONF_TRIGGER_HOLD_UNTIL_DONE,
     MAX_INTERVAL_DAYS,
     ROTATION_STRATEGIES,
     TaskPriority,
@@ -44,6 +50,55 @@ ROTATION_STRATEGY_VALUES: tuple[str, ...] = ROTATION_STRATEGIES
 # Details a task can demand on completion (re-exported so every task-field
 # consumer imports its enums from this one module).
 REQUIRABLE_COMPLETION_FIELDS: tuple[str, ...] = _REQUIRABLE_COMPLETION_FIELDS
+
+# ─── Stored values ───────────────────────────────────────────────────────────
+
+# What a task field means while it is not stored. The panel dialog sends
+# these on every save, and a task's first save read as an edit ("Priority:
+# — → Normal", DRY audit 2026-11-07, BR7-A2); every reader takes the same
+# value for the missing key.
+UNSTORED_TASK_FIELDS: Mapping[str, Any] = MappingProxyType(
+    {
+        "priority": TaskPriority.NORMAL.value,
+        "enabled": True,
+        "allow_skip": True,
+        "notify_enabled": True,
+        "require_tag_scan": False,
+    }
+)
+
+# Keys whose empty container is a value, not an absence: #233's Quick
+# complete is on while ``quick_complete_defaults`` is present, so ``{}``
+# reads "on, nothing to prefill" (the compact list keeps it, the trace
+# notes it).
+COMPACT_KEEPS_EMPTY: frozenset[str] = frozenset({"quick_complete_defaults"})
+
+# ─── Trigger keys the options flow has no field for ────────────────────────
+
+#: The panel sets them; the options flow rebuilds a trigger from its form and
+#: carries them over (tests/test_trigger_surface_parity): the recovery flag
+#: (#53, the type steps write it again from their checkbox), the counting
+#: start value (#102), the runtime session cap (#149), how the trigger and
+#: the safety interval combine, the detail shown with the triggered task
+#: (#228) and holding it until done (D#229). The plain rebuild and the
+#: compound one each kept a list (DRY audit 2026-10-30, BI6-B6).
+FLOW_CARRIED_TRIGGER_KEYS: tuple[str, ...] = (
+    "auto_complete_on_recovery",
+    "trigger_baseline_value",
+    "trigger_runtime_max_session_seconds",
+    CONF_TRIGGER_COMBINATOR,
+    "detail_attribute",
+    CONF_TRIGGER_HOLD_UNTIL_DONE,
+)
+#: What a compound keeps itself: its conditions own the counting start, the
+#: session cap and the hold, and its recovery flag comes from its form.
+COMPOUND_FLOW_CARRIED_TRIGGER_KEYS: tuple[str, ...] = (CONF_TRIGGER_COMBINATOR, "detail_attribute")
+
+
+def carried_trigger_keys(previous: Mapping[str, Any], keys: tuple[str, ...] = FLOW_CARRIED_TRIGGER_KEYS) -> dict[str, Any]:
+    """The carried keys of the stored trigger that are set (a start value of
+    0 is one; None, "" and False are off)."""
+    return {k: previous[k] for k in keys if k in previous and previous[k] is not None and previous[k] != "" and previous[k] is not False}
 
 # ─── Numeric bounds (inclusive) ─────────────────────────────────────────────
 

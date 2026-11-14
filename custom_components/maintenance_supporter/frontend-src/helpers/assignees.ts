@@ -14,7 +14,9 @@ export interface AssignedTask {
 
 /** The HA user ids the task is meant for. */
 export function taskUserIds(task: AssignedTask): string[] {
-  if (task.responsible_user_id) return [task.responsible_user_id];
+  // helpers/assignees.py task_user_ids; tests/test_frontend_const_parity and
+  // twin-rules-vectors.test.ts read the same vectors (DRY audit 2026-10-30, X6-B8).
+  if (typeof task.responsible_user_id === "string" && task.responsible_user_id) return [task.responsible_user_id];
   return [...new Set((task.assignee_pool || []).filter((id) => typeof id === "string" && id))];
 }
 

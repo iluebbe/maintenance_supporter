@@ -105,6 +105,8 @@ _MAXIMAL_TASK = {
     "mirror_todo_entities": ["todo.family", "todo.kids"],
     # D#229: the entity whose change to a state completes the due task.
     "complete_when": {"entity_id": "binary_sensor.contract_door", "to_state": "on"},
+    # #252: the task's own notification texts.
+    "notification_texts": {"due_soon": {"title": "Bins tonight", "message": "{task}: {days} day(s)"}},
     "schedule_time": "08:30",
     "on_complete_action": {
         "service": "light.turn_off",

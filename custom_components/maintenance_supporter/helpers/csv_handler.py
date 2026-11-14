@@ -6,7 +6,8 @@ import csv
 import io
 import json
 import logging
-from datetime import datetime
+from collections.abc import Mapping
+from datetime import date, datetime
 from typing import Any
 from uuid import uuid4
 
@@ -25,7 +26,7 @@ from ..const import (
 from ..export import object_entries
 from ..models.task_result import TaskResult
 from .aggregate import merged_tasks, task_results_of
-from .dates import INTERVAL_UNITS, import_day, normalize_hhmm, parse_iso_date
+from .dates import INTERVAL_UNITS, import_day, local_date_from_iso, normalize_hhmm, parse_iso_date, stamp_instant
 from .global_options import get_default_warning_days
 from .pause import pause_end_day, write_anchor
 from .reading_slots import parse_reading_slots_text, reading_slots_text
@@ -274,6 +275,137 @@ def export_object_records_csv(hass: HomeAssistant, entry_ids: set[str] | None = 
         )
 
     return output.getvalue()
+
+
+# D#253: one row per history entry, for a spreadsheet. The JSON/YAML export
+# nests history per task; costs and activity over time needed parsing first.
+_HISTORY_COLUMNS = [
+    "object",
+    "task",
+    "timestamp",
+    "type",
+    "ref_no",
+    "completed_by",
+    "cost",
+    "parts_cost",
+    "duration",
+    "reading",
+    "feedback",
+    "notes",
+]
+
+
+def _csv_number(value: Any) -> str:
+    """A number as a spreadsheet reads it: no trailing ``.0``, empty for none."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return ""
+    return str(int(value)) if float(value).is_integer() else str(value)
+
+
+def _history_reading(entry: Mapping[str, Any]) -> str:
+    """The reading(s) of a completion as one cell: the single value, or each
+    named slot as ``name: value unit`` joined by ``; ``."""
+    slots = entry.get("reading_values")
+    if isinstance(slots, list) and slots:
+        parts: list[str] = []
+        for slot in slots:
+            if not isinstance(slot, Mapping):
+                continue
+            text = f"{slot.get('name') or slot.get('id') or ''}: {_csv_number(slot.get('value'))}"
+            unit = slot.get("unit")
+            parts.append(f"{text} {unit}" if unit else text)
+        return "; ".join(parts)
+    return _csv_number(entry.get("reading_value"))
+
+
+def _history_stamp(stamp: str) -> str:
+    """A history stamp as local ``YYYY-MM-DD HH:MM``; one that cannot be
+    read as it is stored. Converted, it was the year 1, which west of UTC
+    is before the calendar begins and took the whole export down."""
+    instant = stamp_instant(stamp)
+    if instant.year <= 1:
+        return _csv_safe(stamp)
+    return dt_util.as_local(instant).strftime("%Y-%m-%d %H:%M")
+
+
+def history_user_ids(hass: HomeAssistant, entry_ids: set[str] | None = None) -> set[str]:
+    """Every user a history entry of the selection names as ``completed_by``."""
+    found: set[str] = set()
+    for entry in object_entries(hass, entry_ids):
+        for task in merged_tasks(entry).values():
+            for row in task.get("history") or []:
+                who = row.get("completed_by") if isinstance(row, Mapping) else None
+                if isinstance(who, str) and who:
+                    found.add(who)
+    return found
+
+
+def export_history_csv(
+    hass: HomeAssistant,
+    entry_ids: set[str] | None = None,
+    *,
+    date_from: date | None = None,
+    date_to: date | None = None,
+    user_names: Mapping[str, str] | None = None,
+) -> str:
+    """Export one row per history entry (D#253), all objects or a selection.
+
+    ``date_from`` / ``date_to`` (both inclusive, local days) narrow the rows.
+    The timestamp is local time as ``YYYY-MM-DD HH:MM``. ``user_names`` maps a
+    user id to how the household calls that person; an unknown id stays as is.
+    Rows are ordered by object, task, then time.
+    """
+    names = user_names or {}
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=_HISTORY_COLUMNS, extrasaction="ignore")
+    writer.writeheader()
+
+    for entry in object_entries(hass, entry_ids):
+        obj_name = (entry.data.get(CONF_OBJECT) or {}).get("name", "")
+        for task in merged_tasks(entry).values():
+            rows = [row for row in (task.get("history") or []) if isinstance(row, Mapping) and row.get("timestamp")]
+            for row in sorted(rows, key=lambda r: stamp_instant(r["timestamp"])):
+                stamp = str(row["timestamp"])
+                day = parse_iso_date(local_date_from_iso(stamp) or stamp[:10])
+                if day is not None and ((date_from and day < date_from) or (date_to and day > date_to)):
+                    continue
+                who = row.get("completed_by")
+                writer.writerow(
+                    {
+                        "object": _csv_safe(obj_name),
+                        "task": _csv_safe(task.get("name", "")),
+                        "timestamp": _history_stamp(stamp),
+                        "type": _csv_safe(str(row.get("type") or "")),
+                        "ref_no": _csv_number(row.get("ref_no")),
+                        "completed_by": _csv_safe(names.get(who, who) if isinstance(who, str) else ""),
+                        "cost": _csv_number(row.get("cost")),
+                        "parts_cost": _csv_number(row.get("parts_cost")),
+                        "duration": _csv_number(row.get("duration")),
+                        "reading": _csv_safe(_history_reading(row)),
+                        "feedback": _csv_safe(str(row.get("feedback") or "")),
+                        "notes": _csv_safe(str(row.get("notes") or "")),
+                    }
+                )
+
+    return output.getvalue()
+
+
+async def async_export_history_csv(
+    hass: HomeAssistant,
+    entry_ids: set[str] | None = None,
+    *,
+    date_from: date | None = None,
+    date_to: date | None = None,
+) -> str:
+    """:func:`export_history_csv` with the people's names looked up."""
+    from .assignees import person_display_name
+
+    names: dict[str, str] = {}
+    for user_id in history_user_ids(hass, entry_ids):
+        name = await person_display_name(hass, user_id)
+        if name:
+            names[user_id] = name
+    return export_history_csv(hass, entry_ids, date_from=date_from, date_to=date_to, user_names=names)
 
 
 def import_objects_csv(

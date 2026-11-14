@@ -12,6 +12,7 @@ import { LitElement, html, css, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
 import { t, ensureLocale, langOf, formatDate, formatDateTime, formatCost, formatDuration, formatEntryCost, formatNumber, formatRecurrence, historyTypeColor } from "../styles";
 import {
+  completedByLabel,
   filterObjectHistory,
   HISTORY_RETENTION_CAP,
   mergeObjectHistory,
@@ -261,11 +262,7 @@ export class MaintenanceObjectHistorySection extends LitElement {
     };
     const printable = filtered.map((e) => ({
       ...e,
-      completedBy: e.completedBy
-        ? e.completedVia
-          ? t("completed_via", L).replace("{person}", this.userName(e.completedBy) ?? "").replace("{device}", this.userName(e.completedVia) ?? "")
-          : this.userName(e.completedBy)
-        : null,
+      completedBy: completedByLabel(e, (id) => this.userName(id), L),
       notes: e.notes ? historyNoteText(e.notes, L) : null,
     }));
     const htmlDoc = buildServiceRecordHtml(

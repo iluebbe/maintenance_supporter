@@ -57,6 +57,7 @@ from .const import (
     CONF_MIRROR_TODO_DEFAULT_ENTITIES,
     CONF_NOTIFICATION_BUNDLE_THRESHOLD,
     CONF_NOTIFICATION_BUNDLING_ENABLED,
+    CONF_NOTIFICATION_LANGUAGE,
     CONF_NOTIFICATION_TITLE_PREFIX,
     CONF_NOTIFICATION_TITLE_STYLE,
     CONF_NOTIFICATIONS_ENABLED,
@@ -96,6 +97,8 @@ from .const import (
     MAX_NOTIFY_EXTRA_DATA_LENGTH,
     MAX_PANEL_TITLE_LENGTH,
     MAX_REMINDER_LEADS,
+    NOTIFICATION_LANGUAGE_AUTO,
+    NOTIFICATION_LANGUAGE_NAMES,
     NOTIFY_COMPLETED_MODES,
     PARTS_COST_MODES,
     ROW_ACTION_STYLES,
@@ -106,15 +109,19 @@ from .helpers.dates import normalize_hhmm
 from .helpers.home_profile import async_home_profile
 from .helpers.i18n import normalize_language
 from .helpers.member_display import AVATAR_COLOR_NAMES, AVATAR_PALETTE, member_display
-from .helpers.notification_manager import build_action_buttons
+from .helpers.notification_manager import build_action_buttons, notification_language
 from .helpers.notify_hooks import async_emit_and_dispatch, sample_notification_context
 from .helpers.notify_targets import build_notify_targets, validate_notify_service
-from .helpers.parts import valid_search_template
 from .helpers.region import regions_of
-from .helpers.sanitize import sanitize_group, sanitize_mirror_todo_entities
-from .helpers.settings_registry import ALLOWED_SETTING_KEYS, float_range, int_range, setting_default
-from .helpers.settings_sanitize import clean_title_prefix, sanitize_settings_input
-from .helpers.todo_mirror import mirror_todo_error
+from .helpers.sanitize import sanitize_group
+from .helpers.settings_registry import (
+    ALLOWED_SETTING_KEYS,
+    float_range,
+    int_range,
+    setting_default,
+    shown_row_action_style,
+)
+from .helpers.settings_sanitize import clean_title_prefix, sanitize_settings_input, settings_write_refusal
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -348,6 +355,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "scope_all": "All tasks",
         "region_auto": "Automatic ({region})",
         "region_none": "not found",
+        "language_auto": "Home Assistant language ({language})",
     },
     "de": {
         "dwelling_house": "Haus",
@@ -356,6 +364,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "scope_all": "Alle Aufgaben",
         "region_auto": "Automatisch ({region})",
         "region_none": "nicht gefunden",
+        "language_auto": "Sprache von Home Assistant ({language})",
     },
     "cs": {
         "dwelling_house": "dům",
@@ -364,6 +373,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "scope_all": "Všechny úkoly",
         "region_auto": "Automaticky ({region})",
         "region_none": "nenalezeno",
+        "language_auto": "Jazyk Home Assistantu ({language})",
     },
     "da": {
         "dwelling_house": "hus",
@@ -372,6 +382,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "scope_all": "Alle opgaver",
         "region_auto": "Automatisk ({region})",
         "region_none": "ikke fundet",
+        "language_auto": "Home Assistants sprog ({language})",
     },
     "es": {
         "dwelling_house": "casa",
@@ -380,6 +391,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "scope_all": "Todas las tareas",
         "region_auto": "Automático ({region})",
         "region_none": "no encontrada",
+        "language_auto": "Idioma de Home Assistant ({language})",
     },
     "fi": {
         "dwelling_house": "talo",
@@ -388,6 +400,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "scope_all": "Kaikki tehtävät",
         "region_auto": "Automaattinen ({region})",
         "region_none": "ei löytynyt",
+        "language_auto": "Home Assistantin kieli ({language})",
     },
     "fr": {
         "dwelling_house": "maison",
@@ -396,8 +409,9 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "scope_all": "Toutes les tâches",
         "region_auto": "Automatique ({region})",
         "region_none": "introuvable",
+        "language_auto": "Langue de Home Assistant ({language})",
     },
-    "hi": {"dwelling_house": "मकान", "dwelling_apartment": "फ़्लैट", "dwelling_unknown": "अभी तय नहीं", "scope_all": "सभी कार्य", "region_auto": "स्वचालित ({region})", "region_none": "नहीं मिला"},
+    "hi": {"dwelling_house": "मकान", "dwelling_apartment": "फ़्लैट", "dwelling_unknown": "अभी तय नहीं", "scope_all": "सभी कार्य", "region_auto": "स्वचालित ({region})", "region_none": "नहीं मिला", "language_auto": "Home Assistant की भाषा ({language})"},
     "hu": {
         "dwelling_house": "ház",
         "dwelling_apartment": "lakás",
@@ -405,6 +419,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "scope_all": "Minden feladat",
         "region_auto": "Automatikus ({region})",
         "region_none": "nem található",
+        "language_auto": "A Home Assistant nyelve ({language})",
     },
     "it": {
         "dwelling_house": "casa",
@@ -413,6 +428,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "scope_all": "Tutte le attività",
         "region_auto": "Automatico ({region})",
         "region_none": "non trovata",
+        "language_auto": "Lingua di Home Assistant ({language})",
     },
     "ja": {
         "dwelling_house": "一戸建て",
@@ -421,6 +437,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "scope_all": "すべてのタスク",
         "region_auto": "自動（{region}）",
         "region_none": "見つかりません",
+        "language_auto": "Home Assistant の言語（{language}）",
     },
     "ko": {
         "dwelling_house": "단독주택",
@@ -429,6 +446,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "scope_all": "모든 작업",
         "region_auto": "자동({region})",
         "region_none": "찾을 수 없음",
+        "language_auto": "Home Assistant 언어 ({language})",
     },
     "nb": {
         "dwelling_house": "hus",
@@ -437,6 +455,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "scope_all": "Alle oppgaver",
         "region_auto": "Automatisk ({region})",
         "region_none": "ikke funnet",
+        "language_auto": "Home Assistants språk ({language})",
     },
     "nl": {
         "dwelling_house": "huis",
@@ -445,6 +464,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "scope_all": "Alle taken",
         "region_auto": "Automatisch ({region})",
         "region_none": "niet gevonden",
+        "language_auto": "Taal van Home Assistant ({language})",
     },
     "pl": {
         "dwelling_house": "dom",
@@ -453,6 +473,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "scope_all": "Wszystkie zadania",
         "region_auto": "Automatycznie ({region})",
         "region_none": "nie znaleziono",
+        "language_auto": "Język Home Assistanta ({language})",
     },
     "pt": {
         "dwelling_house": "moradia",
@@ -461,6 +482,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "scope_all": "Todas as tarefas",
         "region_auto": "Automático ({region})",
         "region_none": "não encontrada",
+        "language_auto": "Idioma do Home Assistant ({language})",
     },
     "pt-br": {
         "dwelling_house": "casa",
@@ -469,6 +491,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "scope_all": "Todas as tarefas",
         "region_auto": "Automático ({region})",
         "region_none": "não encontrada",
+        "language_auto": "Idioma do Home Assistant ({language})",
     },
     "ru": {
         "dwelling_house": "дом",
@@ -477,6 +500,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "scope_all": "Все задачи",
         "region_auto": "Автоматически ({region})",
         "region_none": "не найден",
+        "language_auto": "Язык Home Assistant ({language})",
     },
     "sv": {
         "dwelling_house": "hus",
@@ -485,6 +509,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "scope_all": "Alla uppgifter",
         "region_auto": "Automatiskt ({region})",
         "region_none": "hittades inte",
+        "language_auto": "Home Assistants språk ({language})",
     },
     "tr": {
         "dwelling_house": "müstakil ev",
@@ -493,6 +518,7 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "scope_all": "Tüm görevler",
         "region_auto": "Otomatik ({region})",
         "region_none": "bulunamadı",
+        "language_auto": "Home Assistant dili ({language})",
     },
     "uk": {
         "dwelling_house": "будинок",
@@ -501,8 +527,9 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "scope_all": "Усі завдання",
         "region_auto": "Автоматично ({region})",
         "region_none": "не знайдено",
+        "language_auto": "Мова Home Assistant ({language})",
     },
-    "zh": {"dwelling_house": "独栋住宅", "dwelling_apartment": "公寓", "dwelling_unknown": "尚不确定", "scope_all": "所有任务", "region_auto": "自动（{region}）", "region_none": "未找到"},
+    "zh": {"dwelling_house": "独栋住宅", "dwelling_apartment": "公寓", "dwelling_unknown": "尚不确定", "scope_all": "所有任务", "region_auto": "自动（{region}）", "region_none": "未找到", "language_auto": "Home Assistant 的语言（{language}）"},
 }
 
 
@@ -524,9 +551,10 @@ def parse_lead_days(raw: Any) -> list[int] | None:
     return leads[: MAX_REMINDER_LEADS * 2]
 
 
-def _get_test_result_text(hass: HomeAssistant, key: str) -> str:
-    """Get localized test notification result text."""
-    lang = normalize_language(hass)
+def _get_test_result_text(hass: HomeAssistant, key: str, lang: str | None = None) -> str:
+    """Get localized test notification result text (``lang``: the test push's
+    own, the notification language; else Home Assistant's)."""
+    lang = lang or normalize_language(hass)
     texts = _TEST_NOTIFICATION_RESULTS.get(lang, _TEST_NOTIFICATION_RESULTS["en"])
     return texts.get(key, texts.get("failed", key))
 
@@ -585,14 +613,16 @@ async def _send_test_to(
 ) -> str:
     """Send the test payload to every resolved service; "success" if any went."""
     try:
-        push_msg = _get_test_result_text(hass, "push_message")
+        # #251: the push in the notifications' language, like a real one.
+        lang = notification_language(hass)
+        push_msg = _get_test_result_text(hass, "push_message", lang)
         service_data: dict[str, Any] = {
             "title": "Maintenance Supporter",
             "message": push_msg,
         }
         # The same buttons (translated, per the action toggles) a real
         # reminder carries \u2014 test ids, which the action listener ignores.
-        test_actions = build_action_buttons(hass, options, normalize_language(hass), entry_id=None, task_id=None, skip_allowed=True)
+        test_actions = build_action_buttons(hass, options, lang, entry_id=None, task_id=None, skip_allowed=True)
         if test_actions:
             service_data["data"] = {"actions": test_actions}
         # Dual-path: legacy notify service OR notify entity (send_message).
@@ -843,33 +873,15 @@ class GlobalOptionsFlow(OptionsFlow):
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            raw_service = user_input.get(CONF_NOTIFY_SERVICE, "")
-            # Format-only validation — NO existence check. A notify service can be
-            # lazily registered or momentarily absent (e.g. mobile_app_*), so we no
-            # longer hard-block saving it (that broke #77). A genuinely-missing
-            # service is surfaced afterwards by the runtime repair issue
-            # (notify_service_missing) instead.
-            normalized, error = validate_notify_service(raw_service)
-            if error:
-                errors[CONF_NOTIFY_SERVICE] = error
-            else:
-                user_input[CONF_NOTIFY_SERVICE] = normalized
-
-            # Shopping-list target: a cleared EntitySelector omits the key —
-            # normalise to "" so clearing actually turns the sync off. Format
-            # only (todo.*): the list's integration may load later.
-            raw_list = (user_input.get(CONF_SHOPPING_LIST_ENTITY) or "").strip()
-            if raw_list and not raw_list.startswith("todo."):
-                errors[CONF_SHOPPING_LIST_ENTITY] = "invalid_shopping_list_entity"
-            user_input[CONF_SHOPPING_LIST_ENTITY] = raw_list
-
-            # #231: the to-do mirror's default lists — the panel's rules: a
-            # cleared selector omits the key (= off), the shape sanitiser of
-            # the per-task field, and none of our own lists.
-            defaults = sanitize_mirror_todo_entities(user_input.get(CONF_MIRROR_TODO_DEFAULT_ENTITIES) or [])
-            if mirror_todo_error(self.hass, defaults):
-                errors[CONF_MIRROR_TODO_DEFAULT_ENTITIES] = "invalid_mirror_todo"
-            user_input[CONF_MIRROR_TODO_DEFAULT_ENTITIES] = defaults
+            # A cleared selector or field omits its key: map absence to off
+            # ("" / []) so clearing really clears. Then the panel's write rules
+            # (settings_write_refusal): the notify service by format only — it
+            # may register later (#77; the notify_service_missing repair tells
+            # a missing one), the shopping list and the default lists as todo.*
+            # ids, none of them our own (#231), the search template below.
+            user_input[CONF_NOTIFY_SERVICE] = user_input.get(CONF_NOTIFY_SERVICE, "")
+            user_input[CONF_SHOPPING_LIST_ENTITY] = (user_input.get(CONF_SHOPPING_LIST_ENTITY) or "").strip()
+            user_input[CONF_MIRROR_TODO_DEFAULT_ENTITIES] = list(user_input.get(CONF_MIRROR_TODO_DEFAULT_ENTITIES) or [])
 
             # Trim + cap the optional sidebar title; blank clears the override
             # (panel falls back to the default "Maintenance").
@@ -881,10 +893,13 @@ class GlobalOptionsFlow(OptionsFlow):
 
             # D#182: shopping-search template — blank = automatic (country,
             # then UI language); otherwise an http(s) URL with {q}.
-            raw_tpl = (user_input.get(CONF_PART_SEARCH_URL_TEMPLATE) or "").strip()
-            if raw_tpl and not valid_search_template(raw_tpl):
-                errors[CONF_PART_SEARCH_URL_TEMPLATE] = "invalid_search_template"
-            user_input[CONF_PART_SEARCH_URL_TEMPLATE] = raw_tpl
+            user_input[CONF_PART_SEARCH_URL_TEMPLATE] = (user_input.get(CONF_PART_SEARCH_URL_TEMPLATE) or "").strip()
+            checked = {k: user_input[k] for k in (CONF_NOTIFY_SERVICE, CONF_SHOPPING_LIST_ENTITY, CONF_MIRROR_TODO_DEFAULT_ENTITIES, CONF_PART_SEARCH_URL_TEMPLATE)}
+            cleaned, refusal = settings_write_refusal(self.hass, checked)
+            if refusal is not None:
+                errors[refusal[0]] = refusal[1]
+            else:
+                user_input.update(cleaned)
 
             # The panel reorders columns; a checkbox list cannot. Keep the
             # saved order for the columns still ticked, append new ones.
@@ -894,6 +909,13 @@ class GlobalOptionsFlow(OptionsFlow):
                 columns = kept + [c for c in picked if c not in kept]
                 # The name column is not optional (the panel greys it out).
                 user_input[CONF_OBJECTS_TABLE_COLUMNS] = columns if "name" in columns else ["name", *columns]
+
+            # The form shows the style the rows have; while nobody has chosen
+            # one, saving it unchanged keeps it unchosen (the new look's icons).
+            if CONF_ROW_ACTION_STYLE not in self._current and user_input.get(
+                CONF_ROW_ACTION_STYLE
+            ) == shown_row_action_style(self._current):
+                user_input.pop(CONF_ROW_ACTION_STYLE, None)
 
             if not errors:
                 return self._save_and_return(user_input)
@@ -1016,7 +1038,7 @@ class GlobalOptionsFlow(OptionsFlow):
                     # #145 / #170: how task rows look.
                     vol.Optional(
                         CONF_ROW_ACTION_STYLE,
-                        default=self._opt(CONF_ROW_ACTION_STYLE),
+                        default=shown_row_action_style(current),
                     ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=list(ROW_ACTION_STYLES),
@@ -1240,6 +1262,27 @@ class GlobalOptionsFlow(OptionsFlow):
                         CONF_NOTIFICATION_TITLE_PREFIX,
                         description={"suggested_value": self._opt(CONF_NOTIFICATION_TITLE_PREFIX)},
                     ): selector.TextSelector(selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)),
+                    # #251: the language of the notifications; "auto" = Home
+                    # Assistant's, named so the choice says what it is.
+                    vol.Optional(
+                        CONF_NOTIFICATION_LANGUAGE,
+                        default=self._opt(CONF_NOTIFICATION_LANGUAGE)
+                        if self._opt(CONF_NOTIFICATION_LANGUAGE) in NOTIFICATION_LANGUAGE_NAMES
+                        else NOTIFICATION_LANGUAGE_AUTO,
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(
+                            options=[
+                                selector.SelectOptionDict(
+                                    value=NOTIFICATION_LANGUAGE_AUTO,
+                                    label=_settings_text(self.hass, "language_auto").replace(
+                                        "{language}", NOTIFICATION_LANGUAGE_NAMES.get(normalize_language(self.hass), normalize_language(self.hass))
+                                    ),
+                                ),
+                                *(selector.SelectOptionDict(value=code, label=name) for code, name in NOTIFICATION_LANGUAGE_NAMES.items()),
+                            ],
+                            mode=selector.SelectSelectorMode.DROPDOWN,
+                        )
+                    ),
                     # #173 follow-up: completion notifications (activity kind).
                     vol.Optional(
                         CONF_NOTIFY_COMPLETED,

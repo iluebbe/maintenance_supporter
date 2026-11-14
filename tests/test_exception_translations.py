@@ -59,12 +59,15 @@ def _raises() -> list[tuple[str, int, str, dict[str, ast.expr], ast.Call]]:
         rel = path.relative_to(COMPONENT).as_posix()
         tree = ast.parse(path.read_text(encoding="utf-8"))
         for node in ast.walk(tree):
-            if not (isinstance(node, ast.Raise) and isinstance(node.exc, ast.Call)):
+            # Raised, or built and returned for the caller to raise (a check
+            # several callers ask first: parts_runtime.purchase_refusal).
+            call = node.exc if isinstance(node, ast.Raise) else node.value if isinstance(node, ast.Return) else None
+            if not isinstance(call, ast.Call):
                 continue
-            fn = node.exc.func
+            fn = call.func
             name = fn.id if isinstance(fn, ast.Name) else fn.attr if isinstance(fn, ast.Attribute) else ""
             if name in USER_FACING:
-                out.append((rel, node.lineno, name, {k.arg: k.value for k in node.exc.keywords if k.arg}, node.exc))
+                out.append((rel, node.lineno, name, {k.arg: k.value for k in call.keywords if k.arg}, call))
     return out
 
 
