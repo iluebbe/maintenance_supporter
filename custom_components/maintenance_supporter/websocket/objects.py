@@ -47,7 +47,7 @@ from ..helpers.aggregate import (
     object_id_for_entry,
 )
 from ..helpers.device_link import hand_on_children, is_maintenance_device
-from ..helpers.device_swap import move_tasks_to_device, old_device_ids
+from ..helpers.device_swap import move_tasks_to_device, old_device_ids, predecessor_device_ids
 from ..helpers.entity_attributes import get_entity_attributes
 from ..helpers.entity_rename import migrate_object_unique_ids
 from ..helpers.global_options import cleanup_group_refs
@@ -457,9 +457,8 @@ async def ws_update_object(
         # re-paired and came back under a new id): its sensor triggers,
         # completion actions and adopted-task fingerprints follow it.
         tasks = dict(new_data.get(CONF_TASKS) or {})
-        moved_tasks, swap_report = move_tasks_to_device(
-            hass, tasks, old_device_ids(obj, tasks.values(), new_device), new_device, user_id=connection.user.id
-        )
+        away_from = old_device_ids(obj, tasks.values(), new_device) | predecessor_device_ids(hass, obj, new_device)
+        moved_tasks, swap_report = move_tasks_to_device(hass, tasks, away_from, new_device, user_id=connection.user.id)
         new_data[CONF_TASKS] = moved_tasks
     for key in ("ha_device_id", "parent_entry_id"):
         if key in msg and msg[key] != obj.get(key):

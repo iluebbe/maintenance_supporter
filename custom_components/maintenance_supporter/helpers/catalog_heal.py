@@ -28,6 +28,12 @@ sensors with only a lower bound is the catalog's shape and is flipped.
 filter's wear fired the main-filter task). A threshold trigger watching
 exactly those two sensors of one vacuum drops the tank filter, which now
 belongs to "Replace Secondary Filter".
+
+2026-11-14: Fujitsu Airstage 1.10.0 reports its auto mode as ``heat_cool``
+(``auto`` before), a state the shared AC duty does not count: an adopted
+"Filter Cleaning" lost every hour the unit ran in that mode. The catalog
+now counts both states, and a runtime trigger on an Airstage climate that
+still has exactly the states the catalog wrote is widened to them.
 """
 
 from __future__ import annotations
@@ -82,6 +88,33 @@ def _healed_trigger(hass: HomeAssistant, tc: Mapping[str, Any]) -> dict[str, Any
     healed = {k: v for k, v in tc.items() if k != "attribute"}
     healed["trigger_on_states"] = list(_catalog_on_states(reg.platform))
     return healed
+
+
+# Platforms whose climate-runtime duty left the shared AC duty for a wider
+# state set. What the catalog wrote before is that shared duty's states,
+# read from the catalog like the healed ones.
+_CLIMATE_STATE_SET_HEALS: frozenset[str] = frozenset({"fujitsu_airstage"})
+
+
+def _healed_state_set_trigger(hass: HomeAssistant, tc: Mapping[str, Any]) -> dict[str, Any] | None:
+    if tc.get("type") != "runtime" or tc.get("attribute") is not None:
+        return None
+
+    entity_id = primary_entity_id(dict(tc))
+    if not isinstance(entity_id, str) or not entity_id.startswith("climate."):
+        return None
+    reg = er.async_get(hass).async_get(entity_id)
+    if reg is None or reg.platform not in _CLIMATE_STATE_SET_HEALS:
+        return None
+    from .signatures.air import _AC_FILTER_CLEANING_RUNTIME
+
+    current = {str(s).lower() for s in (tc.get("trigger_on_states") or [])}
+    if current != set(_AC_FILTER_CLEANING_RUNTIME.on_states):
+        return None  # the user changed the states — theirs to keep
+    wider = _catalog_on_states(reg.platform)
+    if set(wider) == current:
+        return None
+    return {**tc, "trigger_on_states": list(wider)}
 
 
 # platform → the translation keys whose catalog reading flipped from "life
@@ -167,7 +200,12 @@ def heal_catalog_triggers(hass: HomeAssistant, data: Mapping[str, Any]) -> dict[
         tc = td.get(CONF_TRIGGER_CONFIG) if isinstance(td, Mapping) else None
         if not isinstance(tc, Mapping):
             continue
-        healed = _healed_trigger(hass, tc) or _healed_wear_trigger(hass, tc) or _healed_stray_key_trigger(hass, tc)
+        healed = (
+            _healed_trigger(hass, tc)
+            or _healed_wear_trigger(hass, tc)
+            or _healed_stray_key_trigger(hass, tc)
+            or _healed_state_set_trigger(hass, tc)
+        )
         if healed is None:
             continue
         if new_tasks is None:

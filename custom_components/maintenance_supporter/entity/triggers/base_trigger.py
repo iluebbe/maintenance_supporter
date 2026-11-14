@@ -623,6 +623,18 @@ class BaseTrigger(ABC):
             return None
 
     def reset(self) -> None:
-        """Reset the trigger (called after maintenance completion)."""
+        """Reset the trigger (called after maintenance completion).
+
+        Whether the next activation is a new episode depends on having
+        seen the rule on the normal side since the completion. A reset
+        that finds it there already (the completion a recovery records,
+        #53, or one done by hand while the sensor is fine) has seen it:
+        waiting for another normal reading made a sensor that reports
+        only changes (a 0/1 problem code: 1, 0, 1 within minutes) read
+        OK for the whole completion cooldown although it had fired again
+        (bug audit 2026-11-08, T8-6)."""
+        on_normal_side = self._evaluated_once and not self._triggered
         self._triggered = False
-        self._recovered_since_reset = False
+        self._recovered_since_reset = on_normal_side
+        if on_normal_side:
+            self._note_recovered()

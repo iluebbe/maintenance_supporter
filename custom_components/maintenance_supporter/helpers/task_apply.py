@@ -23,7 +23,7 @@ from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.core import HomeAssistant, callback
 
 from ..const import CONF_TASKS, DOMAIN, NOTIFICATION_MANAGER_KEY
-from .aggregate import get_runtime_data
+from .aggregate import get_runtime_data, get_store
 from .assignees import task_user_ids
 from .sanitize import normalize_people
 from .schedule import normalize_task_storage
@@ -136,6 +136,16 @@ def note_task_edit(
         for k in edited - {ORIGIN_KEY}
         if k in COMPACT_KEEPS_EMPTY or not (_blank(old.get(k)) and _blank(new.get(k)))
     )
+    if "last_performed" in told:
+        # When a task was last done is the Store's to say; the entry keeps
+        # at most the copy an earlier edit left there, and the trace read
+        # "Last performed: — → 1 Nov" for a task done on 1 Oct (bug audit
+        # 2026-11-08, W8-3).
+        store = get_store(hass, entry_id)
+        if store is not None:
+            old = {**old, "last_performed": store.get_last_performed(task_id)}
+            if old["last_performed"] == new.get("last_performed"):
+                told.remove("last_performed")
     if told:
         told = told[:_MAX_TRACED_FIELDS]
         record_trace(hass, entry_id, task_id, KIND_EDITED, fields=told, changes=changed_values(old, new, told))

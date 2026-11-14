@@ -282,7 +282,11 @@ export class MaintenanceSupporterCard extends LitElement {
     for (const obj of objects) this._docsLoadedFor.add(obj.entry_id);
     const ask = (params: Record<string, unknown>) =>
       this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/documents/list", ...params }) as Promise<{ documents: CardDocument[] }>;
-    const next: Record<string, Record<string, CardDoc[]>> = { ...this._taskDocs };
+    // Only what THIS load asked for, merged when it is in: a copy of the
+    // whole map taken before the answer wiped the chips a second load
+    // brought meanwhile, and those objects are not asked again (bug audit
+    // 2026-11-08, C8-2).
+    const next: Record<string, Record<string, CardDoc[]>> = {};
     for (const obj of objects) next[obj.entry_id] = {};
     const file = (entryId: string, doc: CardDocument) => {
       // Completion photos are linked to their task too; a row of
@@ -308,7 +312,7 @@ export class MaintenanceSupporterCard extends LitElement {
         }
       }));
     }
-    this._taskDocs = next;
+    this._taskDocs = { ...this._taskDocs, ...next };
   }
 
   /** Chips to render on a row: linked documents plus the task's own manual

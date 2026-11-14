@@ -1384,6 +1384,7 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
     lifetime_for = lifetime_resolver(hass)
     native_devices = {rec["device_id"] for rec in native.values() if rec["device_id"]}
     native_eids = {rec["eid"] for rec in native.values()}
+    sensorless: list[Battery] = []
     for state in hass.states.async_all("sensor"):
         if not _is_type_note(state):
             continue
@@ -1449,12 +1450,20 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
             low_threshold=floor,
             no_sensor=True,
         )
-        # Due = the forecast has PASSED (same arithmetic as build_overview's
-        # forecast_overdue). Rechargeables never get a table forecast.
-        if due_without_sensor and is_shoppable_type(battery_type):
-            pred = _predicted_date(bat, lifetime_for(bat).months)
-            bat.low = pred is not None and pred < today
+        sensorless.append(bat)
         out.append(bat)
+    if due_without_sensor and sensorless:
+        # Due = the forecast has PASSED (same arithmetic as build_overview's
+        # forecast_overdue). Rechargeables never get a table forecast, and
+        # which it is, the cells in the battery say (D#213), as in the
+        # overview: judged by the note's type, a note "AA" holding NiMH
+        # cells came due like disposables, and a note "AA NiMH" with
+        # disposables put in never did (bug audit 2026-11-08, P8-3).
+        holds = held_cells(hass, sensorless)
+        for bat in sensorless:
+            if is_shoppable_type(holds.get(bat.entity_id) or bat.battery_type):
+                pred = _predicted_date(bat, lifetime_for(bat).months)
+                bat.low = pred is not None and pred < today
     # #180: hold level-driven rows low until they clearly recover (or a
     # replacement is recorded) — AFTER every pass, so the sensor, the panel
     # overview and the Replaced action all see the same ``low``.

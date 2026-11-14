@@ -614,7 +614,7 @@ async def test_p8_5_a_purchase_of_two_parts_at_the_cap_books_none(hass: HomeAssi
     from homeassistant.exceptions import ServiceValidationError
 
     obj, sensors = await _two_parts(hass, "p85")
-    with patch("custom_components.maintenance_supporter.parts_runtime.MAX_TASKS_PER_OBJECT", 3), pytest.raises(ServiceValidationError) as err:
+    with patch("custom_components.maintenance_supporter.helpers.entry_tasks.MAX_TASKS_PER_OBJECT", 3), pytest.raises(ServiceValidationError) as err:
         await hass.services.async_call(DOMAIN, "part_purchase", {"entity_id": sensors}, blocking=True)
     assert err.value.translation_key == "task_limit"
     store = _store(hass, obj)

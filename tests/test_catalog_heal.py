@@ -213,3 +213,49 @@ async def test_dreame_tank_filter_leaves_the_main_filter_trigger(hass: HomeAssis
     assert healed[CONF_TASKS]["mine"] == data[CONF_TASKS]["mine"]
     assert healed[CONF_TASKS]["across"] == data[CONF_TASKS]["across"]
     assert heal_catalog_triggers(hass, healed) is None, "idempotent"
+
+
+AC_STATES = ["auto", "cool", "dry", "fan_only", "heat"]
+
+
+async def test_airstage_runtime_trigger_also_counts_heat_cool(hass: HomeAssistant) -> None:
+    """Fujitsu Airstage 1.10.0 reports its auto mode as heat_cool (auto
+    before): a trigger adopted with the shared AC duty's five states lost
+    every hour in that mode (signature drift 2026-11-14)."""
+    airstage = _climate(hass, "fujitsu_airstage", "f1")
+    toshiba = _climate(hass, "toshiba_ac", "t1")
+    mill = _climate(hass, "mill", "m9")
+    data = build_object_entry_data(
+        object_data=build_object_data(name="ACs"),
+        tasks={
+            "adopted": _task(airstage, AC_STATES, attribute=None),
+            "narrowed": _task(airstage, ["cool", "dry"], attribute=None),  # the user's own choice
+            "other": _task(toshiba, AC_STATES, attribute=None),  # still reports auto
+            "foreign": _task(mill, AC_STATES, attribute=None),  # not in the catalog: the user's own trigger
+        },
+    )
+
+    healed = heal_catalog_triggers(hass, data)
+
+    assert healed is not None
+    tc = healed[CONF_TASKS]["adopted"]["trigger_config"]
+    assert tc["trigger_on_states"] == [*AC_STATES, "heat_cool"]
+    assert tc["trigger_runtime_hours"] == 100.0 and tc["entity_id"] == airstage, "everything else is kept"
+    assert healed[CONF_TASKS]["narrowed"] == data[CONF_TASKS]["narrowed"]
+    assert healed[CONF_TASKS]["other"] == data[CONF_TASKS]["other"]
+    assert healed[CONF_TASKS]["foreign"] == data[CONF_TASKS]["foreign"]
+    assert heal_catalog_triggers(hass, healed) is None, "idempotent"
+
+
+async def test_airstage_heal_writes_what_a_fresh_adoption_wires(hass: HomeAssistant) -> None:
+    from custom_components.maintenance_supporter.helpers.signatures import SIGNATURES
+
+    airstage = _climate(hass, "fujitsu_airstage", "f2")
+    data = build_object_entry_data(object_data=build_object_data(name="AC"), tasks={"t": _task(airstage, AC_STATES, attribute=None)})
+
+    healed = heal_catalog_triggers(hass, data)
+
+    assert healed is not None
+    (sig,) = SIGNATURES["fujitsu_airstage"].tasks
+    assert healed[CONF_TASKS]["t"]["trigger_config"]["trigger_on_states"] == list(sig.on_states)
+    assert {"auto", "heat_cool"} <= set(sig.on_states), "either version of the integration counts its auto mode"

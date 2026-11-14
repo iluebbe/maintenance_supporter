@@ -2014,7 +2014,8 @@
    "https://raw.githubusercontent.com/jbergler/hass-ttlock/develop/custom_components/ttlock/lock.py"
   ],
   "strings": [
-   "class Lock(BaseLockEntity, LockEntity)"
+   "class Lock(BaseLockEntity, LockEntity",
+   "self._attr_is_locked = self.coordinator.data.locked"
   ]
  },
  "kwikset": {
@@ -2719,7 +2720,7 @@
  },
  "aquarea": {
   "urls": [
-   "https://raw.githubusercontent.com/kamaradclimber/heishamon-homeassistant/main/custom_components/aquarea/definitions.py",
+   "https://raw.githubusercontent.com/kamaradclimber/heishamon-homeassistant/main/custom_components/aquarea/definitions/sensors.py",
    "https://raw.githubusercontent.com/kamaradclimber/heishamon-homeassistant/main/custom_components/aquarea/sensor.py"
   ],
   "strings": [
@@ -2807,7 +2808,7 @@
   ],
   "strings": [
    "constants.OperationModeDescriptors.FAN: HVACMode.FAN_ONLY",
-   "constants.OperationModeDescriptors.AUTO: HVACMode.AUTO"
+   "constants.OperationModeDescriptors.AUTO: HVACMode.HEAT_COOL"
   ]
  },
  "aux_cloud": {

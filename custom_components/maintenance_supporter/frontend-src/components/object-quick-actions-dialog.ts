@@ -48,6 +48,38 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
     return langOf(this.hass);
   }
 
+  /** This dialog stays open under the task's quick actions it opens, and
+   *  listed the old status after a Complete, Skip, Reset, Archive or
+   *  Delete in there; a deleted task's row reopened to "not found" (bug
+   *  audit 2026-11-08, C8-4). Those dialogs are its siblings in Home
+   *  Assistant's root: their actions bubble through it, and the shared
+   *  complete and task dialogs report on themselves only, which the
+   *  capture phase still passes here. */
+  private _stackRoot: Node | null = null;
+
+  private _onStackedChange = (e: Event): void => {
+    if (!this._open || !this._entryId) return;
+    const detail = (e as CustomEvent<{ entry_id?: string; entryId?: string } | null>).detail;
+    const about = detail?.entry_id ?? detail?.entryId;
+    if (about === undefined || about === this._entryId) void this._load();
+  };
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    this._stackRoot = this.getRootNode();
+    this._stackRoot.addEventListener("task-action-fired", this._onStackedChange);
+    this._stackRoot.addEventListener("task-completed", this._onStackedChange, true);
+    this._stackRoot.addEventListener("task-saved", this._onStackedChange, true);
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this._stackRoot?.removeEventListener("task-action-fired", this._onStackedChange);
+    this._stackRoot?.removeEventListener("task-completed", this._onStackedChange, true);
+    this._stackRoot?.removeEventListener("task-saved", this._onStackedChange, true);
+    this._stackRoot = null;
+  }
+
   public async openFor(entryId: string): Promise<void> {
     // Another object's data must not show under this one's id while it loads.
     if (entryId !== this._entryId) this._data = null;

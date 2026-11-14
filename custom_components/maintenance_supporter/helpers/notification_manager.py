@@ -1398,6 +1398,12 @@ class NotificationManager:
         # once the task needs no doing after a reload or a restart (DRY audit
         # 2026-10-30, BR6-A1).
         self._on_phones: dict[str, str] = {}
+        # The pushes that are about several tasks (an object's bundle, the
+        # quiet-hours summary): tag → the tasks it lists and the services
+        # it went to. It leaves once none of them needs doing any more;
+        # nothing took it back, and "3 tasks need attention on Pool"
+        # stayed after all three were done (bug audit 2026-11-08, N8-7).
+        self._group_pushes: dict[str, dict[str, list[str]]] = {}
         # Per task, how many reminders went out or were held in this
         # process (sent_marks; not persisted, compared within one action).
         self._sent_seq: dict[str, int] = {}
@@ -1807,6 +1813,13 @@ class NotificationManager:
         on_phones = raw.get("on_phones")
         if isinstance(on_phones, dict):
             self._on_phones = {str(k): str(v) for k, v in on_phones.items()}
+        groups = raw.get("group_pushes")
+        if isinstance(groups, dict):
+            self._group_pushes = {
+                str(tag): {part: [str(x) for x in push.get(part) or []] for part in ("members", "targets")}
+                for tag, push in groups.items()
+                if isinstance(push, dict)
+            }
         lead = raw.get("lead_sent")
         if isinstance(lead, dict):
             self._lead_sent = {str(k): str(v) for k, v in lead.items()}
@@ -1832,6 +1845,7 @@ class NotificationManager:
             "last_notified": {k: _ser(v) for k, v in self._last_notified.items()},
             "snoozed_until": {k: v.isoformat() for k, v in self._snoozed_until.items()},
             "on_phones": dict(self._on_phones),
+            "group_pushes": {tag: {part: list(items) for part, items in push.items()} for tag, push in self._group_pushes.items()},
             "lead_sent": dict(self._lead_sent),
             "daily_count": self._daily_count,
             "daily_reset_date": self._daily_reset_date.isoformat() if self._daily_reset_date else None,
@@ -1977,6 +1991,8 @@ class NotificationManager:
             if f.get("entry_id") and f.get("task_id"):
                 keys.append(task_key_of(str(f["entry_id"]), str(f["task_id"])))
         self._mark_delivered(keys)
+        # One tag for every recipient's summary: what they list adds up.
+        self._note_group_push(QUIET_END_TAG, keys, list(targets), replace=False)
         _LOGGER.debug("Quiet-hours summary sent to %s: %s", ", ".join(t or "the event" for t in targets), title)
         return True
 
@@ -2597,6 +2613,7 @@ class NotificationManager:
                     if t.get("task_id"):
                         self._stamp_status_sent(notification_key(entry_id, t["task_id"], t["status"]), self._get_interval_hours(t["status"]))
                 self._mark_delivered(member_keys)
+                self._note_group_push(bundle_tag(entry_id), member_keys, [self.notify_service], replace=True)
                 for t in tasks:
                     if t.get("task_id"):
                         record_trace(self.hass, entry_id, t["task_id"], KIND_REMINDER, reminder="bundle", status=str(t.get("status")))
@@ -2734,7 +2751,7 @@ class NotificationManager:
             self_completing=completes_itself(cfg.get("trigger_config"), trigger_active),
         ):
             self._mark_delivered([lead_task_key])
-            self._on_phones[lead_task_key] = ON_PHONES_LEAD
+            self._on_phones[lead_task_key] = f"{ON_PHONES_LEAD}:{next_due}" if next_due else ON_PHONES_LEAD
             record_trace(self.hass, entry_id, task_id, KIND_REMINDER, reminder="lead", days=days)
             # Keep only today's stamps - yesterday's are dead weight.
             self._lead_sent = {k: d for k, d in self._lead_sent.items() if d == today}
@@ -2851,19 +2868,46 @@ class NotificationManager:
             notification_key(entry_id, task_id, status) in self._last_notified for status in NOTIFIABLE_STATUSES
         )
 
-    def take_outdated_off_phones(self, entry_id: str, task_id: str, *, inert: bool) -> bool:
+    def _note_group_push(self, tag: str, members: Iterable[str], targets: Iterable[str], *, replace: bool) -> None:
+        """A push about several tasks went out (see ``_group_pushes``)."""
+        push = {"members": [], "targets": []} if replace else self._group_pushes.get(tag, {"members": [], "targets": []})
+        push["members"] = list(dict.fromkeys([*push["members"], *members]))
+        push["targets"] = list(dict.fromkeys([*push["targets"], *(t for t in targets if t)]))
+        if push["members"]:
+            self._group_pushes[tag] = push
+            self._dirty()
+
+    def _leave_group_pushes(self, task_key: str) -> None:
+        """The task needs no doing any more: it leaves the pushes that list
+        it, and one that lists nothing else leaves the phones."""
+        for tag in [t for t, push in self._group_pushes.items() if task_key in push["members"]]:
+            push = self._group_pushes[tag]
+            push["members"].remove(task_key)
+            if not push["members"]:
+                del self._group_pushes[tag]
+                self.hass.async_create_task(self._async_dismiss_tag(tag, push["targets"]), f"{DOMAIN} dismiss {tag}")
+            self._dirty()
+
+    def take_outdated_off_phones(self, entry_id: str, task_id: str, *, inert: bool, next_due: str | None = None) -> bool:
         """Whether the task's push on the phones is outdated, now that its
         status needs no reminder, and forget it: so it leaves once.
 
         A status reminder is outdated (the sensor recovered, the task was
         postponed). A lead-time one still says rightly that the task comes
-        up, unless the task is ``inert`` (paused, archived, disabled). Kept by
+        up, unless the task is ``inert`` (paused, archived, disabled) or the
+        day it named is no longer the task's (``next_due``): postponed by
+        two weeks, the phone kept "due in 3 days" for a date that had
+        moved (bug audit 2026-11-08, N8-3). Kept by
         the manager, not the coordinator: an object reloads on every edit,
         a pause and an archive too, and its coordinator starts with nothing
         known, so the reminder of a paused task stayed (BR6-A1)."""
         tkey = task_key_of(entry_id, task_id)
+        self._leave_group_pushes(tkey)
         kind = self._on_phones.get(tkey)
-        if kind is None or (kind == ON_PHONES_LEAD and not inert):
+        if kind is None:
+            return False
+        lead, _, announced = kind.partition(":")
+        if lead == ON_PHONES_LEAD and not inert and (not announced or next_due is None or announced == next_due):
             return False
         del self._on_phones[tkey]
         self._dirty()
@@ -2885,6 +2929,7 @@ class NotificationManager:
         self._deferred_today.discard(tkey)
         self._starved.discard(tkey)
         self._on_phones.pop(tkey, None)
+        self._leave_group_pushes(tkey)
         self._dirty()
 
     def sent_marks(self, entry_id: str, task_id: str) -> SentMarks:
@@ -2976,6 +3021,8 @@ class NotificationManager:
                 del mapping[key]
         for keys in (self._served_today, self._deferred_today, self._starved):
             keys.difference_update({k for k in keys if k.startswith(prefix)})
+        for member in [m for push in self._group_pushes.values() for m in push["members"] if m.startswith(prefix)]:
+            self._leave_group_pushes(member)
         self._seeded_entries.discard(entry_id)
         self._dirty()
 
@@ -3003,7 +3050,12 @@ class NotificationManager:
             services.extend(await self._user_services(user_ids))
         except Exception:  # a lookup failure must not keep the action from finishing
             _LOGGER.debug("User notify services unavailable for %s", user_ids, exc_info=True)
-        tag = task_tag(task_id)
+        await self._async_dismiss_tag(task_tag(task_id), services)
+
+    async def _async_dismiss_tag(self, tag: str, services: Iterable[str]) -> None:
+        """Take the push with ``tag`` off the phones behind ``services`` (and
+        its persistent-notification card): a task's reminder, an object's
+        bundle or the quiet-hours summary."""
         leaves = [leaf for s in services if s for leaf in _notify_leaves(self.hass, s)]
         # A persistent notification carries the tag as its id (see
         # async_dispatch_notify): the card is dismissed by it. It stayed

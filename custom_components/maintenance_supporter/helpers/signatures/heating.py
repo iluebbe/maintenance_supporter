@@ -534,16 +534,18 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "aquarea": IntegrationSignature(
         name="Panasonic Aquarea (HeishaMon)",
-        verified="2026-10-03 @ kamaradclimber/heishamon-homeassistant main (3a528fd)",
+        verified="2026-10-03 @ kamaradclimber/heishamon-homeassistant main (3a528fd); re-checked 2026-11-14 @ 6c91321 (2.14.0)",
         source=(
-            "HACS aquarea (HeishaMon, MQTT-fed) definitions.py build_sensors "
+            "HACS aquarea (HeishaMon, MQTT-fed) definitions/sensors.py (a "
+            "package since 2.14.0, definitions.py before) build_sensors "
             "TOP115 key f'{mqtt_prefix}main/Water_Pressure', name 'Aquarea "
             "Water Pressure', PRESSURE, 'bar', entity_registry_enabled_default="
             "False (K/L series only); sensor.py sets entity_id = "
             "sensor.<slugify(key)> → sensor.panasonic_heat_pump_main_water_"
             "pressure (suffix _water_pressure; the original name ends in it "
             "too). No other HeishaMon key ends in water_pressure (High/Low "
-            "Pressure are the refrigerant side). NOTE: disabled by default — "
+            "Pressure are the refrigerant side, the binary Static_Pressure "
+            "is no sensor). NOTE: disabled by default — "
             "the suggestion appears once the user enables the sensor. The "
             "cloud fork wpatrik14/home-assistant-aquarea shares the domain but "
             "has no pressure entity (verified @ a588223)."

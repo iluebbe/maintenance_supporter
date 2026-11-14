@@ -2,6 +2,88 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.121.1] - 2026-11-14
+
+The rest of the bug audit of 2026-11-08 (the findings rated Low), and a suggested setup that follows a
+change in its integration.
+
+### 🐛 Fixed
+
+- **A task its sensor triggered can be completed inside its completion window.** *Not earlier than N days before
+  it is due* looked only at the date, which for a sensor task is its safety interval: a counter task triggered on
+  day 100 of 365 was refused as too early from the panel, the to-do list, voice and the button, and its reminder
+  lost the Complete button.
+- **A sensor that fires again right after it recovered is a new episode.** With *Record the task as done* on
+  recovery, a sensor that reports only changes (a problem code: 1, 0, 1 within minutes) read OK for the ten minutes
+  after the automatic completion although it had fired again.
+- **A reminder that listed several tasks leaves the phone once none of them needs doing.** An object's bundle
+  (*3 tasks need attention on Pool*) and the quiet-hours summary stayed after every task in them was done or its
+  sensor had recovered.
+- **A "due in 3 days" reminder leaves when the day it named has moved.** Postponed by two weeks, or with a new
+  schedule, the phone kept the reminder for the old date.
+- **A to-do row that could not be removed is removed later.** A list that was not loaded yet at a start, or a
+  cloud list that was unavailable, kept the row for good: the mirror forgot it although the removal had not
+  happened. It now forgets a row only once it is off the list.
+- **A buy reminder no longer stands twice on the shopping list.** With one family list as both the default to-do
+  mirror and the shopping list, every buy reminder was added by both. The mirror leaves the shopping list to the
+  shopping sync.
+- **A place's arrival reminder carries each task's facts in its event.** With due tasks of several objects at one
+  place, the event's `tasks` came without reference, priority, labels and notes.
+- **Voice: an article is no name.** *Change a filter* picked *Filter A* over *Filter B* and completed it. A letter
+  that is a word of the language (*a*, French *l'*, Italian *i*, Portuguese *o*) names a task only as the last word
+  spoken (*filter A*).
+- **The template review offers no change towards a duty the template does not create in your home.** Where a
+  roadworthiness test is not required, the review offered to turn the reminder into a manual task, ticked.
+- **Choosing the device later moves the wiring of a replaced object.** *Replace* with *no device yet* left the
+  successor's sensor rules and reset actions on the retired unit, and choosing the device afterwards in the
+  object's settings found nothing to move away from.
+- **The device-link repair's *Relink* moves the wiring too.** It wrote only the link, so every sensor rule and
+  completion action stayed on the vanished device.
+- **The missing-entity repair keeps what a combined rule said itself.** Removing an entity that left one
+  condition demoted the rule and dropped *Record the task as done on recovery* and the detail shown with the task.
+- **Deleting the last object cleans up after itself.** Its reminder bookkeeping, the reminders held for the quiet
+  hours and its trace stayed in storage, for a reinstall to pick up.
+- **A battery without a sensor is judged by the cells it holds.** With *Ask which cells* on, a note *AA* holding
+  rechargeables came due like disposables, and a note for rechargeables with disposables put in never did.
+- **Done buy reminders no longer use up an object's tasks.** Every purchase leaves a done reminder that is
+  archived later, and archived tasks counted against the 200 an object may have: a pool with five chemicals bought
+  monthly was full after about three years, and a low part then got no reminder. Archived tasks no longer count
+  (the archive has its own, wider bound).
+- **The trace says what *Last performed* was before an edit.** It read *— → 1 Nov* for a task done on 1 Oct,
+  because it looked at the object's settings and not at where the date is kept.
+- **Fujitsu Airstage: *Filter Cleaning* counts the auto mode again.** Since its version 1.10.0 the
+  integration reports the auto mode as *heat/cool*, a state the suggested setup did not count, so every
+  hour the unit ran in it was missing from the 100 hours. Both spellings count now, and a task you set
+  up from the suggestion is widened by itself (one you changed the states of stays as it is).
+- **Sections of the task dialog no longer fold shut while you edit them.** Clearing the only value in *Adaptive
+  scheduling*, *Phases* or the shared-parts section closed it with the cursor inside.
+- **A new task's *Copy a task* and template lists are fresh each time.** They were kept for as long as the
+  panel stayed open: a task created a minute ago was missing, an edited one copied its old values, and one failed
+  load showed nothing until a reload.
+- **The Trace tab cannot show another task's cycles.** Going back and forward quickly could put the earlier
+  task's answer on the later task's page.
+- **The calendar card no longer overwrites an update that arrived while it loaded**, and **the task card keeps
+  the document chips of two loads that overlap.**
+- **The object's quick actions refresh after an action in the task's.** Completing, skipping or deleting in the
+  dialog opened on top left the object's list with the old status underneath.
+
+### 🔧 Developer
+
+- `MaintenanceCoordinator._window_open` is the one completion-window check (a live trigger counts as due).
+- `BaseTrigger.reset()` keeps `_recovered_since_reset` when the rule is on the normal side at the reset.
+- `NotificationManager._group_pushes` (persisted) knows the tasks behind a bundle's and the quiet-hours summary's
+  tag; `_async_dismiss_tag` is the one dismissal. A lead reminder's `_on_phones` value is `lead:<due>`.
+- `helpers/todo_mirror.lists_for`; `TodoMirror._remove_item` and `async_todo_remove_item` return whether the row
+  is off the list.
+- `helpers/entry_tasks.task_room` is the one count of the tasks an object still takes (tests patch
+  `helpers.entry_tasks.MAX_TASKS_PER_OBJECT`); `MAX_STORED_TASKS_PER_OBJECT` bounds the archive.
+- `helpers/device_swap.predecessor_device_ids`.
+- Weekly signature drift check: aquarea (2.14.0 split `definitions.py` into a package, the pressure sensor
+  unchanged), ttlock (the lock entity restores its state, still one per lock) and fujitsu_airstage (above)
+  re-checked against their sources; `helpers/catalog_heal._healed_state_set_trigger` widens adopted triggers.
+- CI: both CodeQL steps on v4.39.3, and Dependabot moves them in one pull request (`groups` in
+  `dependabot.yml`): CodeQL does not run with its steps on different versions.
+
 ## [2.121.0] - 2026-11-14
 
 ### ✨ New

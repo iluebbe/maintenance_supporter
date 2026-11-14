@@ -522,7 +522,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
                 elif dismiss and status not in notify_statuses:
                     # Paused or archived (both reload the object), or done
                     # with while Home Assistant was down (BR6-A1).
-                    await self._async_dismiss_outdated_reminder(nm, task_id_n, {**(task_configs.get(task_id_n) or {}), **task_result_n.task})
+                    await self._async_dismiss_outdated_reminder(
+                        nm, task_id_n, {**(task_configs.get(task_id_n) or {}), **task_result_n.task}, next_due=task_result_n.next_due
+                    )
         else:
             await self._async_notify_status_changes(result[CONF_TASKS])
 
@@ -1106,7 +1108,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
             new_status = task_result.status
             if new_status not in NOTIFIABLE_STATUSES:
                 nm.release_waiting(self.entry.entry_id, task_id)
-                await self._async_dismiss_outdated_reminder(nm, task_id, {**(task_configs.get(task_id) or {}), **task_result.task})
+                await self._async_dismiss_outdated_reminder(
+                    nm, task_id, {**(task_configs.get(task_id) or {}), **task_result.task}, next_due=task_result.next_due
+                )
                 continue
             gate = task_may_notify(
                 self.hass,
@@ -1174,7 +1178,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         for task_id, task_result in task_results.items():
             self._previous_statuses[task_id] = task_result.status
 
-    async def _async_dismiss_outdated_reminder(self, nm: NotificationManager, task_id: str, task: Mapping[str, Any]) -> None:
+    async def _async_dismiss_outdated_reminder(
+        self, nm: NotificationManager, task_id: str, task: Mapping[str, Any], *, next_due: str | None = None
+    ) -> None:
         """A task that left its reminder's status without being closed (the
         sensor recovered, it was postponed, paused or archived) takes the
         reminder off the phones. Only complete, skip and reset did that, so a
@@ -1187,7 +1193,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         (_clear_notification_state)."""
         if task_id in self._recently_completed:
             return
-        if nm.take_outdated_off_phones(self.entry.entry_id, task_id, inert=self._is_inert(task)):
+        if nm.take_outdated_off_phones(self.entry.entry_id, task_id, inert=self._is_inert(task), next_due=next_due):
             await nm.async_dismiss_task_notification(task_id, user_ids=task_user_ids(task))
 
     def recalculate_budget_cache(self) -> None:
@@ -1273,6 +1279,18 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
             return None
         return self._store.merge_task_data(task_id, static)
 
+    def _window_open(self, task_id: str, task: Mapping[str, Any]) -> bool:
+        """Whether the completion window (earliest_completion_days) lets the
+        task be completed now. A task its sensor triggered is due: the
+        window looked only at the date, which for a sensor task is its
+        safety interval, so a counter task triggered on day 100 of 365
+        with "not earlier than 30 days before" was refused as too early
+        on every surface (bug audit 2026-11-08, T8-5)."""
+        if MaintenanceTask.from_dict(dict(task)).can_complete_now:
+            return True
+        live = self.task_results.get(task_id)
+        return live is not None and bool(live.trigger_active)
+
     def completion_blocked(self, task_id: str) -> bool:
         """True iff the task's completion window (earliest_completion_days)
         forbids completing it right now. The friendly pre-check of the WS, the
@@ -1280,7 +1298,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         task = self.merged_task(task_id)
         if not task:
             return False
-        return not MaintenanceTask.from_dict(task).can_complete_now
+        return not self._window_open(task_id, task)
 
     def unattended_refusal(self, task_id: str, *, source: str) -> str | None:
         """Why :meth:`complete_maintenance` would refuse completing the task
@@ -1300,7 +1318,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         if self._is_inert(task):
             return "task_inactive"
         try:
-            if not MaintenanceTask.from_dict(task).can_complete_now:
+            if not self._window_open(task_id, task):
                 return "too_early"
         except (KeyError, TypeError, ValueError):
             return None
@@ -1538,7 +1556,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # 2026-08-29). A completion dated on a PAST day is a history correction,
         # not early work, and bypasses the window exactly like the WS pre-check.
         if not auto:
-            if not is_past_dated(completed_at) and not MaintenanceTask.from_dict(merged[task_id]).can_complete_now:
+            if not is_past_dated(completed_at) and not self._window_open(task_id, merged[task_id]):
                 raise ServiceValidationError(
                     translation_domain=DOMAIN,
                     translation_key="too_early",

@@ -19,8 +19,9 @@ from ._shared import (
 )
 
 # One object for the AC-only integrations whose climate entity runs through
-# these HVAC modes (gree, midea_ac, mitsubishi_wf_rac, toshiba_ac,
-# fujitsu_airstage; aux_cloud keys a copy to its AC climate) — shared here,
+# these HVAC modes (gree, midea_ac, mitsubishi_wf_rac, toshiba_ac;
+# aux_cloud keys a copy to its AC climate, fujitsu_airstage one that also
+# counts heat_cool) — shared here,
 # next to its users, so the verbatim-duplicate tripwire holds without a
 # _shared.py entry.
 _AC_FILTER_CLEANING_RUNTIME = ConsumableSignature(
@@ -760,15 +761,24 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "fujitsu_airstage": IntegrationSignature(
         name="Fujitsu Airstage",
-        verified="2026-10-03 @ danielkaldheim/ha_airstage main (12d4dbe)",
+        verified="2026-10-03 @ danielkaldheim/ha_airstage main (12d4dbe); re-checked 2026-11-14 @ 69bca5d (v1.10.0)",
         source=(
             "HACS fujitsu_airstage climate.py: one AirstageAC per indoor unit, "
             "each its own device (entity.py AirstageAcEntity identifiers = the "
-            "ac_key); FUJITSU_TO_HA_STATE maps FAN/DRY/COOL/HEAT/AUTO to "
-            "fan_only/dry/cool/heat/auto → the shared AC engine-runtime duty. "
-            "No filter entity."
+            "ac_key); FUJITSU_TO_HA_STATE maps FAN/DRY/COOL/HEAT to "
+            "fan_only/dry/cool/heat and AUTO to heat_cool since v1.10.0 "
+            "(afa6d954; auto before) → the AC engine-runtime duty with both "
+            "states counted, so either version of the integration adds up "
+            "its hours in the auto mode. Triggers adopted with the five "
+            "states are widened at setup (helpers/catalog_heal.py). No "
+            "filter entity."
         ),
-        tasks=(_AC_FILTER_CLEANING_RUNTIME,),
+        tasks=(
+            replace(
+                _AC_FILTER_CLEANING_RUNTIME,
+                on_states=("auto", "cool", "dry", "fan_only", "heat", "heat_cool"),
+            ),
+        ),
     ),
     "aux_cloud": IntegrationSignature(
         name="AUX Cloud (air conditioners)",

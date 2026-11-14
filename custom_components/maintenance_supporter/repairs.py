@@ -37,11 +37,13 @@ from .helpers.action_listener import action_entity_ids, map_action_entity_ids
 from .helpers.aggregate import async_store_even_unloaded, object_name
 from .helpers.area_leftovers import async_leftover_areas
 from .helpers.device_link import appliance_devices, is_maintenance_device
+from .helpers.device_swap import move_tasks_to_device, old_device_ids, predecessor_device_ids
 from .helpers.entity_rename import map_trigger_entity_ids
 from .helpers.entry_tasks import write_task
 from .helpers.global_options import entry_option
 from .helpers.issues import DEVICE_LINK_LOST_PREFIX, STALE_ACTION_PREFIX
 from .helpers.schedule import FLAT_RECURRENCE_KEYS, Schedule, read_legacy_fields
+from .helpers.task_fields import FLOW_CARRIED_TRIGGER_KEYS
 from .models.maintenance_task import MaintenanceTask
 
 _LOGGER = logging.getLogger(__name__)
@@ -445,6 +447,13 @@ class MissingTriggerEntityRepairFlow(RepairsFlow):
                     new_tc["type"] = sole["type"]
             else:
                 new_tc = dict(sole)
+            # What the compound said for the whole rule goes on with the
+            # one condition left: dropped, a task stopped completing
+            # itself on recovery without a word (bug audit 2026-11-08,
+            # O8-8). The condition's own value wins where it has one.
+            for key in FLOW_CARRIED_TRIGGER_KEYS:
+                if key not in new_tc and trigger_config.get(key) not in (None, "", False):
+                    new_tc[key] = trigger_config[key]
             task_dict["trigger_config"] = new_tc
             return (
                 f"Entity {missing_entity_id} removed; compound trigger "
@@ -786,8 +795,19 @@ class DeviceLinkRepairFlow(RepairsFlow):
         """Write the new link and reload — the entity→device attachment only
         changes on entity re-add (the same reason the WS update path reloads)."""
         obj = dict(entry.data.get(CONF_OBJECT, {}) or {})
+        data = {**entry.data}
+        if device_id and device_id != obj.get("ha_device_id"):
+            # The device came back under a new id: the sensor rules, the
+            # completion actions and the adopted tasks' origin follow it,
+            # as when the device is chosen in the object's settings. Only
+            # the link was written, and every task kept the vanished
+            # device's entities (bug audit 2026-11-08, O8-5). The actions
+            # keep their owner: a repair is fixed by an administrator.
+            tasks = dict(entry.data.get(CONF_TASKS) or {})
+            away_from = old_device_ids(obj, tasks.values(), device_id) | predecessor_device_ids(self.hass, obj, device_id)
+            data[CONF_TASKS], _report = move_tasks_to_device(self.hass, tasks, away_from, device_id, user_id=None)
         obj["ha_device_id"] = device_id
-        self.hass.config_entries.async_update_entry(entry, data={**entry.data, CONF_OBJECT: obj})
+        self.hass.config_entries.async_update_entry(entry, data={**data, CONF_OBJECT: obj})
         self.hass.config_entries.async_schedule_reload(entry.entry_id)
 
 

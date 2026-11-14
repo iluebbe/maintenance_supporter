@@ -410,7 +410,7 @@ offered again. History, completions and photos are never touched. Changed
 fields take effect like a `task/update` (a new schedule, note or warning is a
 refresh, a new name reloads the object, 2.121+); new tasks reload it. New
 tasks are refused before anything is written: `archived` on an archived
-object, `limit_reached` past 200 tasks.
+object, `limit_reached` past 200 tasks (archived ones do not count).
 
 ---
 

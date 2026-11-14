@@ -11,6 +11,12 @@ updates:
       interval: "weekly"
     cooldown:
       default-days: 7
+    groups:
+      # CodeQL refuses to run when its steps are on different versions,
+      # so init and analyze have to move in one pull request.
+      codeql-action:
+        patterns:
+          - "github/codeql-action/*"
 
   - package-ecosystem: "npm"
     directory: "/custom_components/maintenance_supporter/frontend-src"

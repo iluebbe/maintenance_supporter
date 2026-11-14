@@ -242,7 +242,14 @@ def task_changes(task_id: str, task: Mapping[str, Any], home: Home, fallback_lan
     raw_declined = origin.get("declined")
     declined: Mapping[str, Any] = raw_declined if isinstance(raw_declined, Mapping) else {}
     mine_values = task_values(task)
-    theirs_values = task_values(built_task(tt, lang, home))
+    built = built_task(tt, lang, home)
+    if built.get("interval_days") == 0:
+        # No such duty in this home (a roadworthiness test where none is
+        # required): the template makes no such task here, and the review
+        # offered to turn the user's reminder into a manual task, ticked
+        # (bug audit 2026-11-08, O8-3).
+        return []
+    theirs_values = task_values(built)
     changes: list[FieldChange] = []
     for f in FIELDS:
         mine, theirs = fingerprint(mine_values[f]), fingerprint(theirs_values[f])

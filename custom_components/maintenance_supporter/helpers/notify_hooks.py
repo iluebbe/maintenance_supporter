@@ -150,10 +150,10 @@ def notification_context(
     url = panel_url(entry_id=entry_id, task_id=task_id)
     # A bundle's tasks carry the same per-task facts as a single reminder
     # (#178): labels, notes, priority, refs - the caller's own fields win.
-    task_items = [
-        _gate_detail({**(_task_block(hass, entry, obj, str(t.get("task_id"))) if entry is not None and t.get("task_id") else {}), **t})
-        for t in (tasks or [])
-    ]
+    # Each from its own object: a place's reminder lists tasks of several,
+    # names no single entry, and its items came without refs, priority,
+    # labels or notes (bug audit 2026-11-08, N8-8).
+    task_items = [_gate_detail({**_item_block(hass, entry, obj, t), **t}) for t in (tasks or [])]
     return {
         "kind": kind,
         "status": status,
@@ -248,6 +248,20 @@ def _area_name(hass: HomeAssistant, area_id: str | None) -> str | None:
 
     area = ar.async_get(hass).async_get_area(area_id)
     return area.name if area is not None else None
+
+
+def _item_block(hass: HomeAssistant, entry: Any, obj: Mapping[str, Any], item: Mapping[str, Any]) -> dict[str, Any]:
+    """:func:`_task_block` for one task of a list: of the notification's
+    own object, else of the object the item names."""
+    task_id = item.get("task_id")
+    if not task_id:
+        return {}
+    if entry is not None:
+        return _task_block(hass, entry, obj, str(task_id))
+    own = hass.config_entries.async_get_entry(str(item.get("entry_id"))) if item.get("entry_id") else None
+    if own is None or own.unique_id == GLOBAL_UNIQUE_ID:
+        return {}
+    return _task_block(hass, own, own.data.get(CONF_OBJECT) or {}, str(task_id))
 
 
 def _gate_detail(item: dict[str, Any]) -> dict[str, Any]:

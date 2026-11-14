@@ -48,7 +48,7 @@ import { openHistoryEditDialog, openTaskQuickActions } from "./dialog-mount";
 import { EDITABLE_HISTORY_TYPES } from "./status-constants";
 import { fetchTaskHistory } from "./helpers/task-history-fetch";
 import { fetchStatistics } from "./helpers/objects-fetch";
-import { ObjectsFollower, firstObjects } from "./helpers/objects-hub";
+import { ObjectsFollower, firstObjects, liveObjects } from "./helpers/objects-hub";
 import { mergeSubscriptionEvent } from "./helpers/subscription-merge";
 import { StatesRedrawGate } from "./helpers/hass-changes";
 import type {
@@ -217,7 +217,10 @@ export class MaintenanceCalendarCard extends LitElement {
         firstObjects(this.hass),
         fetchStatistics(this.hass, { first: true }),
       ]);
-      this._objects = objResult;
+      // What the subscription brought while the statistics were out is
+      // newer: the first list overwrote a change merged meanwhile, as the
+      // task card's did not (bug audit 2026-11-08, C8-1).
+      this._objects = liveObjects(this.hass.connection) ?? objResult;
       this._stats = statsResult;
       syncCurrencyDecimals(this._stats.budget);
     } catch {

@@ -41,7 +41,7 @@ from .const import (
 from .helpers.aggregate import object_name as _object_name
 from .helpers.aggregate import store_of, store_or_cached
 from .helpers.completion_requirements import missing_completion_fields
-from .helpers.entry_tasks import ArchivedObjectError
+from .helpers.entry_tasks import ArchivedObjectError, task_room
 from .helpers.global_options import global_option
 from .helpers.i18n import normalize_language
 from .helpers.issues import broken_part_link_issue_id
@@ -586,7 +586,7 @@ def purchase_refusal(
             translation_key="purchase_cost_too_high",
             translation_placeholders={"max": str(MAX_COST)},
         )
-    if open_buy_task_id(entry, part_id) is None and len(entry.data.get(CONF_TASKS) or {}) + new_reminders >= MAX_TASKS_PER_OBJECT:
+    if open_buy_task_id(entry, part_id) is None and task_room(entry.data.get(CONF_TASKS)) <= new_reminders:
         return ServiceValidationError(
             translation_domain=DOMAIN,
             translation_key="task_limit",
@@ -999,7 +999,7 @@ async def _reconcile_buy_tasks_locked(hass: HomeAssistant, entry: ConfigEntry) -
     # The cap every other new task meets (insert_new_task): written past it,
     # an object held more tasks than any edit of it may save (DRY audit
     # 2026-10-30, BR6-A10). The next reconcile tries again.
-    room = max(0, MAX_TASKS_PER_OBJECT - len(merged_tasks))
+    room = task_room(merged_tasks)
     if len(created) > room:
         _LOGGER.warning("%s holds the most tasks it may: %d buy reminder(s) not created", entry.title, len(created) - room)
         created = created[:room]

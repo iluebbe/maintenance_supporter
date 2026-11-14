@@ -110,7 +110,7 @@ async def test_a_new_template_task_on_an_archived_object_is_refused_before_writi
 async def test_new_template_tasks_past_the_cap_are_refused_before_writing(hass: HomeAssistant, _home_north: None) -> None:
     obj = await _car_object(hass)
     before = _entry(hass, obj.entry_id).data
-    with patch("custom_components.maintenance_supporter.websocket.template_updates.MAX_TASKS_PER_OBJECT", 2):
+    with patch("custom_components.maintenance_supporter.helpers.entry_tasks.MAX_TASKS_PER_OBJECT", 2):
         conn = await _ws(hass, ws_apply_template_updates, _apply(obj.entry_id, new_tasks=[{"key": "Cabin Air Filter", "accept": True}]))
     assert _error_code(conn) == "limit_reached"
     assert conn.send_error.call_args.kwargs["translation_key"] == "task_limit"

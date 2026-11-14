@@ -295,7 +295,11 @@ async def test_n16_the_task_limit_is_said_before_and_at_saving(hass: HomeAssista
     obj = make_object_entry(hass, tasks={"t1": build_task_data(task_id="t1")}, name="Busy", uid="n16b")
     await setup_integration(hass, g, obj)
 
-    with patch("custom_components.maintenance_supporter.config_flow_options_task_base.MAX_TASKS_PER_OBJECT", 1):
+    # The cap is counted in one place since tranche C of the 2026-11-08 audit (helpers.entry_tasks.task_room).
+    with (
+        patch("custom_components.maintenance_supporter.config_flow_options_task_base.MAX_TASKS_PER_OBJECT", 1),
+        patch("custom_components.maintenance_supporter.helpers.entry_tasks.MAX_TASKS_PER_OBJECT", 1),
+    ):
         flow = await hass.config_entries.options.async_init(obj.entry_id)
         result = await hass.config_entries.options.async_configure(flow["flow_id"], {"next_step_id": "add_task"})
     assert result["type"] == FlowResultType.ABORT

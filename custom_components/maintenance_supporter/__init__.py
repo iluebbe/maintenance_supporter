@@ -934,9 +934,21 @@ async def _async_forget_removed_object_tasks(hass: HomeAssistant, entry: ConfigE
     tasks = {str(tid): task for tid, task in (entry.data.get(CONF_TASKS) or {}).items()}
     await async_forget_tasks(hass, entry.entry_id, store, tasks)
     nm = hass.data.get(DOMAIN, {}).get(NOTIFICATION_MANAGER_KEY)
-    if isinstance(nm, NotificationManager):
-        nm.purge_entry(entry.entry_id)
-    forget_trace_entry(hass, entry.entry_id)
+    if not isinstance(nm, NotificationManager):
+        # The last entry to go: its unload already dropped the runtime
+        # data, and the object's stamps, its reminders held for the quiet
+        # hours and its trace stayed in .storage, for a reinstall to send
+        # (bug audit 2026-11-08, O8-7; the documents got this in 2026-10).
+        # Loaded for this one clean-up.
+        nm = NotificationManager(hass)
+        await nm.async_load()
+    nm.purge_entry(entry.entry_id)
+    if isinstance(hass.data.get(DOMAIN, {}).get(TASK_TRACE_KEY), TaskTrace):
+        forget_trace_entry(hass, entry.entry_id)
+    else:
+        trace = TaskTrace(hass)
+        await trace.async_load()
+        trace.forget_entry(entry.entry_id)
 
 
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:

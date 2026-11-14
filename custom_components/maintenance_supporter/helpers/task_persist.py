@@ -32,7 +32,7 @@ from ..models.shapes import AdaptiveConfig, HistoryEntry
 from .aggregate import async_commit_store, async_store_even_unloaded, get_runtime_data, get_store, is_object_entry
 from .completion_photos import history_photo_ids
 from .dates import parse_iso_date
-from .entry_tasks import insert_new_task, write_task
+from .entry_tasks import insert_new_task, task_room, write_task
 from .global_options import (
     cleanup_group_refs,
     get_default_warning_days,
@@ -471,7 +471,7 @@ async def async_move_task(
     sole_task_docs = {did for did in doc_links if (doc_store.get(did) or {}).get("task_ids") == [task_id]}
 
     existing = target.data.get(CONF_TASKS, {})
-    if len(existing) >= MAX_TASKS_PER_OBJECT:
+    if task_room(existing) <= 0:
         raise ValueError(f"The target object already has the maximum of {MAX_TASKS_PER_OBJECT} tasks")
 
     # The delete awaits before it drops the Store state; take the state as

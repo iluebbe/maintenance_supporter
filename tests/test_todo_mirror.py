@@ -359,9 +359,11 @@ async def test_service_error_paths_are_soft(hass: HomeAssistant) -> None:
     probe._hass = SimpleNamespace(services=_BrokenServices(), states=hass.states)
     assert await probe._get_items(FAMILY) is None
     assert await probe._add_item(FAMILY, "x") is False
-    await probe._remove_item(FAMILY, {"uid": "u1"})  # logged, not raised
-    await probe._remove_item(FAMILY, {})  # nothing to remove
-    await probe._remove_item("todo.gone", {"uid": "u1"})  # list gone entirely
+    # Logged, not raised; and still to do: the row cannot be seen to be gone
+    # (bug audit 2026-11-08, N8-6).
+    assert await probe._remove_item(FAMILY, {"uid": "u1"}) is False
+    assert await probe._remove_item(FAMILY, {}) is True  # nothing to remove
+    assert await TodoMirror(hass)._remove_item("todo.gone", {"uid": "u1"}) is True  # list gone entirely
 
     # A provider that hides the new row: add succeeds, uid stays None.
     async def no_items(entity):

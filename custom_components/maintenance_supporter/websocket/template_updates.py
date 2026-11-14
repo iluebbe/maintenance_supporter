@@ -21,9 +21,9 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
-from ..const import CONF_OBJECT, CONF_TASKS, MAX_TASKS_PER_OBJECT, HistoryEntryType
+from ..const import CONF_OBJECT, CONF_TASKS, HistoryEntryType
 from ..helpers.aggregate import async_store_even_unloaded
-from ..helpers.entry_tasks import insert_new_task
+from ..helpers.entry_tasks import insert_new_task, task_room
 from ..helpers.i18n import normalize_language, request_language
 from ..helpers.permissions import require_write
 from ..helpers.sanitize import cap_task_fields
@@ -206,7 +206,7 @@ async def ws_apply_template_updates(
     if add and (data.get(CONF_OBJECT) or {}).get("archived_at"):
         send_archived_object_error(connection, msg["id"])
         return
-    if add and len(data.get(CONF_TASKS) or {}) + len(add) > MAX_TASKS_PER_OBJECT:
+    if add and len(add) > task_room(data.get(CONF_TASKS)):
         send_task_limit_error(connection, msg["id"])
         return
 

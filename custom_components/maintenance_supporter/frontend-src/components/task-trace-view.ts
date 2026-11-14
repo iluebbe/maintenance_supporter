@@ -80,7 +80,11 @@ export class MaintenanceTaskTrace extends LitElement {
     }
   }
 
+  /** Only the answer for the task on screen may land: Back then Forward
+   *  reuses this element, and the older task's slower answer showed its
+   *  cycles on the newer task's page (bug audit 2026-11-08, E8-7). */
   private async _load(): Promise<void> {
+    const key = this._loadedFor;
     this._cycles = null;
     this._failed = false;
     this._index = -1;
@@ -93,6 +97,7 @@ export class MaintenanceTaskTrace extends LitElement {
         entry_id: this.entryId,
         task_id: this.taskId,
       });
+      if (key !== this._loadedFor) return;
       this._raw = res ?? {};
       this._enabled = res?.enabled !== false;
       this._cycles = buildCycles(res?.events ?? [], res?.history ?? [], langOf(this.hass), {
@@ -101,6 +106,7 @@ export class MaintenanceTaskTrace extends LitElement {
         entityName: (id) => entityName(this.hass, id),
       });
     } catch {
+      if (key !== this._loadedFor) return;
       this._failed = true;
       this._cycles = [];
     }
@@ -208,6 +214,7 @@ export class MaintenanceTaskTrace extends LitElement {
   /** What the recorder kept of those sensors around the step (HA's trace
    *  shows the related logbook; the logbook leaves numeric sensors out). */
   private async _loadActivity(key: string, it: TraceItem, ids: string[]): Promise<void> {
+    const loadedFor = this._loadedFor;
     this._activity = new Map(this._activity).set(key, "loading");
     const at = Date.parse((it.repeats ? it.repeats[it.repeats.length - 1] : it).at);
     let rows: ActivityState;
@@ -225,6 +232,8 @@ export class MaintenanceTaskTrace extends LitElement {
     } catch {
       rows = "failed";
     }
+    // "0:3" of the task shown before is not this task's step 0:3.
+    if (loadedFor !== this._loadedFor) return;
     this._activity = new Map(this._activity).set(key, rows);
   }
 

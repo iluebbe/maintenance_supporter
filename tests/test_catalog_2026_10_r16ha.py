@@ -509,9 +509,11 @@ async def test_ac_only_integrations_share_the_runtime_duty(hass: HomeAssistant, 
         assert task["task_name"] == "Filter Cleaning" and task["direction"] == "runtime_hours", domain
         assert task["entity_ids"] == [entity_id] and task["threshold"] == 100.0, domain
         tc = _trigger(hass, domain, task)
-        assert tc["type"] == "runtime" and tc["trigger_on_states"] == AC_STATES, domain
+        # Airstage 1.10.0 reports its auto mode as heat_cool (auto before): both count.
+        states = [*AC_STATES, "heat_cool"] if domain == "fujitsu_airstage" else AC_STATES
+        assert tc["type"] == "runtime" and tc["trigger_on_states"] == states, domain
     assert aux_hp not in setups
-    for domain in ("mitsubishi_wf_rac", "toshiba_ac", "fujitsu_airstage"):
+    for domain in ("mitsubishi_wf_rac", "toshiba_ac"):
         assert SIGNATURES[domain].tasks[0] is air._AC_FILTER_CLEANING_RUNTIME, domain
     (aux_sig,) = SIGNATURES["aux_cloud"].tasks
     assert aux_sig.keys == ("aux_ac",) and aux_sig.on_states == air._AC_FILTER_CLEANING_RUNTIME.on_states

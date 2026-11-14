@@ -187,10 +187,12 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "ttlock": IntegrationSignature(
         name="TTLock",
-        verified="2026-09-25 @ jbergler/hass-ttlock develop",
+        verified="2026-09-25 @ jbergler/hass-ttlock develop; re-checked 2026-11-14 @ 5af69c7",
         source=(
             "HACS ttlock lock.py (one Lock entity per lock coordinator, "
-            "is_locked from the lock state) — engine-counted locking cycles."
+            "locks shared by ekey included; is_locked from the lock state, "
+            "restored over a restart and unknown while the lock cannot be "
+            "read) — engine-counted locking cycles."
         ),
         tasks=(
             LOCK_CYLINDER_CYCLES,

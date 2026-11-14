@@ -27,13 +27,14 @@ sensor, so an unclear entity stays as it was and is reported.
 from __future__ import annotations
 
 import copy
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 
+from ..const import CONF_OBJECT
 from .action_listener import map_action_entity_ids
 from .entity_rename import map_trigger_entity_ids
 from .sanitize import stamp_action_owner
@@ -62,6 +63,20 @@ def old_device_ids(obj: dict[str, Any], tasks: Iterable[dict[str, Any]], new_dev
             ids.add(origin["device_id"])
     ids.discard(new_device_id)
     return ids
+
+
+def predecessor_device_ids(hass: HomeAssistant, obj: Mapping[str, Any], new_device_id: str) -> set[str]:
+    """The device of the unit this object replaced, while the object names
+    none itself. Replaced with "no device yet", the successor's hand-wired
+    tasks stay on the retired unit's entities and the object's link is
+    empty: choosing the device later found nothing to move away from, and
+    the tasks kept watching the old machine (bug audit 2026-11-08, O8-4)."""
+    if obj.get("ha_device_id"):
+        return set()
+    predecessor = obj.get("predecessor_entry_id")
+    entry = hass.config_entries.async_get_entry(predecessor) if isinstance(predecessor, str) and predecessor else None
+    device = (entry.data.get(CONF_OBJECT) or {}).get("ha_device_id") if entry is not None else None
+    return {device} - {new_device_id} if isinstance(device, str) and device else set()
 
 
 def _tokens(entity_id: str) -> list[str]:

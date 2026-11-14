@@ -37,6 +37,22 @@ def write_tasks(hass: HomeAssistant, entry: ConfigEntry, tasks: Mapping[str, Map
     hass.config_entries.async_update_entry(entry, data=new_data)
 
 
+#: What an object's data may hold in all, the archived ones included.
+MAX_STORED_TASKS_PER_OBJECT = MAX_TASKS_PER_OBJECT * 5
+
+
+def task_room(tasks: Mapping[str, Any] | None) -> int:
+    """How many more tasks an object takes: MAX_TASKS_PER_OBJECT counts the
+    ones that are not archived. Every buy reminder stays as a done task
+    once it is completed and is archived later; counted, a pool of five
+    chemicals bought monthly filled the object in about three years, and
+    from then on a low part got no reminder and Bought was refused (bug
+    audit 2026-11-08, P8-4). The archive has its own, wider bound."""
+    stored = tasks or {}
+    live = sum(1 for task in stored.values() if not (isinstance(task, Mapping) and task.get("archived_at") is not None))
+    return max(0, min(MAX_TASKS_PER_OBJECT - live, MAX_STORED_TASKS_PER_OBJECT - len(stored)))
+
+
 def write_task(hass: HomeAssistant, entry: ConfigEntry, task_id: str, task_data: Mapping[str, Any]) -> None:
     """Write ONE task dict into ``entry.data``, normalized."""
     write_tasks(hass, entry, {task_id: task_data})
@@ -75,7 +91,7 @@ def insert_new_task(
     task_data = normalize_task_storage(task_data)
     task_id = task_data["id"]
     existing_tasks = entry.data.get(CONF_TASKS, {})
-    if task_id not in existing_tasks and len(existing_tasks) >= MAX_TASKS_PER_OBJECT:
+    if task_id not in existing_tasks and task_room(existing_tasks) <= 0:
         raise ValueError(f"This object already has the maximum of {MAX_TASKS_PER_OBJECT} tasks")
     new_data = dict(entry.data)
     new_tasks = dict(new_data.get(CONF_TASKS, {}))

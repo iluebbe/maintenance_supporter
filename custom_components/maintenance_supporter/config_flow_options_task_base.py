@@ -115,7 +115,9 @@ class _OptionsFlowBase(TriggerConfigMixin, OptionsFlow):
         cap) — said before the form, not after it was filled in."""
         if (self.config_entry.data.get(CONF_OBJECT) or {}).get("archived_at"):
             return self.async_abort(reason="archived_no_new_tasks")
-        if len(self.config_entry.data.get(CONF_TASKS) or {}) >= MAX_TASKS_PER_OBJECT:
+        from .helpers.entry_tasks import task_room
+
+        if task_room(self.config_entry.data.get(CONF_TASKS)) <= 0:
             return self.async_abort(reason="task_limit", description_placeholders={"max": str(MAX_TASKS_PER_OBJECT)})
         return None
 

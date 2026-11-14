@@ -242,20 +242,29 @@ def match_rows(query: str, rows: list[dict[str, Any]], language: str | None = No
         ]
         if whole:
             matches = whole
-    return _by_single_characters(matches, q)
+    return _by_single_characters(matches, q, language)
 
 
-def _by_single_characters(rows: list[dict[str, Any]], phrase: str) -> list[dict[str, Any]]:
+def _by_single_characters(rows: list[dict[str, Any]], phrase: str, language: str | None = None) -> list[dict[str, Any]]:
     """Narrow several rows by the one-character words spoken ("2", "B"):
     "battery on smoke detector 2" fits both smoke detectors by its longer
     words, and the suggested "Battery on Smoke detector 1" was ambiguous
     again, so the speaker went round in circles (bug audit 2026-10-17, N-7).
     Each digit or letter counts as a whole word of a row's name; one no row
-    has (the article "a") is passed over."""
+    has (the article "a") is passed over.
+
+    A letter that is a word of the language ("a", French "l'", Italian
+    "i", Portuguese "o") names a row only as the last word spoken:
+    "change a filter" picked "Filter A" over "Filter B" and completed
+    it, where "filter a" means it (bug audit 2026-11-08, N8-9)."""
     if len(rows) < 2:
         return rows
-    for char in re.findall(r"\w+", phrase):
+    filler = _FILLER.get(normalize_language_code(language), _FILLER["en"])
+    words = re.findall(r"\w+", phrase)
+    for index, char in enumerate(words):
         if len(char) != 1 or not char.isascii():
+            continue
+        if char in filler and index != len(words) - 1:
             continue
         having = [r for r in rows if char in re.findall(r"\w+", fold(f"{r['name']} {r['object_name']}"))]
         if having:

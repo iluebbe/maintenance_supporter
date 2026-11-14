@@ -369,6 +369,10 @@ export class MaintenanceTaskDialog extends LitElement {
   /** The picked links, keyed by `partLinkKey` — the (entry_id, part_id) pair,
    *  since the same part id can exist on two objects (battery fleet). */
   @state() private _consumesParts: Record<string, TaskPartLink> = {};
+  /** The shared-pool section opens on a task that draws on one, decided
+   *  once per open: unticking the last shared part folded the section
+   *  shut under the cursor (bug audit 2026-11-08, E8-3). */
+  @state() private _sharedPoolsOpen = false;
   /** The TYPED quantity per picked part (same key), parsed on save. The
    *  field wrote back a parsed number on every keystroke — clearing "2" to
    *  type "3" snapped to "1" first, giving "13" (bug audit 2026-09-26 #2;
@@ -458,6 +462,9 @@ export class MaintenanceTaskDialog extends LitElement {
   // Adaptive tuning (parity with the options flow's adaptive step) — Store-
   // managed like the environmental binding, saved through task/set_adaptive.
   @state() private _adaptiveEnabled = false;
+  /** Its section opens on a task that has adaptive scheduling on (once per
+   *  open): switching it off in there closed the section (E8-3). */
+  @state() private _adaptiveOpen = false;
   @state() private _adaptiveAlpha: string = ADAPTIVE_DEFAULTS.alpha;
   @state() private _adaptiveMin: string = ADAPTIVE_DEFAULTS.min;
   @state() private _adaptiveMax: string = ADAPTIVE_DEFAULTS.max;
@@ -467,6 +474,9 @@ export class MaintenanceTaskDialog extends LitElement {
   /** The task had adaptive scheduling on when the dialog opened — its
    *  section stays reachable even with the Adaptive feature off. */
   private _adaptiveWasEnabled = false;
+  /** The phases section opens on a task that has phases (once per open):
+   *  removing the last one closed it, the Add button with it (E8-3). */
+  @state() private _phasesOpen = false;
 
   private _adaptiveSnapshot(): string {
     return adaptiveSnapshot(
@@ -507,6 +517,11 @@ export class MaintenanceTaskDialog extends LitElement {
       this._objectChoices = [];
     }
     this._resetFields();
+    // The dialog lives as long as the panel: a list read for an earlier new
+    // task lacked the tasks made since, copied a task as it was before its
+    // last edit, and a failed read stayed empty (bug audit 2026-11-08, E8-4).
+    this._templateChoices = null;
+    this._copyChoices = null;
     this._betaStep = this.betaEditor ? "choose" : "form";
     this._ruleSel = "task";
     this._addTab = "type";
@@ -622,6 +637,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._consumesParts = Object.fromEntries(
       (task.consumes_parts || []).map((l) => [partLinkKey(l), { ...l }]),
     );
+    this._sharedPoolsOpen = this._hasForeignPick;
     this._consumesQtyText = {};
     this._responsibleUserId = task.responsible_user_id || null;
     this._loadedResponsibleUserId = this._responsibleUserId;
@@ -655,6 +671,7 @@ export class MaintenanceTaskDialog extends LitElement {
         carry,
       };
     });
+    this._phasesOpen = this._phaseDefs.length > 0;
     this._phaseSeq = [...(task.phase_sequence || [])];
     this._requiredCompletion = [...(task.required_completion_fields || [])];
     this._scheduleTime = task.schedule_time || "";
@@ -698,6 +715,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._environmentalInitial = this._environmentalEntity;
     this._environmentalAttributeInitial = this._environmentalAttribute;
     this._adaptiveEnabled = !!ac.enabled;
+    this._adaptiveOpen = this._adaptiveEnabled;
     this._adaptiveAlpha = ac.ewa_alpha?.toString() ?? ADAPTIVE_DEFAULTS.alpha;
     this._adaptiveMin = ac.min_interval_days?.toString() ?? ADAPTIVE_DEFAULTS.min;
     this._adaptiveMax = ac.max_interval_days?.toString() ?? ADAPTIVE_DEFAULTS.max;
@@ -796,12 +814,14 @@ export class MaintenanceTaskDialog extends LitElement {
     this._readingUnit = "";
     this._readings = [];
     this._consumesParts = {};
+    this._sharedPoolsOpen = false;
     this._consumesQtyText = {};
     this._responsibleUserId = null;
     this._assigneePool = [];
     this._rotationStrategy = "";
     this._checklistText = "";
     this._phaseDefs = [];
+    this._phasesOpen = false;
     this._phaseSeq = [];
     this._requiredCompletion = [];
     this._scheduleTime = "";
@@ -811,6 +831,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._environmentalInitial = "";
     this._environmentalAttributeInitial = "";
     this._adaptiveEnabled = false;
+    this._adaptiveOpen = false;
     this._adaptiveAlpha = ADAPTIVE_DEFAULTS.alpha;
     this._adaptiveMin = ADAPTIVE_DEFAULTS.min;
     this._adaptiveMax = ADAPTIVE_DEFAULTS.max;
@@ -1531,7 +1552,7 @@ export class MaintenanceTaskDialog extends LitElement {
   private _renderPhasesEditor(L: string) {
     const defName = (id: string) => this._phaseDefs.find((d) => d.id === id)?.name || id;
     return html`
-      ${collapsible({ cls: "phases-section", open: this._phaseDefs.length > 0, header: t("phases_section", L) }, html`
+      ${collapsible({ cls: "phases-section", open: this._phasesOpen, header: t("phases_section", L) }, html`
       <div class="field-help">${t("phases_hint", L)}</div>
       ${this._phaseDefs.map((d) => html`
         <div class="phase-def">
@@ -2408,7 +2429,7 @@ export class MaintenanceTaskDialog extends LitElement {
     if (this._scheduleType === "one_time" || this._scheduleType === "manual") return nothing;
     if (!this.adaptiveFeature && !this._adaptiveWasEnabled) return nothing;
     return html`
-      ${collapsible({ cls: "adaptive-section", open: this._adaptiveEnabled, header: t("adaptive_section_title", L) }, html`
+      ${collapsible({ cls: "adaptive-section", open: this._adaptiveOpen, header: t("adaptive_section_title", L) }, html`
         ${checkField({ checked: this._adaptiveEnabled, onChange: (e: Event) => (this._adaptiveEnabled = (e.target as HTMLInputElement).checked) }, html`${t("adaptive_enabled", L)}`)}
         ${this._adaptiveEnabled ? html`
           <ms-textfield
@@ -3536,7 +3557,7 @@ export class MaintenanceTaskDialog extends LitElement {
                   ${this.parts.map((part) => this._renderConsumesRow(part))}
                   ${this._foreignOwners.length
                     ? html`
-                        ${collapsible({ cls: "shared-pools", open: this._hasForeignPick, header: t("shared_parts_other_objects", L) }, html`
+                        ${collapsible({ cls: "shared-pools", open: this._sharedPoolsOpen, header: t("shared_parts_other_objects", L) }, html`
                           <div class="field-help">${t("shared_parts_help", L)}</div>
                           ${this._foreignOwners.map(
                             (owner) => html`
@@ -4009,6 +4030,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._lastPerformed = "";
     this._nfcTagId = "";
     this._consumesParts = {};
+    this._sharedPoolsOpen = false;
     this._consumesQtyText = {};
     this._phaseDefs = this._phaseDefs.map((d) => ({ ...d, partId: "", partQty: "", extraParts: [] }));
     // The adaptive tuning and the environmental sensor are saved after the

@@ -1095,6 +1095,7 @@ def test_clear_task_state() -> None:
         "e1_t1_due_soon": dt_util.now() + timedelta(hours=1),
     }
     nm._on_phones = {"e1_t1": "status", "e2_t2": "lead"}
+    nm._group_pushes = {}
 
     nm.clear_task_state("e1", "t1")
 

@@ -62,6 +62,7 @@ from homeassistant.helpers.event import async_track_state_change_event
 from ..const import (
     COMPLETION_PROVENANCE_NOTES,
     CONF_MIRROR_TODO_DEFAULT_ENTITIES,
+    CONF_SHOPPING_LIST_ENTITY,
     CONF_TASKS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
@@ -71,6 +72,7 @@ from ..const import (
 from .coordinator_data import task_results
 from .global_options import global_option
 from .managed_timer import ManagedTimer
+from .parts import PART_REF_FIELD
 from .phases import task_label
 from .sanitize import sanitize_mirror_todo_entities
 
@@ -150,16 +152,18 @@ async def async_todo_update_item(hass: HomeAssistant, entity: str, rec: Mapping[
     return True
 
 
-async def async_todo_remove_item(hass: HomeAssistant, entity: str, rec: Mapping[str, Any]) -> None:
+async def async_todo_remove_item(hass: HomeAssistant, entity: str, rec: Mapping[str, Any]) -> bool:
     """Remove one of OUR rows, by uid (summary as a fallback); a record
-    carrying neither is a no-op."""
+    carrying neither is a no-op. False when the call failed."""
     ref = rec.get("uid") or rec.get("summary")
     if not ref:
-        return
+        return True
     try:
         await hass.services.async_call("todo", "remove_item", {"entity_id": entity, "item": ref}, blocking=True)
     except Exception:  # a row already gone is not an error worth more than a log line
         _LOGGER.warning("todo.remove_item %r on %s failed", ref, entity, exc_info=True)
+        return False
+    return True
 
 
 def mirror_todo_error(hass: HomeAssistant, entity_ids: list[str]) -> str | None:
@@ -195,6 +199,18 @@ def mirror_lists(task: Mapping[str, Any], defaults: Sequence[str] = ()) -> list[
     if own:
         return own
     return [] if task.get(MIRROR_USE_DEFAULT_FIELD) is False else list(defaults)
+
+
+def lists_for(task: Mapping[str, Any], defaults: Sequence[str], shopping_list: str | None) -> list[str]:
+    """:func:`mirror_lists` as the mirror fills them: a buy reminder stays
+    off the shopping list, where the shopping sync keeps its row. With one
+    family list for both, every buy reminder stood there twice with the
+    same text, and each of the two could claim the other's new row (bug
+    audit 2026-11-08, N8-5)."""
+    lists = mirror_lists(task, defaults)
+    if shopping_list and task.get(PART_REF_FIELD):
+        lists = [entity for entity in lists if entity != shopping_list]
+    return lists
 
 
 def task_due_date(task_result: TaskResult | None) -> date | None:
@@ -295,13 +311,18 @@ class TodoMirror:
     def _object_entries(self) -> list[ConfigEntry]:
         return [ce for ce in self._hass.config_entries.async_entries(DOMAIN) if ce.unique_id != GLOBAL_UNIQUE_ID]
 
+    def _shopping_list(self) -> str | None:
+        entity = global_option(self._hass, CONF_SHOPPING_LIST_ENTITY)
+        return entity if isinstance(entity, str) and entity else None
+
     def _configured_lists(self) -> set[str]:
         defaults = default_lists(self._hass)
+        shopping = self._shopping_list()
         lists: set[str] = set()
         for ce in self._object_entries():
             for td in (ce.data.get(CONF_TASKS) or {}).values():
                 if isinstance(td, dict):
-                    lists.update(mirror_lists(td, defaults))
+                    lists.update(lists_for(td, defaults, shopping))
         return lists
 
     @callback
@@ -347,7 +368,8 @@ class TodoMirror:
         """Bring one object's rows in line with its freshly computed task
         results. Cheap when no task names a list and none has a record."""
         defaults = default_lists(self._hass)
-        has_config = any(mirror_lists(tr.task, defaults) for tr in task_results.values())
+        shopping = self._shopping_list()
+        has_config = any(lists_for(tr.task, defaults, shopping) for tr in task_results.values())
         has_records = any(store.get_task_state(tid).get(MIRROR_STATE_KEY) for tid in task_results)
         if not has_config and not has_records:
             return
@@ -362,8 +384,9 @@ class TodoMirror:
         self, task_results: dict[str, TaskResult], store: MaintenanceStore, object_name: str, defaults: Sequence[str]
     ) -> None:
         dirty = False
+        shopping = self._shopping_list()
         for task_id, tr in task_results.items():
-            wanted = mirror_lists(tr.task, defaults) if tr.status in MIRRORED_STATUSES else []
+            wanted = lists_for(tr.task, defaults, shopping) if tr.status in MIRRORED_STATUSES else []
             record: dict[str, Any] = dict(store.get_task_state(task_id).get(MIRROR_STATE_KEY) or {})
             if not wanted and not record:
                 continue
@@ -375,7 +398,12 @@ class TodoMirror:
             for eid, rec in list(record.items()):
                 if eid in wanted and rec.get("summary") == summary:
                     continue
-                await self._remove_item(eid, rec)
+                # Forgotten only once it is off the list: a removal that
+                # did not happen (the list not loaded yet, a cloud list
+                # unavailable) left the row there for good, as a row
+                # nobody owns (bug audit 2026-11-08, N8-6).
+                if not await self._remove_item(eid, rec):
+                    continue
                 record.pop(eid)
                 changed = True
             # Rows still missing on a wanted list; the kept ones follow the
@@ -415,6 +443,8 @@ class TodoMirror:
         if not record:
             return
         async with self._lock:
+            # The task goes, and its record with it: a row that could not
+            # be removed now has nobody left to try again.
             for eid, rec in record.items():
                 await self._remove_item(eid, rec)
             store.update_task_state(task_id, **{MIRROR_STATE_KEY: None})
@@ -569,7 +599,22 @@ class TodoMirror:
             return None
         return str(twin["uid"])
 
-    async def _remove_item(self, entity: str, rec: dict[str, Any]) -> None:
-        if self._hass.states.get(entity) is None:
-            return  # the list is gone entirely
-        await async_todo_remove_item(self._hass, entity, rec)
+    async def _remove_item(self, entity: str, rec: dict[str, Any]) -> bool:
+        """Take one of our rows off a list. True when it is off (or the
+        list is gone for good), False when it is still to do: the record
+        stays and the next refresh tries again."""
+        state = self._hass.states.get(entity)
+        if state is None:
+            # Not loaded yet (a start) or gone entirely: the registry knows.
+            return er.async_get(self._hass).async_get(entity) is None
+        if state.state in UNAVAILABLE_STATES:
+            return False
+        if await async_todo_remove_item(self._hass, entity, rec):
+            return True
+        # The call failed. A row that is not on the list any more needs no
+        # removing (ticked off and cleared by hand); one that is, waits.
+        items = await self._get_items(entity)
+        if items is None:
+            return False
+        uid, summary = rec.get("uid"), rec.get("summary")
+        return not any((i.get("uid") == uid) if uid else (i.get("summary") == summary) for i in items)

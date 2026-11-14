@@ -289,6 +289,7 @@ async def test_trigger_retry_rearms_until_the_entity_reports(hass: HomeAssistant
     entity.entity_id = "sensor.maintenance_supporter_probe"
     entity._task_id = "task-1"
     entity.coordinator = AsyncMock()
+    entity.coordinator.note_trigger_edge = MagicMock()  # synchronous on the real coordinator
     trigger = ThresholdTrigger(hass, entity, {"entity_id": "sensor.retry_probe", "type": "threshold", "trigger_above": 50.0})
     await trigger.async_setup()
     assert trigger._retry_timer.pending and trigger._retry_timer.attempts == 1

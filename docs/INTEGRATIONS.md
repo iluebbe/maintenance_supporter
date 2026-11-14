@@ -561,7 +561,7 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Panasonic Comfort Cloud (air conditioners) | `panasonic_cc` | Filter Cleaning | every 100 h counted by the engine | climate entity; active: cool/dry/fan_only/heat/heat_cool |
 | Mitsubishi Heavy Industries (WF-RAC) | `mitsubishi_wf_rac` | Filter Cleaning | every 100 h counted by the engine | climate entity; active: auto/cool/dry/fan_only/heat |
 | Toshiba AC | `toshiba_ac` | Filter Cleaning | every 100 h counted by the engine | climate entity; active: auto/cool/dry/fan_only/heat |
-| Fujitsu Airstage | `fujitsu_airstage` | Filter Cleaning | every 100 h counted by the engine | climate entity; active: auto/cool/dry/fan_only/heat |
+| Fujitsu Airstage | `fujitsu_airstage` | Filter Cleaning | every 100 h counted by the engine | climate entity; active: auto/cool/dry/fan_only/heat/heat_cool |
 | AUX Cloud (air conditioners) | `aux_cloud` | Filter Cleaning | every 100 h counted by the engine | climate entity; active: auto/cool/dry/fan_only/heat |
 | Daikin Onecta (air conditioners) | `daikin_onecta` | Filter Cleaning | every 100 h counted by the engine | climate entity; active: cool/dry/fan_only/heat/heat_cool; models: BRP069A4/BRP069B4/BRP069C |
 | Ambientika (SUEDWIND) | `ambientika` | Replace Ventilation Filter | while the appliance reports 'bad' | completing presses `filter_reset` |
