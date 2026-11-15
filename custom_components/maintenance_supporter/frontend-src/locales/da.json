@@ -136,6 +136,7 @@
   "day_word": "Dag",
   "interval_value": "Interval",
   "interval_required": "En tidsbaseret opgave skal have et interval.",
+  "weekdays_required": "Vælg mindst én ugedag.",
   "interval_unit": "Enhed",
   "unit_days": "Dage",
   "unit_weeks": "Uger",

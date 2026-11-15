@@ -65,6 +65,8 @@
   "note_added": "Added the note to '{task}' on {object}.",
   "note_too_long": "The notes of '{task}' are full — shorten them in the Maintenance panel first.",
   "note_empty": "What should the note say?",
+  "not_allowed": "You may not change maintenance tasks. Ask an administrator.",
+  "and_more": "and more",
   "turn_user": "It's {user}'s turn: '{task}' on {object}.",
   "turn_you": "It's your turn: '{task}' on {object}.",
   "turn_nobody": "Nobody is assigned to '{task}' on {object}.",

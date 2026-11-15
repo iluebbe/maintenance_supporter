@@ -136,6 +136,7 @@
   "day_word": "दिन",
   "interval_value": "अंतराल",
   "interval_required": "समय-आधारित कार्य के लिए अंतराल ज़रूरी है।",
+  "weekdays_required": "कम से कम एक सप्ताह का दिन चुनें।",
   "interval_unit": "इकाई",
   "unit_days": "दिन",
   "unit_weeks": "सप्ताह",

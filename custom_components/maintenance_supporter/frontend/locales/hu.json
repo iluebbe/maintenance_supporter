@@ -136,6 +136,7 @@
   "day_word": "Nap",
   "interval_value": "Intervallum",
   "interval_required": "Az időalapú feladathoz intervallum kell.",
+  "weekdays_required": "Válassz legalább egy hétköznapot.",
   "interval_unit": "Egység",
   "unit_days": "Nap",
   "unit_weeks": "Hét",

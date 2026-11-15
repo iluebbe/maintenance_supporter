@@ -159,6 +159,30 @@ def _receive_order(store: Any, part: Mapping[str, Any], units: float) -> None:
     store.set_part_order(part_id, {**order, "quantity": round_qty(left / float(size)) if size else left})
 
 
+def _end_order_wait(store: Any, entry: ConfigEntry, part_id: str, order: Mapping[str, Any]) -> None:
+    """The wait for the delivery is over: the part's reminder is due again.
+    Only the wait the order set: a day the user postponed it to stays.
+    The cancel did this; a delivery booked by a restock closed the order
+    and left a part that was still low hidden until the day the parcel
+    had been expected (audit 2026-11-14, S9-9)."""
+    task_id = open_buy_task_id(entry, part_id)
+    if task_id is not None and order.get("expected") and store.get_task_state(task_id).get("due_override") == order["expected"]:
+        store.update_task_state(task_id, due_override=None)
+
+
+def ordered_packages(entry: ConfigEntry, task_data: Mapping[str, Any]) -> float | None:
+    """What the buy reminder's part has on order, in packages: the amount
+    its completion books when none is given. A reminder completed from
+    the phone, the to-do list, a button or by voice booked the part's
+    usual restock amount, 5 for an order of 2, and closed the order
+    (audit 2026-11-14, S9-2). None without an open order."""
+    part_id = buy_task_part_id(task_data)
+    store = store_of(entry)
+    order = store.get_part_order(part_id) if store is not None and part_id else None
+    quantity = order.get("quantity") if order else None
+    return float(quantity) if isinstance(quantity, (int, float)) and not isinstance(quantity, bool) and quantity > 0 else None
+
+
 def _order_expected(store: Any, part_id: str | None) -> date | None:
     """The delivery day of the part's open order, if it names one."""
     order = store.get_part_order(part_id) if part_id else None
@@ -258,7 +282,10 @@ async def async_change_part_stock(
         store.set_part_stock(part_id, target)
         # #261: a restock is a delivery; what arrived is no longer on order.
         if absolute is None and float(delta or 0) > 0:
+            order = store.get_part_order(part_id)
             _receive_order(store, part, float(delta or 0))
+            if order is not None and store.get_part_order(part_id) is None:
+                _end_order_wait(store, entry, part_id, order)
         if restoring is not None:
             store.set_part_restoring(part_id, restoring)
         new_owned = _owned(store, part)
@@ -800,6 +827,10 @@ async def async_part_order(
             # object is paused) stays where it is.
             _LOGGER.debug("Order of %s recorded, its reminder not postponed: %s", part.get("name"), err)
     _signal_parts_updated(hass, current)
+    # The shopping list drops what is on order. Only a reconcile that
+    # changed something asked for that, and with the reminder already
+    # there it changed nothing (audit 2026-11-14, S9-1).
+    schedule_resync(hass)
     return {"on_order": order, "task_id": task_id}
 
 
@@ -812,17 +843,14 @@ async def async_part_order_cancel(hass: HomeAssistant, entry: ConfigEntry, part_
     if store is None or order is None:
         return False
     store.set_part_order(part_id, None)
-    task_id = open_buy_task_id(entry, part_id)
-    # The wait for the delivery is over: the reminder is due again. Only
-    # the wait the order set: a day the user postponed it to stays.
-    if task_id is not None and order.get("expected") and store.get_task_state(task_id).get("due_override") == order["expected"]:
-        store.update_task_state(task_id, due_override=None)
+    _end_order_wait(store, entry, part_id, order)
     await store.async_save()
     if not await async_reconcile_buy_tasks(hass, entry):
         coordinator = getattr(getattr(entry, "runtime_data", None), "coordinator", None)
         if coordinator is not None:
             await coordinator.async_refresh_now()
     _signal_parts_updated(hass, hass.config_entries.async_get_entry(entry.entry_id) or entry)
+    schedule_resync(hass)  # back on the shopping list (S9-1)
     return True
 
 

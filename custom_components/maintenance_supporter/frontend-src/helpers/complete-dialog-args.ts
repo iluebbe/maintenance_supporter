@@ -147,7 +147,12 @@ export function buildCompleteDialogArgs(o: BuildCompleteDialogArgsOptions): Comp
     // A part stored with restock_quantity 0 (or junk) prefilled "0", which
     // the dialog then refused as out of range on Complete (bug audit
     // 2026-09-26 #2) — only a positive default is offered, else 1.
-    restock_default: isBuy ? positiveOr(refPart?.restock_quantity, 1) : null,
+    // A part on order (#261): the reminder is the receipt of that order, so
+    // the dialog starts from what was ordered. It offered the part's usual
+    // amount, and 2 ordered were booked as 5 (bug audit 2026-11-14, S9-2).
+    restock_default: isBuy
+      ? positiveOr(refPart?.on_order?.quantity, positiveOr(refPart?.restock_quantity, 1))
+      : null,
     // #104 follow-up: restock qty × unit cost powers the cost suggestion.
     restock_unit_cost: isBuy ? (refPart?.cost ?? null) : null,
     restock_package: isBuy && refPart?.package_size ? formatQty(refPart.package_size, refPart.unit, o.lang) : "",

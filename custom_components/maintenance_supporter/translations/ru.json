@@ -2580,6 +2580,9 @@
     "time_based_needs_interval": {
       "message": "Задаче на основе времени нужен интервал."
     },
+    "weekdays_need_a_day": {
+      "message": "Задаче по дням недели нужен хотя бы один день."
+    },
     "range_end_before_start": {
       "message": "Окончание не может быть раньше начала."
     },

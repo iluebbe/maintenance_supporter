@@ -65,6 +65,8 @@
   "note_added": "Notitie toegevoegd aan '{task}' bij {object}.",
   "note_too_long": "De notities van '{task}' zijn vol — maak ze eerst korter in het onderhoudspaneel.",
   "note_empty": "Wat moet er in de notitie staan?",
+  "not_allowed": "Je mag onderhoudstaken niet wijzigen. Vraag het een beheerder.",
+  "and_more": "en meer",
   "turn_user": "{user} is aan de beurt: '{task}' bij {object}.",
   "turn_you": "Jij bent aan de beurt: '{task}' bij {object}.",
   "turn_nobody": "Niemand is toegewezen aan '{task}' bij {object}.",

@@ -2580,6 +2580,9 @@
     "time_based_needs_interval": {
       "message": "Zamana dayalı bir görevin bir aralığa ihtiyacı vardır."
     },
+    "weekdays_need_a_day": {
+      "message": "Haftanın günlerine bağlı bir görev için en az bir gün gerekir."
+    },
     "range_end_before_start": {
       "message": "Bitiş, başlangıçla aynı veya daha sonra olmalıdır."
     },

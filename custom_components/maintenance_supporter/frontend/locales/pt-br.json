@@ -136,6 +136,7 @@
   "day_word": "Dia",
   "interval_value": "Intervalo",
   "interval_required": "Uma tarefa baseada em tempo precisa de um intervalo.",
+  "weekdays_required": "Escolha pelo menos um dia da semana.",
   "interval_unit": "Unidade",
   "unit_days": "Dias",
   "unit_weeks": "Semanas",

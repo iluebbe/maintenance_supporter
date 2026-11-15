@@ -116,7 +116,7 @@ from .models.maintenance_object import MaintenanceObject
 from .models.maintenance_task import MaintenanceTask
 from .models.shapes import ReadingValue, UsedPart
 from .models.task_result import CoordinatorData, TaskResult
-from .parts_runtime import async_handle_completion_parts, part_link_name
+from .parts_runtime import async_handle_completion_parts, ordered_packages, part_link_name
 from .storage import MaintenanceStore
 
 _LOGGER = logging.getLogger(__name__)
@@ -1782,6 +1782,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # Spare parts: consume linked parts / restock a completed buy task.
         # Best-effort side effect — a broken part link must never fail the
         # completion. Runs AFTER persistence so a crash loses only stock math.
+        # A buy reminder completed without an amount is the receipt of what
+        # is on order, when something is (audit 2026-11-14, S9-2).
+        if restock_quantity is None and is_latest:
+            restock_quantity = ordered_packages(self.entry, merged[task_id])
         try:
             if is_latest or used_parts is not None:
                 await async_handle_completion_parts(
@@ -1804,8 +1808,13 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # _SENT_ONCE sentinel until something clears it; nothing did after a
         # completion, so a sensor task that re-triggered weeks later was never
         # announced again until HA restarted (bug audit 2026-08-29).
+        # A rotation that handed the task on: the refresh inside the persist
+        # still named the previous person, so a reminder of the new cycle it
+        # sent went to them. Everything goes, and the next refresh tells the
+        # next person (audit 2026-11-14, R9-2).
         if is_latest:
-            self._clear_notification_state(task_id, reminded=merged[task_id], since=sent_before)
+            handed_on = task.responsible_user_id != pre_rotation_responsible
+            self._clear_notification_state(task_id, reminded=merged[task_id], since=None if handed_on else sent_before)
 
         _LOGGER.debug("Maintenance completed: %s on %s", task.name, self.maintenance_object.name)
 

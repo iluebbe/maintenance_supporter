@@ -369,24 +369,33 @@ class TodoMirror:
         results. Cheap when no task names a list and none has a record."""
         defaults = default_lists(self._hass)
         shopping = self._shopping_list()
-        has_config = any(lists_for(tr.task, defaults, shopping) for tr in task_results.values())
+        # The stored tasks, not the computed ones: what makes a task a buy
+        # reminder (its part) is not part of the task model, so the rule
+        # of lists_for never applied here and the reminder still stood
+        # twice on a shared list (audit 2026-11-14, R9-1).
+        entry = self._hass.config_entries.async_get_entry(entry_id)
+        stored: Mapping[str, Any] = (entry.data.get(CONF_TASKS) or {}) if entry is not None else {}
+        wanted = {
+            tid: lists_for(stored[tid] if isinstance(stored.get(tid), dict) else tr.task, defaults, shopping)
+            for tid, tr in task_results.items()
+        }
+        has_config = any(wanted.values())
         has_records = any(store.get_task_state(tid).get(MIRROR_STATE_KEY) for tid in task_results)
         if not has_config and not has_records:
             return
         self._arm_listeners(self._configured_lists())
         async with self._lock:
             try:
-                await self._sync_entry_locked(task_results, store, object_name, defaults)
+                await self._sync_entry_locked(task_results, store, object_name, wanted)
             except Exception:  # never fail the coordinator refresh; retried next time
                 _LOGGER.exception("To-do mirror pass for entry %s failed", entry_id)
 
     async def _sync_entry_locked(
-        self, task_results: dict[str, TaskResult], store: MaintenanceStore, object_name: str, defaults: Sequence[str]
+        self, task_results: dict[str, TaskResult], store: MaintenanceStore, object_name: str, lists: Mapping[str, Sequence[str]]
     ) -> None:
         dirty = False
-        shopping = self._shopping_list()
         for task_id, tr in task_results.items():
-            wanted = lists_for(tr.task, defaults, shopping) if tr.status in MIRRORED_STATUSES else []
+            wanted = list(lists.get(task_id, ())) if tr.status in MIRRORED_STATUSES else []
             record: dict[str, Any] = dict(store.get_task_state(task_id).get(MIRROR_STATE_KEY) or {})
             if not wanted and not record:
                 continue

@@ -65,6 +65,8 @@
   "note_added": "Hozzáadtam a jegyzetet: '{task}' – {object}.",
   "note_too_long": "'{task}': a jegyzetek megteltek — előbb rövidítsd őket a karbantartási panelen.",
   "note_empty": "Mi legyen a jegyzetben?",
+  "not_allowed": "Nem módosíthatod a karbantartási feladatokat. Kérdezz meg egy rendszergazdát.",
+  "and_more": "és még továbbiak",
   "turn_user": "Most {user} következik: '{task}' – {object}.",
   "turn_you": "Most te következel: '{task}' – {object}.",
   "turn_nobody": "Senki sincs hozzárendelve ehhez: '{task}' – {object}.",

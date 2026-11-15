@@ -2,6 +2,87 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.121.2] - 2026-11-15
+
+The findings of the bug audit of 2026-11-14.
+
+### 🐛 Fixed
+
+- **A copied or replaced object's tasks start today.** *Duplicate* and *Replace* kept each task's day of creation,
+  which is where a task that was never done counts from: the successor of a pump bought last year was ten months
+  overdue the moment it existed, with a reminder to match.
+- **What is on order stays on order.** *Replace*, the hand-over of a shared part when its owner is deleted, and a
+  backup and restore left an open order behind: the part was no longer *On order* and its buy reminder came due
+  again. Undo of a completed buy reminder brings its order back too.
+- **The shopping list follows an order.** *Ordered…* on a part whose buy reminder already existed left *Buy …* on
+  the shopping list, and *Cancel order* did not bring it back.
+- **The receipt of an order books what was ordered.** Completing the buy reminder from the phone, the to-do list,
+  a button or by voice booked the part's usual restock amount, 5 for an order of 2.
+- **A delivery counted by a restock ends the wait for it.** A part still low after the parcel was counted stayed
+  hidden until the day the parcel had been expected.
+- **A moved part keeps its documents.** A manual attached to a part in the panel stayed on the old object, and a
+  part handed on at its owner's delete lost it with the owner's documents.
+- **A part move re-points every link to it.** A task that had moved onto the object owning its part kept a link
+  the move did not see, and its next completion reported a broken part link.
+- **A buy reminder stands on the shopping list once.** The fix in 2.121.1 never applied: with one family list for
+  both, the to-do mirror still added every buy reminder beside the shopping sync's row.
+- **A shopping row whose removal failed is removed later.** A list that refused the removal kept *Buy …* for good.
+- **A reminder completed during the quiet hours leaves the phone.** When the next cycle's reminder was only held
+  for the morning, the old *overdue* push with its *Complete* button stayed on the phones overnight.
+- **A rotation tells the next person.** Completing a rotating task whose next turn was due at once sent that
+  reminder to the person who had just done it, and the next person heard nothing.
+- **The completion notice stays after the phone's *Complete* button.** It was taken off again right after it went
+  out.
+- **A snooze brings the reminder back.** *Snooze* only muted: a status announced once (*triggered*) never came
+  back, and the default four hours changed nothing against a repeat of 12 or 24.
+- **The morning summary leaves once its tasks are done.** It waited for tasks of earlier summaries as well. A
+  place's arrival message now leaves once its tasks are done too.
+- **A task on several weekdays is not *due soon* all the time.** *Mon, Wed, Fri* counted as a weekly cycle, so the
+  default warning kept it *due soon* for good, with a reminder after every completion. A yearly *day of month*
+  pattern (one month only) got a warning of at most 29 days; it now gets the one you set.
+- **A task on a calendar entity stays overdue.** Overdue for more than 60 days, it lost the event it was due on and
+  read *due in 304 days* with nothing done.
+- **A schedule that can never come due is refused.** *On weekdays* without a day was saved and never came due; the
+  task dialog blocks it now, and the task commands refuse it like a time-based task without an interval. A
+  one-time date sent beside the schedule is kept.
+- **The next dates of a monthly task never done start from its day of creation.** One made on the 31st showed the
+  30th.
+- **The calendar's range ends before its end.** Asked for today, it also returned tomorrow's tasks.
+- **Voice: a note and a purchase keep the panel's permissions.** *Add a note* and *I bought …* wrote for every
+  account, also where the panel refuses those writes. A voice satellite without a signed-in user still may.
+- **Voice: a name inside a longer word comes second.** *Descale on the washer* also fitted the dishwasher, and the
+  suggested *Descale on Washer* was ambiguous again.
+- **Voice: a long list says that more follow.** *12 tasks need attention* named eight and stopped.
+- **The history CSV writes a negative reading as a number.** *-5* became a text cell a spreadsheet leaves out of
+  sums.
+- **A CSV saved with semicolons imports.** A file a spreadsheet saved in a comma-decimal language went to the JSON
+  importer, which refused it.
+- **The completion dialog belongs to the task you tapped.** Opened for a second task while it was still loading, or
+  from a link while it was open for another, it showed the second task with the first one's parts and fields, and
+  the save booked the wrong parts. *Complete* in a card's quick actions could do the same after the dialog was
+  closed and another row opened.
+- **The completion dialog and *Bought…* start from the ordered amount** when the part has an open order.
+- **A panel or dashboard opened right after a restart loads fully.** In the seconds before the integration answers,
+  the panel came up with the classic editor, no budget, groups or views, and a card without its settings, until
+  something reloaded them. It now loads again once the connection is ready, and a live list lost during an outage
+  comes back after it.
+- **Settings changed elsewhere reach an open dashboard** after its connection comes back.
+- **A task's page lists its own documents.** Two tasks of different objects clicked in quick succession could show
+  the first one's documents on the second, and attach them there.
+- **An open part form closes when you go to another object.** Saved there, it created the part on the wrong object.
+
+### 🔧 Developer notes
+
+- `SentMarks` carries a fourth mark, the pushes under the task's own tag; `clear_and_dismiss(since=)` keeps the
+  new marks and takes the old push off when only a hold or a bundle happened.
+- `nested_schedule_refusal` (helpers/schedule.py), new exception key `weekdays_need_a_day`, new voice responses
+  `not_allowed` and `and_more`.
+- `DocumentStore.async_follow_parts`, `portable_order`, `ordered_packages`; a copied or replaced object carries
+  `template_since` (the day its original got the template's tasks) for the template review.
+- An object's Store is cached once it has loaded (a failed load left an empty instance cached).
+- Frontend locale key `weekdays_required`.
+- Tests: `tests/test_bug_audit_2026_11_14.py`, `__tests__/bug-audit-2026-11-14.test.ts`.
+
 ## [2.121.1] - 2026-11-14
 
 The rest of the bug audit of 2026-11-08 (the findings rated Low), and a suggested setup that follows a

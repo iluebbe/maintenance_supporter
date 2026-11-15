@@ -133,6 +133,7 @@
   "day_word": "Den",
   "interval_value": "Interval",
   "interval_required": "Časový úkol potřebuje interval.",
+  "weekdays_required": "Vyberte alespoň jeden den v týdnu.",
   "interval_unit": "Jednotka",
   "unit_days": "Dny",
   "unit_weeks": "Týdny",

@@ -248,6 +248,8 @@ def _build_export_object(
     }
     # 2.94: the template the object was made from ("already set up" in the
     # gallery) — only emitted when set, like the fleet flag below.
+    if obj_data.get("template_since"):
+        export_obj["template_since"] = obj_data["template_since"]  # a copy's review (L9-1)
     if obj_data.get("template_id"):
         export_obj["template_id"] = obj_data["template_id"]
         # 2.118: the template's later tasks the user said no to.
@@ -287,6 +289,8 @@ def _build_export_object(
                 **part,
                 "stock": store.get_part_stock(part["id"]) if store is not None else None,
                 **({"restoring": store.get_part_restoring(part["id"])} if store is not None and part.get("reuse") else {}),
+                # #261: what is on order is part of the shelf's state.
+                **({"on_order": order} if store is not None and (order := store.get_part_order(part["id"])) is not None else {}),
             }
             for part in (entry.data.get("parts") or {}).values()
         ],

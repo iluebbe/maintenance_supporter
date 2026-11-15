@@ -156,7 +156,23 @@ export class MaintenanceSupporterCard extends LitElement {
   private _follow = new ObjectsFollower((event) => {
     const next = mergeSubscriptionEvent(this._objects, event);
     if (next !== null) this._objects = next;
+    // The subscription's list: the server answers. Settings that could not
+    // be read at the page's start (opened seconds after a restart, while
+    // the integration was still loading) stayed at the fallback for the
+    // page's life: no create buttons for a delegated operator, no checklist
+    // in the completion dialog. Read again here; a read that worked is
+    // cached, so this asks only when it must (bug audit 2026-11-14, F9-5).
+    if (event.objects && this.hass) this._readSettings();
   }, () => void this._loadData());
+
+  /** #145: the household's row-action style (cached settings); the same
+   *  answer carries the feature switches + write delegation. */
+  private _readSettings(): void {
+    void fetchSettingsOnce(this.hass).then((s) => {
+      this._settings = s;
+      this._globalRowStyle = s.rowActionStyle;
+    }).catch(() => undefined);
+  }
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -188,12 +204,7 @@ export class MaintenanceSupporterCard extends LitElement {
   }
 
   private async _loadData(): Promise<void> {
-    // #145: resolve the household's row-action style once (cached settings);
-    // the same answer carries the feature switches + write delegation.
-    void fetchSettingsOnce(this.hass).then((s) => {
-      this._settings = s;
-      this._globalRowStyle = s.rowActionStyle;
-    }).catch(() => undefined);
+    this._readSettings();
     // The saved view's scope loads alongside the objects and lands FIRST, so
     // the first list paint is already scoped — the rows used to flash
     // unfiltered until the view round-trip finished.

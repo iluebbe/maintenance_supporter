@@ -52,6 +52,8 @@ CALENDAR_REFRESH_SECONDS = 15 * 60
 # completion" for a task done two months ago, and a bit more than a year
 # ahead so yearly events (chimney sweep) are known.
 CALENDAR_WINDOW_PAST_DAYS = 60
+# How far back a task overdue for long still reads its calendar.
+CALENDAR_WINDOW_PAST_MAX_DAYS = 730
 CALENDAR_WINDOW_FUTURE_DAYS = 400
 # #189: a busy calendar day must not turn a task label into a paragraph.
 MAX_TITLES_PER_DAY = 5
@@ -79,6 +81,35 @@ def all_calendar_entity_ids(hass: HomeAssistant) -> set[str]:
         if isinstance(tasks, Mapping):
             out |= calendar_entity_ids(tasks)
     return out
+
+
+def _past_days(hass: HomeAssistant, entity_id: str, today: date) -> int:
+    """How many days back to read ``entity_id``: far enough for the
+    event every task on it waits for, the first after its last
+    completion (or its creation). Sixty days for all, a task overdue for
+    longer lost the event it was due on and moved on to the next one,
+    "due in 304 days", with nothing done (audit 2026-11-14, D9-2).
+    Capped at :data:`CALENDAR_WINDOW_PAST_MAX_DAYS`."""
+    from .aggregate import store_of
+
+    days = CALENDAR_WINDOW_PAST_DAYS
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        tasks = entry.data.get(CONF_TASKS)
+        if not isinstance(tasks, Mapping):
+            continue
+        store = store_of(entry)
+        for task_id, task in tasks.items():
+            sched = task.get("schedule") if isinstance(task, Mapping) else None
+            if not isinstance(sched, Mapping) or sched.get("kind") != KIND_CALENDAR or sched.get("entity_id") != entity_id:
+                continue
+            raw = (store.get_last_performed(task_id) if store is not None else None) or task.get("created_at")
+            try:
+                anchor = date.fromisoformat(str(raw)[:10]) if raw else None
+            except ValueError:
+                anchor = None
+            if anchor is not None:
+                days = max(days, (today - anchor).days + 1)
+    return min(days, CALENDAR_WINDOW_PAST_MAX_DAYS)
 
 
 def _cache(hass: HomeAssistant) -> dict[str, Any]:
@@ -177,11 +208,11 @@ async def async_refresh_calendar_occurrences(
         return
 
     now = dt_util.now()
-    window = {
-        "start_date_time": (now - timedelta(days=CALENDAR_WINDOW_PAST_DAYS)).isoformat(),
-        "end_date_time": (now + timedelta(days=CALENDAR_WINDOW_FUTURE_DAYS)).isoformat(),
-    }
     for eid in stale:
+        window = {
+            "start_date_time": (now - timedelta(days=_past_days(hass, eid, now.date()))).isoformat(),
+            "end_date_time": (now + timedelta(days=CALENDAR_WINDOW_FUTURE_DAYS)).isoformat(),
+        }
         try:
             response = await hass.services.async_call(
                 "calendar",

@@ -200,8 +200,11 @@ class ShoppingListSync:
         for key, rec in list(mapping.items()):
             if key in desired or key.partition(":")[0] in unloaded:
                 continue
-            if rec.get("uid") in by_uid:
-                await self._remove_item(entity, rec)
+            # Forgotten only once it is off the list: a removal the list
+            # refused left "Buy X" standing there with nobody to take it
+            # off (the to-do mirror's N8-6, here; audit 2026-11-14, S9-8).
+            if rec.get("uid") in by_uid and await self._remove_item(entity, rec) is False:
+                continue
             mapping.pop(key, None)
             changed = True
 
@@ -369,8 +372,8 @@ class ShoppingListSync:
     async def _add_item(self, entity: str, summary: str) -> bool:
         return await async_todo_add_item(self._hass, entity, summary)
 
-    async def _remove_item(self, entity: str, rec: dict[str, Any]) -> None:
-        await async_todo_remove_item(self._hass, entity, rec)
+    async def _remove_item(self, entity: str, rec: dict[str, Any]) -> bool:
+        return await async_todo_remove_item(self._hass, entity, rec)
 
     async def _remove_all_from(self, entity: str) -> None:
         if self._hass.states.get(entity) is None:

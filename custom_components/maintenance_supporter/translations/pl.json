@@ -2580,6 +2580,9 @@
     "time_based_needs_interval": {
       "message": "Zadanie oparte na czasie wymaga interwału."
     },
+    "weekdays_need_a_day": {
+      "message": "Zadanie w dni tygodnia wymaga co najmniej jednego dnia."
+    },
     "range_end_before_start": {
       "message": "Koniec nie może być wcześniejszy niż początek."
     },

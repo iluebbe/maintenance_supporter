@@ -23,6 +23,7 @@ import type { MaintenanceObjectResponse } from "../types";
 import { hydrateObjects } from "./hydrate-objects";
 import { subscribeAcrossReconnects, type LiveSubscription, type ReconnectingConnection } from "./live-subscription";
 import { fetchObjects } from "./objects-fetch";
+import { invalidateSettingsCache } from "./settings-cache";
 import { mergeSubscriptionEvent, type SubscriptionEvent } from "./subscription-merge";
 
 /** How long the subscription stays after the last card left. */
@@ -43,6 +44,8 @@ interface Hub {
   listeners: Set<Listener>;
   live: LiveSubscription | null;
   linger: ReturnType<typeof setTimeout> | null;
+  /** The connection was lost since the last snapshot. */
+  lost: boolean;
 }
 
 function hubs(): WeakMap<object, Hub> {
@@ -51,12 +54,21 @@ function hubs(): WeakMap<object, Hub> {
 }
 
 function start(connection: HubConnection): Hub {
-  const hub: Hub = { objects: null, listeners: new Set(), live: null, linger: null };
+  const hub: Hub = { objects: null, listeners: new Set(), live: null, linger: null, lost: false };
   hubs().set(connection, hub);
   hub.live = subscribeAcrossReconnects(
     connection,
     (raw) => {
       const event = raw as ObjectsEvent;
+      // Back after an outage (a restart of Home Assistant, a night without
+      // Wi-Fi): the page's settings are from before it. They were kept for
+      // the life of the page, so an always-on dashboard never saw a switch
+      // an admin flipped elsewhere; the cards read them again with this
+      // snapshot (bug audit 2026-11-14, F9-8).
+      if (event.objects && hub.lost) {
+        hub.lost = false;
+        invalidateSettingsCache();
+      }
       if (event.objects) hydrateObjects(event.objects);
       if (event.delta) hydrateObjects(event.delta);
       // A change before the first snapshot is no list to hand out.
@@ -65,7 +77,7 @@ function start(connection: HubConnection): Hub {
     },
     // Only what changed, empty keys stripped (hydrated above).
     { type: "maintenance_supporter/subscribe", deltas: true, compact: true },
-    { onLost: () => { hub.objects = null; } },
+    { onLost: () => { hub.objects = null; hub.lost = true; } },
   );
   return hub;
 }

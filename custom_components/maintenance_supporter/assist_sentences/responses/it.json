@@ -65,6 +65,8 @@
   "note_added": "Nota aggiunta a '{task}' su {object}.",
   "note_too_long": "Le note di '{task}' sono piene: accorciale prima nel pannello Manutenzione.",
   "note_empty": "Cosa deve dire la nota?",
+  "not_allowed": "Non puoi modificare le attività di manutenzione. Chiedi a un amministratore.",
+  "and_more": "e altri",
   "turn_user": "Tocca a {user}: '{task}' su {object}.",
   "turn_you": "Tocca a te: '{task}' su {object}.",
   "turn_nobody": "Nessuno è assegnato a '{task}' su {object}.",

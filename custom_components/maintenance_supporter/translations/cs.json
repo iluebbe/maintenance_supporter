@@ -2580,6 +2580,9 @@
     "time_based_needs_interval": {
       "message": "Časová úloha potřebuje interval."
     },
+    "weekdays_need_a_day": {
+      "message": "Úkol ve dnech v týdnu potřebuje alespoň jeden den."
+    },
     "range_end_before_start": {
       "message": "Konec nesmí být před začátkem."
     },

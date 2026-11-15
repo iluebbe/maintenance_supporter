@@ -133,6 +133,7 @@
   "day_word": "Dzień",
   "interval_value": "Interwał",
   "interval_required": "Zadanie czasowe wymaga interwału.",
+  "weekdays_required": "Wybierz co najmniej jeden dzień tygodnia.",
   "interval_unit": "Jednostka",
   "unit_days": "Dni",
   "unit_weeks": "Tygodnie",

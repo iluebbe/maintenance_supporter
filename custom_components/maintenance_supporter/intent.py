@@ -222,6 +222,18 @@ def _match_tasks(
     return match_rows(query, snapshot, language)
 
 
+#: How many items a spoken list names.
+SPOKEN_LIST_MAX = 8
+
+
+def _spoken_list(items: list[str], language: str | None) -> str:
+    """The first :data:`SPOKEN_LIST_MAX` of ``items``, and a word that more
+    follow: "12 tasks need attention:" named eight and stopped (audit
+    2026-11-14, N9-9). The count is said before the list."""
+    listed = ", ".join(items[:SPOKEN_LIST_MAX])
+    return f"{listed}, {_sp('and_more', language)}" if len(items) > SPOKEN_LIST_MAX else listed
+
+
 def _sp_n(key: str, language: str | None, number: int, **fmt: Any) -> str:
     """:func:`_sp` for a text carrying a number — picks the number form."""
     return speak_count(key, language, number, **fmt)
@@ -424,7 +436,7 @@ class ListTasksIntent(intent.IntentHandler):
                 empty = {"mine": "none_due_mine", "here": "none_due_here"}.get(scope, "none_due")
                 response.async_set_speech(_sp(empty, lang))
             return response
-        items = ", ".join(_describe(t, lang) for t in tasks[:8])
+        items = _spoken_list([_describe(t, lang) for t in tasks], lang)
         key = "task_due_one" if len(tasks) == 1 else "tasks_due"
         response.async_set_speech(_sp(key, lang, count=len(tasks), items=items))
         return response

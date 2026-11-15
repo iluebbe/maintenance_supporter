@@ -65,6 +65,8 @@
   "note_added": "Lisäsin muistiinpanon tehtävälle '{task}' kohteessa {object}.",
   "note_too_long": "Tehtävän '{task}' muistiinpanot ovat täynnä — lyhennä niitä ensin huoltopaneelissa.",
   "note_empty": "Mitä muistiinpanoon kirjoitetaan?",
+  "not_allowed": "Et voi muuttaa huoltotehtäviä. Kysy ylläpitäjältä.",
+  "and_more": "ja muita",
   "turn_user": "Vuorossa on {user}: '{task}' kohteessa {object}.",
   "turn_you": "Sinä olet vuorossa: '{task}' kohteessa {object}.",
   "turn_nobody": "Tehtävälle '{task}' kohteessa {object} ei ole määritetty ketään.",

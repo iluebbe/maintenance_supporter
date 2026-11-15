@@ -133,6 +133,7 @@
   "day_word": "Dag",
   "interval_value": "Interval",
   "interval_required": "Een tijdgebaseerde taak heeft een interval nodig.",
+  "weekdays_required": "Kies minstens één weekdag.",
   "interval_unit": "Eenheid",
   "unit_days": "Dagen",
   "unit_weeks": "Weken",

@@ -65,6 +65,8 @@
   "note_added": "Notatet er lagt til '{task}' på {object}.",
   "note_too_long": "Notatene for '{task}' er fulle — gjør dem kortere i vedlikeholdspanelet først.",
   "note_empty": "Hva skal det stå i notatet?",
+  "not_allowed": "Du kan ikke endre vedlikeholdsoppgaver. Spør en administrator.",
+  "and_more": "og flere",
   "turn_user": "{user} har tur: '{task}' på {object}.",
   "turn_you": "Det er din tur: '{task}' på {object}.",
   "turn_nobody": "Ingen er tildelt '{task}' på {object}.",

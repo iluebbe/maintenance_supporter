@@ -136,6 +136,7 @@
   "day_word": "Tag",
   "interval_value": "Intervall",
   "interval_required": "Eine zeitbasierte Aufgabe braucht ein Intervall.",
+  "weekdays_required": "Wähle mindestens einen Wochentag.",
   "interval_unit": "Einheit",
   "unit_days": "Tage",
   "unit_weeks": "Wochen",

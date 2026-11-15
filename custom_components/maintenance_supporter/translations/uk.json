@@ -2580,6 +2580,9 @@
     "time_based_needs_interval": {
       "message": "Завданню за часом потрібен інтервал."
     },
+    "weekdays_need_a_day": {
+      "message": "Завданню за днями тижня потрібен принаймні один день."
+    },
     "range_end_before_start": {
       "message": "Кінець не може бути раніше за початок."
     },

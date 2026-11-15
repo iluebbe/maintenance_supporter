@@ -1561,8 +1561,8 @@ For the full WebSocket API (119 commands), see [Architecture — WebSocket API](
   inventing steps and presenting them as your stored procedure.
 - **`MaintenanceSupporterTaskDue`** (2.28+) — *"When is the oil change due?"*
 - **`MaintenanceSupporterSnoozeTask`** (2.28+) — *"Snooze the oil change"* —
-  mutes the task's reminders for the configured snooze duration (the schedule
-  is untouched).
+  puts the task's reminders off for the configured snooze duration, and the
+  reminder comes back when it ends (the schedule is untouched).
 - **`MaintenanceSupporterPartStock`** (2.28+) — *"How many water filters do we
   have left?"* — answers with the live stock, the storage location, and a
   warning when the part is at or below its reorder threshold.

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from copy import deepcopy
 from typing import Any
 from uuid import uuid4
@@ -37,6 +38,7 @@ from ..const import (
     MAX_TEXT_LENGTH,
     MAX_URL_LENGTH,
 )
+from ..helpers import template_updates as tu
 from ..helpers.aggregate import (
     get_coordinator_data,
     get_object_entries,
@@ -95,6 +97,16 @@ _OBJECT_STR_FIELD_SCHEMA: dict[Any, Any] = {
     vol.Optional("ha_device_id"): vol.Any(ID_FIELD, None),
     vol.Optional("parent_entry_id"): vol.Any(ID_FIELD, None),
 }
+
+
+def _carry_template_since(source: Mapping[str, Any], new_obj: dict[str, Any]) -> None:
+    """The day the original got its template tasks, for the copy's review:
+    its own tasks start today (L9-1), and the day of the oldest of them
+    is when the review counts the template's later tasks from."""
+    template_id = tu.object_template(source)
+    since = tu.made_on(source, template_id) if template_id else None
+    if since:
+        new_obj[tu.TEMPLATE_SINCE] = since
 
 
 def _carry_parts_shelf(src_parts: Any, *, keep_doc_links: bool) -> tuple[dict[str, str], dict[str, Any]]:
@@ -583,6 +595,11 @@ async def ws_duplicate_object(
     # unit with its own shelf, untracked until counted.
     part_id_map, new_parts = _carry_parts_shelf(entry.data.get("parts"), keep_doc_links=False)
 
+    # A copy's tasks start today: with the original's day of creation, the
+    # anchor of a task never done, the copy of anything older than one
+    # interval was overdue the moment it existed (audit 2026-11-14, L9-1).
+    created_today = dt_util.now().date().isoformat()
+    _carry_template_since(entry.data, new_obj)
     new_tasks: dict[str, Any] = {}
     for src_task in entry.data.get(CONF_TASKS, {}).values():
         # Auto "buy" reminders belong to the reconciler of the SOURCE's parts.
@@ -593,6 +610,7 @@ async def ws_duplicate_object(
         task["id"] = task_id
         task["object_id"] = new_obj["id"]
         strip_task_runtime_state(task)
+        task["created_at"] = created_today
         # The copy is the user's own task, not the duty the original was
         # adopted as (2.95 fingerprint) — like task/duplicate. A template
         # task stays one: the copy keeps the object's template, and its
@@ -1005,6 +1023,10 @@ async def ws_replace_object(
     # Part manuals travel with the documents (part_id_map below).
     part_id_map, new_parts = _carry_parts_shelf(entry.data.get("parts"), keep_doc_links=True)
 
+    # The new unit's tasks start today, like a copy's (audit 2026-11-14,
+    # L9-1): the successor of a pump from last year was ten months overdue.
+    created_today = dt_util.now().date().isoformat()
+    _carry_template_since(entry.data, new_obj)
     new_tasks: dict[str, Any] = {}
     for src_task in entry.data.get(CONF_TASKS, {}).values():
         # Auto "buy" reminders are transient reconciler-owned state — the
@@ -1016,6 +1038,7 @@ async def ws_replace_object(
         task["id"] = task_id
         task["object_id"] = new_obj["id"]
         strip_task_runtime_state(task)
+        task["created_at"] = created_today
         # Own-shelf links (task level AND per phase) follow the fresh part
         # ids; a pool owned by ANOTHER object (#111) is untouched by
         # replacing this one — carried verbatim, or the successor silently
@@ -1069,7 +1092,16 @@ async def ws_replace_object(
                 if stock is not None:
                     new_store.set_part_stock(new_pid, stock)
                     new_store.set_part_restoring(new_pid, src_store.get_part_restoring(old_pid))
+                # What is on order (#261) arrives for the successor: left
+                # with the archived predecessor, the carried part was not
+                # on order and its reminder was due today (audit
+                # 2026-11-14, L9-2).
+                order = src_store.get_part_order(old_pid)
+                if order is not None:
+                    new_store.set_part_order(new_pid, order)
+                    src_store.set_part_order(old_pid, None)
             await new_store.async_save()
+            await src_store.async_save()
         # Objects BORROWING the predecessor's pool (#111) now draw on the
         # successor's shelf. They kept linking to the archived predecessor —
         # whose buy tasks the archive suppresses — so the pool silently split

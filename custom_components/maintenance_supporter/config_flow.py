@@ -46,7 +46,7 @@ from .helpers.home_profile import async_home_profile
 from .helpers.i18n import normalize_language
 from .helpers.notify_targets import validate_notify_service
 from .helpers.object_names import name_changed_onto_taken, name_taken, object_unique_id
-from .helpers.parts import PartValidationError, normalize_part, portable_stock
+from .helpers.parts import PartValidationError, normalize_part, portable_order, portable_stock
 from .helpers.sanitize import cap_object_fields, cap_task_fields
 from .helpers.schedule import normalize_task_storage
 from .helpers.task_fields import WARNING_DAYS_RANGE
@@ -537,6 +537,7 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
                 # A backup's stock rides along; the entry's first setup moves
                 # it into the Store.
                 part.update(portable_stock(part, praw))
+                part.update(portable_order(praw))
                 parts[part["id"]] = part
 
         data: dict[str, Any] = {

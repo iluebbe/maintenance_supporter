@@ -381,7 +381,11 @@ def export_history_csv(
                         "cost": _csv_number(row.get("cost")),
                         "parts_cost": _csv_number(row.get("parts_cost")),
                         "duration": _csv_number(row.get("duration")),
-                        "reading": _csv_safe(_history_reading(row)),
+                        # A bare reading is a number: through the formula
+                        # guard, -5 became the text "\t-5" that a sheet
+                        # leaves out of sums (audit 2026-11-14, I9-6). The
+                        # named slots start with a name and keep it.
+                        "reading": _csv_safe(_history_reading(row)) if row.get("reading_values") else _history_reading(row),
                         "feedback": _csv_safe(str(row.get("feedback") or "")),
                         "notes": _csv_safe(str(row.get("notes") or "")),
                     }

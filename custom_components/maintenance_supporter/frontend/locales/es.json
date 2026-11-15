@@ -133,6 +133,7 @@
   "day_word": "Día",
   "interval_value": "Intervalo",
   "interval_required": "Una tarea temporal necesita un intervalo.",
+  "weekdays_required": "Elige al menos un día de la semana.",
   "interval_unit": "Unidad",
   "unit_days": "Días",
   "unit_weeks": "Semanas",

@@ -9,6 +9,15 @@
  * itself on every reconnect and tries again, a while later, until it gets
  * through. Its old unsubscribe is never called on the new socket: command ids
  * start over there, and it could end someone else's subscription.
+ *
+ * An attempt made while the socket is down is never answered: the library
+ * registers the command, cannot send it, and with `resubscribe: false` does
+ * not send it after the reconnect either. Such an attempt used to count as
+ * "under way" for good, so the reconnect made no new one and the list stayed
+ * dead until the next disconnect (a card mounted, or the panel opened,
+ * during the outage; bug audit 2026-11-14, F9-1). No attempt is made while
+ * the connection says it is down, and the reconnect makes a fresh one
+ * whatever was under way.
  */
 
 export interface ReconnectingConnection {
@@ -21,6 +30,9 @@ export interface ReconnectingConnection {
    *  Optional: test stubs leave them out. */
   addEventListener?(event: "ready" | "disconnected", callback: () => void): void;
   removeEventListener?(event: "ready" | "disconnected", callback: () => void): void;
+  /** False while the socket is down (the library's own flag). Optional:
+   *  test stubs leave it out. */
+  readonly connected?: boolean;
 }
 
 /** The waits before each new attempt after a failed one (the last repeats). */
@@ -40,9 +52,11 @@ export function subscribeAcrossReconnects(
   { onLost }: { onLost?: () => void } = {},
 ): LiveSubscription {
   let closed = false;
-  // Counts the disconnects: an attempt or an unsubscribe belongs to one socket.
+  // Counts the disconnects: an unsubscribe belongs to one socket.
   let epoch = 0;
-  let inflight: number | null = null;
+  // The attempt that counts; an older one is void (see `voidAttempt`).
+  let current = 0;
+  let pending = false;
   let unsub: (() => void) | null = null;
   let failures = 0;
   let timer: ReturnType<typeof setTimeout> | null = null;
@@ -52,15 +66,32 @@ export function subscribeAcrossReconnects(
     timer = null;
   };
 
+  /** Whatever is under way no longer counts: its socket closed, or it was
+   *  made while the socket was down and will never be answered. */
+  const voidAttempt = () => {
+    current += 1;
+    pending = false;
+  };
+
   const attempt = () => {
-    if (closed || unsub || inflight === epoch) return;
+    if (closed || unsub || pending) return;
+    // Down: the reconnect ("ready") makes the attempt.
+    if (connection.connected === false) return;
     clearTimer();
-    const mine = epoch;
-    inflight = mine;
+    const mine = ++current;
+    const socket = epoch;
+    pending = true;
     connection.subscribeMessage(callback, msg, { resubscribe: false }).then(
       (end) => {
-        if (inflight === mine) inflight = null;
-        if (mine !== epoch) return;
+        if (mine !== current) {
+          // Void, yet it got through on the socket that is still up: a
+          // second subscription next to the one that replaced it.
+          if (socket === epoch) {
+            try { end(); } catch { /* the connection is gone */ }
+          }
+          return;
+        }
+        pending = false;
         if (closed) {
           try { end(); } catch { /* the connection is gone */ }
           return;
@@ -69,18 +100,24 @@ export function subscribeAcrossReconnects(
         failures = 0;
       },
       () => {
-        if (inflight === mine) inflight = null;
-        if (closed || mine !== epoch) return;
+        if (mine !== current) return;
+        pending = false;
+        if (closed) return;
         failures += 1;
         timer = setTimeout(attempt, RETRY_MS[Math.min(failures, RETRY_MS.length) - 1]);
       },
     );
   };
 
-  const onReady = () => attempt();
+  const onReady = () => {
+    // An attempt from before the socket was up is not on it.
+    if (!unsub) voidAttempt();
+    attempt();
+  };
   const onDisconnected = () => {
     epoch += 1;
     unsub = null;
+    voidAttempt();
     clearTimer();
     onLost?.();
   };

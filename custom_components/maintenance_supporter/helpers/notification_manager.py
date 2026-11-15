@@ -1194,9 +1194,10 @@ def fill_placeholders(text: str, kind: str, values: Mapping[str, str]) -> str:
 
 
 #: What went out about a task: how many reminders went out or were held
-#: for quiet hours in this process, its status stamps and its held
-#: reminders (NotificationManager.sent_marks).
-SentMarks = tuple[int, tuple[object, ...], tuple[object, ...]]
+#: for quiet hours in this process, its status stamps, its held
+#: reminders, and how many pushes went out under the task's own tag
+#: (NotificationManager.sent_marks).
+SentMarks = tuple[int, tuple[object, ...], tuple[object, ...], int]
 
 
 def own_text(task: Mapping[str, Any] | None, kind: str, field: str, values: Mapping[str, str]) -> str | None:
@@ -1407,6 +1408,11 @@ class NotificationManager:
         # Per task, how many reminders went out or were held in this
         # process (sent_marks; not persisted, compared within one action).
         self._sent_seq: dict[str, int] = {}
+        # Per task, how many pushes went out under its own tag: only such
+        # a push replaces the one standing on the phones. A reminder held
+        # for quiet hours and one sent in a bundle do not (audit
+        # 2026-11-14, N9-1).
+        self._pushed_seq: dict[str, int] = {}
         # Reminders that fell into quiet hours: key → the facts needed for the
         # one summary that goes out when the quiet hours end.
         self._quiet_held: dict[str, dict[str, Any]] = {}
@@ -1943,13 +1949,15 @@ class NotificationManager:
                 continue
             if not self._check_daily_limit():
                 break
-            if await self._send_quiet_summary(targets, members):
+            if await self._send_quiet_summary(targets, members, first=not sent_any):
                 sent_any = True
         return sent_any
 
-    async def _send_quiet_summary(self, targets: tuple[str, ...], members: dict[str, dict[str, Any]]) -> bool:
+    async def _send_quiet_summary(self, targets: tuple[str, ...], members: dict[str, dict[str, Any]], *, first: bool = True) -> bool:
         """One quiet-hours summary of ``members`` to ``targets``; on success
-        its members are stamped and leave the held set."""
+        its members are stamped and leave the held set. ``first``: the
+        first summary of this morning, which replaces yesterday's on the
+        phones and so starts the record of what the summary lists."""
         held = list(members.values())
         lang = self._lang
         parts: list[str] = []
@@ -1991,8 +1999,11 @@ class NotificationManager:
             if f.get("entry_id") and f.get("task_id"):
                 keys.append(task_key_of(str(f["entry_id"]), str(f["task_id"])))
         self._mark_delivered(keys)
-        # One tag for every recipient's summary: what they list adds up.
-        self._note_group_push(QUIET_END_TAG, keys, list(targets), replace=False)
+        # One tag for every recipient's summary: what they list adds up,
+        # within one morning. Added to yesterday's as well, the summary
+        # stayed until a task of an older one was done (audit 2026-11-14,
+        # N9-5).
+        self._note_group_push(QUIET_END_TAG, keys, list(targets), replace=first)
         _LOGGER.debug("Quiet-hours summary sent to %s: %s", ", ".join(t or "the event" for t in targets), title)
         return True
 
@@ -2060,6 +2071,10 @@ class NotificationManager:
         for tkey in task_keys:
             self._sent_seq[tkey] = self._sent_seq.get(tkey, 0) + 1
 
+    def _count_pushed(self, task_key: str) -> None:
+        """One more push under the task's own tag (sent_marks)."""
+        self._pushed_seq[task_key] = self._pushed_seq.get(task_key, 0) + 1
+
     def _is_snoozed(self, key: str) -> bool:
         """Check if a notification key is snoozed."""
         until = self._snoozed_until.get(key)
@@ -2068,8 +2083,16 @@ class NotificationManager:
         # utcnow: two times in the local zone compare by the wall clock, which
         # runs an hour back once a year (see _elapsed_seconds).
         if dt_util.utcnow() >= until:
-            # Snooze expired
+            # Snooze expired: the reminder it put off is due again. Only
+            # muted, a status told once (triggered) never came back, and
+            # the default 4 hours changed nothing against a repeat of 12
+            # or 24 (audit 2026-11-14, N9-2). A reminder sent after the
+            # snooze ended keeps its stamp.
             del self._snoozed_until[key]
+            last = self._last_notified.get(key)
+            if last == _SENT_ONCE or (isinstance(last, datetime) and last < until):
+                del self._last_notified[key]
+            self._dirty()
             return False
         return True
 
@@ -2232,6 +2255,7 @@ class NotificationManager:
 
         self._stamp_status_sent(key, interval_hours)
         self._mark_delivered([task_key])
+        self._count_pushed(task_key)
         self._on_phones[task_key] = ON_PHONES_STATUS
         record_trace(self.hass, entry_id, task_id, KIND_REMINDER, reminder="status", status=str(new_status))
 
@@ -2310,6 +2334,12 @@ class NotificationManager:
         sent = await async_emit_and_dispatch(self.hass, self.notify_service, service_data, context)
         if sent:
             self._daily_count += 1
+            # It stands under the task's tag now. Uncounted, the phone
+            # button's own dismissal took the news off again right after
+            # it went out (audit 2026-11-14, N9-3).
+            tkey = task_key_of(entry_id, task_id)
+            self._count_sent([tkey])
+            self._count_pushed(tkey)
             # Saved like every other stamp: unsaved, a restart forgot the
             # count (bug audit 2026-10-16, N10).
             self._dirty()
@@ -2519,6 +2549,9 @@ class NotificationManager:
                 if reminds_on_site(self.hass, t["entry_id"]):
                     status = str(t["status"])
                     self._stamp_status_sent(notification_key(t["entry_id"], t["task_id"], status), self._get_interval_hours(status))
+            # It leaves the phone once the tasks it lists are done there
+            # (audit 2026-11-14, N9-6).
+            self._note_group_push(place_tag(zone_id), [task_key_of(t["entry_id"], t["task_id"]) for t in due], targets, replace=True)
         return sent
 
     async def async_send_bundled(
@@ -2751,6 +2784,7 @@ class NotificationManager:
             self_completing=completes_itself(cfg.get("trigger_config"), trigger_active),
         ):
             self._mark_delivered([lead_task_key])
+            self._count_pushed(lead_task_key)
             self._on_phones[lead_task_key] = f"{ON_PHONES_LEAD}:{next_due}" if next_due else ON_PHONES_LEAD
             record_trace(self.hass, entry_id, task_id, KIND_REMINDER, reminder="lead", days=days)
             # Keep only today's stamps - yesterday's are dead weight.
@@ -2938,16 +2972,18 @@ class NotificationManager:
         whose refresh may already remind of that one (see
         :meth:`clear_and_dismiss`)."""
         keys = [notification_key(entry_id, task_id, status) for status in NOTIFIABLE_STATUSES]
+        tkey = task_key_of(entry_id, task_id)
         return (
-            self._sent_seq.get(task_key_of(entry_id, task_id), 0),
+            self._sent_seq.get(tkey, 0),
             tuple(self._last_notified.get(key) for key in keys),
             tuple(self._quiet_held.get(key) for key in keys),
+            self._pushed_seq.get(tkey, 0),
         )
 
     def _forget_marks(self, entry_id: str, task_id: str, marks: SentMarks) -> None:
         """Forget the old cycle's ``marks`` (:meth:`sent_marks`) and keep
         what went out since: its stamp, and the push on the phones."""
-        _seq, stamps, held = marks
+        _seq, stamps, held, _pushed = marks
         keys = [notification_key(entry_id, task_id, status) for status in NOTIFIABLE_STATUSES]
         for key, stamp, hold in zip(keys, stamps, held, strict=True):
             if stamp is not None and self._last_notified.get(key) == stamp:
@@ -2977,10 +3013,29 @@ class NotificationManager:
         refresh already reminded of the new cycle, that push replaced the old
         one under the same tag: only the old marks go. Dismissed, the fresh
         push left the phones and went out again on the next refresh (bug
-        audit 2026-11-08, N8-1). ``reason`` for the trace: done, or
-        reassigned (the people it is for changed, N8-2)."""
-        if since is not None and since[0] != self.sent_marks(entry_id, task_id)[0]:
+        audit 2026-11-08, N8-1). A reminder of the new cycle that quiet
+        hours only held, or that went out in a bundle, replaced nothing:
+        the old push leaves, the new marks stay (audit 2026-11-14, N9-1).
+        ``reason`` for the trace: done, or reassigned (the people it is
+        for changed, N8-2)."""
+        now = self.sent_marks(entry_id, task_id)
+        if since is not None and since[0] != now[0]:
+            tkey = task_key_of(entry_id, task_id)
+            stood = tkey in self._on_phones or any(stamp is not None for stamp in since[1])
             self._forget_marks(entry_id, task_id, since)
+            if since[3] != now[3] or not stood:
+                return
+            self._on_phones.pop(tkey, None)
+            # Only held: the pushes that list the old cycle lose it. A
+            # bundle that went out since lists the new one.
+            if not any(new is not None and new != old for old, new in zip(since[1], now[1], strict=True)):
+                self._leave_group_pushes(tkey)
+            self._dirty()
+            record_trace(self.hass, entry_id, task_id, KIND_REMINDER_CLEARED, reason=reason)
+            self.hass.async_create_task(
+                self.async_dismiss_task_notification(task_id, user_ids=task_user_ids(reminded)),
+                f"{DOMAIN} dismiss reminder {task_id}",
+            )
             return
         dismiss = self.was_reminded(entry_id, task_id)
         self.clear_task_state(entry_id, task_id)

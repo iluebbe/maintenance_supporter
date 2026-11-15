@@ -752,6 +752,12 @@ async def async_migrate_to_store(
                     store.set_part_stock(part_id, stock)
                     if isinstance(waiting, (int, float)) and not isinstance(waiting, bool):
                         store.set_part_restoring(part_id, waiting)
+            # #261: a backup's open order, counted stock or not.
+            if isinstance(part, dict) and "on_order" in part:
+                part = dict(part)
+                order = part.pop("on_order")
+                if isinstance(order, dict) and order:
+                    store.set_part_order(part_id, order)
             static_parts[part_id] = part
 
     # Save store immediately (must succeed before we strip ConfigEntry)

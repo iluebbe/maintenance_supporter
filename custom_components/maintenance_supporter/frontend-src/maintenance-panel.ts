@@ -197,6 +197,8 @@ interface PartsOverviewRow {
   cost_mode?: PartsCostMode | null;
   stock: number | null;
   low: boolean;
+  /** #261: the open order, when the part is on order. */
+  on_order?: { quantity: number; expected?: string | null } | null;
   consumers: Array<{
     entry_id: string;
     object_name: string | null;
@@ -387,7 +389,21 @@ export class MaintenanceSupporterPanel extends LitElement {
    *  old code (helpers/update_state.py); null when both agree. */
   @state() private _restartPendingVersion: string | null = null;
   private _staleChecked = false;
-  private _onReconnect = (): void => this._checkServerVersion();
+  private _onReconnect = (): void => {
+    this._checkServerVersion();
+    this._reloadIfIncomplete();
+  };
+  /** The last load did not get everything it asked for. A page opened in
+   *  the seconds after a restart, while the integration's commands are not
+   *  registered yet, stayed on the defaults (features off, the classic
+   *  editor, read-only for a delegated operator, no views or groups) until
+   *  some action reloaded: only the objects came back, through the
+   *  subscription. The load runs again when the connection is ready and
+   *  when the subscription's list arrives (bug audit 2026-11-14, F9-5). */
+  private _loadIncomplete = false;
+  private _reloadIfIncomplete(): void {
+    if (this._loadIncomplete && this.hass) void this._loadData();
+  }
   private _toastTimer: ReturnType<typeof setTimeout> | null = null;
   private _dismissedSuggestions = new Set<string>();
 
@@ -1112,6 +1128,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/settings" }).catch(() => null),
       this.hass.connection.sendMessagePromise({ type: "maintenance_supporter/views/list" }).catch(() => null),
     ]);
+    this._loadIncomplete = !objResult || !groupsResult || !settingsResult || !viewsResult;
     if (viewsResult) this._savedViews = (viewsResult as { views: SavedView[] }).views || [];
     if (objResult) {
       this._objects = hydrateObjects((objResult as { objects: MaintenanceObjectResponse[] }).objects);
@@ -1173,7 +1190,10 @@ export class MaintenanceSupporterPanel extends LitElement {
     // Fetch mini-sparkline data for overview (non-blocking)
     this._fetchMiniStatsForOverview();
 
-    // Handle deep-link URL parameters (from QR code scan)
+    // Handle deep-link URL parameters (from QR code scan). Not after a load
+    // without the objects: the link was taken as followed and dropped, with
+    // nothing to open it on; the repeated load follows it (F9-5).
+    if (!objResult && !this._initialLoadDone) return;
     this._initialLoadDone = true;
     const linked = !!window.location.search;
     this._handleDeepLink();
@@ -1525,6 +1545,8 @@ export class MaintenanceSupporterPanel extends LitElement {
       this.hass.connection,
       (msg: unknown) => {
         const ev = msg as SubscriptionEvent<MaintenanceObjectResponse>;
+        // The server answers now: what the first load could not get.
+        if (ev.objects) this._reloadIfIncomplete();
         const next = applySubscriptionEvent(this._objects, ev);
         if (next !== null) {
           this._objects = next;
@@ -5163,7 +5185,9 @@ export class MaintenanceSupporterPanel extends LitElement {
       .hass=${this.hass}
       .entryId=${row.entry_id}
       .sparePart=${{ id: row.part_id, unit: row.unit ?? undefined, package_size: row.package_size ?? undefined,
-        cost: row.cost ?? undefined, restock_quantity: row.restock_quantity ?? undefined }}
+        // A part on order: what was ordered, as on the object's own page
+        // (bug audit 2026-11-14, S9-2).
+        cost: row.cost ?? undefined, restock_quantity: row.on_order?.quantity ?? row.restock_quantity ?? undefined }}
       .currencySymbol=${this._currencySymbol}
       ?onUse=${partCostMode(row, this._partsCostMode, fleet) === "use"}
       @part-bought=${() => { void this._loadAllParts(); void this._loadData(); }}

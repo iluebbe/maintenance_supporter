@@ -2580,6 +2580,9 @@
     "time_based_needs_interval": {
       "message": "Un'attività basata sul tempo ha bisogno di un intervallo."
     },
+    "weekdays_need_a_day": {
+      "message": "Un'attività nei giorni della settimana richiede almeno un giorno."
+    },
     "range_end_before_start": {
       "message": "La fine deve coincidere con l'inizio o essere successiva."
     },

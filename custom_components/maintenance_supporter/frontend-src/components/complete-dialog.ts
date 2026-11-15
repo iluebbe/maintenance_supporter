@@ -130,8 +130,20 @@ export class MaintenanceCompleteDialog extends LitElement {
    *  the dialog records is where this one starts too. */
   @property({ attribute: false }) public prefill: QuickCompleteValues | null = null;
 
+  /** The task the open dialog was set up for ("entry|task"). */
+  private _openFor = "";
+
   public open(opts: { viaTagScan?: boolean } = {}): void {
-    if (this._open) return;
+    // Opened again for the task it shows: nothing to do. For ANOTHER task
+    // it starts over: the opener has assigned that task's properties, and
+    // the early return left them over the first task's parts selection,
+    // restock amount, ticks and notes, which the save then sent for the
+    // second (bug audit 2026-11-14, F9-2).
+    const openFor = `${this.entryId}|${this.taskId}`;
+    if (this._open && this._openFor === openFor) return;
+    // The photos picked for the task it showed belong to no completion.
+    if (this._open) this._photos.discardOrphans();
+    this._openFor = openFor;
     this._open = true;
     // Reset on every open — a plain open after a scan fallback must not
     // keep claiming proof of presence.

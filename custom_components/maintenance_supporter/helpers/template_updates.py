@@ -273,10 +273,22 @@ def object_template(data: Mapping[str, Any]) -> str | None:
     return None
 
 
+#: On a copied or replaced object: the day its original got its tasks
+#: from the template. The copy's tasks start on the day of the copy
+#: (audit 2026-11-14, L9-1); the review still asks about what the
+#: template gained since the original was made.
+TEMPLATE_SINCE = "template_since"
+
+
 def made_on(data: Mapping[str, Any], template_id: str) -> str | None:
     """The day the object got its tasks from the template (its oldest
-    template task's creation day), or None when unknown."""
+    template task's creation day, or the day a copy's original got
+    them), or None when unknown."""
     days = []
+    obj = data.get(CONF_OBJECT) or {}
+    carried = obj.get(TEMPLATE_SINCE) if isinstance(obj, Mapping) else None
+    if isinstance(carried, str) and carried:
+        days.append(carried[:10])
     for task in (data.get(CONF_TASKS) or {}).values():
         if not isinstance(task, Mapping):
             continue

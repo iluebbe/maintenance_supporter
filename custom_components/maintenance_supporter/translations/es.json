@@ -2580,6 +2580,9 @@
     "time_based_needs_interval": {
       "message": "Una tarea basada en tiempo necesita un intervalo."
     },
+    "weekdays_need_a_day": {
+      "message": "Una tarea en días de la semana necesita al menos un día."
+    },
     "range_end_before_start": {
       "message": "El fin debe ser igual o posterior al inicio."
     },

@@ -2580,6 +2580,9 @@
     "time_based_needs_interval": {
       "message": "Aikaperusteinen tehtävä tarvitsee välin."
     },
+    "weekdays_need_a_day": {
+      "message": "Viikonpäivinä toistuva tehtävä tarvitsee vähintään yhden viikonpäivän."
+    },
     "range_end_before_start": {
       "message": "Loppu ei voi olla ennen alkua."
     },

@@ -82,12 +82,23 @@ export class MaintenanceTaskDocuments extends LitElement {
     }
   }
 
+  /** Only the newest load may land. The element is reused from task to
+   *  task: an answer for the object shown before, arriving last, listed
+   *  that object's documents under this task, and attaching one wrote this
+   *  task's id into a document of the other object (bug audit 2026-11-14,
+   *  F9-6). */
+  private _loadSeq = 0;
+
   private async _load(): Promise<void> {
+    const seq = ++this._loadSeq;
+    let failure = "";
     const r = await runWs<{ documents: Doc[] }>(
       this,
       { type: "maintenance_supporter/documents/list", entry_id: this.entryId },
-      { onError: (m) => { this._error = m; } },
+      { onError: (m) => { failure = m; } },
     );
+    if (seq !== this._loadSeq) return;
+    if (failure) this._error = failure;
     this._loaded = true;
     if (r === undefined) return;
     this._docs = r?.documents || [];

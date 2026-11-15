@@ -465,7 +465,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
         stores: dict[str, MaintenanceStore] = hass.data.setdefault(STORES_CACHE_KEY, {})
         cached_store = stores.get(entry.entry_id)
         store = cached_store if cached_store is not None else MaintenanceStore(hass, entry.entry_id)
-        stores[entry.entry_id] = store
 
         if cached_store is None:
             # First setup this run: load from disk + one-time migration.
@@ -479,8 +478,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: MaintenanceSupporterConf
             cleaned_data = await async_migrate_to_store(hass, entry.entry_id, data_before_migration, store)
             if cleaned_data is not data_before_migration:
                 hass.config_entries.async_update_entry(entry, data=dict(cleaned_data))
-        # A cached store's memory is authoritative — re-loading from disk here
-        # would drop any change still sitting in its debounce window.
+        # Cached once it is loaded: cached before, a load that failed left the
+        # empty instance behind, the next setup took it for loaded and its
+        # first save wrote nothing over the intact file (audit 2026-11-14,
+        # A9-8). A cached store's memory is authoritative — re-loading from
+        # disk here would drop any change still sitting in its debounce window.
+        stores[entry.entry_id] = store
 
         # Catalog triggers written by a signature that could never fire
         # (gree/daikin hvac_action runtime, 2026-09-25; hOn filters read

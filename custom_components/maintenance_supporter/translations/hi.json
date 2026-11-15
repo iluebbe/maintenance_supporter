@@ -2580,6 +2580,9 @@
     "time_based_needs_interval": {
       "message": "समय-आधारित कार्य के लिए अंतराल ज़रूरी है।"
     },
+    "weekdays_need_a_day": {
+      "message": "सप्ताह के दिनों वाले कार्य के लिए कम से कम एक दिन चाहिए।"
+    },
     "range_end_before_start": {
       "message": "अंत, प्रारंभ के समान या उसके बाद होना चाहिए।"
     },

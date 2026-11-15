@@ -1758,9 +1758,20 @@ export class MaintenanceTaskDialog extends LitElement {
     return this._scheduleType === "time_based" && !(parseInt(this._intervalDays, 10) > 0);
   }
 
-  /** What Save waits for: a name and the schedule's own date or interval. */
+  /** "On weekdays" without a day: it was saved, and a task on no weekday
+   *  never has a due date, so it read OK for good with no reminder. Save
+   *  waits for a day, like the two above (bug audit 2026-11-14, F9-3). The
+   *  other calendar kinds always carry their pattern (the nth weekday and
+   *  the day of the month have defaults, the calendar entity is checked on
+   *  save). */
+  private _missingWeekdays(): boolean {
+    return this._scheduleType === "weekdays" && this._weekdays.length === 0;
+  }
+
+  /** What Save waits for: a name and the schedule's own date, interval or
+   *  weekdays. */
   private _incomplete(): boolean {
-    return !this._name.trim() || this._missingDueDate() || this._missingInterval();
+    return !this._name.trim() || this._missingDueDate() || this._missingInterval() || this._missingWeekdays();
   }
 
   /** The schedule type picked in the form. Switching to time-based seeds
@@ -2951,6 +2962,7 @@ export class MaintenanceTaskDialog extends LitElement {
               @click=${() => this._toggleWeekday(i)}
             >${name}</button>`)}
         </div>
+        ${this._missingWeekdays() ? html`<div class="field-help weekdays-required">${t("weekdays_required", L)}</div>` : nothing}
         ${this._renderCalOffsetField()}`;
     }
     if (this._scheduleType === "nth_weekday") {

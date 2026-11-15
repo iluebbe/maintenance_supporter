@@ -121,6 +121,15 @@ def _token_in(token: str, hay: str) -> bool:
     return any(stem in hay for stem in _stems(token))
 
 
+def _word_in(token: str, hay: str) -> bool:
+    """:func:`_token_in` at the start of a word: "washer" is in "Washer",
+    not in "Dishwasher". A script without spaces has no word starts."""
+    if any(_unspaced(ch) for ch in token):
+        return _token_in(token, hay)
+    words = re.findall(r"\w+", hay)
+    return any(word.startswith(stem) for stem in _stems(token) for word in words)
+
+
 # Scripts that do not put spaces between words (Thai, Hangul, kana, CJK):
 # a name inside a run of them is still a name of its own.
 _UNSPACED = (
@@ -231,6 +240,14 @@ def match_rows(query: str, rows: list[dict[str, Any]], language: str | None = No
         with_object = [r for r, _span in within if _spoken_at(r["object_name"], q) is not None]
         with_object += [r for r in rows if r not in with_object and _compound_with_object(r, q)]
         return with_object or [r for r, span in within if _nothing_else_said(q, span, language)]
+    if len(matches) > 1:
+        # Whole words before parts of words: "descale on the washer" fitted
+        # the Dishwasher's Descale too, and the suggested "Descale on
+        # Washer" was as ambiguous again; "pool filter" picked the
+        # Whirlpool's Filter over the pool's (audit 2026-11-14, N9-4).
+        worded = [r for r in matches if all(_word_in(tok, hays[id(r)]) for tok in tokens)]
+        if worded:
+            matches = worded
     if len(matches) > 1:
         # "pool filter" fits both "Filter" and "Filter check" on the pool; the
         # one whose whole name was spoken is meant.

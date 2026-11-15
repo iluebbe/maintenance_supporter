@@ -136,6 +136,7 @@
   "day_word": "Gün",
   "interval_value": "Aralık",
   "interval_required": "Zamana dayalı bir görevin bir aralığı olmalı.",
+  "weekdays_required": "En az bir hafta günü seçin.",
   "interval_unit": "Birim",
   "unit_days": "Gün",
   "unit_weeks": "Hafta",

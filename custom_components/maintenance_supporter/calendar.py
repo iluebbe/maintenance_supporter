@@ -712,14 +712,21 @@ class MaintenanceCalendar(CalendarEntity):
 
         # Convert to dates for comparison
         if isinstance(start_date, datetime):
-            start_d = start_date.date()
+            start_d = (dt_util.as_local(start_date) if start_date.tzinfo else start_date).date()
         else:
             start_d = start_date
 
+        # HA asks for [start, end): an end at local midnight does not take
+        # in that day. Inclusive, "what is due today" listed tomorrow's
+        # tasks too (audit 2026-11-14, N9-7). An end inside a day still
+        # takes that day in.
         if isinstance(end_date, datetime):
-            end_d = end_date.date()
+            local_end = dt_util.as_local(end_date) if end_date.tzinfo else end_date
+            end_d = local_end.date()
+            if local_end.time() == time(0, 0) and end_d > start_d:
+                end_d -= timedelta(days=1)
         else:
-            end_d = end_date
+            end_d = end_date - timedelta(days=1) if end_date > start_d else end_date
 
         entries = self._hass.config_entries.async_entries(DOMAIN)
 

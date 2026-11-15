@@ -133,6 +133,7 @@
   "day_word": "Jour",
   "interval_value": "Intervalle",
   "interval_required": "Une tâche temporelle a besoin d'un intervalle.",
+  "weekdays_required": "Choisissez au moins un jour de la semaine.",
   "interval_unit": "Unité",
   "unit_days": "Jours",
   "unit_weeks": "Semaines",

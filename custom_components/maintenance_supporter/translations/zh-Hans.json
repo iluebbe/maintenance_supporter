@@ -2580,6 +2580,9 @@
     "time_based_needs_interval": {
       "message": "基于时间的任务需要一个间隔。"
     },
+    "weekdays_need_a_day": {
+      "message": "按星期几重复的任务至少需要选择一天。"
+    },
     "range_end_before_start": {
       "message": "结束时间不能早于开始时间。"
     },

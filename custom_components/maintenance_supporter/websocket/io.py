@@ -78,7 +78,15 @@ from ..helpers.import_mapping import (
     resolve_task_refs_by_name,
 )
 from ..helpers.notify_icons import normalize_icon
-from ..helpers.parts import PartValidationError, is_part_url, iter_part_links, map_part_links, normalize_part, portable_stock
+from ..helpers.parts import (
+    PartValidationError,
+    is_part_url,
+    iter_part_links,
+    map_part_links,
+    normalize_part,
+    portable_order,
+    portable_stock,
+)
 from ..helpers.pause import pause_end_day
 from ..helpers.phases import clamp_phase_cursor, sanitize_phase_defs, sanitize_phase_sequence
 from ..helpers.qr_generator import (
@@ -1154,6 +1162,10 @@ async def ws_import_json(
                     keys = [k[:255] for k in declined if isinstance(k, str) and k][:200]
                     if keys:
                         import_obj["template_declined"] = keys
+            # A copy's review counts from its original's day (L9-1).
+            since = obj_data.get("template_since")
+            if isinstance(since, str) and parse_iso_date(since[:10]) is not None:
+                import_obj["template_since"] = since[:10]
             # parent / predecessor / replaced_by → the NEW entry ids.
             lineage_pending = lineage.apply(import_obj, obj_data)
             own_old_entry_id = str(obj_entry.get("entry_id") or "")
@@ -1206,6 +1218,7 @@ async def ws_import_json(
                     # buy-task reconcile, which otherwise saw no stock, removed the
                     # imported buy task and made a new one.
                     pdata.update(portable_stock(pdata, part_entry))
+                    pdata.update(portable_order(part_entry))
                     import_parts[new_id] = pdata
                     if old_id:
                         part_id_map[old_id] = new_id

@@ -2580,6 +2580,9 @@
     "time_based_needs_interval": {
       "message": "Une tâche temporelle a besoin d'un intervalle."
     },
+    "weekdays_need_a_day": {
+      "message": "Une tâche à jours fixes a besoin d'au moins un jour de la semaine."
+    },
     "range_end_before_start": {
       "message": "La fin doit être identique ou postérieure au début."
     },

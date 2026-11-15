@@ -65,6 +65,8 @@
   "note_added": "Anteckningen har lagts till på '{task}' på {object}.",
   "note_too_long": "Anteckningarna för '{task}' är fulla — korta ner dem i underhållspanelen först.",
   "note_empty": "Vad ska det stå i anteckningen?",
+  "not_allowed": "Du får inte ändra underhållsuppgifter. Fråga en administratör.",
+  "and_more": "och fler",
   "turn_user": "{user} har turen: '{task}' på {object}.",
   "turn_you": "Det är din tur: '{task}' på {object}.",
   "turn_nobody": "Ingen är tilldelad '{task}' på {object}.",

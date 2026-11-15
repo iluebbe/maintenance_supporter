@@ -110,6 +110,9 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     this._entryId = entryId;
     this._taskId = taskId;
     this._error = "";
+    // A load the last dialog started (Complete, before it was closed) no
+    // longer disables this one's buttons.
+    this._busy = false;
     this._showSkip = false;
     this._showReset = false;
     this._showPostpone = false;
@@ -209,10 +212,10 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
 
   /** Complete. A task with Quick complete (#233) completes in one tap;
    *  `details` (Complete with details…) opens the dialog. */
-  private _onComplete(details = false): void {
+  private async _onComplete(details = false): Promise<void> {
     if (!this._entryId || !this._taskId || !this._task) return;
     if (!details && quickCompleteOn(this._task)) {
-      void this._onQuickComplete();
+      await this._onQuickComplete();
       return;
     }
     // Reuse the existing rich complete-dialog by mounting it on body.
@@ -220,8 +223,18 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     // required_completion_fields let a mandatory note be skipped, and a
     // reading task without type+unit never rendered its value field
     // (bug audit 2026-08-22).
-    import("../dialog-mount").then(async ({ openCompleteDialog }) => {
-      const task = this._task!;
+    // The task this tap is about, taken now: the object list below takes a
+    // moment, and a dialog closed and opened for another row meanwhile had
+    // its ids read afterwards, under the first task's name, fields and
+    // parts, so confirming recorded the completion on the OTHER task (bug
+    // audit 2026-11-14, F9-4). `_loadSeq` moves with every close and open.
+    const entryId = this._entryId;
+    const taskId = this._taskId;
+    const task = this._task;
+    const seq = this._loadSeq;
+    this._busy = true;
+    try {
+      const { openCompleteDialog } = await import("../dialog-mount");
       // The object list resolves the parts picker (own inventory + shared
       // pools, #99/#111), the "consumes" hint lines and a buy task's restock
       // default — fetched for every task kind, since a buy task needs its
@@ -235,12 +248,15 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
       } catch {
         // Parts stay empty — the dialog still completes without them.
       }
+      // The dialog moved on (closed, or open for another task): this
+      // answer is nobody's.
+      if (seq !== this._loadSeq) return;
       // Same derivation as the panel and the card (phase override, tag-scan
       // gate, checklist ticks …) — see helpers/complete-dialog-args.
       const ok = openCompleteDialog(
         buildCompleteDialogArgs({
-          entryId: this._entryId!,
-          taskId: this._taskId!,
+          entryId,
+          taskId,
           taskName: task.name,
           task,
           objects,
@@ -256,7 +272,10 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
         this._notifyChanged("complete");
         this.close();
       }
-    });
+    } finally {
+      // Not the flag of a dialog that is open for another task by now.
+      if (seq === this._loadSeq || !this._open) this._busy = false;
+    }
   }
 
   private async _onQuickComplete(): Promise<void> {
@@ -266,7 +285,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
     try {
       const outcome = await quickComplete(this.hass, entryId, task.id, this._lang);
       if (outcome.result === "dialog") {
-        this._onComplete(true);
+        await this._onComplete(true);
         return;
       }
       if (outcome.result === "failed") {

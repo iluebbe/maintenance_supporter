@@ -65,6 +65,8 @@
   "note_added": "Dodano notatkę do zadania '{task}' na urządzeniu {object}.",
   "note_too_long": "Notatki zadania '{task}' są pełne — najpierw skróć je w panelu konserwacji.",
   "note_empty": "Co ma być w notatce?",
+  "not_allowed": "Nie możesz zmieniać zadań konserwacyjnych. Poproś administratora.",
+  "and_more": "i inne",
   "turn_user": "Teraz kolej: {user} — '{task}' na urządzeniu {object}.",
   "turn_you": "Teraz twoja kolej: '{task}' na urządzeniu {object}.",
   "turn_nobody": "Nikt nie jest przypisany do zadania '{task}' na urządzeniu {object}.",

@@ -30,7 +30,7 @@ from typing import Any
 from urllib.parse import quote, quote_plus
 from uuid import uuid4
 
-from ..const import DEFAULT_CURRENCY_DECIMALS, PARTS_COST_MODES
+from ..const import DEFAULT_CURRENCY_DECIMALS, MAX_TEXT_LENGTH, PARTS_COST_MODES
 from .i18n import normalize_language_code
 from .pause import is_task_inert
 from .rounding import round2
@@ -261,6 +261,35 @@ def portable_stock(part: Mapping[str, Any], raw: Any) -> dict[str, Any]:
     if part.get("reuse") and isinstance(waiting, (int, float)) and not isinstance(waiting, bool) and waiting > 0:
         out["restoring"] = waiting
     return out
+
+
+def portable_order(raw: Any) -> dict[str, Any]:
+    """The open order (#261) a backup row carries, as ``{"on_order": …}``
+    or nothing. It lives in the Store next to the stock and was left out
+    of the backup: restored, the part was not on order and its reminder
+    went or came due (audit 2026-11-14, L9-2). A part whose stock is not
+    counted can be on order too, so this does not depend on the stock."""
+    order = raw.get("on_order") if isinstance(raw, Mapping) else None
+    if not isinstance(order, Mapping):
+        return {}
+    quantity = order.get("quantity")
+    if isinstance(quantity, bool) or not isinstance(quantity, (int, float)) or not 0 < quantity <= MAX_PART_STOCK:
+        return {}
+    expected = order.get("expected")
+    try:
+        expected = date.fromisoformat(expected).isoformat() if isinstance(expected, str) else None
+    except ValueError:
+        expected = None
+    ordered_at = order.get("ordered_at")
+    note = order.get("note")
+    return {
+        "on_order": {
+            "quantity": float(quantity),
+            "expected": expected,
+            "ordered_at": ordered_at[:40] if isinstance(ordered_at, str) else None,
+            "note": (note.strip()[:MAX_TEXT_LENGTH] or None) if isinstance(note, str) else None,
+        }
+    }
 
 
 def _clean_cost(raw: Any) -> float | None:

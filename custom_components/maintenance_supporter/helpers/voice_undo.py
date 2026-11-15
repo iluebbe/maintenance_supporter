@@ -47,7 +47,13 @@ from homeassistant.helpers import intent
 from homeassistant.util import dt as dt_util
 
 from ..const import CONF_PARTS, CONF_TASKS, DOMAIN, NOTIFICATION_MANAGER_KEY
-from ..parts_runtime import async_change_part_stock, async_set_part_restoring, async_untrack_part_stock
+from ..parts_runtime import (
+    async_change_part_stock,
+    async_set_part_restoring,
+    async_untrack_part_stock,
+    schedule_buy_task_reconcile,
+)
+from ..shopping_sync import schedule_resync
 from .aggregate import get_object_entries, get_store, store_of
 from .task_persist import async_delete_task
 
@@ -101,6 +107,8 @@ class Snapshot:
     restore_only: dict[str, Any] = field(default_factory=dict)
     # #104 "when used": a buy reminder's paid price becomes its part's price.
     part_costs: dict[tuple[str, str], Any] = field(default_factory=dict)
+    # #261: what is on order; a completed buy reminder closes it.
+    orders: dict[tuple[str, str], Any] = field(default_factory=dict)
     # The triggers' progress before the action (T-9); never compared, it
     # moves with the sensors.
     trigger_runtime: Any = None
@@ -158,6 +166,7 @@ def capture(hass: HomeAssistant, entry_id: str, task_id: str | None) -> Snapshot
             snap.stocks[(ce.entry_id, part_id)] = ce_store.get_part_stock(part_id)
             snap.piles[(ce.entry_id, part_id)] = ce_store.get_part_restoring(part_id)
             snap.part_costs[(ce.entry_id, part_id)] = part.get("cost") if isinstance(part, dict) else None
+            snap.orders[(ce.entry_id, part_id)] = ce_store.get_part_order(part_id)
     return snap
 
 
@@ -280,6 +289,23 @@ async def async_restore(hass: HomeAssistant, record: UndoRecord) -> None:
             await async_change_part_stock(hass, part_entry, part_id, absolute=stocks[key], restoring=piles.get(key))
         else:
             await async_set_part_restoring(hass, part_entry, part_id, piles[key])
+
+    # The order a completed buy reminder closed (#261): the reminder is
+    # open again and waits for the delivery, so the part is on order again
+    # and off the shopping list (audit 2026-11-14, L9-3).
+    for (entry_id, part_id), order in before.orders.items():
+        if record.after.orders.get((entry_id, part_id)) == order:
+            continue
+        part_entry = hass.config_entries.async_get_entry(entry_id)
+        if part_entry is None:
+            continue
+        part_store = store_of(part_entry)
+        if part_store is None:
+            continue
+        part_store.set_part_order(part_id, order)
+        await part_store.async_save()
+        schedule_buy_task_reconcile(hass, part_entry)
+        schedule_resync(hass)
 
     # The price a buy reminder's purchase set (#104 "when used").
     for (entry_id, part_id), cost in before.part_costs.items():

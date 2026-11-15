@@ -136,6 +136,7 @@
   "day_word": "日",
   "interval_value": "間隔",
   "interval_required": "時間ベースのタスクには間隔が必要です。",
+  "weekdays_required": "曜日を1つ以上選んでください。",
   "interval_unit": "単位",
   "unit_days": "日",
   "unit_weeks": "週",

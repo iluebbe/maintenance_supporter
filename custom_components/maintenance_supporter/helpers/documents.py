@@ -21,7 +21,7 @@ import logging
 import math
 import os
 import re
-from collections.abc import Callable, Collection
+from collections.abc import Callable, Collection, Mapping
 from pathlib import Path
 from typing import IO, TYPE_CHECKING, Any
 from uuid import uuid4
@@ -887,6 +887,50 @@ class DocumentStore:
         if moved:
             await self._async_save()
         return moved
+
+    async def async_follow_parts(self, source_object_id: str, target_object_id: str, moved: Mapping[str, str]) -> int:
+        """The documents attached to parts in the panel go where the parts
+        go (``moved``: old to new part id). Returns the documents touched.
+
+        The panel links a part's documents through the document's
+        ``part_ids``; only the older ``doc_id`` on the part was followed, so
+        a moved part lost its manual, and a pool handed on at its owner's
+        delete lost it for good when the owner's documents went (audit
+        2026-11-14, S9-3). A document that is still used where it is (by
+        another part, or by a task) stays, and the moved parts get their
+        own record of the same file."""
+        def _forget(_meta: dict[str, Any], _new_id: str) -> None:
+            return None
+
+        def _no_tasks(_meta: dict[str, Any]) -> list[str]:
+            return []
+
+        def _no_pages(_meta: dict[str, Any]) -> dict[str, int]:
+            return {}
+
+        touched = 0
+        for doc in list(self.documents.values()):
+            if doc.get("object_id") != source_object_id:
+                continue
+            linked = [p for p in (doc.get("part_ids") or []) if p in moved]
+            if not linked:
+                continue
+            stays = [p for p in (doc.get("part_ids") or []) if p not in moved]
+            there = [moved[p] for p in linked]
+            if stays or doc.get("task_ids"):
+
+                def _parts(_meta: dict[str, Any], ids: list[str] = there) -> list[str]:
+                    return ids
+
+                self._import_one_document(dict(doc), target_object_id, _forget, _no_tasks, _parts, _no_pages)
+                doc["part_ids"] = stays
+            else:
+                doc["object_id"] = target_object_id
+                doc["part_ids"] = there
+            touched += 1
+        if touched:
+            await self._async_save()
+        return touched
 
     def _delete_blob_sync(self, digest: str) -> None:
         """Delete a blob file and its extracted-text sidecar (executor)."""

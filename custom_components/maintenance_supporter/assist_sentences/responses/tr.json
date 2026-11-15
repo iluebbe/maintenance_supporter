@@ -65,6 +65,8 @@
   "note_added": "{object} için '{task}' görevine not eklendi.",
   "note_too_long": "'{task}' görevinin notları dolu — önce bakım panelinden kısalt.",
   "note_empty": "Notta ne yazsın?",
+  "not_allowed": "Bakım görevlerini değiştiremezsiniz. Bir yöneticiye sorun.",
+  "and_more": "ve diğerleri",
   "turn_user": "Sıradaki kişi: {user} — {object} için '{task}'.",
   "turn_you": "Sıra sende: {object} için '{task}'.",
   "turn_nobody": "{object} için '{task}' görevine kimse atanmamış.",

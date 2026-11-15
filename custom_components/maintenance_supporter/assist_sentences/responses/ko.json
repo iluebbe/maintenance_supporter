@@ -65,6 +65,8 @@
   "note_added": "{object}의 '{task}'에 메모를 추가했어요.",
   "note_too_long": "'{task}' 작업의 메모가 가득 찼어요. 먼저 정비 패널에서 줄여 주세요.",
   "note_empty": "메모에 뭐라고 적을까요?",
+  "not_allowed": "유지 관리 작업을 변경할 권한이 없습니다. 관리자에게 요청하세요.",
+  "and_more": "그 외",
   "turn_user": "지금 차례: {user} — {object}의 '{task}'.",
   "turn_you": "지금은 당신 차례예요: {object}의 '{task}'.",
   "turn_nobody": "{object}의 '{task}' 작업에는 담당자가 없어요.",

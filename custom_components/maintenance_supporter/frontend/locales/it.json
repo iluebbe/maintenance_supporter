@@ -133,6 +133,7 @@
   "day_word": "Giorno",
   "interval_value": "Intervallo",
   "interval_required": "Un'attività temporale ha bisogno di un intervallo.",
+  "weekdays_required": "Scegli almeno un giorno della settimana.",
   "interval_unit": "Unità",
   "unit_days": "Giorni",
   "unit_weeks": "Settimane",

@@ -133,6 +133,7 @@
   "day_word": "День",
   "interval_value": "Інтервал",
   "interval_required": "Завданню за часом потрібен інтервал.",
+  "weekdays_required": "Виберіть принаймні один день тижня.",
   "interval_unit": "Одиниця",
   "unit_days": "Дні",
   "unit_weeks": "Тижні",

@@ -36,6 +36,7 @@ from .helpers.assignees import person_display_name
 from .helpers.entry_tasks import write_task
 from .helpers.i18n import DECIMAL_COMMA_LANGUAGES, normalize_language_code
 from .helpers.parts import MAX_PART_STOCK, is_part_low, packages_bought, restock_units
+from .helpers.permissions import user_can_write
 from .helpers.reading_slots import resolve_reading_values, sanitize_reading_slots
 from .intent import (
     INTENT_ADD_NOTE,
@@ -55,6 +56,7 @@ from .intent import (
     _resolve_single,
     _sp,
     _sp_n,
+    _spoken_list,
     _task_snapshot,
 )
 from .parts_runtime import async_change_part_stock, async_part_purchase, open_buy_task_id
@@ -248,6 +250,25 @@ class RecordReadingIntent(intent.IntentHandler):
         return response
 
 
+async def _may_not_write(intent_obj: intent.Intent) -> intent.IntentResponse | None:
+    """A refusal when the asking person may not change tasks, else None.
+
+    A note and a purchase write what the panel's ``task/update`` and
+    ``part/purchase`` and the matching services keep to admins and the
+    delegated operators; by voice anybody could (audit 2026-11-14, I9-3).
+    Without a user (a satellite, an automation) it passes, as the
+    services do. Complete, skip and snooze are everybody's, there too."""
+    user_id = intent_obj.context.user_id if intent_obj.context else None
+    if user_id is None:
+        return None
+    user = await intent_obj.hass.auth.async_get_user(user_id)
+    if user is not None and user_can_write(intent_obj.hass, user):
+        return None
+    response = intent_obj.create_response()
+    response.async_set_error(intent.IntentResponseErrorCode.FAILED_TO_HANDLE, _sp("not_allowed", intent_obj.language))
+    return response
+
+
 class AddNoteIntent(intent.IntentHandler):
     """Append a dated note to a task."""
 
@@ -267,6 +288,8 @@ class AddNoteIntent(intent.IntentHandler):
         name = str(slots["name"]["value"]).strip()
         note = " ".join(str(slots["note"]["value"]).split())
         lang = intent_obj.language
+        if (refused := await _may_not_write(intent_obj)) is not None:
+            return refused
 
         target, err = _resolve_single(intent_obj, name, _task_snapshot(hass))
         if err is not None:
@@ -366,7 +389,7 @@ class ShoppingListIntent(intent.IntentHandler):
         if not low:
             response.async_set_speech(_sp("buy_none", lang))
             return response
-        items = ", ".join(_sp("buy_item", lang, part=p["name"], stock=say_number(p["stock"], lang)) for p in low[:8])
+        items = _spoken_list([_sp("buy_item", lang, part=p["name"], stock=say_number(p["stock"], lang)) for p in low], lang)
         response.async_set_speech(_sp_n("buy_list", lang, len(low), count=len(low), items=items))
         return response
 
@@ -394,6 +417,8 @@ class BoughtPartIntent(intent.IntentHandler):
         slots = self.async_validate_slots(intent_obj.slots)
         name = str(slots["name"]["value"]).strip()
         lang = intent_obj.language
+        if (refused := await _may_not_write(intent_obj)) is not None:
+            return refused
 
         part, err = _resolve_part(intent_obj, name)
         if err is not None:
@@ -475,9 +500,7 @@ class LowBatteriesIntent(intent.IntentHandler):
         if not overview.low:
             response.async_set_speech(_sp("batteries_none", lang))
             return response
-        items = ", ".join(
-            _sp("battery_item", lang, device=battery_label(row), type=row["battery_type"]) for row in overview.low[:8]
-        )
+        items = _spoken_list([_sp("battery_item", lang, device=battery_label(row), type=row["battery_type"]) for row in overview.low], lang)
         speech = _sp_n("batteries_low", lang, len(overview.low), count=len(overview.low), items=items)
         if overview.needs_now:
             needs = ", ".join(f"{qty} × {kind}" for kind, qty in overview.needs_now.items())

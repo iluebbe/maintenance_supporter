@@ -2580,6 +2580,9 @@
     "time_based_needs_interval": {
       "message": "Az időalapú feladathoz intervallum kell."
     },
+    "weekdays_need_a_day": {
+      "message": "A hét napjaihoz kötött feladathoz legalább egy nap kell."
+    },
     "range_end_before_start": {
       "message": "A vége nem lehet korábbi a kezdeténél."
     },

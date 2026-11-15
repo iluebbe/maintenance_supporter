@@ -286,6 +286,9 @@ async def async_move_part(hass: HomeAssistant, source: ConfigEntry, target: Conf
             moved_part.pop("doc_id", None)
         else:
             await doc_store.async_rehome({doc_id}, object_id_for_entry(target))
+    part_docs = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
+    if part_docs is not None:
+        await part_docs.async_follow_parts(object_id_for_entry(source), object_id_for_entry(target), moved)
 
     # The new owner: the part, its stock, and its own tasks' links (they
     # borrowed it until now) and history pointing at themselves.
@@ -310,10 +313,15 @@ async def async_move_part(hass: HomeAssistant, source: ConfigEntry, target: Conf
 
     # The old owner: the part is gone from its shelf, its own tasks (their
     # links name no owner) now borrow it, and so does its history.
+    # A task moved onto the object that owned its part keeps a link that
+    # names that object: read as its own everywhere else, it stayed behind
+    # here and pointed at a part that was gone (audit 2026-11-14, L9-5).
     del source_parts[part_id]
-    source_tasks, _ = relink_tasks(dict(source.data.get(CONF_TASKS) or {}), "", target.entry_id, moved)
+    source_tasks = dict(source.data.get(CONF_TASKS) or {})
+    for own in ("", source.entry_id):
+        source_tasks, _ = relink_tasks(source_tasks, own, target.entry_id, moved)
+        relink_history(source_store, own, target.entry_id, moved)
     hass.config_entries.async_update_entry(source, data={**source.data, CONF_PARTS: source_parts, CONF_TASKS: source_tasks})
-    relink_history(source_store, "", target.entry_id, moved)
     source_store.remove_part(part_id)
     await source_store.async_save()
 
@@ -375,6 +383,7 @@ async def async_transfer_pools_on_removal(hass: HomeAssistant, entry: ConfigEntr
         await source_store.async_load()
     stocks = {pid: source_store.get_part_stock(pid) for pid in pools}
     waiting = {pid: source_store.get_part_restoring(pid) for pid in pools}
+    orders = {pid: source_store.get_part_order(pid) for pid in pools}
 
     # Move the definitions onto the heir, keeping their ids so the links only
     # need their entry_id rewritten (ids are uuid4 — a clash is not a concern,
@@ -400,6 +409,8 @@ async def async_transfer_pools_on_removal(hass: HomeAssistant, entry: ConfigEntr
     doc_store = hass.data.get(DOMAIN, {}).get(DOCUMENT_STORE_KEY)
     if part_doc_ids and doc_store is not None:
         await doc_store.async_rehome(part_doc_ids, object_id_for_entry(heir))
+    if doc_store is not None:
+        await doc_store.async_follow_parts(object_id_for_entry(entry), object_id_for_entry(heir), moved)
 
     # Carry the stock over.
     heir_store = hass.data.get(STORES_CACHE_KEY, {}).get(heir.entry_id)
@@ -411,6 +422,10 @@ async def async_transfer_pools_on_removal(hass: HomeAssistant, entry: ConfigEntr
         if value is not None:
             heir_store.set_part_stock(target_id, value)
             heir_store.set_part_restoring(target_id, waiting.get(pid, 0))
+        # An open order goes along (#261): left behind, the heir's part
+        # was not on order and its reminder was due today (audit
+        # 2026-11-14, L9-2).
+        heir_store.set_part_order(target_id, orders.get(pid))
     relink_history(heir_store, owner_id, "", moved)
     await heir_store.async_save()
     # The parts' stock sensors are made at setup, and its reconcile gives a

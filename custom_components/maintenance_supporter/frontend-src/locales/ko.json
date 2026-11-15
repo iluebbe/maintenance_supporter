@@ -136,6 +136,7 @@
   "day_word": "일",
   "interval_value": "주기",
   "interval_required": "시간 기반 작업에는 주기가 필요합니다.",
+  "weekdays_required": "요일을 하나 이상 선택하세요.",
   "interval_unit": "단위",
   "unit_days": "일",
   "unit_weeks": "주",

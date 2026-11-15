@@ -2580,6 +2580,9 @@
     "time_based_needs_interval": {
       "message": "Een tijdgebaseerde taak heeft een interval nodig."
     },
+    "weekdays_need_a_day": {
+      "message": "Een taak op weekdagen heeft minstens één weekdag nodig."
+    },
     "range_end_before_start": {
       "message": "Het einde moet op of na het begin liggen."
     },

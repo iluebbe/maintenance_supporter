@@ -2580,6 +2580,9 @@
     "time_based_needs_interval": {
       "message": "時間ベースのタスクには間隔が必要です。"
     },
+    "weekdays_need_a_day": {
+      "message": "曜日指定のタスクには少なくとも1つの曜日が必要です。"
+    },
     "range_end_before_start": {
       "message": "終了は開始と同じか、それより後にしてください。"
     },

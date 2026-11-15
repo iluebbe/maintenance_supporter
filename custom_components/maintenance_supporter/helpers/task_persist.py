@@ -50,6 +50,7 @@ from .schedule import (
     Schedule,
     flat_recurrence_refusal,
     implied_schedule_type,
+    nested_schedule_refusal,
 )
 from .task_apply import async_apply_task_edits, note_task_edit
 from .task_trace import forget_task as forget_task_trace
@@ -118,6 +119,9 @@ def _check_schedule_request(
             raise ValueError(f"schedule_type {schedule_type!r} contradicts the schedule's kind {kind!r}")
         if schedule_type == KIND_ONE_TIME and not due_date and not parsed.due_date:
             raise ValueError("A one-time task needs a due_date")
+        # An empty pattern (no weekday, no day) never comes due (F9-3).
+        if parsed.is_calendar_kind and (refusal := nested_schedule_refusal(parsed)):
+            raise ValueError(refusal)
         return
     refusal = flat_recurrence_refusal(schedule_type, interval_days=interval_days, due_date=due_date, stored_kind=stored_kind, stored_due=stored_due)
     if refusal:

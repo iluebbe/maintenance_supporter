@@ -65,6 +65,8 @@
   "note_added": "{object}の「{task}」にメモを追加しました。",
   "note_too_long": "「{task}」のメモがいっぱいです。先にメンテナンスパネルで短くしてください。",
   "note_empty": "メモには何と書きますか？",
+  "not_allowed": "メンテナンスタスクを変更する権限がありません。管理者に依頼してください。",
+  "and_more": "ほか",
   "turn_user": "今の担当は{user}です：{object}の「{task}」。",
   "turn_you": "今の担当はあなたです：{object}の「{task}」。",
   "turn_nobody": "{object}の「{task}」には担当者がいません。",

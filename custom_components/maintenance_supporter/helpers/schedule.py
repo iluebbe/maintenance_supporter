@@ -70,6 +70,17 @@ _MAX_ENTITY_ID_LENGTH = 255
 # one (a single known event, or none): weekly, the most common pickup rhythm.
 _CALENDAR_DEFAULT_SPAN_DAYS = 7
 
+
+def _shortest_cyclic_gap(values: Sequence[int], period: int) -> int:
+    """The shortest step between two of ``values`` on a cycle of ``period``
+    (weekdays on a week, months on a year); one value is a whole period."""
+    ordered = sorted(set(values))
+    if len(ordered) < 2:
+        return period
+    gaps = [b - a for a, b in pairwise(ordered)]
+    gaps.append(ordered[0] + period - ordered[-1])
+    return min(gaps)
+
 # --- calendar-entity occurrences (provider hook) ----------------------------
 #
 # The engine is pure and sync; the coordinator fetches a calendar entity's
@@ -666,9 +677,17 @@ class Schedule:
         if self.kind == KIND_INTERVAL:
             return interval_span_days(self.every, self.unit)
         if self.kind == KIND_WEEKDAYS:
-            return 7
+            # The shortest gap between two of the days: "Mon, Wed, Fri" is
+            # a two-day cycle. Seven for every set kept a task on several
+            # weekdays "due soon" for good under the default warning, with
+            # a reminder after every completion (audit 2026-11-14, D9-1).
+            return _shortest_cyclic_gap(self.weekdays, 7) if self.weekdays else 7
         if self.kind in (KIND_NTH_WEEKDAY, KIND_DAY_OF_MONTH):
-            return 30
+            # Restricted to some months, the shortest gap between them: a
+            # September-only task is yearly, and its warning was capped at
+            # 29 days (audit 2026-11-14, D9-4).
+            months = sorted(set(self.months))
+            return round(_shortest_cyclic_gap(months, 12) * 365 / 12) if months else 30
         if self.kind == KIND_CALENDAR:
             occ = calendar_occurrences(self.entity_id or "")
             gaps = [(b - a).days for a, b in pairwise(occ) if (b - a).days > 0]
@@ -867,7 +886,10 @@ def preview_occurrences(
             break  # safety net: the engine must advance — never loop
         occurrences.append(nxt)
         grid = (schedule.next_due(**state) or nxt) if override is not None else nxt
-        pday = schedule.carry_planned_day(pday or (lpd or lp or today).day, grid)
+        # A task never done is planned from the day it was made, as the
+        # model counts it (audit 2026-11-14, D9-7): from today, one made on
+        # the 31st previewed the 30th.
+        pday = schedule.carry_planned_day(pday or (lpd or lp or created).day, grid)
         lp = nxt
         lpd = grid
         override = None
@@ -948,6 +970,34 @@ _FLAT_SCHEDULE_TYPES = ("time_based", "sensor_based", "manual", "one_time")
 #: reach (a time-based task with an empty interval), so the WS commands send
 #: it with a translation key (bug audit 2026-11-08, W8-1).
 TIME_BASED_NEEDS_INTERVAL = "A time-based task needs interval_days"
+WEEKDAYS_NEED_A_DAY = "An on-weekdays task needs at least one weekday"
+PATTERN_INCOMPLETE = "The schedule names no date: its pattern is incomplete"
+ONE_TIME_NEEDS_DATE = "A one-time task needs a due_date"
+
+
+def nested_schedule_refusal(schedule: Schedule, *, interval_days: Any = None, stored_kind: str | None = None) -> str | None:
+    """Why a nested ``schedule`` can never come due, or None. The flat
+    fields had these refusals; a nested schedule stored an interval without
+    a count, a one-time task without its date or a weekday rule without a
+    day, and the task never came due (audit 2026-11-14, F9-3, I9-4). A
+    bare interval is the carrier of the flat interval fields: refused
+    only when they are absent too and the task had no interval before.
+    The one-time date may ride the flat ``due_date``: fold it in first."""
+    if schedule.kind == KIND_INTERVAL:
+        if not schedule.every and interval_days is None and stored_kind != KIND_INTERVAL:
+            return TIME_BASED_NEEDS_INTERVAL
+        return None
+    if schedule.kind == KIND_ONE_TIME:
+        return ONE_TIME_NEEDS_DATE if schedule.due_date is None else None
+    if schedule.kind == KIND_WEEKDAYS:
+        return WEEKDAYS_NEED_A_DAY if not schedule.weekdays else None
+    if schedule.kind == KIND_NTH_WEEKDAY:
+        return PATTERN_INCOMPLETE if schedule.nth is None or schedule.weekday is None else None
+    if schedule.kind == KIND_DAY_OF_MONTH:
+        return PATTERN_INCOMPLETE if schedule.day is None else None
+    if schedule.kind == KIND_CALENDAR:
+        return PATTERN_INCOMPLETE if not schedule.entity_id else None
+    return None
 
 
 def implied_schedule_type(*, interval_days: Any, due_date: Any, schedule: Mapping[str, Any] | None = None) -> str:

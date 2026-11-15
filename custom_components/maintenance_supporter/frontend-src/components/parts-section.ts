@@ -128,6 +128,24 @@ export class MaintenancePartsSection extends LitElement {
     void ensureLocale(this._lang).then(() => this.requestUpdate());
   }
 
+  /** The object page reuses this element from object to object. A form
+   *  left open went along: "Add part" typed on one object was saved on the
+   *  next, and an edit sent that one's id with the first one's part (bug
+   *  audit 2026-11-14, F9-7). What is open belongs to the object it was
+   *  opened on. */
+  protected willUpdate(changed: Map<string, unknown>): void {
+    super.willUpdate(changed);
+    if (!changed.has("entryId") || changed.get("entryId") === undefined) return;
+    this._editing = null;
+    this._opened = null;
+    this._moveTo = "";
+    this._restockFor = null;
+    this._disposeFor = null;
+    this._orderFor = null;
+    this._docsFor = null;
+    this._error = "";
+  }
+
   private _notifyChanged(): void {
     this.dispatchEvent(new CustomEvent("parts-changed", { bubbles: true, composed: true }));
   }

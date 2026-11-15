@@ -133,6 +133,7 @@
   "day_word": "Dag",
   "interval_value": "Intervall",
   "interval_required": "En tidsbaserad uppgift behöver ett intervall.",
+  "weekdays_required": "Välj minst en veckodag.",
   "interval_unit": "Enhet",
   "unit_days": "Dagar",
   "unit_weeks": "Veckor",

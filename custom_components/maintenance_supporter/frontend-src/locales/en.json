@@ -136,6 +136,7 @@
   "day_word": "Day",
   "interval_value": "Interval",
   "interval_required": "A time-based task needs an interval.",
+  "weekdays_required": "Pick at least one weekday.",
   "interval_unit": "Unit",
   "unit_days": "Days",
   "unit_weeks": "Weeks",

@@ -136,6 +136,7 @@
   "day_word": "日",
   "interval_value": "间隔数值",
   "interval_required": "基于时间的任务需要一个间隔。",
+  "weekdays_required": "请至少选择一个星期几。",
   "interval_unit": "单位",
   "unit_days": "天",
   "unit_weeks": "周",

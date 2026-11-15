@@ -2580,6 +2580,9 @@
     "time_based_needs_interval": {
       "message": "Eine zeitbasierte Aufgabe braucht ein Intervall."
     },
+    "weekdays_need_a_day": {
+      "message": "Eine Aufgabe an Wochentagen braucht mindestens einen Wochentag."
+    },
     "range_end_before_start": {
       "message": "Das Ende muss am oder nach dem Beginn liegen."
     },

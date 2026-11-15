@@ -65,6 +65,8 @@
   "note_added": "已给{object}的“{task}”添加备注。",
   "note_too_long": "“{task}”的备注已满，请先在维护面板里删减。",
   "note_empty": "备注要写什么？",
+  "not_allowed": "你无权更改维护任务。请联系管理员。",
+  "and_more": "等",
   "turn_user": "现在轮到{user}：{object}的“{task}”。",
   "turn_you": "现在轮到你：{object}的“{task}”。",
   "turn_nobody": "{object}的“{task}”没有指派任何人。",

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
 from copy import deepcopy
 from datetime import datetime, time
 from typing import Any
@@ -67,11 +68,14 @@ from ..helpers.sanitize import (
 from ..helpers.schedule import (
     FLAT_RECURRENCE_KEYS,
     KIND_INTERVAL,
+    KIND_ONE_TIME,
     TIME_BASED_NEEDS_INTERVAL,
+    WEEKDAYS_NEED_A_DAY,
     Schedule,
     flat_recurrence_refusal,
     implied_schedule_type,
     keep_month_filter,
+    nested_schedule_refusal,
 )
 from ..helpers.shared_parts import foreign_part_resolver
 from ..helpers.task_apply import async_apply_task_edits, note_task_edit
@@ -188,11 +192,23 @@ def _valid_due_date(connection: websocket_api.ActiveConnection, msg: dict[str, A
     return True
 
 
+def _incoming_schedule(msg: Mapping[str, Any]) -> Schedule:
+    """The nested ``schedule`` of a create or update; a one-time task's
+    flat ``due_date`` folds into it. Sent beside a bare one-time schedule,
+    the date was dropped and the task never came due (I9-4)."""
+    raw = dict(msg["schedule"])
+    if raw.get("kind") == KIND_ONE_TIME and not raw.get("due_date") and msg.get("due_date"):
+        raw["due_date"] = msg["due_date"]
+    return Schedule.from_dict(raw)
+
+
 def _send_recurrence_refusal(connection: websocket_api.ActiveConnection, msg_id: int, refusal: str) -> None:
     """Refuse a self-contradicting flat recurrence; the one the task dialog
     can reach is translated (bug audit 2026-11-08, W8-1)."""
     if refusal == TIME_BASED_NEEDS_INTERVAL:
         send_translated_error(connection, msg_id, "invalid_input", refusal, translation_key="time_based_needs_interval")
+    elif refusal == WEEKDAYS_NEED_A_DAY:
+        send_translated_error(connection, msg_id, "invalid_input", refusal, translation_key="weekdays_need_a_day")
     else:
         connection.send_error(msg_id, "invalid_input", refusal)
 
@@ -437,7 +453,12 @@ async def ws_create_task(
     # Recurrence: an explicit nested `schedule` (calendar kinds) takes
     # precedence; otherwise build from the flat v2.6.x fields.
     if msg.get("schedule"):
-        incoming = Schedule.from_dict(msg["schedule"]).to_dict()
+        parsed = _incoming_schedule(msg)
+        refusal = nested_schedule_refusal(parsed, interval_days=msg.get("interval_days"))
+        if refusal:
+            _send_recurrence_refusal(connection, msg["id"], refusal)
+            return
+        incoming = parsed.to_dict()
         task_data["schedule"] = incoming
         # A BARE interval schedule (kind=interval, no `every`) is only the
         # carrier for the season/ends extras the panel always sends for a
@@ -714,6 +735,11 @@ async def ws_update_task(
     # Store writes below: a refused edit must not have stored its new last
     # performed date and dropped the postpone (bug audit 2026-11-08, W8-1).
     stored_schedule = Schedule.parse(stored_task)
+    if msg.get("schedule"):
+        refusal = nested_schedule_refusal(_incoming_schedule(msg), interval_days=msg.get("interval_days"), stored_kind=stored_schedule.kind)
+        if refusal:
+            _send_recurrence_refusal(connection, msg["id"], refusal)
+            return
     if not msg.get("schedule") and msg.get("schedule_type") in FLAT_SCHEDULE_TYPES:
         refusal = flat_recurrence_refusal(
             msg["schedule_type"],
@@ -882,7 +908,7 @@ async def ws_update_task(
     if keeps_interval:
         task.pop("interval_days", None)
     if msg.get("schedule"):
-        incoming = Schedule.from_dict(msg["schedule"]).to_dict()
+        incoming = _incoming_schedule(msg).to_dict()
         keep_month_filter(incoming, msg["schedule"], task.get("schedule"))
         task["schedule"] = incoming
         # A COMPLETE nested schedule is authoritative — drop the flat recurrence

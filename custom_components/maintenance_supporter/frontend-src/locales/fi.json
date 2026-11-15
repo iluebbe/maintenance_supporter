@@ -136,6 +136,7 @@
   "day_word": "Päivä",
   "interval_value": "Väli",
   "interval_required": "Aikaperusteinen tehtävä tarvitsee välin.",
+  "weekdays_required": "Valitse vähintään yksi viikonpäivä.",
   "interval_unit": "Yksikkö",
   "unit_days": "Päivää",
   "unit_weeks": "Viikkoa",

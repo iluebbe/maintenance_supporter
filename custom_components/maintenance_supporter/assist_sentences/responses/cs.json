@@ -65,6 +65,8 @@
   "note_added": "Poznámka přidána k úkolu '{task}' u zařízení {object}.",
   "note_too_long": "Poznámky úkolu '{task}' jsou plné — nejdřív je zkrať v panelu údržby.",
   "note_empty": "Co má být v poznámce?",
+  "not_allowed": "Úkoly údržby nemůžete měnit. Požádejte správce.",
+  "and_more": "a další",
   "turn_user": "Teď je na řadě: {user} — '{task}' u zařízení {object}.",
   "turn_you": "Teď jsi na řadě ty: '{task}' u zařízení {object}.",
   "turn_nobody": "K úkolu '{task}' u zařízení {object} není nikdo přiřazen.",

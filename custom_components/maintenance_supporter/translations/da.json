@@ -2580,6 +2580,9 @@
     "time_based_needs_interval": {
       "message": "En tidsbaseret opgave skal have et interval."
     },
+    "weekdays_need_a_day": {
+      "message": "En opgave på ugedage skal have mindst én ugedag."
+    },
     "range_end_before_start": {
       "message": "Slutningen skal ligge på eller efter starten."
     },

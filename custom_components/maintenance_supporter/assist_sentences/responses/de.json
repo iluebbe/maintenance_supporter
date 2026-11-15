@@ -65,6 +65,8 @@
   "note_added": "Notiz zu '{task}' an {object} hinzugefügt.",
   "note_too_long": "Die Notizen zu '{task}' sind voll — kürze sie zuerst im Wartungs-Panel.",
   "note_empty": "Was soll in der Notiz stehen?",
+  "not_allowed": "Du darfst Wartungsaufgaben nicht ändern. Frag einen Administrator.",
+  "and_more": "und weitere",
   "turn_user": "{user} ist dran: '{task}' an {object}.",
   "turn_you": "Du bist dran: '{task}' an {object}.",
   "turn_nobody": "Für '{task}' an {object} ist niemand eingetragen.",

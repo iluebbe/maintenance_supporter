@@ -133,6 +133,7 @@
   "day_word": "День",
   "interval_value": "Интервал",
   "interval_required": "Задаче по времени нужен интервал.",
+  "weekdays_required": "Выберите хотя бы один день недели.",
   "interval_unit": "Единица",
   "unit_days": "Дни",
   "unit_weeks": "Недели",
