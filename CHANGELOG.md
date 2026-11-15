@@ -2,6 +2,63 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.123.0] - 2026-11-15
+
+More of the task page's charts show what the rule watches.
+
+### ✨ New
+
+- **An AND/OR rule shows its result and every condition.** A rule made of several conditions had no chart at all.
+  Its result now comes first ("all are needed" or "one is enough": when the task was triggered), with each
+  condition under it and a condition's sensors indented below. Where the result held, a pale frame lies across
+  the conditions, so which of them held at that moment reads at a glance. A condition that counts up until the
+  service (a counter, a runtime) says so instead of a bar.
+- **A rule on several sensors shows its result too.** Above the sensors that reported, the result line says
+  when the task was triggered, and a pale frame marks it across the sensors.
+- **A threshold on a code is a timeline.** A rule like "error code = 3" or "mode ≠ 0" was a line with a target
+  line; it is now drawn like a state: red while the code applies, hatched while the sensor could not be reached.
+- **A runtime rule shows the hours per day.** Its chart was a straight line from 0 at the last service to the
+  hours now. It now shows bars of how long the device ran each day, the services marked, the mean per day and
+  how long until the target at that pace.
+
+### 🐛 Fixed
+
+- **30 days, 90 days and a year drew the same chart.** The recorder keeps about ten days of states. Before them
+  the timeline now fills in from the task's own record (its trace and history, back to the day the task began),
+  marks where the recorder's states begin, and shows the single sensors as "no data" there. A range that would
+  show nothing a shorter one does not is switched off and says from when there are data; the line charts do the
+  same.
+- **A state rule's sensor rows show no small trend line.** Over days it was a flat line with a stroke at its end;
+  the timeline below says the same clearly. The panel no longer loads the data for it. The same goes for a code
+  threshold and a runtime rule.
+- **"after 3 Tage" read wrong in German** (and in Polish, Czech and Finnish) when an alert lasted days.
+- **A restart no longer ends a low battery's episode.** The battery fleet read before Battery Notes, ZHA or MQTT
+  had added their entities, dropped those batteries as gone and forgot that they were low: the fleet task read fine
+  for a moment at every restart, and a battery at 22 % came back as not low. A battery whose entity is registered
+  but has no state yet now stays low, with its name, type and count.
+- **A completion while its object reloads counts fully.** A completion that consumes a part can reload its object
+  (the buy reminder); a second completion in that second, from the panel's bulk complete, a phone's Complete button
+  or an NFC tag, either failed ("Coordinator not found") or left the rule's hours, count or baseline in place, and
+  the task came back triggered. These now wait for the object, and the rule starts fresh.
+- **A second tap after such a reload is the same completion.** It was recorded again, with its parts consumed twice.
+- **The weekly digest and the warranty reminder are made up after a start that missed 08:00.**
+
+### 🔧 Developer notes
+
+- `task/trace` answers the task's `created_at`.
+- `helpers/state-timeline.ts`: `AlertRule` covers states and numbers (`isDiscreteThreshold`, `conditionRule`),
+  `combineSegments` (an unreachable sensor keeps its last state), `ownEpisodes(..., keepOpen)`; the result line
+  reads the task's status sensor (`sensor_entity_id`) where the recorder has it.
+- `<maintenance-runtime-bars>` and `helpers/runtime-days.ts`; `rangeAddsNothing` (chart-utils);
+  `drawsItself` / `hasTrend` (sparkline.ts) decide what the panel loads.
+- Frontend locale keys for the result line, the band, "no data", counting conditions and the runtime footer;
+  `timeline_unknown_sensor` removed.
+- Deferred findings of the bug audit of 2026-11-14 that a real install hits: S9-4 (`latched_without_state`, latch
+  entries keep `name` / `type` / `quantity`), A9-1 (`clear_trigger_runtime` when no task sensor runs the triggers;
+  `helpers/object_ready.py` for the WS actions, the services, the notification buttons and NFC), A9-4
+  (`_recorded_tap_age`), L9-7 (the morning pass keeps its day in `maintenance_supporter.daily_jobs` and is made up
+  two minutes after a start). Tests: `tests/test_bug_audit_2026_11_14_b.py` (13 mutations RED).
+
 ## [2.122.0] - 2026-11-15
 
 An on/off sensor rule as a timeline, and a history that names the sensor.

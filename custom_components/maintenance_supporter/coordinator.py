@@ -133,6 +133,36 @@ def _double_tap_age(stamp: float | None) -> float | None:
     return age if age < MANUAL_COMPLETION_DEDUP_SECONDS else None
 
 
+_LIFECYCLE_TYPES = (HistoryEntryType.COMPLETED, HistoryEntryType.SKIPPED, HistoryEntryType.RESET)
+
+
+def _recorded_tap_age(task_data: Mapping[str, Any], entry_type: str, before: datetime) -> float | None:
+    """Seconds since the task's newest completion / skip / reset when that is
+    a manual ``entry_type`` inside the double-tap window, recorded before
+    ``before`` (this coordinator's start); None otherwise.
+
+    The window lived only in the coordinator's memory, and a reload of the
+    object hands out a fresh coordinator: a second tap of the same action
+    (a second phone, or the same person while the UI stalled during the
+    reload the first completion caused) was recorded again, with its parts
+    consumed twice and the rotation handed on twice (A9-4, bug audit
+    2026-11-14). What this coordinator recorded itself, its memory knows. A
+    reset or the other action in between ends the window, as in memory; an
+    automatic completion has its own guard."""
+    newest: Mapping[str, Any] | None = None
+    newest_at = None
+    for entry in task_data.get("history") or []:
+        if not isinstance(entry, Mapping) or entry.get("type") not in _LIFECYCLE_TYPES:
+            continue
+        at = stamp_instant(entry.get("timestamp"))
+        if newest_at is None or at >= newest_at:
+            newest, newest_at = entry, at
+    if newest is None or newest_at is None or newest.get("type") != entry_type or newest.get("auto") or newest_at >= before:
+        return None
+    age = (dt_util.utcnow() - newest_at).total_seconds()
+    return age if 0 <= age < MANUAL_COMPLETION_DEDUP_SECONDS else None
+
+
 def _notify_task_label(result: TaskResult) -> str:
     """Task name for notifications — the shared ``phases.task_label`` (due
     phase #139, next event titles #189) every surface now uses."""
@@ -244,6 +274,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # Skips get the same window: two phones tapping a reminder's Skip
         # skipped two occurrences of a planned / calendar task (C-G).
         self._recent_skips: dict[str, float] = {}
+        # A9-4: what a coordinator before this one (a reload ago) recorded
+        # inside the window, the history says (_recorded_tap_age).
+        self._started_at = dt_util.utcnow()
         # Backdated completions (explicit completed_at) get their OWN dedup,
         # keyed by (task_id, timestamp): a double-submitted backfill wrote two
         # identical history entries and consumed parts/budget twice (bug audit
@@ -1579,6 +1612,11 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # normal completion's stamp must not swallow the backfill).
         if completed_at is None and not auto:
             age = _double_tap_age(self._recent_manual_completions.get(task_id))
+            if age is None:
+                # A9-4: the window survives a reload of the object (the first
+                # completion's part reconcile can cause one) — the record says
+                # it as well as the memory of this coordinator did.
+                age = _recorded_tap_age(merged[task_id], HistoryEntryType.COMPLETED, self._started_at)
             if age is not None:
                 _LOGGER.info("Ignoring duplicate completion of %s within %.0fs (double-tap from a second device?)", task_id, age)
                 return
@@ -2181,6 +2219,8 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # A second skip inside the double-tap window is the same tap (bug
         # audit 2026-10-16, C-G) — dropped like a doubled completion.
         age = _double_tap_age(self._recent_skips.get(task_id))
+        if age is None:
+            age = _recorded_tap_age(merged[task_id], HistoryEntryType.SKIPPED, self._started_at)  # A9-4
         if age is not None:
             _LOGGER.info("Ignoring duplicate skip of %s within %.0fs", task_id, age)
             return
@@ -2492,6 +2532,15 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         """
         # Dynamic state only → Store (no ConfigEntry write needed)
         self._persist_dynamic_state(task_id, task)
+        if occurrence_done and task_id not in self._trigger_hosts:
+            # A9-1 (bug audit 2026-11-14): no task sensor runs the task's
+            # triggers right now — the object reloads (a part's buy reminder,
+            # another user's edit, undo) or starts. The reset signal below
+            # reaches nobody, and the next trigger restored the hours, the
+            # baseline or the change count the completion had ended: the task
+            # just done came back triggered. Without its stored progress the
+            # trigger starts fresh, which is what the reset does.
+            self._store.clear_trigger_runtime(task_id)
         await self._store.async_save()  # Flush immediately for user actions
         if occurrence_done:
             self._recently_completed[task_id] = time.monotonic()

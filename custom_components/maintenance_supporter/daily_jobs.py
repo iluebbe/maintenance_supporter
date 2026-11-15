@@ -1,6 +1,7 @@
 """The timed jobs: the daily retention sweep (every 24 hours and once ten
 minutes after each start), the 08:00 pass (weekly digest, warranty and
-lead-time reminders) and the noon retry of the lead-time reminders."""
+lead-time reminders, made up after a start that missed it) and the noon retry
+of the lead-time reminders."""
 
 from __future__ import annotations
 
@@ -19,6 +20,7 @@ from homeassistant.helpers.event import (
     async_track_time_change,
     async_track_time_interval,
 )
+from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
 from .const import (
@@ -195,10 +197,66 @@ async def _retention_tick(hass: HomeAssistant, _now: Any) -> None:
     await async_run_retention_sweep(hass)
 
 
+#: The hour of the morning pass (local), and where its last day is kept.
+MORNING_PASS_HOUR = 8
+_PASS_STORE_KEY = f"{DOMAIN}.daily_jobs"
+_PASS_STORE_VERSION = 1
+_PASS_RECORD = "daily_jobs_pass_record"
+#: How long after a start the missed pass is made up: the objects have
+#: their first refresh by then (the digest counts their statuses).
+MORNING_CATCH_UP_DELAY = timedelta(minutes=2)
+
+
+class _PassRecord:
+    """The day the morning pass last ran, on disk (L9-7, bug audit
+    2026-11-14): the pass is a timer at 08:00:00, and Home Assistant
+    restarting then (an update, a backup) dropped the warranty reminder of
+    that day and the weekly digest of that week."""
+
+    def __init__(self, hass: HomeAssistant) -> None:
+        self._store: Store[dict[str, Any]] = Store(hass, _PASS_STORE_VERSION, _PASS_STORE_KEY)
+        self._day: str | None = None
+        self._loaded = False
+
+    async def async_last_day(self) -> str | None:
+        if not self._loaded:
+            raw = await self._store.async_load()
+            day = raw.get("morning_pass") if isinstance(raw, dict) else None
+            self._day = day if isinstance(day, str) else None
+            self._loaded = True
+        return self._day
+
+    async def async_mark(self, day: str) -> None:
+        self._day, self._loaded = day, True
+        await self._store.async_save({"morning_pass": day})
+
+
+def _pass_record(hass: HomeAssistant) -> _PassRecord:
+    record: _PassRecord = hass.data.setdefault(DOMAIN, {}).setdefault(_PASS_RECORD, _PassRecord(hass))
+    return record
+
+
 async def _weekly_digest_tick(hass: HomeAssistant, _now: Any) -> None:
     await async_maybe_send_weekly_digest(hass)
     await async_maybe_send_warranty_reminders(hass)
     await async_maybe_send_lead_reminders(hass)
+    await _pass_record(hass).async_mark(dt_util.now().date().isoformat())
+
+
+async def async_catch_up_morning_pass(hass: HomeAssistant, _now: Any = None) -> None:
+    """Run the morning pass after a start that missed it: past 08:00 and not
+    run today (L9-7). A first start with no record keeps today's date and
+    sends nothing: the version before it may have sent today's at 08:00."""
+    record = _pass_record(hass)
+    last = await record.async_last_day()
+    now = dt_util.now()
+    today = now.date().isoformat()
+    if now.hour < MORNING_PASS_HOUR or last == today:
+        return
+    if last is None:
+        await record.async_mark(today)
+        return
+    await _weekly_digest_tick(hass, now)
 
 
 async def _lead_reminder_retry(hass: HomeAssistant, _now: Any) -> None:
@@ -223,7 +281,10 @@ def async_track_daily_jobs(hass: HomeAssistant) -> list[CALLBACK_TYPE]:
 
     # v2.15.0: opt-in weekly digest — one summary notification on Monday morning.
     # Fires daily at 08:00 local; the gating lives in async_maybe_send_weekly_digest.
-    unsub_digest = async_track_time_change(hass, partial(_weekly_digest_tick, hass), hour=8, minute=0, second=0)
+    unsub_digest = async_track_time_change(hass, partial(_weekly_digest_tick, hass), hour=MORNING_PASS_HOUR, minute=0, second=0)
+    # L9-7: a start after 08:00 that missed today's pass makes it up.
+    unsub_catch_up = async_call_later(hass, MORNING_CATCH_UP_DELAY, partial(async_catch_up_morning_pass, hass))
+    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, lambda _e: unsub_catch_up())
 
     # The 08:00 tick drops lead reminders inside quiet hours; a quiet window
     # ending after 08:00 therefore silenced them for good (bug audit
@@ -235,4 +296,4 @@ def async_track_daily_jobs(hass: HomeAssistant) -> list[CALLBACK_TYPE]:
     # on HA stop too — otherwise the daily timer lingers past shutdown when the
     # entries aren't formally unloaded (e.g. test teardown).
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, lambda _e: unsub_digest())
-    return [unsub_retention, unsub_retention_boot, unsub_digest, unsub_lead_retry]
+    return [unsub_retention, unsub_retention_boot, unsub_digest, unsub_lead_retry, unsub_catch_up]

@@ -198,8 +198,9 @@ def test_pure_latch_rules() -> None:
     latch: dict = {}
     b = bat(True, 4)
     assert apply_low_latch([b], latch, recovered=50, now_iso="t0") is True
-    # #205: the entry keeps the threshold it latched at
-    assert latch == {"sensor.a": {"at": "t0", "last_replaced": None, "threshold": 20.0}}
+    # #205: the entry keeps the threshold it latched at; S9-4: and the row's
+    # name, type and quantity, for the time its entity has no state
+    assert latch == {"sensor.a": {"at": "t0", "last_replaced": None, "threshold": 20.0, "name": "A", "type": "AA", "quantity": 1}}
     # held below the threshold, released above
     b = bat(False, 30)
     assert apply_low_latch([b], latch, recovered=50, now_iso="t1") is False and b.low and b.latched

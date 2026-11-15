@@ -78,6 +78,7 @@ from .helpers.entry_tasks import ArchivedObjectError
 from .helpers.global_options import get_default_warning_days
 from .helpers.import_mapping import async_attach_move_hints
 from .helpers.object_names import name_taken
+from .helpers.object_ready import async_wait_object_ready
 from .helpers.parts import MAX_PART_COST, MAX_PART_STOCK
 from .helpers.permissions import service_tier
 from .helpers.reading_slots import resolve_reading_values_by_name
@@ -435,6 +436,17 @@ def _resolve_task_target(hass: HomeAssistant, entity_id: str) -> tuple[Maintenan
     return coordinator, task_id
 
 
+async def _async_resolve_task_target(hass: HomeAssistant, entity_id: str) -> tuple[MaintenanceCoordinator, str]:
+    """``_resolve_task_target`` once the entity's object is not reloading:
+    the completion of one task of a list can reload the object of the
+    next (a part's buy reminder), whose coordinator is missing for that
+    second (A9-1, bug audit 2026-11-14)."""
+    reg = er.async_get(hass).async_get(entity_id)
+    if reg is not None and reg.config_entry_id:
+        await async_wait_object_ready(hass, reg.config_entry_id)
+    return _resolve_task_target(hass, entity_id)
+
+
 async def _run_per_task(
     hass: HomeAssistant,
     action: Callable[[MaintenanceCoordinator, str], Awaitable[None]],
@@ -449,14 +461,14 @@ async def _run_per_task(
     and the summary error names what was refused."""
     ids = list(dict.fromkeys(entity_ids))
     if len(ids) == 1:
-        coordinator, task_id = _resolve_task_target(hass, ids[0])
+        coordinator, task_id = await _async_resolve_task_target(hass, ids[0])
         await action(coordinator, task_id)
         return
     done = 0
     errors: list[str] = []
     for eid in ids:
         try:
-            coordinator, task_id = _resolve_task_target(hass, eid)
+            coordinator, task_id = await _async_resolve_task_target(hass, eid)
             await action(coordinator, task_id)
             done += 1
         except HomeAssistantError as err:

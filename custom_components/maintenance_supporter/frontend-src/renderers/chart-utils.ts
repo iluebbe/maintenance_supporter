@@ -106,6 +106,15 @@ export function needsYear(tsMin: number, tsMax: number): boolean {
   return ymdIn(tsMin, zone).slice(0, 4) !== ymdIn(tsMax, zone).slice(0, 4);
 }
 
+/** Whether a range chip would show nothing a shorter one does not: the
+ *  data begin at `dataStart`, and a shorter chip of `chips` already reaches
+ *  back to it (the recorder keeps ~10 days, so 30 days, 90 days and a year
+ *  drew the same chart). Null `dataStart`: not known, every chip counts. */
+export function rangeAddsNothing(days: number, chips: readonly number[], dataStart: number | null, now: number): boolean {
+  if (dataStart === null || !Number.isFinite(dataStart)) return false;
+  return chips.some((d) => d < days && now - d * 86_400_000 <= dataStart);
+}
+
 /** Evenly-spaced x-axis tick timestamps (first/last inclusive). */
 export function timeTicks(tsMin: number, tsMax: number, count: number): number[] {
   if (count < 2 || tsMax <= tsMin) return [tsMin, tsMax];

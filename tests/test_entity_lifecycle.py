@@ -908,7 +908,8 @@ async def test_real_last_entry_unload_cleans_up_domain_data(
     # 1 v2.10.0 (daily archive/auto-delete retention sweep timer) +
     # 1 v2.15.0 (weekly-digest daily time-change timer) +
     # 1 the retention sweep ten minutes after start (bug audit 2026-10-16, C-H).
-    assert len(event_unsubs) == 10  # + user_removed, lead-reminder retry (bug audit 2026-08-29)
+    # + the morning pass made up after a start that missed 08:00 (L9-7, 2026-11-14).
+    assert len(event_unsubs) == 11  # + user_removed, lead-reminder retry (bug audit 2026-08-29)
 
     # Spy on the unsub callbacks
     original_unsubs = list(event_unsubs)
@@ -938,7 +939,7 @@ async def test_real_last_entry_unload_cleans_up_domain_data(
     # + retention sweep timer [v2.10.0] + weekly-digest timer [v2.15.0]).
     # + user_removed, lead-reminder retry (bug audit 2026-08-29), the
     # retention sweep after start (2026-10-16, C-H).
-    assert sorted(call_tracker) == list(range(10))
+    assert sorted(call_tracker) == list(range(11))
     # NM.async_unload should have been called
     nm_unload_spy.assert_awaited_once()
 
@@ -972,7 +973,8 @@ async def test_partial_unload_preserves_domain_data_and_listeners(
     # notification + tag_scanned + action_listener + device_registry (#48)
     # + entity_registry (v1.5.4) + retention sweep timer (v2.10.0)
     # + weekly-digest timer (v2.15.0).
-    assert len(hass.data[DOMAIN].get("_event_unsubs", [])) == 10  # + user_removed, lead-reminder retry (bug audit 2026-08-29)
+    # + the morning pass catch-up (L9-7).
+    assert len(hass.data[DOMAIN].get("_event_unsubs", [])) == 11  # + user_removed, lead-reminder retry (bug audit 2026-08-29)
 
 
 # ─── __init__.py _get_coordinator_for_entity ────────────────────────────

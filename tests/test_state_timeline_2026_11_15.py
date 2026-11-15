@@ -129,6 +129,19 @@ async def test_a_reading_rule_completion_carries_no_change(hass: HomeAssistant) 
     assert "41.2" in done[-1]["notes"]
 
 
+async def test_the_trace_says_the_day_the_task_began(hass: HomeAssistant) -> None:
+    """The recorder keeps a few days; the timeline fills in from the task's
+    own record, which reaches back to its first day."""
+    task = build_task_data(interval_days=30)
+    task["created_at"] = "2026-08-01"
+    obj = await _setup(hass, task)
+    conn = make_ws_connection()
+    await call_ws_handler(
+        ws_task_trace, hass, conn, {"id": 1, "type": "maintenance_supporter/task/trace", "entry_id": obj.entry_id, "task_id": TASK_ID_1}
+    )
+    assert conn.send_result.call_args[0][1]["created_at"] == "2026-08-01"
+
+
 def test_an_import_keeps_the_sensor_and_the_state() -> None:
     history = [
         {"timestamp": "2026-11-15T13:14:45+01:00", "type": "triggered", "trigger_change": {"to": "on", "entity": ROUTER_B, "latest": "8.51"}},

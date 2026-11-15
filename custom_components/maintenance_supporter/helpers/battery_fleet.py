@@ -757,14 +757,17 @@ def apply_low_latch(
                 continue
         if low_since is not None and (bat.low or bat.available):
             low_since.pop(bat.entity_id, None)
+        # S9-4: what the row needs while its entity has no state yet (a
+        # restart, its integration still loading) — kept from a real reading.
+        facts = _latch_facts(bat) if bat.available else {}
         if bat.low:
             if entry is None or _replaced_since(last, entry):
-                latch[bat.entity_id] = {"at": now_iso, "last_replaced": last, "threshold": threshold}
+                latch[bat.entity_id] = {"at": now_iso, "last_replaced": last, "threshold": threshold, **facts}
                 changed = True
-            elif entry.get("threshold") != threshold:
+            elif entry.get("threshold") != threshold or any(entry.get(k) != v for k, v in facts.items()):
                 # Low at the CURRENT threshold: the episode belongs to it
                 # (a rebound after this is held, as always).
-                latch[bat.entity_id] = {**entry, "threshold": threshold}
+                latch[bat.entity_id] = {**entry, "threshold": threshold, **facts}
                 changed = True
             continue
         if entry is None:
@@ -798,6 +801,61 @@ def apply_low_latch(
         for eid in [e for e in low_since if e not in known]:
             del low_since[eid]
     return changed
+
+
+def _latch_facts(bat: Battery) -> dict[str, Any]:
+    """The row facts a latch entry keeps for the time its entity has no
+    state (S9-4): the device name, the cell type and how many."""
+    return {"name": bat.device_name, "type": bat.battery_type, "quantity": bat.quantity}
+
+
+def latched_without_state(
+    hass: HomeAssistant,
+    latch: Mapping[str, Any],
+    present: set[str],
+    excluded: set[str],
+    floor: float,
+) -> list[Battery]:
+    """Latched batteries whose entity is registered but has no state yet
+    (S9-4, bug audit 2026-11-14): at a restart the fleet reads before Battery
+    Notes, ZHA or MQTT have added their entities, and the latch dropped such
+    a battery as "no longer in the fleet". The episode ended, the fleet task
+    read fine for a moment (seen live at every restart), and a battery at
+    22 % (floor 20, recovered 50) came back not low. No state is no reading:
+    it counts as unavailable, and a latched battery that is unavailable
+    stays low. An entity gone from the registry, disabled or excluded is
+    gone from the fleet; its entry is dropped as before."""
+    ent_reg = er.async_get(hass)
+    dev_reg = dr.async_get(hass)
+    out: list[Battery] = []
+    for eid, raw in latch.items():
+        if eid in present or eid in excluded or not isinstance(raw, dict) or hass.states.get(eid) is not None:
+            continue
+        reg = ent_reg.async_get(eid)
+        if reg is None or reg.disabled_by is not None:
+            continue
+        dev = dev_reg.async_get(reg.device_id) if reg.device_id else None
+        name = raw.get("name") if isinstance(raw.get("name"), str) else None
+        name = name or (dev.name_by_user or dev.name if dev else None) or reg.name or reg.original_name or eid
+        quantity = raw.get("quantity")
+        threshold = raw.get("threshold")
+        out.append(
+            Battery(
+                entity_id=eid,
+                device_name=str(name),
+                battery_type=str(raw.get("type") or "Unknown"),
+                quantity=quantity if isinstance(quantity, int) and quantity > 0 else 1,
+                low=True,
+                level=None,
+                last_replaced=_parse_last_replaced(raw.get("last_replaced")),
+                available=False,
+                source="battery_notes" if reg.platform == "battery_notes" else "native",
+                low_threshold=float(threshold) if isinstance(threshold, (int, float)) else floor,
+                model_key=device_model_key(hass, reg.device_id),
+                latched=True,
+            )
+        )
+    return out
 
 
 def _minutes_between(earlier_iso: str, later_iso: str) -> float:
@@ -1464,6 +1522,11 @@ def read_batteries(hass: HomeAssistant) -> list[Battery]:
             if is_shoppable_type(holds.get(bat.entity_id) or bat.battery_type):
                 pred = _predicted_date(bat, lifetime_for(bat).months)
                 bat.low = pred is not None and pred < today
+    # S9-4: a latched battery whose entity has no state yet (a restart, its
+    # integration still loading) stays in the fleet, low and unavailable.
+    for bat in latched_without_state(hass, _latch_backend(hass)[0], {b.entity_id for b in out}, excluded, floor):
+        out.append(bat)
+        (latch_levelless if bat.entity_id.startswith("binary_sensor.") else latch_eligible).add(bat.entity_id)
     # #180: hold level-driven rows low until they clearly recover (or a
     # replacement is recorded) — AFTER every pass, so the sensor, the panel
     # overview and the Replaced action all see the same ``low``.

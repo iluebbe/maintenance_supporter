@@ -7,6 +7,9 @@ detached, next episode re-arms.
 
 from __future__ import annotations
 
+from datetime import timedelta
+from typing import Any
+
 import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -47,7 +50,7 @@ def _buy_tasks(entry: MockConfigEntry) -> dict[str, dict]:
     }
 
 
-async def test_journey_parts_loop_across_restart(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
+async def test_journey_parts_loop_across_restart(hass: HomeAssistant, global_entry: MockConfigEntry, freezer: Any) -> None:
     part = normalize_part(
         {
             "id": "p1",
@@ -111,7 +114,10 @@ async def test_journey_parts_loop_across_restart(hass: HomeAssistant, global_ent
     await entry.runtime_data.coordinator.complete_maintenance(TASK_ID_1)
     await hass.async_block_till_done()
     # The manual double-tap dedup uses time.monotonic (freeze_time can't move
-    # it) — a restart rebuilds the coordinator and clears the window.
+    # it) — a restart rebuilds the coordinator and clears that memory; the
+    # record keeps the window across it (A9-4, bug audit 2026-11-14), so the
+    # second consumption comes a minute later.
+    freezer.tick(timedelta(seconds=60))
     entry = hass.config_entries.async_get_entry(entry.entry_id)
     await simulate_restart(hass, global_entry, entry)
     await hass.async_block_till_done()

@@ -593,9 +593,10 @@ status fields. The flat counterpart to `objects` when you only care about tasks.
 of one task, oldest first, exactly as stored. Error: `not_found`.
 
 ### `task/trace` — read (2026-10 beta)
-`{entry_id (req), task_id (req)}` → `{enabled, events:[…], history:[…]}` — the
-task's journal and its full history, which the panel's Trace tab splits into
-due cycles. `events` are `{at, kind, …}`: `status` `{from, to}`, `reminder`
+`{entry_id (req), task_id (req)}` → `{enabled, events:[…], history:[…],
+created_at}` — the task's journal and its full history, which the panel's Trace
+tab splits into due cycles; `created_at` is the task's first day (null when not
+stored), from which the state timeline counts its own record. `events` are `{at, kind, …}`: `status` `{from, to}`, `reminder`
 `{reminder: status|lead|bundle, status?, days?}`, `reminder_cleared` `{reason:
 done|status_left|inert}`, `snoozed` `{until, hours}`, `done_when` `{entity,
 state, result: counted|waiting|left_early|not_due|inert|recent, minutes?,

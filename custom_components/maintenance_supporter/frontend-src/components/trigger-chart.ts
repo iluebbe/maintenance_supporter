@@ -14,8 +14,8 @@
 
 import { LitElement, html, css, svg, nothing } from "lit";
 import { property, state } from "lit/decorators.js";
-import { t } from "../styles";
-import { niceTicks, fmtNum, fmtTick, fmtVal, fmtXTick, fmtDateTime, timeTicks, px } from "../renderers/chart-utils";
+import { formatDate, t } from "../styles";
+import { niceTicks, fmtNum, fmtTick, fmtVal, fmtXTick, fmtDateTime, rangeAddsNothing, timeTicks, px } from "../renderers/chart-utils";
 
 export interface ChartPoint {
   ts: number;
@@ -42,6 +42,7 @@ const RANGES = [
   { days: 90, key: "chart_range_90d" },
   { days: 365, key: "chart_range_1y" },
 ] as const;
+const CHIP_DAYS = RANGES.map((r) => r.days);
 
 export class MaintenanceTriggerChart extends LitElement {
   @property({ attribute: false }) public points: ChartPoint[] = [];
@@ -57,6 +58,9 @@ export class MaintenanceTriggerChart extends LitElement {
   @property({ type: Boolean }) public forceZero = false;
   /** Whole numbers only on the axis: a change count has no 0.5. */
   @property({ type: Boolean }) public integerTicks = false;
+  /** Where the series begins when that lies inside the chosen range (null:
+   *  not known): a longer range would show the same, its chip is off. */
+  @property({ attribute: false }) public dataStart: number | null = null;
   /** Optional dashed projection segment (e.g. degradation trend). */
   @property({ attribute: false }) public projection: ChartPoint[] | null = null;
   @property({ attribute: false }) public rangeDays = 30;
@@ -115,13 +119,15 @@ export class MaintenanceTriggerChart extends LitElement {
                     @click=${() => this._toggleOutliers()}
                   ><ha-icon icon="mdi:filter-variant"></ha-icon></button>`
                 : nothing}
-              ${RANGES.map(
-                (r) => html`<button
+              ${RANGES.map((r) => {
+                const same = r.days !== this.rangeDays && rangeAddsNothing(r.days, CHIP_DAYS, this.dataStart, Date.now());
+                return html`<button
                   class="range-chip ${this.rangeDays === r.days ? "active" : ""}"
-                  ?disabled=${this.busy}
+                  ?disabled=${this.busy || same}
+                  title=${same && this.dataStart !== null ? t("timeline_range_no_more", L).split("{date}").join(formatDate(new Date(this.dataStart).toISOString(), L)) : ""}
                   @click=${() => this._emitRange(r.days)}
-                >${t(r.key, L)}</button>`,
-              )}
+                >${t(r.key, L)}</button>`;
+              })}
             </div>`
           : nothing}
         ${pts.length < 2

@@ -14,13 +14,15 @@
  */
 
 import { html, nothing, svg } from "lit";
-import { alertRule, type AlertRule } from "../helpers/state-timeline";
+import { alertRule, conditionRule, isDiscreteThreshold, type AlertRule } from "../helpers/state-timeline";
 import "../components/state-timeline";
+import "../components/runtime-bars";
+import type { TimelineCondition } from "../components/state-timeline";
 import { t, fireMoreInfo, formatDueDays, formatHold, formatNumber, withUnit } from "../styles";
 import { fmtNum, fmtVal, px } from "./chart-utils";
 import { dueDaysOf } from "./progress";
 import { stampMs } from "../helpers/ha-time";
-import { compoundLogic, primaryTriggerEntity, ruleSensors, triggerEntityIds, triggerUnit, type RuleSensor } from "../helpers/trigger-entities";
+import { compoundLogic, entityName, primaryTriggerEntity, ruleSensors, triggerEntityIds, triggerUnit, type RuleSensor } from "../helpers/trigger-entities";
 import { betaUi } from "../helpers/beta-ui";
 import { conditionText } from "../helpers/task-rules";
 import "../components/trigger-chart";
@@ -46,6 +48,9 @@ export interface SparklineContext {
   /** When true, drop statistical outliers (sensor glitches) from the chart. */
   hideOutliers: boolean;
   setHideOutliers: (hide: boolean) => void;
+  /** The open task's object: the state timeline loads the task's own
+   *  record (`task/trace`) for the days the recorder no longer has. */
+  entryId?: string;
 }
 
 /** Drop outliers via the IQR fence (Tukey): keep points within
@@ -303,6 +308,15 @@ export function renderSensorTrend(stats: StatisticsPoint[] | undefined, cond: Tr
   </svg>`;
 }
 
+/** Whether a sensor row draws the small trend: a state rule watches states
+ *  ("Up to date", "Update available"), a threshold on a code ("= 3") a code
+ *  and a runtime rule on/off, not readings; their line over days was flat
+ *  with a stroke at its end, and the chart below says the same clearly. The
+ *  panel loads no series for such rows. */
+export function hasTrend(cond: TriggerConfig): boolean {
+  return cond.type !== "state_change" && cond.type !== "runtime" && !isDiscreteThreshold(cond);
+}
+
 /** A sensor as Home Assistant's entities card shows one: its state badge,
  *  its name with the rule's condition below, its state as HA formats it.
  *  A tap opens HA's more-info, as everywhere in HA. No entity ids — those
@@ -339,7 +353,9 @@ function renderSensorRow(s: RuleSensor, ctx: SparklineContext, task: Maintenance
         <div class="sensor-name">${name}</div>
         <div class="sensor-cond">${conditionText(s.cond, unit, L)}</div>
       </div>
-      ${renderSensorTrend(ctx.detailStatsData.get(s.entityId), s.cond, so ? parseFloat(String(s.cond.attribute ? so.attributes?.[s.cond.attribute] : so.state)) : null)}
+      ${hasTrend(s.cond)
+        ? renderSensorTrend(ctx.detailStatsData.get(s.entityId), s.cond, so ? parseFloat(String(s.cond.attribute ? so.attributes?.[s.cond.attribute] : so.state)) : null)
+        : nothing}
       <div class="sensor-state">${state}</div>
     </div>
   `;
@@ -531,12 +547,80 @@ function renderStateTimeline(task: MaintenanceTask, rule: AlertRule, ctx: Sparkl
     .hass=${ctx.hass}
     .entityIds=${triggerEntityIds(task.trigger_config)}
     .rule=${rule}
+    .logic=${task.trigger_config?.entity_logic === "all" ? "all" : "any"}
+    .resultEntity=${task.sensor_entity_id ?? ""}
     .history=${history}
     .rangeDays=${ctx.rangeDays}
     .lang=${ctx.lang}
-    .revision=${`${task.trigger_active ? 1 : 0}|${history.length}|${last?.timestamp ?? ""}`}
+    .entryId=${ctx.entryId ?? ""}
+    .taskId=${task.id}
+    .revision=${revisionOf(task)}
     @range-change=${(e: CustomEvent<{ days: number }>) => ctx.setRangeDays(e.detail.days)}
   ></maintenance-state-timeline>`;
+}
+
+/** What makes a self-loading chart load again: the trigger state or the
+ *  history changed. */
+function revisionOf(task: MaintenanceTask): string {
+  const history = task.history || [];
+  return `${task.trigger_active ? 1 : 0}|${history.length}|${history[history.length - 1]?.timestamp ?? ""}`;
+}
+
+/** One condition of an AND/OR rule as its line: its sensors by name and
+ *  what it asks, the way the sensor rows above say it. */
+function timelineCondition(cond: TriggerConfig, ctx: SparklineContext): TimelineCondition {
+  const ids = triggerEntityIds(cond);
+  const unit = ids.length ? (ctx.hass?.states?.[ids[0]]?.attributes?.unit_of_measurement as string | undefined) ?? "" : "";
+  const names = ids.map((id) => entityName(ctx.hass, id)).join(", ");
+  const what = conditionText(cond, unit, ctx.lang);
+  return {
+    label: names ? `${names}: ${what}` : what,
+    entityIds: ids,
+    logic: cond.entity_logic === "all" ? "all" : "any",
+    rule: conditionRule(cond),
+  };
+}
+
+/** An AND/OR rule: the result (when the task was triggered) and each
+ *  condition under it, a condition's sensors below it. */
+function renderCompoundTimeline(task: MaintenanceTask, tc: TriggerConfig, ctx: SparklineContext) {
+  return html`<maintenance-state-timeline
+    .hass=${ctx.hass}
+    .conditions=${(tc.conditions || []).map((c) => timelineCondition(c, ctx))}
+    .compoundLogic=${compoundLogic(tc)}
+    .resultEntity=${task.sensor_entity_id ?? ""}
+    .history=${task.history || []}
+    .rangeDays=${ctx.rangeDays}
+    .lang=${ctx.lang}
+    .entryId=${ctx.entryId ?? ""}
+    .taskId=${task.id}
+    .revision=${revisionOf(task)}
+    @range-change=${(e: CustomEvent<{ days: number }>) => ctx.setRangeDays(e.detail.days)}
+  ></maintenance-state-timeline>`;
+}
+
+/** A runtime rule: the hours its device ran per day. */
+function renderRuntimeBars(task: MaintenanceTask, tc: TriggerConfig, entityId: string, ctx: SparklineContext) {
+  return html`<maintenance-runtime-bars
+    .hass=${ctx.hass}
+    .entityId=${entityId}
+    .onStates=${Array.isArray(tc.trigger_on_states) ? tc.trigger_on_states : null}
+    .capSeconds=${typeof tc.trigger_runtime_max_session_seconds === "number" ? tc.trigger_runtime_max_session_seconds : null}
+    .rangeDays=${ctx.rangeDays}
+    .lang=${ctx.lang}
+    .history=${task.history || []}
+    .current=${typeof task.trigger_current_value === "number" ? task.trigger_current_value : null}
+    .target=${typeof tc.trigger_runtime_hours === "number" ? tc.trigger_runtime_hours : null}
+    .revision=${revisionOf(task)}
+    @range-change=${(e: CustomEvent<{ days: number }>) => ctx.setRangeDays(e.detail.days)}
+  ></maintenance-runtime-bars>`;
+}
+
+/** Whether the task page's chart loads its own data (the timeline, the
+ *  runtime bars): the panel then fetches no series for the rule. */
+export function drawsItself(tc: TriggerConfig | null | undefined): boolean {
+  if (!tc) return false;
+  return !!alertRule(tc) || tc.type === "compound" || (tc.type === "runtime" && !tc.attribute);
 }
 
 // Module-private chart assembly — maps task semantics onto chart props.
@@ -547,10 +631,15 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
   const entityId = primaryTriggerEntity(tc) || "";
   // A due date only counts down — no curve to tell.
   if (triggerType === "due_date") return nothing;
-  // A single-shot state rule is on or off: a timeline of all its sensors,
-  // not a line on a 0 / 0.5 / 1 / 1.5 axis for the first one.
+  // An AND/OR rule: its result and every condition under it.
+  if (triggerType === "compound" && ctx.hass) return renderCompoundTimeline(task, tc, ctx);
+  // A single-shot state rule or a threshold on a code is on or off: a
+  // timeline of all its sensors, not a line on a 0 / 0.5 / 1 / 1.5 axis for
+  // the first one.
   const alert = ctx.hass ? alertRule(tc) : null;
   if (alert) return renderStateTimeline(task, alert, ctx);
+  // Runtime: the hours per day, not a straight line from 0 to now.
+  if (triggerType === "runtime" && ctx.hass && !tc.attribute && entityId) return renderRuntimeBars(task, tc, entityId, ctx);
 
   let points = rawStatsPoints(task, ctx);
   // #141 round 2: a state_change trigger on recorder history draws the
@@ -594,6 +683,10 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
   // The history fallback can span years; honor the selected window when enough
   // points remain (never crop below a drawable series).
   const cutoff = Date.now() - ctx.rangeDays * 86400000;
+  // Where the data begin, when that lies well inside the chosen range (the
+  // recorder keeps ~10 days): longer ranges would draw the same chart.
+  const firstTs = points.length ? Math.min(...points.map((p) => p.ts)) : NaN;
+  const dataStart = firstTs > cutoff + 86400000 ? firstTs : null;
   const inRange = points.filter((p) => p.ts >= cutoff);
   if (inRange.length >= 2) points = inRange;
 
@@ -673,6 +766,7 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
       .targetValue=${targetValue}
       .targetMark=${targetMark}
       .forceZero=${forceZero}
+      .dataStart=${dataStart}
       .integerTicks=${triggerType === "state_change"}
       .projection=${projection}
       .rangeDays=${ctx.rangeDays}

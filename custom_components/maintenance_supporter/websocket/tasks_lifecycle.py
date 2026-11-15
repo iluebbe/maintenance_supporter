@@ -353,17 +353,21 @@ def ws_task_trace(
     """The task's trace (2026-10 beta, read tier like ``task/history``):
     its journal (helpers.task_trace) and its full history, which the panel
     splits into due cycles. ``enabled`` says whether events are recorded
-    now; the history is there either way."""
+    now; the history is there either way. ``created_at`` is the day the
+    task began: the state timeline knows the task's own record reaches back
+    to it, where the recorder keeps a few days."""
     ctx = _load_object_task(hass, connection, msg, merged=True)
     if ctx is None:
         return
     _entry, _rd, task_data = ctx
     trace = get_trace(hass)
+    created = task_data.get("created_at")
     connection.send_result(
         msg["id"],
         {
             "enabled": tracing_enabled(hass),
             "events": trace.events(msg["entry_id"], msg["task_id"]) if trace is not None else [],
             "history": task_data.get("history") or [],
+            "created_at": created if isinstance(created, str) else None,
         },
     )

@@ -133,7 +133,7 @@ import "./components/group-dialog";
 import type { MaintenanceGroupDialog } from "./components/group-dialog";
 import "./components/saved-views-dialog";
 import type { MaintenanceSavedViewsDialog } from "./components/saved-views-dialog";
-import { ruleSensors, type SparklineContext } from "./renderers/sparkline";
+import { drawsItself, hasTrend, ruleSensors, type SparklineContext } from "./renderers/sparkline";
 import { buildCalendarBuckets, type CalendarEvent } from "./helpers/calendar-bucket";
 import { deleteObjectMessage } from "./helpers/delete-object-message";
 import { haToday } from "./helpers/ha-time";
@@ -1483,10 +1483,12 @@ export class MaintenanceSupporterPanel extends LitElement {
   private _fetchRuleStats(task: MaintenanceTask | null | undefined): void {
     const tc = task?.trigger_config;
     if (!tc) return;
-    const entityId = primaryTriggerEntity(tc);
+    // The state timeline and the runtime bars load their sensors themselves;
+    // a row of a state, code or runtime rule draws no trend (hasTrend).
+    const entityId = drawsItself(tc) ? undefined : primaryTriggerEntity(tc);
     if (entityId) this._fetchDetailStats(entityId, isCounterTrigger(tc));
     for (const s of ruleSensors(tc)) {
-      if (s.entityId !== entityId) void this._fetchDetailStats(s.entityId, isCounterTrigger(s.cond));
+      if (s.entityId !== entityId && hasTrend(s.cond)) void this._fetchDetailStats(s.entityId, isCounterTrigger(s.cond));
     }
   }
 
@@ -1499,7 +1501,8 @@ export class MaintenanceSupporterPanel extends LitElement {
     const task = this._selectedEntryId && this._selectedTaskId
       ? this._getTask(this._selectedEntryId, this._selectedTaskId)
       : null;
-    const entityId = primaryTriggerEntity(task?.trigger_config);
+    // The state timeline and the runtime bars load their own range.
+    const entityId = drawsItself(task?.trigger_config) ? undefined : primaryTriggerEntity(task?.trigger_config);
     if (entityId) {
       // Drop the stale-range series so the chart shows its loading state.
       const updated = new Map(this._detailStatsData);
@@ -6264,6 +6267,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       setRangeDays: (days) => this._setChartRange(days),
       hideOutliers: this._hideOutliers,
       setHideOutliers: (hide) => this._setHideOutliers(hide),
+      entryId: this._selectedEntryId ?? undefined,
     };
   }
 

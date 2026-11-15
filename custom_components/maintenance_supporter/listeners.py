@@ -44,6 +44,7 @@ from .helpers.entity_rename import rewrite_object, rewrite_store, rewrite_tasks
 from .helpers.global_options import get_global_entry
 from .helpers.history import cycle_token
 from .helpers.notification_ids import action_cycle, parse_action_id
+from .helpers.object_ready import async_wait_object_ready
 from .helpers.pause import is_task_inert
 from .helpers.todo_mirror import schedule_rearm as _rearm_todo_mirror
 from .helpers.user_orphans import async_prune_task_user_orphans, async_sync_admin_panel_orphan_issues
@@ -66,6 +67,8 @@ async def _handle_notification_action(hass: HomeAssistant, event: Event) -> None
         return  # not a task button of ours (or a test-send button)
     action_type, entry_id, task_id = parsed
 
+    # A9-1: a tap while the object reloads was dropped; wait it out.
+    await async_wait_object_ready(hass, entry_id)
     config_entry = hass.config_entries.async_get_entry(entry_id)
     runtime_data = getattr(config_entry, "runtime_data", None) if config_entry else None
     if not runtime_data or not hasattr(runtime_data, "coordinator") or not runtime_data.coordinator:
@@ -162,7 +165,8 @@ async def _handle_tag_scanned(hass: HomeAssistant, event: Event) -> None:
     ]
     matches.sort(key=lambda m: is_task_inert(m[0].data[CONF_TASKS][m[1]], m[0].data.get(CONF_OBJECT) or {}))
     for ce, task_id in matches:
-        # Found matching task
+        # Found matching task — its object may be reloading (A9-1).
+        await async_wait_object_ready(hass, ce.entry_id)
         runtime_data = getattr(ce, "runtime_data", None)
         if not runtime_data or not getattr(runtime_data, "coordinator", None):
             _LOGGER.warning(

@@ -32,6 +32,7 @@ from ..helpers.completion_photos import MAX_COMPLETION_PHOTOS, normalize_photo_d
 from ..helpers.completion_requirements import own_photo_doc_ids, quick_complete_on
 from ..helpers.dates import is_past_dated
 from ..helpers.global_options import global_option
+from ..helpers.object_ready import async_wait_object_ready
 from ..helpers.parts import MAX_PART_STOCK, sanitize_consumes_parts
 from ..helpers.phases import effective_field
 from ..helpers.reading_slots import resolve_reading_values
@@ -118,6 +119,9 @@ async def ws_complete_task(
     msg: dict[str, Any],
 ) -> None:
     """Mark a task as completed."""
+    # A9-1: the object may be reloading (a part's buy reminder, an edit,
+    # undo); wait for it rather than answer that it is not there.
+    await async_wait_object_ready(hass, msg["entry_id"])
     ctx = _load_object_task(hass, connection, msg, merged=True, need_coordinator=True)
     if ctx is None:
         return
@@ -248,6 +252,9 @@ async def ws_quick_complete_task(
     msg: dict[str, Any],
 ) -> None:
     """Complete a task with *Quick complete* on (#233), recording its prefill."""
+    # A9-1: the object may be reloading (a part's buy reminder, an edit,
+    # undo); wait for it rather than answer that it is not there.
+    await async_wait_object_ready(hass, msg["entry_id"])
     ctx = _load_object_task(hass, connection, msg, need_coordinator=True)
     if ctx is None:
         return
@@ -371,6 +378,9 @@ async def ws_skip_task(
     msg: dict[str, Any],
 ) -> None:
     """Skip the current maintenance cycle."""
+    # A9-1: the object may be reloading (a part's buy reminder, an edit,
+    # undo); wait for it rather than answer that it is not there.
+    await async_wait_object_ready(hass, msg["entry_id"])
     ctx = _load_object_task(hass, connection, msg, need_coordinator=True)
     if ctx is None:
         return
@@ -405,6 +415,9 @@ async def ws_reset_task(
     msg: dict[str, Any],
 ) -> None:
     """Reset the last performed date."""
+    # A9-1: the object may be reloading (a part's buy reminder, an edit,
+    # undo); wait for it rather than answer that it is not there.
+    await async_wait_object_ready(hass, msg["entry_id"])
     ctx = _load_object_task(hass, connection, msg, need_coordinator=True)
     if ctx is None:
         return
