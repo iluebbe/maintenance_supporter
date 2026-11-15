@@ -2,6 +2,42 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.122.0] - 2026-11-15
+
+An on/off sensor rule as a timeline, and a history that names the sensor.
+
+### ✨ New
+
+- **A state rule that fires once is a timeline.** A rule like "an update is offered", a problem sensor or a door
+  left open was a line on a 0 / 0.5 / 1 / 1.5 axis, for the rule's first sensor only, and an eight-minute alert on
+  a 30-day axis was a hairline at its edge. Each sensor that reported now has a bar on a time axis, red where it was
+  in its alert state and never narrower than a few pixels; the quiet ones fold into one line. A line on top says
+  the newest report in words: when, which sensor, an update's version and how long until it was fine again.
+- **Short alerts are enlarged.** When the alerts are too short to read at the chosen range, the hours around the
+  newest one are drawn again, enlarged: the alert, the time the device could not be reached (a router rebooting to
+  install) and the tick where the task was done.
+
+### 🐛 Fixed
+
+- **A rule that fires once shows no "0 / 1 · 0 %".** The progress bar said nothing the badge does not say.
+- **A change count's axis has whole numbers.** It read 0 / 0.5 / 1 / 1.5 too.
+- **The history names the sensor of a rule on several.** Two routers' updates both read "8.51 available, 8.25
+  installed".
+- **An automatic completion says what ended it.** A completion the rule recorded by itself names the sensor, an
+  update's installed version and how long after the report it came.
+
+### 🔧 Developer notes
+
+- A firing's `trigger_change` carries `entity`; a state rule's automatic completion keeps a `trigger_change` of its
+  own (`entity`, `state`, `installed`, `latest`) through `async_auto_complete_on_recovery(..., change=)` and
+  `complete_maintenance(trigger_change=)`. An import keeps both keys.
+- `<maintenance-state-timeline>` (components/state-timeline.ts) loads the rule's sensors with one
+  `history/history_during_period` call; its logic is in `helpers/state-timeline.ts`. `spanText` moved to
+  `helpers/span-text.ts`.
+- 16 frontend locale keys (`timeline_*`, `trigger_update_installed`, `trigger_update_offered`,
+  `trigger_after_report`).
+- Tests: `tests/test_state_timeline_2026_11_15.py`, `__tests__/state-timeline-2026-11-15.test.ts`.
+
 ## [2.121.2] - 2026-11-15
 
 The findings of the bug audit of 2026-11-14.

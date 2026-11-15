@@ -906,19 +906,22 @@ def test_ts_title_prefix_field_takes_what_the_server_keeps() -> None:
 
 
 def test_ts_trigger_change_has_the_keys_a_firing_writes() -> None:
-    """A state rule's firing names its transition (from, to) and an update
-    entity's versions (installed, latest); the history and the trace read
-    them by those names."""
+    """A state rule's firing names its transition (from, to), its sensor
+    (entity) and an update entity's versions (installed, latest); its
+    automatic completion the state it went back to (state). The history and
+    the trace read them by those names, and an import keeps exactly these
+    (websocket/io.py)."""
     from unittest.mock import MagicMock
 
     from custom_components.maintenance_supporter.entity.triggers.base_trigger import update_versions
+    from custom_components.maintenance_supporter.websocket.io import _TRIGGER_CHANGE_KEYS
 
     state = MagicMock(entity_id="update.core", attributes={"installed_version": "1", "latest_version": "2"})
-    written = {"from", "to", *update_versions(state)}
+    assert {"from", "to", "entity", "state", *update_versions(state)} == set(_TRIGGER_CHANGE_KEYS)
     src = (_FRONTEND / "types.ts").read_text(encoding="utf-8")
     m = re.search(r"trigger_change\?: \{([^}]*)\}", src)
     assert m
-    assert set(re.findall(r"([a-z_]+)\?:", m.group(1))) == written
+    assert set(re.findall(r"([a-z_]+)\?:", m.group(1))) == set(_TRIGGER_CHANGE_KEYS)
 
 
 # ─── DRY round 6 leftovers (2026-11-07): codes the frontend reads ──────────

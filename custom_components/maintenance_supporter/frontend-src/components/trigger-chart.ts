@@ -55,6 +55,8 @@ export class MaintenanceTriggerChart extends LitElement {
   /** The target line's mark: ◆ a target to reach, = / ≠ a discrete level. */
   @property() public targetMark = "◆";
   @property({ type: Boolean }) public forceZero = false;
+  /** Whole numbers only on the axis: a change count has no 0.5. */
+  @property({ type: Boolean }) public integerTicks = false;
   /** Optional dashed projection segment (e.g. degradation trend). */
   @property({ attribute: false }) public projection: ChartPoint[] | null = null;
   @property({ attribute: false }) public rangeDays = 30;
@@ -153,7 +155,7 @@ export class MaintenanceTriggerChart extends LitElement {
     // tick. Nor does any axis whose values are all positive: readings
     // between 0 and 360 got an axis down to -100 (trigger check 2026-10-16).
     const loPadded = this.forceZero && lo >= 0 ? 0 : lo >= 0 ? Math.max(0, lo - pad) : lo - pad;
-    let { ticks, niceMin, niceMax } = niceTicks(loPadded, hi + pad, 4);
+    let { ticks, niceMin, niceMax } = niceTicks(loPadded, hi + pad, 4, this.integerTicks);
     if (lo >= 0 && niceMin < 0) {
       niceMin = 0;
       ticks = ticks.filter((v) => v >= 0);

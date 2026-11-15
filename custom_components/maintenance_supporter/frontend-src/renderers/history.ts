@@ -20,7 +20,8 @@ import { renderRefChip } from "../helpers/reference";
 import { entryReadingValues } from "../helpers/reading-slots";
 import { matchesQuery } from "../helpers/search-match";
 import { historyNoteText } from "../helpers/history-note";
-import { triggerValueText } from "../helpers/trigger-value";
+import { triggerValueText, type TriggerValueContext } from "../helpers/trigger-value";
+import { entityName, triggerEntityIds } from "../helpers/trigger-entities";
 import { stampMs } from "../helpers/ha-time";
 import { EDITABLE_HISTORY_TYPES } from "../status-constants";
 
@@ -70,6 +71,20 @@ export interface HistoryEntryContext {
   triggerUnit?: string | null;
   /** The task's rule is a state rule (its firings' value is only a count). */
   stateRule?: boolean;
+  /** The task: its rule's sensors (a rule on several names the one that
+   *  fired) and its history (how long after the firing a completion came). */
+  task?: Pick<MaintenanceTask, "trigger_config" | "history"> | null;
+}
+
+/** What a history row's trigger line needs (helpers/trigger-value.ts). */
+export function triggerValueCtx(ctx: HistoryEntryContext): TriggerValueContext {
+  return {
+    unit: ctx.triggerUnit,
+    stateRule: ctx.stateRule,
+    entityName: (id) => entityName(ctx.hass, id),
+    sensors: triggerEntityIds(ctx.task?.trigger_config).length,
+    history: ctx.task?.history,
+  };
 }
 
 export interface HistoryContext extends HistoryEntryContext {
@@ -210,7 +225,7 @@ export function renderHistoryEntry(entry: HistoryEntry, ctx: HistoryEntryContext
   const partsCost = typeof entry.parts_cost === "number" ? entry.parts_cost : null;
   const partsCounted = entry.cost_basis === "use";
   const stockPurchase = partsCounted && !!entry.purchase;
-  const fired = triggerValueText(entry, L, { unit: ctx.triggerUnit, stateRule: ctx.stateRule });
+  const fired = triggerValueText(entry, L, triggerValueCtx(ctx));
   return html`
     <div class="history-entry${compact ? " compact" : ""}">
       ${compact

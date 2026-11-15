@@ -183,9 +183,11 @@ class _CompoundCoordinatorProxy:
         """Delegate to the object's coordinator."""
         await self._real.async_request_refresh()
 
-    async def async_auto_complete_on_recovery(self, task_id: str, trigger_value: float | None) -> None:
+    async def async_auto_complete_on_recovery(
+        self, task_id: str, trigger_value: float | None, *, change: dict[str, str] | None = None
+    ) -> None:
         """Delegate to the object's coordinator."""
-        await self._real.async_auto_complete_on_recovery(task_id, trigger_value)
+        await self._real.async_auto_complete_on_recovery(task_id, trigger_value, **({"change": change} if change else {}))
 
 
 class CompoundTrigger(BaseTrigger):

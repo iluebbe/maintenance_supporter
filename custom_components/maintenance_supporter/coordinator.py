@@ -1418,6 +1418,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         tag_verified: bool = False,
         source: str | None = None,
         quick: bool = False,
+        trigger_change: dict[str, str] | None = None,
     ) -> None:
         """Mark a task as completed and persist.
 
@@ -1694,6 +1695,10 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
             task.history[-1]["ref_no"] = next_history_ref(self._store, task_id, task.history)
             if completed_via:
                 task.history[-1]["completed_via"] = completed_via
+            # What a state rule saw end the task by itself (the sensor, its
+            # state, an update's versions): the history names the device.
+            if trigger_change:
+                task.history[-1]["trigger_change"] = dict(trigger_change)
             # #104: what the parts of this completion cost at this moment,
             # whether it was a purchase, and how it is booked — decided now,
             # so a later change of the setting never re-values it.
@@ -1859,7 +1864,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         if is_latest:
             await self._async_notify_completed(task_id, done_label, effective_source, completed_by, effective_ts.isoformat())
 
-    async def async_auto_complete_on_recovery(self, task_id: str, trigger_value: float | None) -> None:
+    async def async_auto_complete_on_recovery(
+        self, task_id: str, trigger_value: float | None, *, change: dict[str, str] | None = None
+    ) -> None:
         """Record a completion because the task's trigger cleared itself (#53).
 
         Called from ``BaseTrigger._on_trigger_deactivated`` when the task opted
@@ -1867,7 +1874,9 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         recovering (salt refilled, filter swapped) IS the maintenance being
         done, so ``last_performed`` and the time-between-services statistics
         should reflect it. Runs through the canonical complete path (history,
-        adaptive learning, events, on_complete_action).
+        adaptive learning, events, on_complete_action). ``change`` is what a
+        state rule saw end it (the sensor, its state, an update entity's
+        versions); the history entry keeps it as its ``trigger_change``.
         """
         # A compound trigger has no single value, a state-change trigger only
         # its reset count — neither is a reading (None).
@@ -1877,7 +1886,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
             # A history note is read to find out what happened: four
             # decimals, where a reminder rounds to two.
             notes = f"Auto-completed: sensor recovered ({plain_number(trigger_value, digits=4)})"
-        await self._async_auto_complete(task_id, notes)
+        await self._async_auto_complete(task_id, notes, trigger_change=change)
 
     async def async_auto_complete_from_entity(self, task_id: str, entity_name: str, to_state: str, *, any_time: bool = False) -> None:
         """Record a completion because the task's ``complete_when`` entity
@@ -1899,7 +1908,13 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         )
 
     async def _async_auto_complete(
-        self, task_id: str, notes: str, *, source: str | None = None, done_when: tuple[str, str] | None = None
+        self,
+        task_id: str,
+        notes: str,
+        *,
+        source: str | None = None,
+        done_when: tuple[str, str] | None = None,
+        trigger_change: dict[str, str] | None = None,
     ) -> None:
         """The automatic completions' shared gates: an inert task records
         nothing, and a completion moments ago is not repeated. ``done_when``
@@ -1943,7 +1958,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
 
         _LOGGER.info("Auto-completing task %s on %s: %s", task_id, self.maintenance_object.name, notes)
         _trace("counted")
-        await self.complete_maintenance(task_id, notes=notes, auto=True, source=source)
+        await self.complete_maintenance(task_id, notes=notes, auto=True, source=source, trigger_change=trigger_change)
 
     async def reset_maintenance(
         self,

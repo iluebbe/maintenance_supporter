@@ -507,11 +507,12 @@ class StateChangeTrigger(BaseTrigger):
     def _trigger_change(self) -> dict[str, str] | None:
         """The transition the firing counted ("off" → "on"), with an update
         entity's versions: the trigger value is only the change count, and
-        the history said "Trigger value: 1"."""
+        the history said "Trigger value: 1". And which sensor it was: a rule
+        on nine devices said "8.51 available" twice, for two of them."""
         if self._counted_transition is None:
             return None
         old, new = self._counted_transition
-        change = {"to": new[:HISTORY_DETAIL_CHARS]}
+        change = {"to": new[:HISTORY_DETAIL_CHARS], "entity": self.entity_id}
         if old is not None:
             change["from"] = old[:HISTORY_DETAIL_CHARS]
         change.update(update_versions(self.hass.states.get(self.entity_id)))
@@ -525,6 +526,12 @@ class StateChangeTrigger(BaseTrigger):
             detail["state"] = live.state[:HISTORY_DETAIL_CHARS]
         detail.update(update_versions(live))
         return detail
+
+    def _completion_change(self, trace: Mapping[str, Any]) -> dict[str, str] | None:
+        """What the automatic completion records about the recovery: the
+        sensor, the state it went back to and an update entity's versions
+        (the trace's own words, ``_cleared_detail``)."""
+        return {k: v for k, v in trace.items() if isinstance(v, str)} or None
 
     def evaluate(self, value: float) -> bool:
         """Evaluate is handled by _handle_state_transition directly."""

@@ -79,8 +79,8 @@ async def test_an_update_rule_records_the_versions_and_its_end(hass: HomeAssista
     await hass.async_block_till_done()
     fired = [h for h in (await _trace(hass, obj))["history"] if h["type"] == "triggered"]
     assert fired, "the update did not fire the rule"
-    # The transition it counted and the versions, not just the count.
-    assert fired[-1]["trigger_change"] == {"from": "off", "to": "on", "installed": "v0.9.74", "latest": "v2026.11.0"}
+    # The transition it counted, the sensor and the versions, not just the count.
+    assert fired[-1]["trigger_change"] == {"from": "off", "to": "on", "entity": UPDATE, "installed": "v0.9.74", "latest": "v2026.11.0"}
 
     _update_state(hass, "off", "v2026.11.0", "v2026.11.0")
     await hass.async_block_till_done()

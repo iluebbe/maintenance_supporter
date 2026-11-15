@@ -179,7 +179,9 @@ export interface HistoryEntry {
   trigger_value?: number | null;
   /** A state rule's firing: the transition it counted, an update entity's
    *  versions (trigger_value is only the count of changes). */
-  trigger_change?: { from?: string; to?: string; installed?: string; latest?: string } | null;
+  /** A state rule's firing (from, to) or, on an automatic completion, what
+   *  ended it (state); the sensor (entity) and an update's versions. */
+  trigger_change?: { from?: string; to?: string; installed?: string; latest?: string; entity?: string; state?: string } | null;
   checklist_state?: Record<string, boolean> | null;
   feedback?: string | null;
   completed_by?: string | null;

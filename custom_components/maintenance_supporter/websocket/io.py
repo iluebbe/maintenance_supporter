@@ -155,7 +155,7 @@ _TASK_FIELD_TYPES: dict[str, type | tuple[type, ...]] = {
 }
 
 
-_TRIGGER_CHANGE_KEYS = frozenset({"from", "to", "installed", "latest"})
+_TRIGGER_CHANGE_KEYS = frozenset({"from", "to", "installed", "latest", "entity", "state"})
 
 
 def _sanitize_history(history: Any) -> list[dict[str, Any]]:

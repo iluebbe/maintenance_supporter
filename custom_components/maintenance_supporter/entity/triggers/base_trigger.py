@@ -55,7 +55,9 @@ class TriggerCoordinator(Protocol):
         trigger_change: dict[str, str] | None = None,
     ) -> None: ...
 
-    async def async_auto_complete_on_recovery(self, task_id: str, trigger_value: float | None) -> None: ...
+    async def async_auto_complete_on_recovery(
+        self, task_id: str, trigger_value: float | None, *, change: dict[str, str] | None = None
+    ) -> None: ...
 
     async def async_persist_trigger_runtime(
         self,
@@ -583,11 +585,21 @@ class BaseTrigger(ABC):
         if self.config.get("auto_complete_on_recovery"):
             # cancel_on_close=False: a completion in flight must land even
             # when the recovery coincides with a reload of the entry.
-            self._track(self._coordinator.async_auto_complete_on_recovery(self._task_id, reading), cancel_on_close=False)
+            change = self._completion_change(trace)
+            self._track(
+                self._coordinator.async_auto_complete_on_recovery(self._task_id, reading, **({"change": change} if change else {})),
+                cancel_on_close=False,
+            )
 
     def _recovery_reading(self, value: float) -> float | None:
         """The reading a recovery records in its auto-completion note."""
         return value
+
+    def _completion_change(self, trace: Mapping[str, Any]) -> dict[str, str] | None:
+        """What the automatic completion records about the recovery beyond
+        its note: nothing here (the reading is in the note); a state rule
+        names the sensor, its state and an update entity's versions."""
+        return None
 
     def _trigger_change(self) -> dict[str, str] | None:
         """What a firing changed beyond its value, for its history entry:

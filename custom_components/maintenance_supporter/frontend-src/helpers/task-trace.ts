@@ -15,6 +15,7 @@ import { countText, formatDate, formatDateTime, formatNumber, formatRecurrence, 
 import { historyNoteText } from "./history-note";
 import { conditionText } from "./task-rules";
 import { triggerValueText } from "./trigger-value";
+import { spanText } from "./span-text";
 import { compoundLogic, triggerEntityIds } from "./trigger-entities";
 import { URGENT_STATUSES } from "../status-constants";
 import { ownTextKinds } from "./notification-texts";
@@ -89,6 +90,9 @@ export interface TraceOptions {
   stateRule?: boolean;
   /** An entity by its name: the steps named the sensor by its id. */
   entityName?: (entityId: string) => string;
+  /** How many sensors the rule watches: a firing of a rule on several
+   *  names its sensor. */
+  sensors?: number;
 }
 
 const STATUS_ICONS: Record<string, string> = {
@@ -155,15 +159,8 @@ function bare(label: string): string {
   return label.replace(/\s*[(（][^)）]*[)）]\s*$/, "").trim();
 }
 
-/** A span of time in the largest unit that reads well: minutes under an
- *  hour, hours under two days, days beyond. */
-export function spanText(ms: number, lang: string): string {
-  const minutes = Math.max(1, Math.round(ms / 60_000));
-  if (minutes < 60) return formatUnit(minutes, "minute", lang);
-  const hours = Math.round(ms / 3_600_000);
-  if (hours < 48) return formatUnit(hours, "hour", lang);
-  return formatUnit(Math.round(ms / 86_400_000), "day", lang);
-}
+// The span text moved next door (the history rows say spans too).
+export { spanText };
 
 /** One journal event as a timeline step. */
 export function eventItem(e: TraceEvent, lang: string, opts: TraceOptions = {}): TraceItem {
@@ -559,7 +556,9 @@ export function historyItem(h: HistoryEntry, lang: string, opts: TraceOptions = 
   const notes = ownNote ? "" : historyNoteText(rawNote, lang).trim();
   const short = notes.length > 80 ? `${notes.slice(0, 79)}…` : notes;
   const base = short ? `${t(type, lang)} · ${short}` : t(type, lang);
-  const fired = type === "triggered" ? triggerValueText(h, lang, { unit: opts.triggerUnit, stateRule: opts.stateRule }) : "";
+  const fired = type === "triggered"
+    ? triggerValueText(h, lang, { unit: opts.triggerUnit, stateRule: opts.stateRule, entityName: opts.entityName, sensors: opts.sensors })
+    : "";
   return {
     at: str(h.timestamp),
     icon: HISTORY_ICONS[type] ?? "mdi:history",

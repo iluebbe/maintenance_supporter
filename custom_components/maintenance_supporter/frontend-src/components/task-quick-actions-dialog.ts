@@ -612,6 +612,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
                   taskRef: this._taskRef,
                   triggerUnit: triggerUnit(this.hass, task) || null,
                   stateRule: isStateRule(task),
+                  task,
                 }, { compact: true }))}
                 ${totalEntries > recent.length
                   ? html`<div class="history-more">… +${totalEntries - recent.length} ${t("older_entries", L)}</div>`

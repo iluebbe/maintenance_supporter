@@ -8,10 +8,14 @@
  * - counter tasks plot **progress since the last service** (cumulative,
  *   clamped at 0 — an odometer can never be negative) against the target,
  *   headed by a "8,507 / 15,000 km · 57 %" progress bar;
+ * - a single-shot state rule (an update offered, a problem sensor) is a
+ *   timeline of all its sensors instead (<maintenance-state-timeline>);
  * - everything else plots the raw series.
  */
 
 import { html, nothing, svg } from "lit";
+import { alertRule, type AlertRule } from "../helpers/state-timeline";
+import "../components/state-timeline";
 import { t, fireMoreInfo, formatDueDays, formatHold, formatNumber, withUnit } from "../styles";
 import { fmtNum, fmtVal, px } from "./chart-utils";
 import { dueDaysOf } from "./progress";
@@ -194,7 +198,7 @@ export function renderTriggerSection(task: MaintenanceTask, ctx: SparklineContex
 
       ${spec
         ? renderProgress(spec, L)
-        : currentVal !== null && currentVal !== undefined
+        : currentVal !== null && currentVal !== undefined && !alertRule(tc)
           ? html`
               <div class="trigger-value-row">
                 <span class="trigger-current ${task.trigger_active ? "active" : ""}">${triggerType === "due_date" && typeof currentVal === "number" ? formatDueDays(dueDaysOf(currentVal), L) : typeof currentVal === "number" ? fmtVal(currentVal, "", L) : currentVal}</span>
@@ -415,6 +419,9 @@ function progressSpec(task: MaintenanceTask, unit: string, ctx: SparklineContext
     case "state_change": {
       const target = tc.trigger_target_changes;
       if (target == null || target <= 0) return null;
+      // A single-shot rule is on or off: "0 / 1 · 0 %" said nothing the
+      // badge does not say.
+      if (alertRule(tc)) return null;
       return { progress: Math.max(0, cur), target, unit: "", meter: null };
     }
     case "runtime": {
@@ -514,6 +521,24 @@ function rawStatsPoints(task: MaintenanceTask, ctx: SparklineContext): ChartPoin
   return points;
 }
 
+/** The timeline of a single-shot state rule (components/state-timeline.ts):
+ *  every sensor of the rule, loaded again when the task's trigger state or
+ *  history changes. */
+function renderStateTimeline(task: MaintenanceTask, rule: AlertRule, ctx: SparklineContext) {
+  const history = task.history || [];
+  const last = history[history.length - 1];
+  return html`<maintenance-state-timeline
+    .hass=${ctx.hass}
+    .entityIds=${triggerEntityIds(task.trigger_config)}
+    .rule=${rule}
+    .history=${history}
+    .rangeDays=${ctx.rangeDays}
+    .lang=${ctx.lang}
+    .revision=${`${task.trigger_active ? 1 : 0}|${history.length}|${last?.timestamp ?? ""}`}
+    @range-change=${(e: CustomEvent<{ days: number }>) => ctx.setRangeDays(e.detail.days)}
+  ></maintenance-state-timeline>`;
+}
+
 // Module-private chart assembly — maps task semantics onto chart props.
 function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext) {
   const tc = task.trigger_config;
@@ -522,6 +547,10 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
   const entityId = primaryTriggerEntity(tc) || "";
   // A due date only counts down — no curve to tell.
   if (triggerType === "due_date") return nothing;
+  // A single-shot state rule is on or off: a timeline of all its sensors,
+  // not a line on a 0 / 0.5 / 1 / 1.5 axis for the first one.
+  const alert = ctx.hass ? alertRule(tc) : null;
+  if (alert) return renderStateTimeline(task, alert, ctx);
 
   let points = rawStatsPoints(task, ctx);
   // #141 round 2: a state_change trigger on recorder history draws the
@@ -644,6 +673,7 @@ function renderChart(task: MaintenanceTask, unit: string, ctx: SparklineContext)
       .targetValue=${targetValue}
       .targetMark=${targetMark}
       .forceZero=${forceZero}
+      .integerTicks=${triggerType === "state_change"}
       .projection=${projection}
       .rangeDays=${ctx.rangeDays}
       .hideOutliers=${ctx.hideOutliers}

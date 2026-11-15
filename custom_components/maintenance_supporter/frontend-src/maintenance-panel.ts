@@ -6306,6 +6306,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       readingUnit: task?.reading_unit ?? null,
       triggerUnit: triggerUnit(this.hass, task) || null,
       stateRule: isStateRule(task),
+      task: task ? { trigger_config: task.trigger_config, history: fullHistory } : null,
       taskRef: taskRef(this._selectedEntryId ? this._getObject(this._selectedEntryId)?.object : null, task),
       // #139: name the phase badge on entries stamped with a phase_id.
       phaseNames: Object.fromEntries(

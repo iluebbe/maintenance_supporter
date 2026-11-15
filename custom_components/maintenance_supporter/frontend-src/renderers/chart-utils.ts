@@ -12,11 +12,13 @@ export function px(n: number): string {
 
 /** Round axis ticks covering [min, max] — the classic "nice numbers" loop.
  *  Returns the tick values plus the (possibly widened) nice domain, so the
- *  chart can plot against the same bounds the labels describe. */
+ *  chart can plot against the same bounds the labels describe. `integer`
+ *  keeps the step at 1 or more: a count of changes read 0 / 0.5 / 1 / 1.5. */
 export function niceTicks(
   min: number,
   max: number,
   targetCount = 4,
+  integer = false,
 ): { ticks: number[]; niceMin: number; niceMax: number } {
   if (!isFinite(min) || !isFinite(max)) return { ticks: [], niceMin: 0, niceMax: 1 };
   if (min === max) {
@@ -32,6 +34,7 @@ export function niceTicks(
     step = step0 * m;
     if (span / step <= targetCount + 0.5) break;
   }
+  if (integer && step < 1) step = 1;
   const niceMin = Math.floor(min / step) * step;
   const niceMax = Math.ceil(max / step) * step;
   const ticks: number[] = [];
