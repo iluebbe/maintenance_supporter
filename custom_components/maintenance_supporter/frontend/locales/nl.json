@@ -1437,6 +1437,7 @@
   "battery_fleet_setup_done": "Batterijvloot ingesteld — één taak volgt al je batterijen.",
   "update_banner": "Er staat een nieuwere versie van Maintenance Supporter op de server — herlaad om het paneel bij te werken.",
   "update_reload": "Herladen",
+  "mixed_versions_banner": "Een deel van deze pagina draait nog op een oudere versie van Maintenance Supporter. Herlaad om alles bij te werken.",
   "restart_pending_banner": "Maintenance Supporter is bijgewerkt naar {version}. Start Home Assistant opnieuw op om de update te voltooien.",
   "restart_pending_error": "Dat is niet gelukt: Maintenance Supporter is bijgewerkt naar {version}, maar Home Assistant is sindsdien niet opnieuw opgestart. Start Home Assistant opnieuw op en probeer het dan nog eens.",
   "row_actions_banner": "Voltooien en Overslaan zijn in taakrijen nu knoppen. Liever de oude pictogrammen?",

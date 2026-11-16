@@ -10,6 +10,26 @@ declare const __MS_BUNDLE_VERSION__: string | undefined;
 export const BUNDLE_VERSION: string =
   typeof __MS_BUNDLE_VERSION__ !== "undefined" ? __MS_BUNDLE_VERSION__ : "dev";
 
+/** Every version of our bundles that has run in this window. The panel, the
+ *  cards and the dashboard strategy each carry their own copy of this module,
+ *  so the list lives on window, and every copy adds its version on load.
+ *
+ *  A window keeps the code it loaded until it reloads: after an update, a
+ *  card loaded before it runs next to a panel loaded after it, and Home
+ *  Assistant's restart does not change that (2026-11-16: the 2.123.0 panel
+ *  read the 2.122.0 card's German table, and its new texts were English). */
+const _bundleVersions: string[] = (() => {
+  const w = window as unknown as { __msBundleVersions?: string[] };
+  if (!Array.isArray(w.__msBundleVersions)) w.__msBundleVersions = [];
+  if (!w.__msBundleVersions.includes(BUNDLE_VERSION)) w.__msBundleVersions.push(BUNDLE_VERSION);
+  return w.__msBundleVersions;
+})();
+
+/** The versions of our other bundles in this window ("dev" builds aside). */
+export function otherBundleVersions(own: string = BUNDLE_VERSION): string[] {
+  return _bundleVersions.filter((v) => v !== own && v !== "dev");
+}
+
 /** True when the SERVER runs a different integration version than this
  *  bundle — i.e. the browser holds a stale cached frontend. Conservative:
  *  dev builds and missing data never flag. */

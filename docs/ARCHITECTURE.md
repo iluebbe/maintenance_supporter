@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.123.0 | 378 source files (203 Python + 175 TypeScript) | **98% test coverage** (6,543 backend tests + 1,954 frontend tests)
+**Version:** 2.123.1 | 378 source files (203 Python + 175 TypeScript) | **98% test coverage** (6,543 backend tests + 1,963 frontend tests)
 
 ---
 
@@ -305,8 +305,8 @@ custom_components/maintenance_supporter/
 │   ├── strategy/                              Code-split dashboard strategy + content-hashed chunks/
 │   ├── locales/{21 non-EN}.json               Runtime-fetched UI translations
 │   └── vendor/pdf.min.mjs, pdf.worker.min.mjs pdf.js for the work sheet's manual excerpt
-├── frontend-src/               (56,078 lines)  175 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
-│   ├── maintenance-panel.ts     (6,446 lines)  Panel shell: today / dashboard / calendar / settings tabs,
+├── frontend-src/               (56,158 lines)  175 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
+│   ├── maintenance-panel.ts     (6,464 lines)  Panel shell: today / dashboard / calendar / settings tabs,
 │   │                                           object detail, task detail, all-objects, deep-link router
 │   ├── maintenance-dashboard-strategy.ts (1,265 lines)  Auto-generated dashboard strategy + 4 section strategies
 │   ├── maintenance-card.ts        (919 lines)  Lovelace card
@@ -334,10 +334,10 @@ custom_components/maintenance_supporter/
 │   ├── ds-preview-kit.ts          (230 lines)  Design-sync preview kit: a demo household behind a mock `hass`
 │   ├── maintenance-panel-card.ts  (369 lines)  The whole panel as a Lovelace card (#174)
 │   ├── status-constants.ts        (110 lines)  Status colors + icons — THE single source for every renderer
-│   ├── helpers/                 (9,990 lines)  98 files — Pure functions and small services shared by the panel, the cards and the dialogs
+│   ├── helpers/                (10,052 lines)  98 files — Pure functions and small services shared by the panel, the cards and the dialogs
 │   │   ├── calendar-bucket.ts     (442 lines)  Pure 7/14/30/365-day projection, 5 occurrences max per task, no projection for sensor-based
 │   │   ├── notes-markdown.ts      (143 lines)  Notes rendering (ha-markdown hand-off)
-│   │   ├── bundle-version.ts       (35 lines)  Stale-bundle guard
+│   │   ├── bundle-version.ts       (55 lines)  Stale-bundle guard; the versions of our bundles running in the window
 │   │   ├── history-photos.ts       (33 lines)  #161: photo_doc_ids ∪ legacy photo_doc_id, cap 10
 │   │   ├── photo-upload.ts        (130 lines)  Multipart upload + orphan cleanup
 │   │   ├── reading-slots.ts       (130 lines)  #161 phase 2: entry snapshot, last value per slot, per-slot delta
@@ -363,7 +363,7 @@ custom_components/maintenance_supporter/
 │   │   ├── hydrate-objects.ts      (59 lines)  Hydration for compact WS payloads (perf wave 2, item 3)
 │   │   ├── import-format.ts        (24 lines)  Which importer a pasted export belongs to (Settings → Import)
 │   │   ├── interval.ts             (44 lines)  Unit-aware interval math (issue #59) for the frontend's progress bars and calendar projection stepping
-│   │   ├── locale-core.ts         (161 lines)  Locale store + lookup without Lit and without the English table (the dashboard strategy translates too)
+│   │   ├── locale-core.ts         (203 lines)  Locale store + lookup without Lit and without the English table (the dashboard strategy translates too), tables per bundle version
 │   │   ├── modal-shell.ts         (115 lines)  Modal frame of the dialogs that are not <ha-dialog> (history-entry editor, object / task dialogs)
 │   │   ├── notify-icons.ts         (20 lines)  #185: default push-notification icon per maintenance type (twin of helpers/notify_icons.py)
 │   │   ├── object-columns.ts       (67 lines)  (#67) Objects-table column catalog
@@ -492,7 +492,7 @@ custom_components/maintenance_supporter/
 │   │   ├── part-pill-styles.ts     (31 lines)  The small rounded action of a part row (*Used*, *Bought*): one look for both, which each kept a copy of it (DRY audit 2026-10-30, FE6-B10)
 │   │   ├── state-timeline.ts      (685 lines)  A state, code or AND/OR rule as a timeline: the result, its conditions and sensors, the newest report in words, a magnifier for short alerts
 │   │   └── runtime-bars.ts        (180 lines)  A runtime rule's chart: hours run per day as bars, the services marked, the mean and the time to the target
-│   └── __tests__/              (41,507 lines)  273 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
+│   └── __tests__/              (41,719 lines)  274 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
 ├── helpers/                    (39,811 lines)  117 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
 │   ├── notification_manager.py  (3,145 lines)  Multi-channel notification system
@@ -895,6 +895,8 @@ The coordinator's action methods are the single action layer; each of these is a
 
 **Stale-bundle handshake.** HA serves the panel JS with cache headers, so after an upgrade a browser can hold a bundle that is older than the backend it talks to — the failure mode is a silent one (a call whose new field the old bundle never sends). esbuild stamps the integration version it built from into `__MS_BUNDLE_VERSION__` (`helpers/bundle-version.ts`); on connect the panel asks the backend for its manifest version via the `maintenance_supporter/version` WS command and compares. A mismatch sets `_staleBundle`, which renders a reload banner. The comparison is deliberately conservative: dev builds (`"dev"`) and a missing server version never flag.
 
+**One version per window.** A window keeps the code it loaded until it reloads, and restarting Home Assistant does not change that: after an update, the card (loaded on every page) can still be the older version while the panel, opened later, is the newer one. Both share window-scoped state (the locale store, because the card's dialogs run inside the panel), so that state is kept per version: `window.__msLocales.byVersion` holds each version's tables and `t()` reads its own first. Every bundle adds its version to `window.__msBundleVersions`; bundles from before 2.123.1 do not, but leave a shared table without a `storeFrom` entry. `windowMixesVersions()` reads both, and the panel shows a reload banner (`_mixedVersions`) after the version check, unless an update waits for the restart.
+
 **Language normalization.** HA emits regional codes (`zh-Hans`, `pt-BR`), while the integration's tables — calendar/notification/config-flow string dicts, the `name_<lang>` template fields, and the panel's `styles.ts` strings — are keyed by the bare two-letter prefix. `helpers/i18n.py::normalize_language_code` is the single normalizer every consumer runs through instead of truncating with `[:2]` itself, because **Brazilian Portuguese is the one regional variant with its own tables** (`pt-br`) and a bare truncation would silently collapse it into European `pt`. The frontend mirrors the rule in `langToLocale` (and keys Chinese as `zh`).
 
 **The panel as a card (2.84, #174).** `maintenance-panel-card.ts` (in the card bundle) defines `maintenance-supporter-panel-card`: a plain custom element that lazy-imports the panel bundle from the URL HA registered for the sidebar panel (`hass.panels["maintenance-supporter"].config._panel_custom.module_url`) — the same module instance, so `maintenance-supporter-panel` is defined once whichever surface loads first — and mounts one panel element with `embedded = true`, `presets` (`tab` / `view` from the card config) and `narrow` derived from the card's width (870 px, HA's own breakpoint). The panel keeps its bounded box with `.content` as the scroller, so the card gives it a definite height: the viewport below the card's top edge (measured on mount / resize, never on scroll) or the configured `height`. Embedded mode in the panel: no `ha-menu-button`, no safe-area padding on `.panel`, `_onLocationChanged` accepts the dashboard's path, and the presets open a tab / saved view once without persisting the choice.
@@ -1173,7 +1175,7 @@ The rules that are easiest to regress are tripwired:
 
 ## Test Coverage
 
-**6,543 tests** across **397 test files** with **98% code coverage** (plus a 1,954-test frontend suite in real Chromium across 270 spec files, the 34-scenario journey suite, and the live e2e scripts under `e2e/`).
+**6,543 tests** across **397 test files** with **98% code coverage** (plus a 1,963-test frontend suite in real Chromium across 271 spec files, the 34-scenario journey suite, and the live e2e scripts under `e2e/`).
 
 ### Coverage policy
 

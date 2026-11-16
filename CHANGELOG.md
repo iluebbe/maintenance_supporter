@@ -2,6 +2,29 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.123.1] - 2026-11-16
+
+Texts that read in English after an update.
+
+### 🐛 Fixed
+
+- **New texts read in English until the page was reloaded.** After an update, a card loaded before it kept running
+  next to the panel loaded after it, and the panel used the card's older table of the language: every text the
+  update added read in English and a reworded one as before, although the translations were complete. Each version
+  now reads its own table; an older one only fills in until it has arrived.
+- **The panel asks for a reload when part of the page is older.** Restarting Home Assistant does not replace what an
+  open page has loaded. The panel now says when an older part of Maintenance Supporter still runs in it, with a
+  button to reload. While the update waits for the restart, the restart notice stays the only one.
+
+### 🔧 Developer notes
+
+- `helpers/locale-core.ts`: tables per bundle version (`window.__msLocales.byVersion`, read first by `t()`), fetches
+  per version (`<lang>@<version>`), `storeFrom` records which version created a shared table, `windowMixesVersions()`.
+  `helpers/bundle-version.ts`: every bundle adds its version to `window.__msBundleVersions`; `otherBundleVersions()`.
+- Frontend locale key `mixed_versions_banner`.
+- Tests: `__tests__/locale-version-skew-2026-11-16.test.ts` (13 mutations RED); `i18n-loader.test.ts` follows the
+  per-version tables.
+
 ## [2.123.0] - 2026-11-15
 
 More of the task page's charts show what the rule watches.

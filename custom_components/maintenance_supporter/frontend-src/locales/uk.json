@@ -1437,6 +1437,7 @@
   "battery_fleet_setup_done": "Парк батарей налаштовано — одне завдання стежить за всіма.",
   "update_banner": "На сервері новіша версія Maintenance Supporter — перезавантажте, щоб оновити панель.",
   "update_reload": "Перезавантажити",
+  "mixed_versions_banner": "Частина цієї сторінки ще працює на старій версії Maintenance Supporter. Перезавантажте, щоб оновити все.",
   "restart_pending_banner": "Maintenance Supporter оновлено до версії {version}. Перезапустіть Home Assistant, щоб завершити оновлення.",
   "restart_pending_error": "Не вдалося: Maintenance Supporter оновлено до версії {version}, але Home Assistant відтоді не перезапускався. Перезапустіть Home Assistant і спробуйте ще раз.",
   "row_actions_banner": "«Виконано» та «Пропустити» в рядках завдань тепер кнопки. Бажаєте старі значки?",

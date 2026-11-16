@@ -14,6 +14,7 @@
  */
 import { expect } from "@open-wc/testing";
 import { t, isLocaleLoaded, ensureLocale, seedEnglish, syncLocaleFromHass } from "../styles";
+import { BUNDLE_VERSION } from "../helpers/bundle-version";
 
 describe("i18n runtime loader", () => {
   it("serves bundled English synchronously", () => {
@@ -58,9 +59,10 @@ describe("i18n runtime loader", () => {
     const g = (window as unknown as {
       __msLocales: { store: Record<string, unknown>; inflight: Record<string, unknown>; failedAt: Record<string, number> };
     }).__msLocales;
+    // Fetches are kept per version since 2026-11-16 ("ko@dev" under test).
     delete g.store.ko;
-    delete g.inflight.ko;
-    delete g.failedAt.ko;
+    delete g.inflight["ko@dev"];
+    delete g.failedAt["ko@dev"];
     const realFetch = window.fetch;
     let fetches = 0;
     window.fetch = (() => {
@@ -79,7 +81,7 @@ describe("i18n runtime loader", () => {
       expect(isLocaleLoaded("ko")).to.be.false;
     } finally {
       window.fetch = realFetch;
-      delete g.failedAt.ko;
+      delete g.failedAt["ko@dev"];
     }
   });
 
@@ -90,17 +92,19 @@ describe("i18n runtime loader", () => {
     // module-scoped store, the panel's locale load would never reach the
     // dialog: German panel, English "Edit Task" dialog (the v2.17.0 bug).
     // Guard: the store is window-scoped, so writing to the global (as another
-    // bundle copy would) is immediately visible to this copy's t().
+    // bundle copy of the same version would) is immediately visible to this
+    // copy's t(). Since 2026-11-16 a version keeps its tables under its own
+    // version (locale-version-skew-2026-11-16.test.ts).
     const g = (window as unknown as {
-      __msLocales?: { store: Record<string, Record<string, string>> };
+      __msLocales?: { byVersion: Record<string, Record<string, Record<string, string>>> };
     }).__msLocales;
     expect(g, "window.__msLocales must back the locale store").to.exist;
-    g!.store.pt = { loading: "A carregar (from another bundle copy)" };
+    g!.byVersion[BUNDLE_VERSION].pt = { loading: "A carregar (from another bundle copy)" };
     try {
       expect(t("loading", "pt")).to.equal("A carregar (from another bundle copy)");
       expect(isLocaleLoaded("pt")).to.be.true;
     } finally {
-      delete g!.store.pt;
+      delete g!.byVersion[BUNDLE_VERSION].pt;
     }
   });
 
@@ -108,18 +112,22 @@ describe("i18n runtime loader", () => {
     // After an update, a cached app shell can load an OLD card bundle first;
     // its EN table lacks every key the fresh panel introduced. First-wins
     // seeding froze that stale table and the panel rendered raw keys
-    // ("BATTERY_FLEET_ADD"). The merge keeps existing entries (steady state
-    // unchanged) but lets every bundle contribute the keys it knows.
+    // ("BATTERY_FLEET_ADD"). The shared table keeps existing entries (the
+    // older bundle reads it) but every bundle contributes the keys it knows;
+    // since 2026-11-16 this bundle reads its own wording first.
     const g = (window as unknown as {
       __msLocales: { store: Record<string, Record<string, string>> };
     }).__msLocales;
     const original = g.store.en;
+    const own = t("loading", "en");
     try {
       // Simulate the stale bundle having seeded first with a tiny old table.
       g.store.en = { loading: "Old loading text" };
       seedEnglish({ loading: "Fresh loading text", brand_new_key: "New feature label" });
-      expect(t("loading", "en"), "existing entries win conflicts").to.equal("Old loading text");
+      expect(t("loading", "en"), "this bundle reads its own wording").to.equal(own);
+      expect(g.store.en.loading, "the older bundle keeps its own").to.equal("Old loading text");
       expect(t("brand_new_key", "en"), "newer keys are contributed, never raw").to.equal("New feature label");
+      expect(g.store.en.brand_new_key, "to the shared table too").to.equal("New feature label");
     } finally {
       g.store.en = original;
     }

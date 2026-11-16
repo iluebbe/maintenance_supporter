@@ -7,6 +7,7 @@ import { matchesQuery, queryTokens, scoreFields } from "./helpers/search-match";
 import { objectRef, parseRef, renderRefChip, taskRef, type HasRef } from "./helpers/reference";
 import { applySubscriptionEvent, type SubscriptionEvent } from "./helpers/subscription-merge";
 import { isStaleBundle, pendingRestartVersion, type ServerVersion } from "./helpers/bundle-version";
+import { windowMixesVersions } from "./helpers/locale-core";
 import { customElement, property, state } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
 import { guard } from "lit/directives/guard.js";
@@ -385,6 +386,9 @@ export class MaintenanceSupporterPanel extends LitElement {
   // and the fleet isn't set up yet.
   @state() private _batteryFleetSetupAvailable = false;
   @state() private _staleBundle = false;
+  /** This window also runs an older bundle of ours (a card loaded before an
+   *  update): only a reload brings the page onto one version again. */
+  @state() private _mixedVersions = false;
   /** The version an update installed while Home Assistant still runs the
    *  old code (helpers/update_state.py); null when both agree. */
   @state() private _restartPendingVersion: string | null = null;
@@ -1113,6 +1117,9 @@ export class MaintenanceSupporterPanel extends LitElement {
       .then((v) => {
         this._restartPendingVersion = pendingRestartVersion(v);
         this._staleBundle = !this._restartPendingVersion && isStaleBundle(v?.version);
+        // Home Assistant's restart does not replace code a window already
+        // loaded, so this is checked after it too (the reconnect calls here).
+        this._mixedVersions = !this._restartPendingVersion && !this._staleBundle && windowMixesVersions();
       })
       .catch(() => {
         /* backend too old to answer — no banner */
@@ -3800,6 +3807,17 @@ export class MaintenanceSupporterPanel extends LitElement {
               <div class="update-banner" role="status">
                 <ha-icon icon="mdi:update"></ha-icon>
                 <span>${t("update_banner", this._lang)}</span>
+                <ha-button appearance="plain" @click=${() => location.reload()}>
+                  ${t("update_reload", this._lang)}
+                </ha-button>
+              </div>
+            `
+          : nothing}
+        ${this._mixedVersions
+          ? html`
+              <div class="update-banner mixed-versions-banner" role="status">
+                <ha-icon icon="mdi:update"></ha-icon>
+                <span>${t("mixed_versions_banner", this._lang)}</span>
                 <ha-button appearance="plain" @click=${() => location.reload()}>
                   ${t("update_reload", this._lang)}
                 </ha-button>

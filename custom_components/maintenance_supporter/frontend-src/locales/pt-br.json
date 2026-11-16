@@ -1437,6 +1437,7 @@
   "battery_fleet_setup_done": "Frota de baterias configurada — uma única tarefa acompanha todas as suas baterias.",
   "update_banner": "Há uma versão mais nova do Maintenance Supporter no servidor — recarregue para atualizar o painel.",
   "update_reload": "Recarregar",
+  "mixed_versions_banner": "Parte desta página ainda usa uma versão mais antiga do Maintenance Supporter. Recarregue para atualizar tudo.",
   "restart_pending_banner": "O Maintenance Supporter foi atualizado para a versão {version}. Reinicie o Home Assistant para finalizar a atualização.",
   "restart_pending_error": "Não deu certo: o Maintenance Supporter foi atualizado para a versão {version}, mas o Home Assistant ainda não foi reiniciado. Reinicie o Home Assistant e tente de novo.",
   "row_actions_banner": "Concluir e Pular agora são botões nas linhas de tarefas. Prefere os ícones antigos?",

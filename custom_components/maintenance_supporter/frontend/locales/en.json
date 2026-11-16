@@ -1437,6 +1437,7 @@
   "battery_fleet_setup_done": "Battery fleet set up — one task tracks all your batteries.",
   "update_banner": "A newer version of Maintenance Supporter is on the server — reload to update the panel.",
   "update_reload": "Reload",
+  "mixed_versions_banner": "Part of this page still runs an older version of Maintenance Supporter. Reload to update it all.",
   "restart_pending_banner": "Maintenance Supporter was updated to {version}. Restart Home Assistant to finish the update.",
   "restart_pending_error": "That did not work: Maintenance Supporter was updated to {version}, but Home Assistant has not been restarted since. Restart Home Assistant, then try again.",
   "row_actions_banner": "Complete and Skip in task rows are now buttons. Prefer the old icons?",

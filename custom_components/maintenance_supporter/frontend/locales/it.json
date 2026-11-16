@@ -1437,6 +1437,7 @@
   "battery_fleet_setup_done": "Parco batterie configurato — un'attività monitora tutte.",
   "update_banner": "Sul server è presente una versione più recente di Maintenance Supporter — ricarica per aggiornare il pannello.",
   "update_reload": "Ricarica",
+  "mixed_versions_banner": "Una parte di questa pagina usa ancora una versione precedente di Maintenance Supporter. Ricarica per aggiornare tutto.",
   "restart_pending_banner": "Maintenance Supporter è stato aggiornato alla versione {version}. Riavvia Home Assistant per completare l'aggiornamento.",
   "restart_pending_error": "Non è andato a buon fine: Maintenance Supporter è stato aggiornato alla versione {version}, ma da allora Home Assistant non è stato riavviato. Riavvia Home Assistant e riprova.",
   "row_actions_banner": "Completa e Salta nelle righe delle attività ora sono pulsanti. Preferisci le vecchie icone?",
