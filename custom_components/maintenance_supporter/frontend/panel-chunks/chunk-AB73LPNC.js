@@ -1,0 +1,2 @@
+/*! maintenance_supporter frontend 2.124.1 */
+import{e as a}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-ZQVFL4ED.js";import{e}from"/maintenance_supporter_panelfiles/panel-chunks/chunk-T2CW4TCZ.js";function i(r,t){return a("ha-alert")?e`<ha-alert alert-type=${r} class="notice notice-${r}">${t}</ha-alert>`:e`<div class=${r==="warning"?"error warning":"error"}>${t}</div>`}export{i as a};

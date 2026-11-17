@@ -34,10 +34,17 @@ belongs to "Replace Secondary Filter".
 "Filter Cleaning" lost every hour the unit ran in that mode. The catalog
 now counts both states, and a runtime trigger on an Airstage climate that
 still has exactly the states the catalog wrote is widened to them.
+
+2026-11-17: Roborock and Xiaomi Miio count their sensors' cleaning cycle down
+from 30 hours, and the "Clean Sensors" duty opened at the default 24 hours
+left, after 6 hours of cleaning. The catalog now waits until 6 hours are
+left; a trigger with exactly the old lead, in whatever display unit the
+catalog wrote it (Xiaomi reports seconds), gets the new one.
 """
 
 from __future__ import annotations
 
+import math
 from collections.abc import Mapping
 from typing import Any
 
@@ -190,6 +197,59 @@ def _healed_stray_key_trigger(hass: HomeAssistant, tc: Mapping[str, Any]) -> dic
     return healed
 
 
+# platform → (the countdown keys whose catalog lead time shrank, the lead in
+# hours the catalog wrote before — history, so spelled out; the new lead is
+# read from the catalog).
+_LEAD_TIME_HEALS: dict[str, tuple[frozenset[str], int]] = {
+    "roborock": (frozenset({"sensor_time_left"}), 24),
+    "xiaomi_miio": (frozenset({"sensor_dirty_left"}), 24),
+}
+
+
+def _catalog_lead_hours(platform: str, key: str) -> int:
+    """The lead in hours the catalog now wires for the countdown ``key``."""
+    from .signatures import SIGNATURES
+
+    for sig in SIGNATURES[platform].tasks:
+        if sig.direction == "duration_left" and key in sig.keys:
+            return sig.below_hours
+    raise LookupError(f"no countdown signature for {platform}/{key}")
+
+
+def _healed_lead_time_trigger(hass: HomeAssistant, tc: Mapping[str, Any]) -> dict[str, Any] | None:
+    if tc.get("type") != "threshold" or tc.get("trigger_above") is not None:
+        return None
+    below = tc.get("trigger_below")
+    if not isinstance(below, int | float) or isinstance(below, bool):
+        return None
+
+    entity_ids = normalize_entity_ids(dict(tc))
+    if not entity_ids:
+        return None
+    ent_reg = er.async_get(hass)
+    leads = set()
+    for entity_id in entity_ids:
+        reg = ent_reg.async_get(entity_id) if isinstance(entity_id, str) else None
+        heal = _LEAD_TIME_HEALS.get(reg.platform) if reg is not None else None
+        if reg is None or heal is None or reg.translation_key not in heal[0]:
+            return None  # not (only) an affected countdown — the user's own trigger
+        leads.add((heal[1], _catalog_lead_hours(reg.platform, reg.translation_key)))
+    if len(leads) != 1:
+        return None
+    old, new = leads.pop()
+    if old == new:
+        return None
+    # The catalog wrote the old lead in the entity's display unit of the day
+    # (24 h = 86400 s): a value that is exactly that in a duration unit is
+    # the catalog's; any other value is the user's.
+    from .signatures._model import DISPLAY_UNIT_FACTORS
+
+    for factor in {f for unit, f in DISPLAY_UNIT_FACTORS.items() if not unit.endswith("Wh")}:
+        if math.isclose(below, round(old * factor, 3), rel_tol=1e-9, abs_tol=1e-9):
+            return {**tc, "trigger_below": round(new * factor, 3)}
+    return None
+
+
 def heal_catalog_triggers(hass: HomeAssistant, data: Mapping[str, Any]) -> dict[str, Any] | None:
     """The entry data with healed triggers, or None when nothing changed."""
     tasks = data.get(CONF_TASKS)
@@ -205,6 +265,7 @@ def heal_catalog_triggers(hass: HomeAssistant, data: Mapping[str, Any]) -> dict[
             or _healed_wear_trigger(hass, tc)
             or _healed_stray_key_trigger(hass, tc)
             or _healed_state_set_trigger(hass, tc)
+            or _healed_lead_time_trigger(hass, tc)
         )
         if healed is None:
             continue

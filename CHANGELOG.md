@@ -2,6 +2,26 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.124.1] - 2026-11-17
+
+Sensor cleaning on Roborock and Xiaomi robots.
+
+### 🐛 Fixed
+
+- **"Clean Sensors" on a Roborock or Xiaomi Miio robot fell due far too early.** The robot counts its sensors'
+  cleaning cycle down from 30 hours, and the suggested task opened with 24 hours left, after 6 hours of cleaning.
+  It now opens with 6 hours left. A task already set up from the suggestion is moved to the new point once, at the
+  next start; a threshold you changed yourself stays as it is.
+
+### 🔧 Developer notes
+
+- `helpers/signatures/vacuums.py`: roborock `sensor_time_left` (python-roborock `SENSOR_DIRTY_REPLACE_TIME` =
+  108000 s) and xiaomi_miio `sensor_dirty_left` (python-miio `sensor_dirty_total` = 30 h) get `below_hours=6`.
+- `helpers/catalog_heal.py` `_healed_lead_time_trigger`: a threshold trigger on exactly those countdowns whose lower
+  bound is the old 24 h in any duration unit (Xiaomi reports seconds) gets 6 h in that unit.
+  `helpers/signatures/_model.py` `DISPLAY_UNIT_FACTORS` (was local to `_threshold_for`).
+- Tests: `tests/test_catalog_heal.py`, `tests/test_github_round_2026_11_17.py` (7 mutations RED).
+
 ## [2.124.0] - 2026-11-17
 
 One e-mail for several parts, and a due bar for every calendar schedule.

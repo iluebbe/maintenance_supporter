@@ -147,7 +147,7 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Roborock | `roborock` | Replace Main Brush | below 24 h remaining | completing presses `reset_main_brush_consumable` |
 |  |  | Replace Side Brush | below 24 h remaining | completing presses `reset_side_brush_consumable` |
 |  |  | Replace Filter | below 24 h remaining | completing presses `reset_air_filter_consumable` |
-|  |  | Clean Sensors | below 24 h remaining | completing presses `reset_sensor_consumable` |
+|  |  | Clean Sensors | below 6 h remaining | completing presses `reset_sensor_consumable` |
 |  |  | Replace Mop Pads | below 24 h remaining |  |
 |  |  | Replace Dock Strainer | below 24 h remaining | completing presses `reset_dock_strainer_consumable` |
 |  |  | Replace Maintenance Brush | below 24 h remaining | completing presses `reset_dock_cleaning_brush_consumable` |
@@ -155,7 +155,7 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Xiaomi Miio | `xiaomi_miio` | Replace Main Brush | below 24 h remaining | completing presses `reset_vacuum_main_brush` |
 |  |  | Replace Side Brush | below 24 h remaining | completing presses `reset_vacuum_side_brush` |
 |  |  | Replace Filter | below 24 h remaining | completing presses `reset_vacuum_filter` |
-|  |  | Clean Sensors | below 24 h remaining | completing presses `reset_vacuum_sensor_dirty` |
+|  |  | Clean Sensors | below 6 h remaining | completing presses `reset_vacuum_sensor_dirty` |
 |  |  | Replace Filter | below the household consumable floor (default 10 %) | one task per entity; completing presses `reset_dust_filter`/`reset_upper_filter` |
 | Dreame Vacuum | `dreame_vacuum` | Replace Main Brush | below the household consumable floor (default 10 %) | completing presses `reset_main_brush` |
 |  |  | Replace Side Brush | below the household consumable floor (default 10 %) | completing presses `reset_side_brush` |

@@ -13,6 +13,11 @@ the panel can put several ticked parts into one e-mail.
 2026-10-28, so a new install's run-time sensor is ``<device name>_run_time``;
 an existing one keeps ``generac_<device_id>_run_time``. Both are offered the
 oil service.
+
+Sensor cleaning (2.124.1): Roborock and Xiaomi Miio count the sensors'
+30-hour cycle down, and "Clean Sensors" opened at the catalog's default 24
+hours left, after 6 hours of cleaning. It now opens at 6 hours left
+(tests/test_catalog_heal.py heals the adopted triggers).
 """
 
 from __future__ import annotations
@@ -142,3 +147,33 @@ async def test_generac_run_time_under_either_name(hass: HomeAssistant, object_id
     (task,) = setups[device.id]["tasks"]
     assert task["task_name"] == "Oil Service"
     assert task["entity_ids"] == [f"sensor.{object_id}"]  # not the protection time
+
+
+# ─── Sensor cleaning on Roborock and Xiaomi Miio: a 30-hour cycle ────────
+
+
+@pytest.mark.parametrize(
+    ("platform", "key", "unit", "state", "threshold"),
+    [
+        ("roborock", "sensor_time_left", "h", "29.5", 6.0),  # python-roborock: 108000 s
+        ("xiaomi_miio", "sensor_dirty_left", "s", "100800", 21600.0),  # python-miio: 30 h, HA in seconds
+    ],
+)
+async def test_sensor_cleaning_opens_six_hours_before_the_count_runs_out(
+    hass: HomeAssistant, platform: str, key: str, unit: str, state: str, threshold: float
+) -> None:
+    """The duty opened at the catalog's default 24 hours left, after 6 hours
+    of a 30-hour cycle."""
+    await setup_integration(hass, _global_entry(hass))
+    source = MockConfigEntry(domain=platform, title=platform)
+    source.add_to_hass(hass)
+    device = dr.async_get(hass).async_get_or_create(config_entry_id=source.entry_id, identifiers={(platform, "v1")}, name="Robot")
+    entry = er.async_get(hass).async_get_or_create(
+        "sensor", platform, f"v1_{key}", config_entry=source, device_id=device.id, translation_key=key, suggested_object_id=f"robot_{key}"
+    )
+    hass.states.async_set(entry.entity_id, state, {"unit_of_measurement": unit})
+
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+    (task,) = [t for t in setups[device.id]["tasks"] if t["task_name"] == "Clean Sensors"]
+    assert task["direction"] == "duration_left"
+    assert task["threshold"] == threshold

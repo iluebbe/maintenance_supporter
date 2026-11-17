@@ -311,6 +311,38 @@ def _unit_compatible(direction: str, unit: str | None) -> bool:
     return unit != "%"
 
 
+# Canonical → display unit: time counters are stored in hours, energy in
+# kWh; lengths and volumes in the signature's unit_base (below).
+# Every duration unit HA lets a user pick as display unit is listed —
+# a missing one silently fell back to 1.0 (a "24 h" floor became "24 w").
+# catalog_heal reads it too, to recognise a threshold the catalog wrote.
+DISPLAY_UNIT_FACTORS: dict[str, float] = {
+    "μs": 3_600_000_000.0,
+    "ms": 3_600_000.0,
+    "s": 3600.0,
+    "min": 60.0,
+    "h": 1.0,
+    "d": 1 / 24,
+    "w": 1 / 168,
+    # 2.95: custom integrations that spell the unit out (HERU, CatLink:
+    # "days") — the 1.0 fallback turned a 7-day floor into 168 days.
+    "sec": 3600.0,
+    "seconds": 3600.0,
+    "mins": 60.0,
+    "minutes": 60.0,
+    "hr": 1.0,
+    "hrs": 1.0,
+    "hours": 1.0,
+    "day": 1 / 24,
+    "days": 1 / 24,
+    "week": 1 / 168,
+    "weeks": 1 / 168,
+    # energy counters are canonical in kWh (wallbox cable inspection)
+    "Wh": 1000.0,
+    "kWh": 1.0,
+    "MWh": 0.001,
+}
+
 # Display units per kilometre resp. per cubic metre (round 18).
 _LENGTH_PER_KM = {"km": 1.0, "mi": 0.62137, "miles": 0.62137, "m": 1000.0, "ft": 3280.84, "yd": 1093.61}
 _VOLUME_PER_M3 = {"m³": 1.0, "L": 1000.0, "ft³": 35.3147, "gal": 264.172}
@@ -338,37 +370,7 @@ def _threshold_for(sig: ConsumableSignature, hass: HomeAssistant, entity_id: str
         return float(sig.below_percent)
     state = hass.states.get(entity_id)
     unit = (state.attributes.get("unit_of_measurement") if state else None) or "h"
-    # Canonical → display unit: time counters are stored in hours, energy in
-    # kWh; lengths and volumes in the signature's unit_base (below).
-    # Every duration unit HA lets a user pick as display unit is listed —
-    # a missing one silently fell back to 1.0 (a "24 h" floor became "24 w").
-    factors = {
-        "μs": 3_600_000_000.0,
-        "ms": 3_600_000.0,
-        "s": 3600.0,
-        "min": 60.0,
-        "h": 1.0,
-        "d": 1 / 24,
-        "w": 1 / 168,
-        # 2.95: custom integrations that spell the unit out (HERU, CatLink:
-        # "days") — the 1.0 fallback turned a 7-day floor into 168 days.
-        "sec": 3600.0,
-        "seconds": 3600.0,
-        "mins": 60.0,
-        "minutes": 60.0,
-        "hr": 1.0,
-        "hrs": 1.0,
-        "hours": 1.0,
-        "day": 1 / 24,
-        "days": 1 / 24,
-        "week": 1 / 168,
-        "weeks": 1 / 168,
-        # energy counters are canonical in kWh (wallbox cable inspection)
-        "Wh": 1000.0,
-        "kWh": 1.0,
-        "MWh": 0.001,
-    }
-    factor = factors.get(unit) or factors.get(str(unit).strip().lower(), 1.0)
+    factor = DISPLAY_UNIT_FACTORS.get(unit) or DISPLAY_UNIT_FACTORS.get(str(unit).strip().lower(), 1.0)
     # Lengths and volumes relative to the signature's base (round 18): an
     # odometer shown in metres read the km floor as metres, while the
     # filament counter's metres are its base.

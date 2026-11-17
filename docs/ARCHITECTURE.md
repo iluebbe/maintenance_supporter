@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.124.0 | 379 source files (203 Python + 176 TypeScript) | **98% test coverage** (6,557 backend tests + 1,974 frontend tests)
+**Version:** 2.124.1 | 379 source files (203 Python + 176 TypeScript) | **98% test coverage** (6,561 backend tests + 1,974 frontend tests)
 
 ---
 
@@ -495,7 +495,7 @@ custom_components/maintenance_supporter/
 │   │   └── runtime-bars.ts        (180 lines)  A runtime rule's chart: hours run per day as bars, the services marked, the mean and the time to the target
 │   └── __tests__/              (41,924 lines)  275 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
-├── helpers/                    (39,816 lines)  117 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
+├── helpers/                    (39,884 lines)  117 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
 │   ├── notification_manager.py  (3,145 lines)  Multi-channel notification system
 │   ├── notify_hooks.py            (422 lines)  The one send hook (#165): event `maintenance_supporter_notification`, extra-data template, event-only delivery
 │   ├── notify_icons.py             (97 lines)  Notification icons (#185): defaults per maintenance type / kind / fleet, `notify_icon_for`, `is_valid_icon`
@@ -542,7 +542,7 @@ custom_components/maintenance_supporter/
 │   ├── aggregate.py               (336 lines)  compute_status_counts — the single KPI source; merged_tasks, stores, object ids
 │   ├── i18n.py                    (118 lines)  normalize_language_code (pt-br is its own table key)
 │   ├── integration_signatures.py   (28 lines)  Compatibility shim → signatures/
-│   ├── catalog_heal.py            (216 lines)  Repairs catalog-adopted triggers a later signature fix invalidated (gree/daikin AC runtime)
+│   ├── catalog_heal.py            (277 lines)  Repairs catalog-adopted triggers a later signature fix invalidated (AC runtime states, hOn filters, Dreame tank filter, robot sensor lead)
 │   ├── climate.py                 (236 lines)  Offline climate of the home location: Köppen class + coldest/warmest month → traits (freeze, snow, hot_humid, termites, cyclone …), hemisphere flip
 │   ├── home_profile.py            (403 lines)  House vs apartment from floors/areas/entities, `home_type` override, country, region (`home_region` override), radon countries, earthquake / Gulf-coast freeze boxes, Australia-wide bushfire/termites, equipment from integrations (UPS: NUT/apcupsd)
 │   ├── region.py                  (171 lines)  Offline state / province / region of the home location (ISO 3166-2): two-level grid from Natural Earth admin-1, nearest region on the coast
@@ -598,8 +598,8 @@ custom_components/maintenance_supporter/
 │   ├── completes_itself.py         (83 lines)  Backend twin of completes-itself.ts: a task its sensor completes gets no Complete and Skip buttons on its reminders (D#250)
 │   ├── state_match.py              (11 lines)  How a state rule compares an entity's state with the one it names: case and the blanks around it do not count ("Finished " is "finished")
 │   ├── object_ready.py             (43 lines)  Waiting out an object's reload before acting on one of its tasks
-│   └── signatures/              (7,667 lines)  19 files — Suggested-setups catalog: 288 integrations / 603 signatures
-│       ├── _model.py              (507 lines)  IntegrationSignature / ConsumableSignature + matcher mechanics
+│   └── signatures/              (7,674 lines)  19 files — Suggested-setups catalog: 288 integrations / 603 signatures
+│       ├── _model.py              (509 lines)  IntegrationSignature / ConsumableSignature + matcher mechanics
 │       ├── _discovery.py          (385 lines)  Entity-registry scan → per-duty setup proposals
 │       ├── _registry.py            (30 lines)  Merge + duplicate-domain guard
 │       ├── _shared.py             (293 lines)  Signatures shared verbatim by several integrations (DRY audit 2026-09-26 B)
@@ -614,7 +614,7 @@ custom_components/maintenance_supporter/
 │       ├── pets.py                (203 lines)  Pet tech — feeders, fountains, litter boxes
 │       ├── printers.py            (406 lines)  2D and 3D printers incl. Klipper via Moonraker
 │       ├── transports.py          (161 lines)  Protocol/hub transports whose duties are entity-domain-gated
-│       ├── vacuums.py             (732 lines)  Cleaning robots — vacuums, mops and the Dolphin pool robot
+│       ├── vacuums.py             (737 lines)  Cleaning robots — vacuums, mops and the Dolphin pool robot
 │       ├── wallboxes.py           (196 lines)  EV chargers — cable/plug inspection by delivered energy
 │       └── xiaomi.py               (66 lines)  Xiaomi ecosystem integrations (MIoT / Xiaomi Home) — multi-category
 │
@@ -1176,7 +1176,7 @@ The rules that are easiest to regress are tripwired:
 
 ## Test Coverage
 
-**6,557 tests** across **398 test files** with **98% code coverage** (plus a 1,974-test frontend suite in real Chromium across 272 spec files, the 34-scenario journey suite, and the live e2e scripts under `e2e/`).
+**6,561 tests** across **398 test files** with **98% code coverage** (plus a 1,974-test frontend suite in real Chromium across 272 spec files, the 34-scenario journey suite, and the live e2e scripts under `e2e/`).
 
 ### Coverage policy
 

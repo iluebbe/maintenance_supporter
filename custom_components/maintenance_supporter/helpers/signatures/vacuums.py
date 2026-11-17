@@ -51,7 +51,10 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ConsumableSignature(("main_brush_time_left", "brush_remaining"), "Replace Main Brush", "duration_left", resets=(("main_brush_time_left", "reset_main_brush_consumable"),)),
             ConsumableSignature(("side_brush_time_left",), "Replace Side Brush", "duration_left", resets=(("side_brush_time_left", "reset_side_brush_consumable"),)),
             ConsumableSignature(("filter_time_left",), "Replace Filter", "duration_left", resets=(("filter_time_left", "reset_air_filter_consumable"),)),
-            ConsumableSignature(("sensor_time_left",), "Clean Sensors", "duration_left", resets=(("sensor_time_left", "reset_sensor_consumable"),)),
+            # The sensors' cycle is 30 h (python-roborock const.py
+            # SENSOR_DIRTY_REPLACE_TIME = 108000 s): the default 24 h left
+            # opened the task after 6 h of cleaning. 6 h left as for TP-Link.
+            ConsumableSignature(("sensor_time_left",), "Clean Sensors", "duration_left", below_hours=6, resets=(("sensor_time_left", "reset_sensor_consumable"),)),
             ConsumableSignature(("mop_life_time_left",), "Replace Mop Pads", "duration_left"),
             # Dock consumables: the 'hours' are the dock's wash-count budget
             # (150 / 300); 24 left ≈ the last 8-16 % of the part's life.
@@ -81,7 +84,9 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             ConsumableSignature(("main_brush_left",), "Replace Main Brush", "duration_left", resets=(("main_brush_left", "reset_vacuum_main_brush"),)),
             ConsumableSignature(("side_brush_left",), "Replace Side Brush", "duration_left", resets=(("side_brush_left", "reset_vacuum_side_brush"),)),
             ConsumableSignature(("filter_left",), "Replace Filter", "duration_left", resets=(("filter_left", "reset_vacuum_filter"),)),
-            ConsumableSignature(("sensor_dirty_left",), "Clean Sensors", "duration_left", resets=(("sensor_dirty_left", "reset_vacuum_sensor_dirty"),)),
+            # A 30 h cycle too (python-miio vacuumcontainers.py
+            # sensor_dirty_total = 30 h; HA reports it in seconds).
+            ConsumableSignature(("sensor_dirty_left",), "Clean Sensors", "duration_left", below_hours=6, resets=(("sensor_dirty_left", "reset_vacuum_sensor_dirty"),)),
             # Purifier / Air Fresh filters (percent, the vacuum's filter is a
             # duration → a separate direction). The T2017 has two filters
             # replaced independently → one task per entity there.

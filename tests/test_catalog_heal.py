@@ -259,3 +259,57 @@ async def test_airstage_heal_writes_what_a_fresh_adoption_wires(hass: HomeAssist
     (sig,) = SIGNATURES["fujitsu_airstage"].tasks
     assert healed[CONF_TASKS]["t"]["trigger_config"]["trigger_on_states"] == list(sig.on_states)
     assert {"auto", "heat_cool"} <= set(sig.on_states), "either version of the integration counts its auto mode"
+
+
+def _countdown(hass: HomeAssistant, platform: str, uid: str, key: str) -> str:
+    src = MockConfigEntry(domain=platform, title=platform)
+    src.add_to_hass(hass)
+    dev = dr.async_get(hass).async_get_or_create(config_entry_id=src.entry_id, identifiers={(platform, uid)}, name="Robot")
+    return er.async_get(hass).async_get_or_create("sensor", platform, f"{uid}_{key}", config_entry=src, device_id=dev.id, translation_key=key).entity_id
+
+
+async def test_sensor_cleaning_waits_for_six_hours_left(hass: HomeAssistant) -> None:
+    """2026-11-17: Roborock and Xiaomi Miio count the sensors' 30-hour cycle
+    down, and "Clean Sensors" opened at 24 hours left, after 6 hours of
+    cleaning. The catalog's old lead, in the unit it was written in, becomes
+    6 hours; any other value is the user's own."""
+    rr = _countdown(hass, "roborock", "r1", "sensor_time_left")
+    xm = _countdown(hass, "xiaomi_miio", "x1", "sensor_dirty_left")
+    rr_min = _countdown(hass, "roborock", "r2", "sensor_time_left")
+    brush = _countdown(hass, "roborock", "r3", "main_brush_time_left")
+    data = build_object_entry_data(
+        object_data=build_object_data(name="Robots"),
+        tasks={
+            "rr": _threshold_task(rr, trigger_below=24.0),
+            "xm": _threshold_task(xm, trigger_below=86400),  # HA reports Xiaomi's in seconds
+            "rr_min": _threshold_task(rr_min, trigger_below=1440.0),  # shown in minutes
+            "mine": _threshold_task(rr, trigger_below=10.0),  # the user's own lead
+            "band": _threshold_task(rr, trigger_below=24.0, trigger_above=29.0),
+            "brush": _threshold_task(brush, trigger_below=24.0),  # a 300-hour part keeps 24 h
+            "both": _threshold_task(rr, trigger_below=24.0),
+        },
+    )
+    data[CONF_TASKS]["both"]["trigger_config"]["entity_ids"] = [rr, brush]
+    healed = heal_catalog_triggers(hass, data)
+    assert healed is not None
+    tasks = healed[CONF_TASKS]
+    assert tasks["rr"]["trigger_config"]["trigger_below"] == 6.0
+    assert tasks["xm"]["trigger_config"]["trigger_below"] == 21600.0
+    assert tasks["rr_min"]["trigger_config"]["trigger_below"] == 360.0
+    assert tasks["rr"]["trigger_config"]["auto_complete_on_recovery"] is True, "the rest of the trigger stays"
+    for tid in ("mine", "band", "brush", "both"):
+        assert tasks[tid] == data[CONF_TASKS][tid], tid
+    assert heal_catalog_triggers(hass, healed) is None, "idempotent"
+
+
+async def test_sensor_cleaning_heal_writes_what_a_fresh_adoption_wires(hass: HomeAssistant) -> None:
+    from custom_components.maintenance_supporter.helpers.integration_signatures import SIGNATURES, build_setup_trigger
+
+    rr = _countdown(hass, "roborock", "r9", "sensor_time_left")
+    hass.states.async_set(rr, "29.5", {"unit_of_measurement": "h"})
+    sig = next(s for s in SIGNATURES["roborock"].tasks if s.task_name == "Clean Sensors")
+    fresh = build_setup_trigger(sig, hass, [rr])
+    data = build_object_entry_data(object_data=build_object_data(name="Robot"), tasks={"t": _threshold_task(rr, trigger_below=24.0)})
+    healed = heal_catalog_triggers(hass, data)
+    assert healed is not None
+    assert healed[CONF_TASKS]["t"]["trigger_config"]["trigger_below"] == fresh["trigger_below"] == 6.0
