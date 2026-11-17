@@ -41,7 +41,7 @@ from ..helpers.aggregate import (
 from ..helpers.aggregate import object_slug as aggregate_object_slug
 from ..helpers.global_options import get_global_entry, get_global_options
 from ..helpers.i18n import normalize_language
-from ..helpers.parts import MAX_CONSUME_QUANTITY, is_part_low, resolve_shopping_url
+from ..helpers.parts import MAX_CONSUME_QUANTITY, is_mailto_url, is_part_low, order_lines, resolve_shopping_url
 from ..helpers.phases import current_phase_summary
 from ..helpers.places import object_place, zone_name
 from ..helpers.schedule import KIND_CALENDAR, Schedule, read_legacy_fields, upcoming_occurrences
@@ -148,7 +148,17 @@ def _build_task_summary(
     # issue #58) AND as the nested `schedule` object, which is the only way to
     # express the calendar kinds (weekdays / nth_weekday / day_of_month).
     sched = read_legacy_fields(task_data)
-    schedule_obj = Schedule.parse(task_data).to_dict()
+    schedule = Schedule.parse(task_data)
+    schedule_obj = schedule.to_dict()
+    # #274: one cycle of a weekdays / nth-weekday / day-of-month / calendar
+    # task, which has no interval for a due bar to run over. The same length
+    # caps its warning window. None where the bar has another measure: an
+    # interval, or the trigger's own progress on a sensor task.
+    cycle_days = (
+        schedule.span_days() or None
+        if schedule.is_calendar_kind and sched["schedule_type"] != "sensor_based"
+        else None
+    )
     # #187: a calendar-entity schedule carries the calendar's friendly name so
     # lists can read "Calendar: Bio waste" without a per-row state lookup.
     schedule_entity_name: str | None = None
@@ -210,6 +220,7 @@ def _build_task_summary(
         # Nested recurrence object — the frontend reads this for the calendar
         # kinds; the flat fields above remain for interval/one_time back-compat.
         "schedule": schedule_obj,
+        "cycle_days": cycle_days,
         **({"schedule_entity_name": schedule_entity_name} if schedule_entity_name is not None else {}),
         "last_planned_due": task_data.get("last_planned_due"),
         "planned_day": task_data.get("planned_day"),
@@ -444,6 +455,9 @@ def _build_object_response(
                 # #261: ordered and not here yet: {quantity, expected, ordered_at, note}.
                 "on_order": part_store.get_part_order(part["id"]) if part_store else None,
                 "shopping_url": resolve_shopping_url(part, search_template, lang, hass.config.country),
+                # #265: a part ordered by e-mail brings its lines of the order,
+                # so the panel can put several parts into one e-mail.
+                "order_lines": order_lines(part) if is_mailto_url(str(part.get("product_url") or "")) else None,
             }
         )
 

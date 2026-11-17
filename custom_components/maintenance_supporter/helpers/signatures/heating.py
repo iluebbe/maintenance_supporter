@@ -341,10 +341,13 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "generac": IntegrationSignature(
         name="Generac (Mobile Link)",
-        verified="2026-09-25 @ binarydev/ha-generac main",
+        verified="2026-11-17 @ binarydev/ha-generac main (d0864f2)",
         source=(
-            "HACS generac sensor.py RunTimeSensor: name sensor_name(self, "
-            "'run_time') = 'generac_<device_id>_run_time' → suffix _run_time, "
+            "HACS generac sensor.py RunTimeSensor: entity_key 'run_time'; "
+            "since 71aa0f6 (2026-10-28) has_entity_name with the name 'Run "
+            "Time' → '<device name>_run_time' on a new install, and the old "
+            "technical name 'generac_<device_id>_run_time' kept by the "
+            "registry on an existing one → suffix _run_time either way, "
             "DURATION, 'h'; value = apparatus property type 71, which the "
             "Mobile Link API labels 'Engine Hours' (payload quoted in issue "
             "#202) — the LIFETIME engine-hours counter → usage_delta every "
@@ -554,14 +557,16 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "maestro_mcz": IntegrationSignature(
         name="MCZ pellet stoves (Maestro)",
-        verified="2026-10-03 @ Robbe-B/maestro_mcz main (a2ba9cf)",
+        verified="2026-11-17 @ Robbe-B/maestro_mcz main (83c314f)",
         source=(
-            "HACS maestro_mcz maestro/models/models.py supported_sensors: "
-            "SensorMczConfigItem 'Next Maintenance' (status field "
-            "'ore_prox_manut' = hours to the next maintenance, UnitOfTime.HOURS, "
-            "MEASUREMENT, DIAGNOSTIC, enabled; created only when the stove "
-            "reports the field). sensor.py MczSensorEntity has_entity_name with "
-            "_attr_name = the item name, no translation_key → suffix "
+            "HACS maestro_mcz maestro/models/model_definitions.py (models.py "
+            "until 2026-11) supported_sensors: SensorMczConfigItem 'Next "
+            "Maintenance' (status field 'ore_prox_manut' = hours to the next "
+            "maintenance, UnitOfTime.HOURS, MEASUREMENT, DIAGNOSTIC, enabled; "
+            "created only when the stove reports the field). sensor.py "
+            "MczSensorEntity has_entity_name with _attr_name = the item name, "
+            "which wins over its new translation_key 'next_maintenance' (no "
+            "entry in strings.json either) → suffix "
             "_next_maintenance. The stove controller's own service countdown "
             "(the fumis pattern) → duration_left 24 h; named after the "
             "technician's 'Stove Service' of the Fireplace & Wood Stove "

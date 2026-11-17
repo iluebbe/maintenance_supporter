@@ -34,6 +34,7 @@
     "name": "Swap cutting disks"
   },
   "custom_icon": "mdi:test-tube",
+  "cycle_days": null,
   "days_until_due": null,
   "days_until_threshold": null,
   "degradation_r_squared": null,

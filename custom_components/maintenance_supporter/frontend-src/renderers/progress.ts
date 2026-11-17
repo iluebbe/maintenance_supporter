@@ -14,7 +14,7 @@
 import { html, nothing } from "lit";
 import { t, formatDate, formatDueDays, formatLastDone, formatNumber, withUnit } from "../styles";
 import { fmtVal, px } from "./chart-utils";
-import { daysProgress } from "../helpers/interval";
+import { cycleSpanDays, daysProgress } from "../helpers/interval";
 import { daysBetweenIso, stampMs } from "../helpers/ha-time";
 import { compoundLogic, isCounterTrigger, miniSeriesKey, primaryTriggerEntity } from "../helpers/trigger-entities";
 import type { MaintenanceTask, TaskRow, StatisticsPoint } from "../types";
@@ -332,16 +332,19 @@ export function renderDueText(
 /** A detailed days-progress bar (last performed → next due) for the detail view. */
 export function renderDaysProgress(task: MaintenanceTask, lang: string) {
   const L = lang;
-  if (task.days_until_due == null || !task.interval_days || task.interval_days <= 0) return nothing;
+  // Unit-aware (issue #59): a "1 year" task has span ≈365 d, not 1 d. A
+  // weekdays / nth-weekday / day-of-month / calendar task runs over one cycle
+  // (#274).
+  const cycle = cycleSpanDays(task);
+  if (task.days_until_due == null || cycle <= 0) return nothing;
 
-  // Unit-aware (issue #59): a "1 year" task has span ≈365 d, not 1 d. A task
-  // that needs its trigger too is due at the later of the two (#260): its bar
-  // runs from the last time to that date.
+  // A task that needs its trigger too is due at the later of the two (#260):
+  // its bar runs from the last time to that date.
   const legsSpan = task.trigger_config?.trigger_combinator === "all" && task.last_performed && task.next_due
     ? daysBetweenIso(task.last_performed.slice(0, 10), task.next_due)
     : null;
   const { pct, overflow: daysOverflow } = daysProgress(
-    task.interval_days, task.days_until_due, task.interval_unit, legsSpan,
+    task.interval_days, task.days_until_due, task.interval_unit, legsSpan ?? cycle,
   );
 
   let barColor = "var(--success-color, #4caf50)";

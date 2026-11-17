@@ -24,6 +24,19 @@ export function intervalSpanDays(
   return intervalDays * (UNIT_DAYS[unit || "days"] ?? 1);
 }
 
+/** The days one cycle of a task spans, for its due bar: the interval's, else
+ *  the cycle the server measured for a weekdays / nth-weekday / day-of-month /
+ *  calendar task (`cycle_days`, #274), which has no interval. 0 = no bar. */
+export function cycleSpanDays(task: {
+  interval_days?: number | null;
+  interval_unit?: string | null;
+  cycle_days?: number | null;
+}): number {
+  const interval = intervalSpanDays(task.interval_days, task.interval_unit);
+  if (interval > 0) return interval;
+  return task.cycle_days != null && task.cycle_days > 0 ? task.cycle_days : 0;
+}
+
 /**
  * Progress through the current cycle, unit-aware.
  * Returns a clamped 0–100 % plus `overflow` (raw % > 100, i.e. past due).

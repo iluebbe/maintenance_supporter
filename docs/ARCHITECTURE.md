@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.123.1 | 378 source files (203 Python + 175 TypeScript) | **98% test coverage** (6,543 backend tests + 1,963 frontend tests)
+**Version:** 2.124.0 | 379 source files (203 Python + 176 TypeScript) | **98% test coverage** (6,557 backend tests + 1,974 frontend tests)
 
 ---
 
@@ -247,8 +247,8 @@ custom_components/maintenance_supporter/
 │       ├── compound.py            (560 lines)  AND/OR compound trigger
 │       └── due_date.py            (100 lines)  Due-date trigger: the device reports WHEN the maintenance is due
 │
-├── websocket/                  (11,373 lines)  119 commands, 25 files — split by domain; tasks.py re-exports the task modules drawn under it
-│   ├── __init__.py                (957 lines)  Shared helpers + registration
+├── websocket/                  (11,387 lines)  119 commands, 25 files — split by domain; tasks.py re-exports the task modules drawn under it
+│   ├── __init__.py                (971 lines)  Shared helpers + registration
 │   ├── objects.py               (1,154 lines)  14 commands: objects, object, object/create, object/update, object/delete,
 │   │                                           object/delete_preview, object/duplicate, object/from_template, object/archive,
 │   │                                           object/unarchive, object/pause, object/resume, object/replace, entity/attributes
@@ -305,8 +305,8 @@ custom_components/maintenance_supporter/
 │   ├── strategy/                              Code-split dashboard strategy + content-hashed chunks/
 │   ├── locales/{21 non-EN}.json               Runtime-fetched UI translations
 │   └── vendor/pdf.min.mjs, pdf.worker.min.mjs pdf.js for the work sheet's manual excerpt
-├── frontend-src/               (56,158 lines)  175 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
-│   ├── maintenance-panel.ts     (6,464 lines)  Panel shell: today / dashboard / calendar / settings tabs,
+├── frontend-src/               (56,348 lines)  176 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
+│   ├── maintenance-panel.ts     (6,467 lines)  Panel shell: today / dashboard / calendar / settings tabs,
 │   │                                           object detail, task detail, all-objects, deep-link router
 │   ├── maintenance-dashboard-strategy.ts (1,265 lines)  Auto-generated dashboard strategy + 4 section strategies
 │   ├── maintenance-card.ts        (919 lines)  Lovelace card
@@ -323,7 +323,7 @@ custom_components/maintenance_supporter/
 │   │                                           number_format via the __msDateTimePrefs singleton) — tripwired
 │   │                                           by __tests__/profile-format-single-source.test.ts (#163);
 │   │                                           chart-utils px() is the one sanctioned toFixed (SVG geometry)
-│   ├── types.ts                   (810 lines)  TypeScript interfaces
+│   ├── types.ts                   (816 lines)  TypeScript interfaces
 │   ├── statistics-service.ts      (320 lines)  WS statistics cache
 │   ├── user-service.ts            (131 lines)  HA user list cache
 │   ├── dialog-mount.ts            (354 lines)  Lazy dialog mounting (open*Dialog helpers)
@@ -334,7 +334,7 @@ custom_components/maintenance_supporter/
 │   ├── ds-preview-kit.ts          (230 lines)  Design-sync preview kit: a demo household behind a mock `hass`
 │   ├── maintenance-panel-card.ts  (369 lines)  The whole panel as a Lovelace card (#174)
 │   ├── status-constants.ts        (110 lines)  Status colors + icons — THE single source for every renderer
-│   ├── helpers/                (10,052 lines)  98 files — Pure functions and small services shared by the panel, the cards and the dialogs
+│   ├── helpers/                (10,149 lines)  99 files — Pure functions and small services shared by the panel, the cards and the dialogs
 │   │   ├── calendar-bucket.ts     (442 lines)  Pure 7/14/30/365-day projection, 5 occurrences max per task, no projection for sensor-based
 │   │   ├── notes-markdown.ts      (143 lines)  Notes rendering (ha-markdown hand-off)
 │   │   ├── bundle-version.ts       (55 lines)  Stale-bundle guard; the versions of our bundles running in the window
@@ -362,7 +362,7 @@ custom_components/maintenance_supporter/
 │   │   ├── html-escape.ts          (10 lines)  HTML-escaping for the printable sheets (object report, service record, area report)
 │   │   ├── hydrate-objects.ts      (59 lines)  Hydration for compact WS payloads (perf wave 2, item 3)
 │   │   ├── import-format.ts        (24 lines)  Which importer a pasted export belongs to (Settings → Import)
-│   │   ├── interval.ts             (44 lines)  Unit-aware interval math (issue #59) for the frontend's progress bars and calendar projection stepping
+│   │   ├── interval.ts             (57 lines)  Unit-aware interval math (issue #59) for the frontend's progress bars and calendar projection stepping; a calendar schedule's cycle (#274)
 │   │   ├── locale-core.ts         (203 lines)  Locale store + lookup without Lit and without the English table (the dashboard strategy translates too), tables per bundle version
 │   │   ├── modal-shell.ts         (115 lines)  Modal frame of the dialogs that are not <ha-dialog> (history-entry editor, object / task dialogs)
 │   │   ├── notify-icons.ts         (20 lines)  #185: default push-notification icon per maintenance type (twin of helpers/notify_icons.py)
@@ -432,25 +432,26 @@ custom_components/maintenance_supporter/
 │   │   ├── delete-object-message.ts (39 lines)  The delete-object confirmation text, with what the delete hands on (D#256)
 │   │   ├── span-text.ts            (15 lines)  A span of time as people say it
 │   │   ├── state-timeline.ts      (394 lines)  A rule as a timeline: when each sensor, each AND/OR condition and the result were in their alert state, when a sensor could not be reached, and when the task was done
-│   │   └── runtime-days.ts         (86 lines)  A runtime rule's hours per day, booked as entity/triggers/runtime.py books them
-│   ├── renderers/               (2,887 lines)  11 files — Pure lit-html render functions of the task views and the charts
+│   │   ├── runtime-days.ts         (86 lines)  A runtime rule's hours per day, booked as entity/triggers/runtime.py books them
+│   │   └── order-mail.ts           (84 lines)  Several parts ordered by e-mail in one message, one per supplier address (#265)
+│   ├── renderers/               (2,890 lines)  11 files — Pure lit-html render functions of the task views and the charts
 │   │   ├── task-detail.ts         (636 lines)  The task detail view (header, ⋮ menu, sections) as a function of its context
 │   │   ├── chart-utils.ts         (124 lines)  Shared chart helpers: nice axis ticks and consistent number/date formats
 │   │   ├── charts.ts              (167 lines)  Cost/duration chart renderers (task detail)
 │   │   ├── history.ts             (273 lines)  Task history sub-view: filter chips + search + the timeline of entries
 │   │   ├── prediction.ts           (69 lines)  Sensor prediction section renderer
-│   │   ├── progress.ts            (363 lines)  Progress renderers shared by the dashboard rows, the object-detail view and the task-detail overview tab
+│   │   ├── progress.ts            (366 lines)  Progress renderers shared by the dashboard rows, the object-detail view and the task-detail overview tab
 │   │   ├── recommendation.ts       (49 lines)  Shared recommendation-card visuals (bars + confidence badge)
 │   │   ├── seasonal.ts            (118 lines)  Seasonal factor chart renderers
 │   │   ├── sparkline.ts           (797 lines)  Trigger section renderer (task detail)
 │   │   ├── status.ts              (103 lines)  A task's status as the user sees it — THE derivation for every surface
 │   │   └── weibull.ts             (188 lines)  Weibull reliability analysis renderers
-│   ├── components/             (24,719 lines)  46 files — Lit elements: dialogs, sections, views, cards
+│   ├── components/             (24,800 lines)  46 files — Lit elements: dialogs, sections, views, cards
 │   │   ├── task-dialog.ts       (4,798 lines)  Add/edit task (schedule kinds, triggers, checklist, assignees)
 │   │   ├── settings-view.ts     (2,878 lines)  In-panel global settings editor
 │   │   ├── task-quick-actions-dialog.ts (1,002 lines)  Task ⋮ menu
 │   │   ├── documents-section.ts   (715 lines)  Object-detail documents/manuals section
-│   │   ├── parts-section.ts     (1,063 lines)  Object-detail spare-parts section
+│   │   ├── parts-section.ts     (1,144 lines)  Object-detail spare-parts section; ticks parts for one order e-mail
 │   │   ├── complete-dialog.ts     (867 lines)  Mark task complete
 │   │   ├── qr-dialog.ts           (509 lines)  QR code generation
 │   │   ├── adopt-problem-sensors-dialog.ts (633 lines)  Adopt HA problem sensors
@@ -492,9 +493,9 @@ custom_components/maintenance_supporter/
 │   │   ├── part-pill-styles.ts     (31 lines)  The small rounded action of a part row (*Used*, *Bought*): one look for both, which each kept a copy of it (DRY audit 2026-10-30, FE6-B10)
 │   │   ├── state-timeline.ts      (685 lines)  A state, code or AND/OR rule as a timeline: the result, its conditions and sensors, the newest report in words, a magnifier for short alerts
 │   │   └── runtime-bars.ts        (180 lines)  A runtime rule's chart: hours run per day as bars, the services marked, the mean and the time to the target
-│   └── __tests__/              (41,719 lines)  274 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
+│   └── __tests__/              (41,924 lines)  275 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
-├── helpers/                    (39,811 lines)  117 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
+├── helpers/                    (39,816 lines)  117 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
 │   ├── notification_manager.py  (3,145 lines)  Multi-channel notification system
 │   ├── notify_hooks.py            (422 lines)  The one send hook (#165): event `maintenance_supporter_notification`, extra-data template, event-only delivery
 │   ├── notify_icons.py             (97 lines)  Notification icons (#185): defaults per maintenance type / kind / fleet, `notify_icon_for`, `is_valid_icon`
@@ -597,7 +598,7 @@ custom_components/maintenance_supporter/
 │   ├── completes_itself.py         (83 lines)  Backend twin of completes-itself.ts: a task its sensor completes gets no Complete and Skip buttons on its reminders (D#250)
 │   ├── state_match.py              (11 lines)  How a state rule compares an entity's state with the one it names: case and the blanks around it do not count ("Finished " is "finished")
 │   ├── object_ready.py             (43 lines)  Waiting out an object's reload before acting on one of its tasks
-│   └── signatures/              (7,662 lines)  19 files — Suggested-setups catalog: 288 integrations / 603 signatures
+│   └── signatures/              (7,667 lines)  19 files — Suggested-setups catalog: 288 integrations / 603 signatures
 │       ├── _model.py              (507 lines)  IntegrationSignature / ConsumableSignature + matcher mechanics
 │       ├── _discovery.py          (385 lines)  Entity-registry scan → per-duty setup proposals
 │       ├── _registry.py            (30 lines)  Merge + duplicate-domain guard
@@ -605,7 +606,7 @@ custom_components/maintenance_supporter/
 │       ├── air.py               (1,001 lines)  Air treatment — purifiers, ACs and HRV/ventilation filters
 │       ├── cars.py                (696 lines)  Cars and EVs — odometer-driven service duties
 │       ├── garden.py              (659 lines)  Robot lawn mowers, irrigation and pool/spa water care
-│       ├── heating.py             (630 lines)  Boilers, heating & water treatment
+│       ├── heating.py             (635 lines)  Boilers, heating & water treatment
 │       ├── home_it.py             (202 lines)  NAS, home IT & safety detectors
 │       ├── kitchen.py           (1,075 lines)  Kitchen & household appliances incl. espresso machines
 │       ├── locks.py               (298 lines)  Smart locks — cycle-count lubrication duties
@@ -1175,7 +1176,7 @@ The rules that are easiest to regress are tripwired:
 
 ## Test Coverage
 
-**6,543 tests** across **397 test files** with **98% code coverage** (plus a 1,963-test frontend suite in real Chromium across 271 spec files, the 34-scenario journey suite, and the live e2e scripts under `e2e/`).
+**6,557 tests** across **398 test files** with **98% code coverage** (plus a 1,974-test frontend suite in real Chromium across 272 spec files, the 34-scenario journey suite, and the live e2e scripts under `e2e/`).
 
 ### Coverage policy
 

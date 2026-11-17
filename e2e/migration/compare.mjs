@@ -17,7 +17,10 @@ const isEmpty = (v) =>
   v === null || v === undefined || v === "" || (Array.isArray(v) && v.length === 0) || (typeof v === "object" && !Array.isArray(v) && Object.keys(v).length === 0);
 
 /** ``cutoff``: history written after the export (a trigger firing on either
- *  running instance) is runtime, not moved data — left out on both sides. */
+ *  running instance) is runtime, not moved data — left out on both sides. So
+ *  is an archive made after it: the retention sweep runs ten minutes after a
+ *  start, which a year of timelapse takes, and archived a done buy reminder
+ *  on the source between the export and the comparison. */
 /** Task id → its name; tasks sharing a name in one object (a finished buy
  *  reminder kept beside the next one) are told apart as "#1", "#2" in the
  *  order they were created — both of which a move keeps. Keyed by the bare
@@ -133,7 +136,11 @@ export function snapshot(configDir, expect, cutoff = null) {
     const rec = { object: tr(obj), data: tr(rest), options: tr(e.options || {}), tasks: {}, parts: {} };
     for (const [tid, t] of Object.entries(e.data.tasks || {})) {
       const { id: _tid, ...task } = t;
-      const state = Object.fromEntries(Object.entries((store.tasks || {})[tid] || {}).filter(([k]) => !runtimeOnly.has(k)));
+      if (cutoff && task.archived_at && task.archived_at > cutoff) {
+        delete task.archived_at;
+        delete task.archived_reason;
+      }
+      const state =Object.fromEntries(Object.entries((store.tasks || {})[tid] || {}).filter(([k]) => !runtimeOnly.has(k)));
       if (cutoff && Array.isArray(state.history)) state.history = state.history.filter((h) => !(h.timestamp > cutoff));
       rec.tasks[taskLabel[tid]] = tr({ ...task, _state: state });
     }

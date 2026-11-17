@@ -82,6 +82,10 @@ def _sig(domain: str, task_name: str):
     return next(s for s in SIGNATURES[domain].tasks if s.task_name == task_name)
 
 
+# Entries of these rounds checked again after a drift report (#276).
+_REVERIFIED = {"generac": "2026-11-17"}
+
+
 async def test_gree_filter_cleaning_runs_on_the_climate_state(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:
     """Gree's climate entity never sets hvac_action — the runtime trigger
     must watch the STATE (the HVAC mode) with every running mode, and carry
@@ -462,7 +466,8 @@ def test_round14_signatures_are_catalogued_with_source_and_ref() -> None:
         "himoinsa_c4lan",
     ):
         cat = SIGNATURES[domain]
-        assert cat.verified.startswith("2026-09-25 @ "), domain
+        # A weekly drift check re-dives an entry, and it bears that date then.
+        assert cat.verified.startswith(f"{_REVERIFIED.get(domain, '2026-09-25')} @ "), domain
         assert cat.source and cat.tasks, domain
     gree = SIGNATURES["gree"].tasks[0]
     assert gree.entity_domain == "climate" and gree.attribute == ""

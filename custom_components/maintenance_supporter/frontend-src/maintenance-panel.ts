@@ -29,7 +29,7 @@ import { subscribeAcrossReconnects } from "./helpers/live-subscription";
 import { taskIsFor, taskUserIds } from "./helpers/assignees";
 import { quickComplete, quickCompleteOn } from "./helpers/quick-complete";
 import { completesItself } from "./helpers/completes-itself";
-import { daysProgress } from "./helpers/interval";
+import { cycleSpanDays, daysProgress } from "./helpers/interval";
 import { buildObjectReportHtml, type ReportLabels } from "./helpers/report";
 import { warrantyStatus } from "./helpers/warranty";
 import { OBJECT_COLUMNS, DEFAULT_OBJECTS_TABLE_COLUMNS, KNOWN_OBJECT_COLUMNS, sanitizeColumns } from "./helpers/object-columns";
@@ -1704,6 +1704,7 @@ export class MaintenanceSupporterPanel extends LitElement {
           interval_days: task.interval_days ?? null,
           interval_unit: task.interval_unit ?? null,
           interval_anchor: task.interval_anchor ?? null,
+          cycle_days: task.cycle_days ?? null,
           is_done: task.is_done ?? false,
           archived: task.archived ?? false,
           history: task.history || [],
@@ -5630,13 +5631,15 @@ export class MaintenanceSupporterPanel extends LitElement {
 
   private _renderOverviewRow(row: TaskRow) {
     const L = this._lang;
-    // Compute days progress bar
-    const hasDaysBar = row.schedule_type === "time_based" && row.interval_days && row.interval_days > 0;
+    // The days bar: over a fixed interval, or over one cycle of a weekdays /
+    // nth-weekday / day-of-month / calendar task (#274), which has none.
+    const span = row.schedule_type === "time_based" || row.cycle_days ? cycleSpanDays(row) : 0;
+    const hasDaysBar = span > 0;
     let pct = 0;
     let barColor = STATUS_COLORS.ok;
     let daysOverflow = false;
     if (hasDaysBar && row.days_until_due !== null) {
-      const p = daysProgress(row.interval_days, row.days_until_due, row.interval_unit);
+      const p = daysProgress(row.interval_days, row.days_until_due, row.interval_unit, span);
       pct = p.pct;
       daysOverflow = p.overflow;
       if (row.status === "overdue") barColor = STATUS_COLORS.overdue;

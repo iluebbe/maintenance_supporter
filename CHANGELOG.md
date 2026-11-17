@@ -2,6 +2,41 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [2.124.0] - 2026-11-17
+
+One e-mail for several parts, and a due bar for every calendar schedule.
+
+### ✨ New
+
+- **Several parts in one order e-mail** (#265). A part whose link is a `mailto:` address opened an e-mail for that
+  part alone. On an object with two or more such parts, each now has a tick box in *Parts & consumables*; the ticked
+  parts go into one e-mail per supplier address, each with its amount, vendor and part numbers. A link's own subject
+  and text stay, with the parts listed below the text. Once the e-mail is open, its parts are unticked again.
+
+### 🐛 Fixed
+
+- **Tasks on a calendar schedule had no due bar** (#274). A task on *Nth weekday*, *Day of month*, *Weekdays* or a
+  calendar showed its days left in the task list but no bar under them, and none on its own page: the bar ran over
+  the task's interval, and these have none. It now runs over one cycle of the schedule: a month, a year for a task
+  limited to one month, the shortest gap between the chosen weekdays, the usual gap between a calendar's events.
+
+### 🔧 Developer notes
+
+- Task summary: `cycle_days` (`Schedule.span_days()`, the length that caps the warning window too) for a calendar
+  kind without a trigger, else null. `helpers/interval.ts` `cycleSpanDays()`; the overview row and
+  `renderDaysProgress` run the bar over it.
+- Part payload: `order_lines` (`helpers/parts.py` `order_lines`) for a part with a `mailto:` link, else null.
+  `helpers/order-mail.ts` (`orderMails`, `mailAddress`, `isMailOrderPart`). Frontend locale keys `part_mail_pick`,
+  `part_mail_order`, `part_mail_clear`.
+- Signature drift (#276): Generac names a new install's sensors after the device since its October update; the
+  run-time sensor still ends in `_run_time`, so the suggestion holds for both namings (tested). Probes:
+  `entity_key = "run_time"`; maestro_mcz reads `maestro/models/model_definitions.py`. Both entries re-verified;
+  `tests/test_catalog_2026_09_c.py` accepts a re-verified date.
+- Timelapse: the migration comparison leaves out an archive made after the export, like history. The retention sweep
+  ten minutes after a start fell between the export and the comparison (the weekly runs of 2026-10-19 and 2026-11-02,
+  and a manual one on 2026-11-17).
+- Tests: `tests/test_github_round_2026_11_17.py`, `__tests__/github-issues-2026-11-17.test.ts` (18 mutations RED).
+
 ## [2.123.1] - 2026-11-16
 
 Texts that read in English after an update.

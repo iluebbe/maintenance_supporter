@@ -1799,7 +1799,7 @@
    "https://raw.githubusercontent.com/binarydev/ha-generac/main/custom_components/generac/sensor.py"
   ],
   "strings": [
-   "sensor_name(self, \"run_time\")",
+   "entity_key = \"run_time\"",
    "get_prop_value(self.aparatus_detail.properties, 71, 0)"
   ]
  },
@@ -2732,7 +2732,7 @@
  },
  "maestro_mcz": {
   "urls": [
-   "https://raw.githubusercontent.com/Robbe-B/maestro_mcz/main/custom_components/maestro_mcz/maestro/models/models.py",
+   "https://raw.githubusercontent.com/Robbe-B/maestro_mcz/main/custom_components/maestro_mcz/maestro/models/model_definitions.py",
    "https://raw.githubusercontent.com/Robbe-B/maestro_mcz/main/custom_components/maestro_mcz/sensor.py"
   ],
   "strings": [

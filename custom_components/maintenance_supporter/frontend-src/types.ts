@@ -299,6 +299,8 @@ export interface MaintenanceTask {
   /** The day of month a clamped planned anchor stands for (31 → 28 Feb). */
   planned_day?: number | null;
   schedule?: TaskSchedule; // nested recurrence (calendar kinds read this)
+  /** #274: days in one cycle of a calendar kind (its due bar); null otherwise. */
+  cycle_days?: number | null;
   /** (#187) calendar kind: the picked calendar's friendly name (summary-only). */
   schedule_entity_name?: string | null;
   schedule_time?: string | null;  // "HH:MM" or null/undefined = midnight
@@ -493,6 +495,8 @@ export interface MaintenancePart {
   is_low?: boolean;
   /** Derived: product_url or the configured shopping-search link. */
   shopping_url?: string;
+  /** #265: a part ordered by e-mail — its lines of an order; null otherwise. */
+  order_lines?: string[] | null;
   /** #261: ordered and not here yet (quantity counts packages for a part
    *  bought in packages); null/absent = nothing on order. */
   on_order?: { quantity: number; expected?: string | null; ordered_at?: string; note?: string | null } | null;
@@ -684,6 +688,8 @@ export interface TaskRow {
   interval_days: number | null;
   interval_unit?: string | null;
   interval_anchor: "completion" | "planned" | null;
+  /** #274: days in one cycle of a calendar kind (its due bar). */
+  cycle_days?: number | null;
   is_done: boolean;
   archived: boolean;
   history: HistoryEntry[];

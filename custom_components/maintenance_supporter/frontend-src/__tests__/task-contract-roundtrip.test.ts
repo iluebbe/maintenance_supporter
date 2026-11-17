@@ -91,6 +91,8 @@ const READONLY = new Set([
   "current_phase",
   "schedule_type", // derived label (sensor_based when a trigger exists)
   "schedule", // canonical nested recurrence — rebuilt server-side from flat
+  // #274: one cycle of a calendar kind, for its due bar — computed.
+  "cycle_days",
   "adaptive_config",
   "archived",
   "archived_at",

@@ -34,6 +34,8 @@ import type { PartBoughtDetail } from "./ms-part-purchase";
 import { confirmAction } from "../helpers/confirm";
 import { notice } from "../helpers/notice";
 import { commitOnEnter, positiveCount } from "../helpers/keyboard";
+// #265: several parts ordered by e-mail in one message.
+import { isMailOrderPart, orderMails } from "../helpers/order-mail";
 
 /** #208: what readies a used part again (helpers/parts.py REUSE_KINDS). */
 export const REUSE_KINDS = ["charge", "sharpen", "clean", "dry", "refill", "restore"] as const;
@@ -117,6 +119,8 @@ export class MaintenancePartsSection extends LitElement {
   @state() private _orderInvalid = false;
   /** #262: the object chosen in the open form's "Move to" list. */
   @state() private _moveTo = "";
+  /** #265: the parts ticked for an order e-mail. */
+  @state() private _mailPick: ReadonlySet<string> = new Set();
 
   private get _lang(): string {
     return langOf(this.hass);
@@ -143,7 +147,49 @@ export class MaintenancePartsSection extends LitElement {
     this._disposeFor = null;
     this._orderFor = null;
     this._docsFor = null;
+    this._mailPick = new Set();
     this._error = "";
+  }
+
+  /** #265: the parts that can go into an order e-mail. Ticking starts at two:
+   *  a single one has its own e-mail behind its name. */
+  private get _mailParts(): MaintenancePart[] {
+    const parts = this.parts.filter((p) => isMailOrderPart(p));
+    return parts.length >= 2 ? parts : [];
+  }
+
+  private _toggleMailPick(part: MaintenancePart, on: boolean): void {
+    const next = new Set(this._mailPick);
+    if (on) next.add(part.id);
+    else next.delete(part.id);
+    this._mailPick = next;
+  }
+
+  /** #265: one link per supplier address for the ticked parts. A sent one
+   *  unticks its parts — after the click, since removing the link before
+   *  the browser follows it would cancel the e-mail. */
+  private _renderMailBar(mailParts: MaintenancePart[]) {
+    const L = this._lang;
+    const mails = orderMails(mailParts.filter((p) => this._mailPick.has(p.id)));
+    if (!mails.length) return nothing;
+    return html`
+      <div class="mail-bar">
+        ${mails.map(
+          (m) => html`<a class="mail-order" href=${m.url} target="_blank" rel="noopener noreferrer"
+            @click=${() => setTimeout(() => {
+              const next = new Set(this._mailPick);
+              for (const id of m.partIds) next.delete(id);
+              this._mailPick = next;
+            })}
+            ><ha-icon icon="mdi:email-fast-outline"></ha-icon>${t("part_mail_order", L)
+              .replace("{n}", formatNumber(m.partIds.length, L, 0))
+              .replace("{address}", m.address)}</a>`,
+        )}
+        <ha-icon-button class="mail-clear" title=${t("part_mail_clear", L)} @click=${() => (this._mailPick = new Set())}
+          ><ha-icon icon="mdi:close"></ha-icon
+        ></ha-icon-button>
+      </div>
+    `;
   }
 
   private _notifyChanged(): void {
@@ -514,13 +560,20 @@ export class MaintenancePartsSection extends LitElement {
       .join(" · ");
   }
 
-  private _renderRow(part: MaintenancePart) {
+  private _renderRow(part: MaintenancePart, picking = false) {
     const L = this._lang;
     const tracked = part.stock !== null && part.stock !== undefined;
     const ident = this._identLine(part);
     const docsOpen = this._docsFor === part.id;
     return html`
       <div class="part-row ${part.is_low ? "low" : ""}">
+        ${picking
+          ? isMailOrderPart(part)
+            ? html`<input type="checkbox" class="mail-pick" .checked=${this._mailPick.has(part.id)}
+                title=${t("part_mail_pick", L)} aria-label=${t("part_mail_pick", L)}
+                @change=${(e: Event) => this._toggleMailPick(part, (e.target as HTMLInputElement).checked)} />`
+            : html`<span class="mail-pick"></span>`
+          : nothing}
         <ha-icon class="part-icon" icon=${part.is_low ? "mdi:cart-arrow-down" : "mdi:package-variant-closed"}></ha-icon>
         <div class="part-main">
           <div class="part-name">
@@ -779,6 +832,7 @@ export class MaintenancePartsSection extends LitElement {
   protected render() {
     const L = this._lang;
     if (!this.parts.length && !this.canWrite) return nothing;
+    const mailParts = this._mailParts;
     return html`
       <div class="section-head">
         <h3>
@@ -798,7 +852,8 @@ export class MaintenancePartsSection extends LitElement {
       </div>
       ${this._error ? notice("error", this._error) : nothing}
       ${this._editing ? this._renderForm() : nothing}
-      ${this.parts.map((part) => this._renderRow(part))}
+      ${this._renderMailBar(mailParts)}
+      ${this.parts.map((part) => this._renderRow(part, mailParts.length > 0))}
     `;
   }
 
@@ -852,6 +907,32 @@ export class MaintenancePartsSection extends LitElement {
     }
     .part-row.low .part-icon {
       color: var(--warning-color, #ff9800);
+    }
+    /* #265: the tick for an order e-mail; a row without one keeps the room. */
+    .mail-pick {
+      flex: 0 0 18px;
+      width: 18px;
+      height: 18px;
+      margin: 0;
+    }
+    .mail-bar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px 12px;
+      padding: 6px 4px;
+    }
+    .mail-order {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--primary-color);
+      font-weight: 500;
+      text-decoration: none;
+      overflow-wrap: anywhere;
+    }
+    .mail-clear {
+      margin-left: auto;
     }
     .part-main {
       flex: 1;
