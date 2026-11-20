@@ -78,7 +78,7 @@ function langToLocale(lang?: string): string {
     // pl/cs/sv were missing and silently fell back to en-US — Polish users
     // saw MM/DD dates (caught by the live multi-language check, 2026-07-19).
     pl: "pl-PL", cs: "cs-CZ", sv: "sv-SE",
-    "pt-br": "pt-BR", hu: "hu-HU", ko: "ko-KR", tr: "tr-TR",
+    "pt-br": "pt-BR", hu: "hu-HU", ko: "ko-KR", tr: "tr-TR", sk: "sk-SK",
   };
   return map[l] ?? "en-US";
 }

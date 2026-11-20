@@ -11,7 +11,7 @@ gains translations incrementally.
 
 from __future__ import annotations
 
-# lang keys: de es fr it nl pt ru uk pl cs sv da nb fi ja hi zh (en = source)
+# lang keys: de es fr it nl pt ru uk pl cs sk sv da nb fi ja hi zh (en = source)
 _T: dict[str, dict[str, str]] = {
     # ── Template names ──────────────────────────────────────────────────────
     "Car": {
@@ -36,6 +36,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Autó",
         "ko": "자동차",
         "tr": "Araba",
+        "sk": "Auto",
     },
     "Electric Car": {
         "de": "Elektroauto",
@@ -59,6 +60,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Elektromos autó",
         "ko": "전기차",
         "tr": "Elektrikli Araba",
+        "sk": "Elektromobil",
     },
     "Bicycle": {
         "de": "Fahrrad",
@@ -82,6 +84,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kerékpár",
         "ko": "자전거",
         "tr": "Bisiklet",
+        "sk": "Bicykel",
     },
     "Motorcycle": {
         "de": "Motorrad",
@@ -105,6 +108,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Motorkerékpár",
         "ko": "오토바이",
         "tr": "Motosiklet",
+        "sk": "Motocykel",
     },
     "HVAC System": {
         "de": "Lüftungs-/Klimaanlage",
@@ -128,6 +132,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "HVAC rendszer",
         "ko": "HVAC 시스템",
         "tr": "HVAC Sistemi",
+        "sk": "Klimatizácia a vzduchotechnika",
     },
     "Water Heater": {
         "de": "Warmwasserbereiter",
@@ -151,6 +156,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vízmelegítő",
         "ko": "온수기",
         "tr": "Su Isıtıcısı",
+        "sk": "Ohrievač vody",
     },
     "Water Softener": {
         "de": "Wasserenthärter",
@@ -174,6 +180,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vízlágyító",
         "ko": "연수기",
         "tr": "Su Yumuşatıcı",
+        "sk": "Zmäkčovač vody",
     },
     "Heating System": {
         "de": "Heizungsanlage",
@@ -197,6 +204,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fűtésrendszer",
         "ko": "난방 시스템",
         "tr": "Isıtma Sistemi",
+        "sk": "Vykurovací systém",
     },
     "Pool Pump": {
         "de": "Poolpumpe",
@@ -220,6 +228,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Medenceszivattyú",
         "ko": "수영장 펌프",
         "tr": "Havuz Pompası",
+        "sk": "Bazénové čerpadlo",
     },
     "Pool Water Treatment": {
         "de": "Poolwasserpflege",
@@ -243,6 +252,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Medencevíz-kezelés",
         "ko": "수영장 수질 관리",
         "tr": "Havuz Suyu Arıtma",
+        "sk": "Úprava bazénovej vody",
     },
     "Lawn Mower": {
         "de": "Rasenmäher",
@@ -266,6 +276,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fűnyíró",
         "ko": "잔디깎이",
         "tr": "Çim Biçme Makinesi",
+        "sk": "Kosačka",
     },
     "Washing Machine": {
         "de": "Waschmaschine",
@@ -289,6 +300,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Mosógép",
         "ko": "세탁기",
         "tr": "Çamaşır Makinesi",
+        "sk": "Práčka",
     },
     "Dishwasher": {
         "de": "Geschirrspüler",
@@ -312,6 +324,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Mosogatógép",
         "ko": "식기세척기",
         "tr": "Bulaşık Makinesi",
+        "sk": "Umývačka riadu",
     },
     "Dryer": {
         "de": "Wäschetrockner",
@@ -335,6 +348,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szárítógép",
         "ko": "건조기",
         "tr": "Kurutma Makinesi",
+        "sk": "Sušička",
     },
     # ── Task names ──────────────────────────────────────────────────────────
     "Oil Change": {
@@ -359,6 +373,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Olajcsere",
         "ko": "엔진 오일 교환",
         "tr": "Yağ Değişimi",
+        "sk": "Výmena oleja",
     },
     "Tire Rotation": {
         "de": "Reifen rotieren",
@@ -382,6 +397,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Abroncsok forgatása",
         "ko": "타이어 위치 교환",
         "tr": "Lastik Rotasyonu",
+        "sk": "Prehodenie pneumatík",
     },
     "Brake Inspection": {
         "de": "Bremsen prüfen",
@@ -405,6 +421,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fékellenőrzés",
         "ko": "브레이크 점검",
         "tr": "Fren Kontrolü",
+        "sk": "Kontrola bŕzd",
     },
     "Air Filter": {
         "de": "Luftfilter",
@@ -428,6 +445,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Levegőszűrő",
         "ko": "에어 필터",
         "tr": "Hava Filtresi",
+        "sk": "Vzduchový filter",
     },
     "Wiper Blades": {
         "de": "Scheibenwischer",
@@ -451,6 +469,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ablaktörlő lapátok",
         "ko": "와이퍼 블레이드",
         "tr": "Silecek Lastikleri",
+        "sk": "Stierače",
     },
     "Chain Lubrication": {
         "de": "Kette schmieren",
@@ -474,6 +493,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lánckenés",
         "ko": "체인 윤활",
         "tr": "Zincir Yağlama",
+        "sk": "Mazanie reťaze",
     },
     "Tire Pressure Check": {
         "de": "Reifendruck prüfen",
@@ -497,6 +517,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Guminyomás-ellenőrzés",
         "ko": "타이어 공기압 점검",
         "tr": "Lastik Basıncı Kontrolü",
+        "sk": "Kontrola tlaku v pneumatikách",
     },
     "Brake Adjustment": {
         "de": "Bremsen einstellen",
@@ -520,6 +541,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fékbeállítás",
         "ko": "브레이크 조정",
         "tr": "Fren Ayarı",
+        "sk": "Nastavenie bŕzd",
     },
     "Annual Service": {
         "de": "Jahresservice",
@@ -543,6 +565,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Éves szerviz",
         "ko": "연간 정비",
         "tr": "Yıllık Servis",
+        "sk": "Ročný servis",
     },
     "Chain Maintenance": {
         "de": "Kettenpflege",
@@ -566,6 +589,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lánc karbantartása",
         "ko": "체인 정비",
         "tr": "Zincir Bakımı",
+        "sk": "Údržba reťaze",
     },
     "Tire Inspection": {
         "de": "Reifen prüfen",
@@ -589,6 +613,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gumiabroncsok ellenőrzése",
         "ko": "타이어 점검",
         "tr": "Lastik Kontrolü",
+        "sk": "Kontrola pneumatík",
     },
     "Brake Fluid": {
         "de": "Bremsflüssigkeit",
@@ -612,6 +637,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fékfolyadék",
         "ko": "브레이크액",
         "tr": "Fren Hidroliği",
+        "sk": "Brzdová kvapalina",
     },
     "Filter Replacement": {
         "de": "Filterwechsel",
@@ -635,6 +661,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szűrőcsere",
         "ko": "필터 교체",
         "tr": "Filtre Değişimi",
+        "sk": "Výmena filtra",
     },
     "Duct Cleaning": {
         "de": "Luftkanäle reinigen",
@@ -658,6 +685,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Légcsatorna-tisztítás",
         "ko": "덕트 청소",
         "tr": "Kanal Temizliği",
+        "sk": "Čistenie potrubia",
     },
     "Anode Rod Inspection": {
         "de": "Anodenstab prüfen",
@@ -681,6 +709,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Anódrúd ellenőrzése",
         "ko": "애노드봉 점검",
         "tr": "Anot Çubuğu Kontrolü",
+        "sk": "Kontrola anódovej tyče",
     },
     "Flush Tank": {
         "de": "Tank spülen",
@@ -704,6 +733,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tartály átöblítése",
         "ko": "탱크 배수 세척",
         "tr": "Depoyu Yıkama",
+        "sk": "Prepláchnuť nádrž",
     },
     "Pressure Relief Valve Test": {
         "de": "Sicherheitsventil testen",
@@ -727,6 +757,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Biztonsági szelep tesztje",
         "ko": "압력 릴리프 밸브 테스트",
         "tr": "Basınç Tahliye Valfi Testi",
+        "sk": "Test poistného ventilu",
     },
     "Salt Refill": {
         "de": "Salz nachfüllen",
@@ -750,6 +781,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Só utántöltése",
         "ko": "소금 보충",
         "tr": "Tuz Dolumu",
+        "sk": "Doplnenie soli",
     },
     "Resin Cleaning": {
         "de": "Harz reinigen",
@@ -773,6 +805,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gyanta tisztítása",
         "ko": "레진 세척",
         "tr": "Reçine Temizliği",
+        "sk": "Čistenie živice",
     },
     "Annual Inspection": {
         "de": "Jahresinspektion",
@@ -796,6 +829,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Éves ellenőrzés",
         "ko": "연간 점검",
         "tr": "Yıllık Kontrol",
+        "sk": "Ročná kontrola",
     },
     "Bleed Radiators": {
         "de": "Heizkörper entlüften",
@@ -819,6 +853,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Radiátorok légtelenítése",
         "ko": "라디에이터 공기 빼기",
         "tr": "Radyatörlerin Havasını Al",
+        "sk": "Odvzdušniť radiátory",
     },
     "Filter Cleaning": {
         "de": "Filter reinigen",
@@ -842,6 +877,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szűrőtisztítás",
         "ko": "필터 청소",
         "tr": "Filtre Temizliği",
+        "sk": "Čistenie filtra",
     },
     "Basket Cleaning": {
         "de": "Korb reinigen",
@@ -865,6 +901,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szűrőkosár tisztítása",
         "ko": "바스켓 청소",
         "tr": "Sepet Temizliği",
+        "sk": "Čistenie košíka",
     },
     "Seal Inspection": {
         "de": "Dichtung prüfen",
@@ -888,6 +925,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tömítés ellenőrzése",
         "ko": "패킹 점검",
         "tr": "Conta Kontrolü",
+        "sk": "Kontrola tesnení",
     },
     "Water Test": {
         "de": "Wassertest",
@@ -911,6 +949,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vízteszt",
         "ko": "수질 검사",
         "tr": "Su Testi",
+        "sk": "Test vody",
     },
     "Shock Treatment": {
         "de": "Stoßchlorung",
@@ -934,6 +973,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Sokk-klórozás",
         "ko": "쇼크 처리",
         "tr": "Şok Klorlama",
+        "sk": "Šoková úprava",
     },
     "Filter Backwash": {
         "de": "Filter rückspülen",
@@ -957,6 +997,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szűrő visszamosatása",
         "ko": "필터 역세척",
         "tr": "Filtre Ters Yıkama",
+        "sk": "Spätné preplachovanie filtra",
     },
     "Blade Sharpening": {
         "de": "Messer schärfen",
@@ -980,6 +1021,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kés élezése",
         "ko": "칼날 연마",
         "tr": "Bıçak Bileme",
+        "sk": "Brúsenie nožov",
     },
     "Spark Plug": {
         "de": "Zündkerze",
@@ -1003,6 +1045,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gyújtógyertya",
         "ko": "점화 플러그",
         "tr": "Buji",
+        "sk": "Zapaľovacia sviečka",
     },
     "Drum Cleaning": {
         "de": "Trommel reinigen",
@@ -1026,6 +1069,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Dob tisztítása",
         "ko": "드럼 세척",
         "tr": "Tambur Temizliği",
+        "sk": "Čistenie bubna",
     },
     "Descaling": {
         "de": "Entkalken",
@@ -1049,6 +1093,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vízkőtelenítés",
         "ko": "스케일 제거",
         "tr": "Kireç Çözme",
+        "sk": "Odvápnenie",
     },
     "Door Seal Inspection": {
         "de": "Türdichtung prüfen",
@@ -1072,6 +1117,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ajtótömítés ellenőrzése",
         "ko": "도어 패킹 점검",
         "tr": "Kapı Contası Kontrolü",
+        "sk": "Kontrola tesnenia dvierok",
     },
     "Spray Arm Cleaning": {
         "de": "Sprüharme reinigen",
@@ -1095,6 +1141,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szórókarok tisztítása",
         "ko": "분사 암 청소",
         "tr": "Püskürtme Kolu Temizliği",
+        "sk": "Čistenie ostrekovacích ramien",
     },
     "Lint Filter Cleaning": {
         "de": "Flusensieb reinigen",
@@ -1118,6 +1165,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szöszszűrő tisztítása",
         "ko": "보푸라기 필터 청소",
         "tr": "Hav Filtresi Temizliği",
+        "sk": "Čistenie filtra na vlákna",
     },
     "Condenser Cleaning": {
         "de": "Kondensator reinigen",
@@ -1141,6 +1189,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kondenzátor tisztítása",
         "ko": "응축기 청소",
         "tr": "Kondenser Temizliği",
+        "sk": "Čistenie kondenzátora",
     },
     "Vent Inspection": {
         "de": "Abluft prüfen",
@@ -1164,6 +1213,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szellőzés ellenőrzése",
         "ko": "배기구 점검",
         "tr": "Havalandırma Kontrolü",
+        "sk": "Kontrola odvetrania",
     },
     "Cabin Air Filter": {
         "de": "Innenraumfilter",
@@ -1187,6 +1237,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Utastérszűrő",
         "ko": "캐빈 에어 필터",
         "tr": "Polen Filtresi",
+        "sk": "Kabínový filter",
     },
     "Brake Service": {
         "de": "Bremsenservice",
@@ -1210,6 +1261,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fékszerviz",
         "ko": "브레이크 정비",
         "tr": "Fren Bakımı",
+        "sk": "Servis bŕzd",
     },
     "12V Battery Check": {
         "de": "12V-Batterie prüfen",
@@ -1233,6 +1285,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "12 V-os akkumulátor ellenőrzése",
         "ko": "12V 배터리 점검",
         "tr": "12V Akü Kontrolü",
+        "sk": "Kontrola 12V batérie",
     },
     # ── Task notes ──────────────────────────────────────────────────────────
     "Change engine oil and filter.": {
@@ -1257,6 +1310,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Motorolaj és olajszűrő cseréje.",
         "ko": "엔진 오일과 필터를 교환하세요.",
         "tr": "Motor yağını ve yağ filtresini değiştirin.",
+        "sk": "Vymeňte motorový olej a filter.",
     },
     "Regenerative braking leaves the discs underused — have them cleaned and exercised.": {
         "de": "Durch Rekuperation werden die Bremsscheiben kaum genutzt — reinigen und gangbar halten lassen.",
@@ -1280,6 +1334,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A regeneratív fékezés miatt a féktárcsák keveset dolgoznak — időnként tisztíttassa meg és mozgassa át őket.",
         "ko": "회생 제동 때문에 브레이크 디스크가 잘 쓰이지 않습니다 — 디스크를 청소하고 작동시켜 관리해 주세요.",
         "tr": "Rejeneratif frenleme diskleri az kullanılmış bırakır — temizlenmelerini ve çalıştırılmalarını sağlayın.",
+        "sk": "Pri rekuperačnom brzdení sa kotúče málo využívajú – nechajte ich vyčistiť a precvičiť.",
     },
     "Drinking Water Filter": {
         "de": "Trinkwasserfilter",
@@ -1303,6 +1358,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ivóvízszűrő",
         "ko": "식수 필터",
         "tr": "İçme Suyu Filtresi",
+        "sk": "Filter pitnej vody",
     },
     "Houseplants": {
         "de": "Zimmerpflanzen",
@@ -1326,6 +1382,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szobanövények",
         "ko": "실내 식물",
         "tr": "Ev Bitkileri",
+        "sk": "Izbové rastliny",
     },
     "Bathroom Exhaust Fan": {
         "de": "Badezimmer-Abluftventilator",
@@ -1349,6 +1406,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fürdőszobai elszívóventilátor",
         "ko": "욕실 환풍기",
         "tr": "Banyo Aspiratörü",
+        "sk": "Ventilátor v kúpeľni",
     },
     "Kitchen Knives": {
         "de": "Küchenmesser",
@@ -1372,6 +1430,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Konyhakések",
         "ko": "주방 칼",
         "tr": "Mutfak Bıçakları",
+        "sk": "Kuchynské nože",
     },
     "Lawn Irrigation System": {
         "de": "Rasenbewässerung",
@@ -1395,6 +1454,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Öntözőrendszer",
         "ko": "잔디 관개 시스템",
         "tr": "Çim Sulama Sistemi",
+        "sk": "Zavlažovací systém trávnika",
     },
     "Pressure Washer": {
         "de": "Hochdruckreiniger",
@@ -1418,6 +1478,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Magasnyomású mosó",
         "ko": "고압 세척기",
         "tr": "Basınçlı Yıkama Makinesi",
+        "sk": "Vysokotlakový čistič",
     },
     "Espresso Machine": {
         "de": "Espressomaschine",
@@ -1441,6 +1502,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Eszpresszógép",
         "ko": "에스프레소 머신",
         "tr": "Espresso Makinesi",
+        "sk": "Espresso kávovar",
     },
     "Robot Vacuum": {
         "de": "Saugroboter",
@@ -1464,6 +1526,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Robotporszívó",
         "ko": "로봇청소기",
         "tr": "Robot Süpürge",
+        "sk": "Robotický vysávač",
     },
     "Mopping Robot Vacuum": {
         "de": "Wischsaugroboter",
@@ -1487,6 +1550,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Felmosós robotporszívó",
         "ko": "물걸레 로봇청소기",
         "tr": "Paspaslı Robot Süpürge",
+        "sk": "Robotický vysávač s mopom",
     },
     "Cordless Vacuum": {
         "de": "Akku-Staubsauger",
@@ -1510,6 +1574,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vezeték nélküli porszívó",
         "ko": "무선 청소기",
         "tr": "Kablosuz Süpürge",
+        "sk": "Akumulátorový vysávač",
     },
     "Sediment Pre-Filter": {
         "de": "Sediment-Vorfilter",
@@ -1533,6 +1598,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Üledék-előszűrő",
         "ko": "침전물 전처리 필터",
         "tr": "Tortu Ön Filtresi",
+        "sk": "Sedimentový predfilter",
     },
     "Carbon Pre-Filter": {
         "de": "Aktivkohle-Vorfilter",
@@ -1556,6 +1622,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szén-előszűrő",
         "ko": "카본 전처리 필터",
         "tr": "Karbon Ön Filtresi",
+        "sk": "Uhlíkový predfilter",
     },
     "RO Membrane": {
         "de": "RO-Membran",
@@ -1579,6 +1646,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "RO membrán",
         "ko": "RO 멤브레인",
         "tr": "RO Membranı",
+        "sk": "RO membrána",
     },
     "Post-Carbon Filter": {
         "de": "Nachkohle-Filter",
@@ -1602,6 +1670,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szén utószűrő",
         "ko": "포스트 카본 필터",
         "tr": "Son Karbon Filtresi",
+        "sk": "Uhlíkový dofilter",
     },
     "Sanitize Filter Housings": {
         "de": "Filtergehäuse desinfizieren",
@@ -1625,6 +1694,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szűrőházak fertőtlenítése",
         "ko": "필터 하우징 소독",
         "tr": "Filtre Yuvalarını Dezenfekte Et",
+        "sk": "Vydezinfikovať puzdrá filtrov",
     },
     "Watering": {
         "de": "Gießen",
@@ -1648,6 +1718,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Öntözés",
         "ko": "물 주기",
         "tr": "Sulama",
+        "sk": "Polievanie",
     },
     "Fertilizing": {
         "de": "Düngen",
@@ -1671,6 +1742,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tápoldatozás",
         "ko": "비료 주기",
         "tr": "Gübreleme",
+        "sk": "Hnojenie",
     },
     "Repotting Check": {
         "de": "Umtopf-Check",
@@ -1694,6 +1766,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Átültetés ellenőrzése",
         "ko": "분갈이 점검",
         "tr": "Saksı Değişimi Kontrolü",
+        "sk": "Kontrola presádzania",
     },
     "Clean Fan and Grille": {
         "de": "Ventilator und Gitter reinigen",
@@ -1717,6 +1790,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ventilátor és rács tisztítása",
         "ko": "팬과 그릴 청소",
         "tr": "Fanı ve Izgarayı Temizle",
+        "sk": "Vyčistiť ventilátor a mriežku",
     },
     "Knife Sharpening": {
         "de": "Messer schärfen",
@@ -1740,6 +1814,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Késélezés",
         "ko": "칼 갈기",
         "tr": "Bıçakları Bileme",
+        "sk": "Brúsenie nožov",
     },
     "Honing": {
         "de": "Abziehen (Wetzstahl)",
@@ -1763,6 +1838,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fenés",
         "ko": "날 세우기(호닝)",
         "tr": "Masat Çekme",
+        "sk": "Obťahovanie",
     },
     "Winterize System": {
         "de": "System einwintern",
@@ -1786,6 +1862,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Rendszer téliesítése",
         "ko": "월동 준비",
         "tr": "Sistemi Kışa Hazırla",
+        "sk": "Zazimovať systém",
     },
     "Spring Startup and Leak Check": {
         "de": "Frühjahrsstart und Dichtheitsprüfung",
@@ -1809,6 +1886,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tavaszi beüzemelés és szivárgás-ellenőrzés",
         "ko": "봄철 가동 및 누수 점검",
         "tr": "Bahar Açılışı ve Sızıntı Kontrolü",
+        "sk": "Jarné spustenie a kontrola únikov",
     },
     "Sprinkler Head Inspection": {
         "de": "Sprinklerköpfe prüfen",
@@ -1832,6 +1910,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szórófejek ellenőrzése",
         "ko": "스프링클러 헤드 점검",
         "tr": "Fıskiye Başlığı Kontrolü",
+        "sk": "Kontrola postrekovačov",
     },
     "Winter Storage": {
         "de": "Winterlagerung",
@@ -1855,6 +1934,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Téli tárolás",
         "ko": "겨울 보관",
         "tr": "Kışlık Depolama",
+        "sk": "Zimné uskladnenie",
     },
     "Nozzle and Filter Cleaning": {
         "de": "Düse und Filter reinigen",
@@ -1878,6 +1958,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fúvóka és szűrő tisztítása",
         "ko": "노즐 및 필터 청소",
         "tr": "Nozul ve Filtre Temizliği",
+        "sk": "Čistenie trysky a filtra",
     },
     "Pump Oil Check": {
         "de": "Pumpenöl prüfen",
@@ -1901,6 +1982,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szivattyúolaj ellenőrzése",
         "ko": "펌프 오일 점검",
         "tr": "Pompa Yağı Kontrolü",
+        "sk": "Kontrola oleja v čerpadle",
     },
     "Backflush Brew Group": {
         "de": "Brühgruppe rückspülen",
@@ -1924,6 +2006,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Főzőfej visszaöblítése",
         "ko": "브루 그룹 백플러시",
         "tr": "Demleme Grubunu Ters Yıka",
+        "sk": "Spätne prepláchnuť varnú jednotku",
     },
     "Water Filter": {
         "de": "Wasserfilter",
@@ -1947,6 +2030,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vízszűrő",
         "ko": "정수 필터",
         "tr": "Su Filtresi",
+        "sk": "Vodný filter",
     },
     "Group Gasket": {
         "de": "Brühgruppendichtung",
@@ -1970,6 +2054,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Főzőfej-tömítés",
         "ko": "그룹 개스킷",
         "tr": "Grup Contası",
+        "sk": "Tesnenie hlavy",
     },
     "Clean Main Brush": {
         "de": "Hauptbürste reinigen",
@@ -1993,6 +2078,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Főkefe tisztítása",
         "ko": "메인 브러시 청소",
         "tr": "Ana Fırçayı Temizle",
+        "sk": "Vyčistiť hlavnú kefu",
     },
     "Replace Dust Bag": {
         "de": "Staubbeutel wechseln",
@@ -2016,6 +2102,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Porzsák cseréje",
         "ko": "먼지 봉투 교체",
         "tr": "Toz Torbasını Değiştir",
+        "sk": "Vymeniť vrecko na prach",
     },
     "Empty and Wash the Dust Bin": {
         "de": "Staubbehälter leeren und auswaschen",
@@ -2039,6 +2126,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Portartály ürítése és mosása",
         "ko": "먼지통 비우고 세척하기",
         "tr": "Toz Haznesini Boşalt ve Yıka",
+        "sk": "Vyprázdniť a umyť nádobu na prach",
     },
     "Clean Pre-Filter, Cyclone and Mesh": {
         "de": "Vorfilter, Zyklon und Feinsieb reinigen",
@@ -2062,6 +2150,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Előszűrő, ciklon és szita tisztítása",
         "ko": "프리필터·사이클론·메시 청소",
         "tr": "Ön Filtreyi, Siklonu ve Eleği Temizle",
+        "sk": "Vyčistiť predfilter, cyklón a sieťku",
     },
     "Check Nozzles and Tube for Blockages": {
         "de": "Düsen und Rohr auf Verstopfungen prüfen",
@@ -2085,6 +2174,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szívófejek és cső eltömődésének ellenőrzése",
         "ko": "노즐과 흡입관 막힘 점검",
         "tr": "Başlıkları ve Boruyu Tıkanıklığa Karşı Kontrol Et",
+        "sk": "Skontrolovať upchatie hubíc a trubice",
     },
     "Cut hair and threads off the brush roll — scissors or a seam ripper help. Weekly with pets.": {
         "de": "Haare und Fäden von der Bürstenwalze schneiden — eine Schere oder ein Nahttrenner hilft. Mit Haustieren wöchentlich.",
@@ -2108,6 +2198,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vágd le a hajat és a szálakat a kefehengerről — olló vagy varrásbontó segít. Háziállattal hetente.",
         "ko": "브러시 롤에 감긴 머리카락과 실을 잘라 냅니다. 가위나 실뜯개가 편리합니다. 반려동물이 있으면 매주.",
         "tr": "Fırça rulosundaki saç ve iplikleri kesin — makas veya söküm bıçağı işe yarar. Evcil hayvan varsa haftada bir.",
+        "sk": "Z valcovej kefy odstrihajte vlasy a nite – pomôžu nožnice alebo páračka. S domácimi zvieratami každý týždeň.",
     },
     "Lukewarm water and a damp cloth; let it dry completely before it goes back in.": {
         "de": "Lauwarmes Wasser und ein feuchtes Tuch; vor dem Einsetzen vollständig trocknen lassen.",
@@ -2131,6 +2222,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Langyos víz és nedves kendő; visszahelyezés előtt hagyd teljesen megszáradni.",
         "ko": "미지근한 물과 젖은 천으로 닦고, 다시 끼우기 전에 완전히 말리세요.",
         "tr": "Ilık su ve nemli bir bez; yerine takmadan önce tamamen kurumasını bekleyin.",
+        "sk": "Vlažná voda a vlhká handrička; pred vrátením nechajte úplne vyschnúť.",
     },
     "Tap it out, rinse it if it is washable, and let it dry for at least 24 hours.": {
         "de": "Ausklopfen, waschbare Filter ausspülen und mindestens 24 Stunden trocknen lassen.",
@@ -2154,6 +2246,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kopogtasd ki, mosd ki, ha mosható, és hagyd legalább 24 órát száradni.",
         "ko": "털어서 먼지를 빼고, 물세척이 가능하면 헹군 뒤 24시간 이상 말리세요.",
         "tr": "Silkeleyin, yıkanabiliyorsa durulayın ve en az 24 saat kurumaya bırakın.",
+        "sk": "Vyklepte ho, ak je umývateľný, opláchnite ho a nechajte schnúť aspoň 24 hodín.",
     },
     "Clean Sensors": {
         "de": "Sensoren reinigen",
@@ -2177,6 +2270,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Érzékelők tisztítása",
         "ko": "센서 청소",
         "tr": "Sensörleri Temizle",
+        "sk": "Vyčistiť senzory",
     },
     "Empty Dirty Water Tank": {
         "de": "Schmutzwassertank leeren",
@@ -2200,6 +2294,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szennyvíztartály ürítése",
         "ko": "오수 탱크 비우기",
         "tr": "Kirli Su Tankını Boşalt",
+        "sk": "Vyprázdniť nádrž na špinavú vodu",
     },
     "Clean Mop Tray": {
         "de": "Wischplatte reinigen",
@@ -2223,6 +2318,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Felmosótálca tisztítása",
         "ko": "걸레 트레이 청소",
         "tr": "Paspas Tepsisini Temizle",
+        "sk": "Vyčistiť podložku mopu",
     },
     "Wash Mop Pads": {
         "de": "Wischpads waschen",
@@ -2246,6 +2342,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Felmosópárnák mosása",
         "ko": "걸레 패드 세탁",
         "tr": "Paspas Pedlerini Yıka",
+        "sk": "Vyprať mopovacie podložky",
     },
     "Blow out and drain before the first frost. Tip: a sensor-based threshold trigger (below 3 °C on an outdoor temperature entity) makes this reminder frost-aware.": {
         "de": "Vor dem ersten Frost ausblasen und entleeren. Tipp: Ein sensorbasierter Schwellenwert-Trigger (unter 3 °C auf einer Außentemperatur-Entität) macht diese Erinnerung frostabhängig.",
@@ -2269,6 +2366,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Az első fagy előtt fúvassa ki és eressze le a rendszert. Tipp: egy érzékelőalapú küszöbkiváltó (3 °C alatt egy kültéri hőmérséklet-entitáson) fagyérzékennyé teszi ezt az emlékeztetőt.",
         "ko": "첫 서리가 내리기 전에 물을 불어내고 배수하세요. 팁: 실외 온도 엔티티에 센서 기반 임계값 트리거(3 °C 미만)를 설정하면 서리에 맞춰 알림을 받을 수 있습니다.",
         "tr": "İlk dondan önce hatları basınçlı havayla boşaltın ve suyunu alın. İpucu: sensöre dayalı bir eşik tetikleyicisi (dış sıcaklık varlığında 3 °C altı) bu hatırlatmayı don durumuna duyarlı hale getirir.",
+        "sk": "Pred prvým mrazom vyfúkať a vypustiť. Tip: spúšťač s prahom zo senzora (pod 3 °C na entite vonkajšej teploty) urobí z tejto pripomienky upozornenie na mráz.",
     },
     "Move to a frost-free spot before the first frost — trapped water cracks the pump. Tip: a sensor-based threshold trigger (below 3 °C) makes this reminder frost-aware.": {
         "de": "Vor dem ersten Frost frostfrei einlagern — Restwasser sprengt die Pumpe. Tipp: Ein sensorbasierter Schwellenwert-Trigger (unter 3 °C) macht diese Erinnerung frostabhängig.",
@@ -2292,6 +2390,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Az első fagy előtt vigye fagymentes helyre — a bent maradt víz szétrepeszti a szivattyút. Tipp: egy érzékelőalapú küszöbkiváltó (3 °C alatt) fagyérzékennyé teszi ezt az emlékeztetőt.",
         "ko": "첫 서리가 내리기 전에 서리가 없는 곳으로 옮기세요 — 남아 있는 물이 얼면 펌프가 파손됩니다. 팁: 센서 기반 임계값 트리거(3 °C 미만)를 설정하면 서리에 맞춰 알림을 받을 수 있습니다.",
         "tr": "İlk dondan önce dondan korunan bir yere taşıyın — içeride kalan su pompayı çatlatır. İpucu: sensöre dayalı bir eşik tetikleyicisi (3 °C altı) bu hatırlatmayı don durumuna duyarlı hale getirir.",
+        "sk": "Pred prvým mrazom presuňte na miesto bez mrazu – zamrznutá voda roztrhne čerpadlo. Tip: spúšťač s prahom zo senzora (pod 3 °C) urobí z tejto pripomienky upozornenie na mráz.",
     },
     "Interval depends on water hardness — descale more often with hard water.": {
         "de": "Intervall hängt von der Wasserhärte ab — bei hartem Wasser öfter entkalken.",
@@ -2315,6 +2414,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Az intervallum a víz keménységétől függ — kemény víznél gyakrabban vízkőtelenítsen.",
         "ko": "주기는 물의 경도에 따라 다릅니다 — 경수라면 스케일 제거를 더 자주 하세요.",
         "tr": "Aralık su sertliğine bağlıdır — sert suda kireci daha sık çözün.",
+        "sk": "Interval závisí od tvrdosti vody – pri tvrdej vode odvápňujte častejšie.",
     },
     "Many docks don't warn when the bag is full — a schedule beats a surprise.": {
         "de": "Viele Stationen warnen nicht, wenn der Beutel voll ist — ein fester Rhythmus schlägt die Überraschung.",
@@ -2338,6 +2438,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Sok dokkoló nem jelzi, ha megtelt a porzsák — az ütemezés jobb, mint a meglepetés.",
         "ko": "많은 도크는 먼지 봉투가 가득 차도 경고하지 않습니다 — 일정으로 관리하면 갑작스러운 낭패를 피할 수 있습니다.",
         "tr": "Birçok istasyon torba dolduğunda uyarı vermez — bir plan, sürprizden iyidir.",
+        "sk": "Mnohé stanice neupozornia, keď je vrecko plné – plán je lepší ako prekvapenie.",
     },
     "E-Bike": {
         "de": "E-Bike",
@@ -2361,6 +2462,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Elektromos kerékpár",
         "ko": "전기 자전거",
         "tr": "E-Bisiklet",
+        "sk": "Elektrobicykel",
     },
     "Smoke & CO Detectors": {
         "de": "Rauch- & CO-Melder",
@@ -2384,6 +2486,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Füst- és CO-érzékelők",
         "ko": "연기·CO 감지기",
         "tr": "Duman ve CO Dedektörleri",
+        "sk": "Detektory dymu a CO",
     },
     "Bathroom": {
         "de": "Badezimmer",
@@ -2407,6 +2510,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fürdőszoba",
         "ko": "욕실",
         "tr": "Banyo",
+        "sk": "Kúpeľňa",
     },
     "Bedroom": {
         "de": "Schlafzimmer",
@@ -2430,6 +2534,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Hálószoba",
         "ko": "침실",
         "tr": "Yatak Odası",
+        "sk": "Spálňa",
     },
     "Kitchen": {
         "de": "Küche",
@@ -2453,6 +2558,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Konyha",
         "ko": "주방",
         "tr": "Mutfak",
+        "sk": "Kuchyňa",
     },
     "House Exterior": {
         "de": "Haus außen",
@@ -2476,6 +2582,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A ház külseje",
         "ko": "주택 외부",
         "tr": "Ev Dış Cephesi",
+        "sk": "Exteriér domu",
     },
     "Battery Care Check": {
         "de": "Akku-Pflege-Check",
@@ -2499,6 +2606,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Akkumulátor-gondozási ellenőrzés",
         "ko": "배터리 관리 점검",
         "tr": "Batarya Bakım Kontrolü",
+        "sk": "Kontrola starostlivosti o batériu",
     },
     "Test Detectors": {
         "de": "Melder testen",
@@ -2522,6 +2630,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Érzékelők tesztelése",
         "ko": "감지기 테스트",
         "tr": "Dedektörleri Test Et",
+        "sk": "Otestovať detektory",
     },
     "Replace Detector Batteries": {
         "de": "Melder-Batterien wechseln",
@@ -2545,6 +2654,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Érzékelők elemeinek cseréje",
         "ko": "감지기 배터리 교체",
         "tr": "Dedektör Pillerini Değiştir",
+        "sk": "Vymeniť batérie v detektoroch",
     },
     "Replace Detectors": {
         "de": "Melder austauschen",
@@ -2568,6 +2678,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Érzékelők cseréje",
         "ko": "감지기 교체",
         "tr": "Dedektörleri Değiştir",
+        "sk": "Vymeniť detektory",
     },
     "Clean Bathroom": {
         "de": "Bad putzen",
@@ -2591,6 +2702,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fürdőszoba takarítása",
         "ko": "욕실 청소",
         "tr": "Banyoyu Temizle",
+        "sk": "Upratať kúpeľňu",
     },
     "Change Towels": {
         "de": "Handtücher wechseln",
@@ -2614,6 +2726,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Törölközők cseréje",
         "ko": "수건 교체",
         "tr": "Havluları Değiştir",
+        "sk": "Vymeniť uteráky",
     },
     "Refill Soap Dispensers": {
         "de": "Seifenspender auffüllen",
@@ -2637,6 +2750,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szappanadagolók utántöltése",
         "ko": "비누 디스펜서 보충",
         "tr": "Sabunlukları Doldur",
+        "sk": "Doplniť dávkovače mydla",
     },
     "Wash Bath Mats": {
         "de": "Badematten waschen",
@@ -2660,6 +2774,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fürdőszobaszőnyegek mosása",
         "ko": "욕실 매트 세탁",
         "tr": "Banyo Paspaslarını Yıka",
+        "sk": "Vyprať kúpeľňové predložky",
     },
     "Check Silicone Seals": {
         "de": "Silikonfugen prüfen",
@@ -2683,6 +2798,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szilikonfugák ellenőrzése",
         "ko": "실리콘 실링 점검",
         "tr": "Silikon Derzleri Kontrol Et",
+        "sk": "Skontrolovať silikónové tesnenia",
     },
     "Change Bed Linen": {
         "de": "Bettwäsche wechseln",
@@ -2706,6 +2822,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ágynemű cseréje",
         "ko": "침구 교체",
         "tr": "Nevresimleri Değiştir",
+        "sk": "Vymeniť posteľnú bielizeň",
     },
     "Rotate Mattress": {
         "de": "Matratze wenden",
@@ -2729,6 +2846,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Matrac forgatása",
         "ko": "매트리스 돌리기",
         "tr": "Yatağı Çevir",
+        "sk": "Otočiť matrac",
     },
     "Wash Pillows and Duvets": {
         "de": "Kissen und Decken waschen",
@@ -2752,6 +2870,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Párnák és paplanok mosása",
         "ko": "베개와 이불 세탁",
         "tr": "Yastıkları ve Yorganları Yıka",
+        "sk": "Vyprať vankúše a periny",
     },
     "Clean Refrigerator": {
         "de": "Kühlschrank reinigen",
@@ -2775,6 +2894,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Hűtőszekrény tisztítása",
         "ko": "냉장고 청소",
         "tr": "Buzdolabını Temizle",
+        "sk": "Vyčistiť chladničku",
     },
     "Defrost Freezer": {
         "de": "Gefrierschrank abtauen",
@@ -2798,6 +2918,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fagyasztó leolvasztása",
         "ko": "냉동고 성에 제거",
         "tr": "Dondurucunun Buzunu Çöz",
+        "sk": "Odmraziť mrazničku",
     },
     "Range Hood Filter": {
         "de": "Dunstabzugshauben-Filter",
@@ -2821,6 +2942,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Páraelszívó szűrője",
         "ko": "레인지 후드 필터",
         "tr": "Davlumbaz Filtresi",
+        "sk": "Filter digestora",
     },
     "Oven Cleaning": {
         "de": "Backofen reinigen",
@@ -2844,6 +2966,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Sütő tisztítása",
         "ko": "오븐 청소",
         "tr": "Fırın Temizliği",
+        "sk": "Čistenie rúry",
     },
     "Clean Gutters": {
         "de": "Dachrinnen reinigen",
@@ -2867,6 +2990,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ereszcsatornák tisztítása",
         "ko": "빗물받이 청소",
         "tr": "Yağmur Oluklarını Temizle",
+        "sk": "Vyčistiť odkvapy",
     },
     "Roof Inspection": {
         "de": "Dach prüfen",
@@ -2890,6 +3014,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tető ellenőrzése",
         "ko": "지붕 점검",
         "tr": "Çatı Kontrolü",
+        "sk": "Kontrola strechy",
     },
     "Clean Windows": {
         "de": "Fenster putzen",
@@ -2913,6 +3038,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ablaktisztítás",
         "ko": "창문 청소",
         "tr": "Camları Temizle",
+        "sk": "Umyť okná",
     },
     "Store the battery at 30–80% charge and away from frost — long-term storage full or empty ages the cells.": {
         "de": "Akku bei 30–80 % Ladung und frostfrei lagern — dauerhaft voll oder leer altern die Zellen.",
@@ -2936,6 +3062,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Az akkumulátort 30–80%-os töltöttségen, fagytól védve tárolja — a tartósan tele vagy üres tárolás öregíti a cellákat.",
         "ko": "배터리는 30–80% 충전 상태로 서리를 피해 보관하세요 — 완전 충전이나 완전 방전 상태로 장기 보관하면 셀이 노화됩니다.",
         "tr": "Bataryayı %30–80 şarjla ve dondan uzakta saklayın — uzun süre tam dolu veya tamamen boş saklamak hücreleri yaşlandırır.",
+        "sk": "Batériu skladujte nabitú na 30–80 % a mimo mrazu – dlhodobé skladovanie plnej alebo prázdnej batérie urýchľuje starnutie článkov.",
     },
     "Smoke detectors expire — most sensors are rated for 10 years from the date printed on the unit.": {
         "de": "Rauchmelder haben ein Ablaufdatum — die meisten Sensoren sind ab dem aufgedruckten Datum 10 Jahre zugelassen.",
@@ -2959,6 +3086,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A füstérzékelők elévülnek — a legtöbb érzékelő a készüléken feltüntetett dátumtól számított 10 évig használható.",
         "ko": "연기 감지기에는 수명이 있습니다 — 대부분의 센서는 기기에 인쇄된 날짜로부터 10년까지 사용하도록 정해져 있습니다.",
         "tr": "Duman dedektörlerinin ömrü dolar — çoğu sensör, cihazın üzerinde yazan tarihten itibaren 10 yıl için derecelendirilmiştir.",
+        "sk": "Detektory dymu majú obmedzenú životnosť – väčšina senzorov je dimenzovaná na 10 rokov od dátumu vytlačeného na zariadení.",
     },
     "Replace Main Brush": {
         "de": "Hauptbürste ersetzen",
@@ -2982,6 +3110,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Főkefe cseréje",
         "ko": "메인 브러시 교체",
         "tr": "Ana Fırçayı Değiştir",
+        "sk": "Vymeniť hlavnú kefu",
     },
     "Replace Side Brush": {
         "de": "Seitenbürste ersetzen",
@@ -3005,6 +3134,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Oldalkefe cseréje",
         "ko": "사이드 브러시 교체",
         "tr": "Yan Fırçayı Değiştir",
+        "sk": "Vymeniť bočnú kefu",
     },
     "Replace Filter": {
         "de": "Filter ersetzen",
@@ -3028,6 +3158,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szűrő cseréje",
         "ko": "필터 교체",
         "tr": "Filtreyi Değiştir",
+        "sk": "Vymeniť filter",
     },
     "Replace Secondary Filter": {
         "de": "Sekundärfilter ersetzen",
@@ -3051,6 +3182,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Másodlagos szűrő cseréje",
         "ko": "보조 필터 교체",
         "tr": "İkincil Filtreyi Değiştir",
+        "sk": "Vymeniť sekundárny filter",
     },
     "Replace Silver-ion Module": {
         "de": "Silberionen-Modul ersetzen",
@@ -3074,6 +3206,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ezüstion-modul cseréje",
         "ko": "은이온 모듈 교체",
         "tr": "Gümüş İyon Modülünü Değiştir",
+        "sk": "Vymeniť modul so striebornými iónmi",
     },
     "Replace Ink or Toner": {
         "de": "Tinte oder Toner ersetzen",
@@ -3097,6 +3230,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tinta vagy toner cseréje",
         "ko": "잉크 또는 토너 교체",
         "tr": "Mürekkebi veya Toneri Değiştir",
+        "sk": "Vymeniť atrament alebo toner",
     },
     "Replace Toner": {
         "de": "Toner ersetzen",
@@ -3120,6 +3254,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Toner cseréje",
         "ko": "토너 교체",
         "tr": "Toneri Değiştir",
+        "sk": "Vymeniť toner",
     },
     "Replace Drum Unit": {
         "de": "Trommeleinheit ersetzen",
@@ -3143,6 +3278,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Dobegység cseréje",
         "ko": "드럼 유닛 교체",
         "tr": "Drum Ünitesini Değiştir",
+        "sk": "Vymeniť valcovú jednotku",
     },
     "Replace Belt Unit": {
         "de": "Transfereinheit ersetzen",
@@ -3166,6 +3302,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szíjegység cseréje",
         "ko": "벨트 유닛 교체",
         "tr": "Kayış Ünitesini Değiştir",
+        "sk": "Vymeniť pásovú jednotku",
     },
     "Replace Fuser": {
         "de": "Fixiereinheit ersetzen",
@@ -3189,6 +3326,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Beégetőegység cseréje",
         "ko": "퓨저(정착기) 교체",
         "tr": "Fuser Ünitesini Değiştir",
+        "sk": "Vymeniť fixačnú jednotku",
     },
     "Lawn Care": {
         "de": "Rasenpflege",
@@ -3212,6 +3350,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gyepápolás",
         "ko": "잔디 관리",
         "tr": "Çim Bakımı",
+        "sk": "Starostlivosť o trávnik",
     },
     "Hedge Care": {
         "de": "Heckenpflege",
@@ -3235,6 +3374,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Sövényápolás",
         "ko": "생울타리 관리",
         "tr": "Çit Bakımı",
+        "sk": "Starostlivosť o živý plot",
     },
     "Mowing": {
         "de": "Mähen",
@@ -3258,6 +3398,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fűnyírás",
         "ko": "잔디 깎기",
         "tr": "Çim Biçme",
+        "sk": "Kosenie",
     },
     "Fertilising": {
         "de": "Düngen",
@@ -3281,6 +3422,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Műtrágyázás",
         "ko": "비료 주기",
         "tr": "Gübreleme",
+        "sk": "Hnojenie",
     },
     "Scarifying": {
         "de": "Vertikutieren",
@@ -3304,6 +3446,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vertikulálás",
         "ko": "태치 제거(스카리파잉)",
         "tr": "Keçe Alma (Skarifikasyon)",
+        "sk": "Vertikutácia",
     },
     "Aerating": {
         "de": "Aerifizieren",
@@ -3327,6 +3470,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gyeplevegőztetés",
         "ko": "통기 작업(에어레이션)",
         "tr": "Havalandırma",
+        "sk": "Prevzdušňovanie",
     },
     "Overseeding": {
         "de": "Nachsäen",
@@ -3350,6 +3494,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Felülvetés",
         "ko": "덧파종",
         "tr": "Takviye Tohumlama",
+        "sk": "Dosievanie",
     },
     "Weeding": {
         "de": "Unkraut jäten",
@@ -3373,6 +3518,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gyomlálás",
         "ko": "잡초 제거",
         "tr": "Yabani Ot Temizliği",
+        "sk": "Plenie",
     },
     "Trimming": {
         "de": "Schneiden",
@@ -3396,6 +3542,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Nyírás",
         "ko": "다듬기",
         "tr": "Kırpma",
+        "sk": "Strihanie",
     },
     "Mulching": {
         "de": "Mulchen",
@@ -3419,6 +3566,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Mulcsozás",
         "ko": "멀칭",
         "tr": "Malçlama",
+        "sk": "Mulčovanie",
     },
     "During the growing season — preset to April–October (mirrored in the southern hemisphere, all year where there is no winter); adjust it in the task dialog.": {
         "de": "Während der Wachstumssaison — voreingestellt auf April–Oktober (auf der Südhalbkugel gespiegelt, ganzjährig, wo es keinen Winter gibt); im Aufgaben-Dialog anpassbar.",
@@ -3442,6 +3590,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A vegetációs időszakban — alapértelmezés szerint április–október (a déli féltekén fordítva, ahol nincs tél, egész évben); a feladat párbeszédablakában módosítható.",
         "ko": "생육기 동안 — 4월~10월로 미리 설정됨(남반구에서는 반대로, 겨울이 없는 곳은 연중); 작업 대화 상자에서 조정하세요.",
         "tr": "Büyüme mevsimi boyunca — Nisan–Ekim olarak önceden ayarlı (güney yarımkürede tersine çevrilir, kışın olmadığı yerlerde tüm yıl); görev penceresinde değiştirebilirsiniz.",
+        "sk": "Počas vegetačného obdobia – prednastavené na apríl – október (na južnej pologuli zrkadlovo, celoročne tam, kde nie je zima); upravte v dialógu úlohy.",
     },
     "In dry periods — a soil-moisture or rain sensor makes a good sensor trigger instead of the fixed interval.": {
         "de": "In Trockenperioden — ein Bodenfeuchte- oder Regensensor eignet sich als Sensor-Trigger statt des festen Intervalls.",
@@ -3465,6 +3614,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Száraz időszakokban — a rögzített intervallum helyett talajnedvesség- vagy esőérzékelő is jó kiváltó lehet.",
         "ko": "건조한 시기에 하세요 — 고정 주기 대신 토양 수분 센서나 강우 센서를 트리거로 사용하면 좋습니다.",
         "tr": "Kurak dönemlerde — toprak nemi veya yağmur sensörü, sabit aralık yerine iyi bir sensör tetikleyicisi olur.",
+        "sk": "V suchých obdobiach – namiesto pevného intervalu je vhodným spúšťačom senzor vlhkosti pôdy alebo dažďa.",
     },
     "1–3 times per year depending on the species — mind local rules protecting nesting birds in spring.": {
         "de": "1–3× pro Jahr je nach Art — im Frühjahr die Schutzregeln für nistende Vögel beachten.",
@@ -3488,6 +3638,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fajtától függően évente 1–3 alkalommal — tavasszal ügyeljen a fészkelő madarakat védő helyi szabályokra.",
         "ko": "수종에 따라 연 1–3회 — 봄철 둥지를 튼 새를 보호하는 지역 규정에 유의하세요.",
         "tr": "Türe bağlı olarak yılda 1–3 kez — ilkbaharda yuva yapan kuşları koruyan yerel kurallara dikkat edin.",
+        "sk": "1 – 3-krát ročne podľa druhu – na jar dbajte na miestne predpisy na ochranu hniezdiacich vtákov.",
     },
     "Robot Lawn Mower": {
         "de": "Mähroboter",
@@ -3511,6 +3662,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Robotfűnyíró",
         "ko": "로봇 잔디깎이",
         "tr": "Robot Çim Biçme Makinesi",
+        "sk": "Robotická kosačka",
     },
     "Replace Blades": {
         "de": "Messer ersetzen",
@@ -3534,6 +3686,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kések cseréje",
         "ko": "칼날 교체",
         "tr": "Bıçakları Değiştir",
+        "sk": "Vymeniť nože",
     },
     "Clean Undercarriage": {
         "de": "Unterboden reinigen",
@@ -3557,6 +3710,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Alváz tisztítása",
         "ko": "하부 청소",
         "tr": "Alt Kısmı Temizle",
+        "sk": "Vyčistiť spodok",
     },
     "Clean Charging Contacts": {
         "de": "Ladekontakte reinigen",
@@ -3580,6 +3734,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Töltőérintkezők tisztítása",
         "ko": "충전 단자 청소",
         "tr": "Şarj Kontaklarını Temizle",
+        "sk": "Vyčistiť nabíjacie kontakty",
     },
     "Replace Mop Pads": {
         "de": "Wischpads ersetzen",
@@ -3603,6 +3758,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Felmosópárnák cseréje",
         "ko": "걸레 패드 교체",
         "tr": "Paspas Pedlerini Değiştir",
+        "sk": "Vymeniť mopovacie podložky",
     },
     "Dull pivoting blades tear the grass instead of cutting it — supported integrations expose blade-usage sensors that can trigger this instead of the calendar.": {
         "de": "Stumpfe Pendelmesser reißen das Gras statt zu schneiden — unterstützte Integrationen liefern Messer-Nutzungssensoren, die statt des Kalenders triggern können.",
@@ -3626,6 +3782,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A tompa forgókések tépik a füvet vágás helyett — a támogatott integrációk késhasználat-érzékelőket kínálnak, amelyek a naptár helyett kiválthatják ezt a feladatot.",
         "ko": "무뎌진 회전 칼날은 잔디를 자르는 대신 찢습니다 — 지원되는 통합구성요소는 칼날 사용량 센서를 제공하므로 달력 대신 이를 트리거로 사용할 수 있습니다.",
         "tr": "Körelmiş döner bıçaklar çimi kesmek yerine yırtar — desteklenen entegrasyonlar, takvim yerine bunu tetikleyebilecek bıçak kullanım sensörleri sunar.",
+        "sk": "Tupé otočné nože trávu trhajú namiesto rezania – podporované integrácie poskytujú senzory opotrebenia nožov, ktoré to môžu spúšťať namiesto kalendára.",
     },
     "Store indoors over winter with the battery at partial charge — frost and a fully drained battery both age the cells.": {
         "de": "Über den Winter drinnen lagern, Akku teilgeladen — Frost und ein leerer Akku altern die Zellen.",
@@ -3649,6 +3806,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Télre tárolja beltérben, részlegesen feltöltött akkumulátorral — a fagy és a teljesen lemerült akkumulátor egyaránt öregíti a cellákat.",
         "ko": "겨울에는 배터리를 일부만 충전한 상태로 실내에 보관하세요 — 서리와 완전 방전 모두 셀을 노화시킵니다.",
         "tr": "Kışın, batarya kısmen şarjlıyken iç mekânda saklayın — don da tamamen boşalmış batarya da hücreleri yaşlandırır.",
+        "sk": "Cez zimu skladujte vo vnútri s čiastočne nabitou batériou – mráz aj úplne vybitá batéria urýchľujú starnutie článkov.",
     },
     "Replace Water Filter": {
         "de": "Wasserfilter ersetzen",
@@ -3672,6 +3830,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vízszűrő cseréje",
         "ko": "정수 필터 교체",
         "tr": "Su Filtresini Değiştir",
+        "sk": "Vymeniť vodný filter",
     },
     "Clean Tub": {
         "de": "Trommel reinigen",
@@ -3695,6 +3854,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tartály tisztítása",
         "ko": "세탁조 청소",
         "tr": "Kazanı Temizle",
+        "sk": "Vyčistiť vaňu",
     },
     "Refill Salt": {
         "de": "Salz nachfüllen",
@@ -3718,6 +3878,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Só utántöltése",
         "ko": "소금 보충",
         "tr": "Tuz Doldur",
+        "sk": "Doplniť soľ",
     },
     "Refill Rinse Aid": {
         "de": "Klarspüler nachfüllen",
@@ -3741,6 +3902,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Öblítőszer utántöltése",
         "ko": "린스 보충",
         "tr": "Parlatıcı Doldur",
+        "sk": "Doplniť leštidlo",
     },
     "Descale Appliance": {
         "de": "Gerät entkalken",
@@ -3764,6 +3926,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Készülék vízkőtelenítése",
         "ko": "가전 스케일 제거",
         "tr": "Cihazın Kirecini Çöz",
+        "sk": "Odvápniť spotrebič",
     },
     "Clean Appliance": {
         "de": "Gerät reinigen",
@@ -3787,6 +3950,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Készülék tisztítása",
         "ko": "가전 청소",
         "tr": "Cihazı Temizle",
+        "sk": "Vyčistiť spotrebič",
     },
     "Clean Grease Filter": {
         "de": "Fettfilter reinigen",
@@ -3810,6 +3974,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Zsírszűrő tisztítása",
         "ko": "기름때 필터 청소",
         "tr": "Yağ Filtresini Temizle",
+        "sk": "Vyčistiť tukový filter",
     },
     "3D Printer": {
         "de": "3D-Drucker",
@@ -3833,6 +3998,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "3D nyomtató",
         "ko": "3D 프린터",
         "tr": "3D Yazıcı",
+        "sk": "3D tlačiareň",
     },
     "Clean Print Bed": {
         "de": "Druckbett reinigen",
@@ -3856,6 +4022,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tárgyasztal tisztítása",
         "ko": "프린트 베드 청소",
         "tr": "Baskı Tablasını Temizle",
+        "sk": "Vyčistiť tlačovú podložku",
     },
     "Clean or Replace Nozzle": {
         "de": "Düse reinigen oder ersetzen",
@@ -3879,6 +4046,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fúvóka tisztítása vagy cseréje",
         "ko": "노즐 청소 또는 교체",
         "tr": "Nozulu Temizle veya Değiştir",
+        "sk": "Vyčistiť alebo vymeniť trysku",
     },
     "Lubricate Rails and Rods": {
         "de": "Schienen und Wellen schmieren",
@@ -3902,6 +4070,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Sínek és rudak kenése",
         "ko": "레일 및 로드 윤활",
         "tr": "Rayları ve Milleri Yağla",
+        "sk": "Namazať vedenia a tyče",
     },
     "Check Belt Tension": {
         "de": "Riemenspannung prüfen",
@@ -3925,6 +4094,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szíjfeszesség ellenőrzése",
         "ko": "벨트 장력 점검",
         "tr": "Kayış Gerginliğini Kontrol Et",
+        "sk": "Skontrolovať napnutie remeňov",
     },
     "Dry Filament Stock": {
         "de": "Filamentvorrat trocknen",
@@ -3948,6 +4118,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Filamentkészlet szárítása",
         "ko": "필라멘트 건조",
         "tr": "Filament Stoğunu Kurut",
+        "sk": "Vysušiť zásobu filamentu",
     },
     "Grease and dust ruin first-layer adhesion — clean with isopropyl alcohol, not household cleaners.": {
         "de": "Fett und Staub ruinieren die Haftung der ersten Schicht — mit Isopropanol reinigen, nicht mit Haushaltsreinigern.",
@@ -3971,6 +4142,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A zsír és a por tönkreteszi az első réteg tapadását — izopropil-alkohollal tisztítsa, ne háztartási tisztítószerrel.",
         "ko": "유분과 먼지는 첫 레이어 접착을 망칩니다 — 가정용 세제가 아닌 이소프로필 알코올로 청소하세요.",
         "tr": "Yağ ve toz ilk katman yapışmasını bozar — ev temizleyicileriyle değil, izopropil alkolle temizleyin.",
+        "sk": "Mastnota a prach ničia priľnavosť prvej vrstvy – čistite izopropylalkoholom, nie bežnými čistiacimi prostriedkami.",
     },
     "Follow the manufacturer's lubricant spec — the wrong grease attracts dust and wears the bearings faster.": {
         "de": "Schmiermittel-Vorgabe des Herstellers beachten — falsches Fett zieht Staub an und verschleißt die Lager schneller.",
@@ -3994,6 +4166,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kövesse a gyártó kenőanyag-előírását — a nem megfelelő zsír vonzza a port, és gyorsabban koptatja a csapágyakat.",
         "ko": "제조사의 윤활유 사양을 따르세요 — 잘못된 그리스는 먼지를 끌어들여 베어링을 더 빨리 마모시킵니다.",
         "tr": "Üreticinin yağlayıcı önerisine uyun — yanlış gres toz çeker ve rulmanları daha hızlı aşındırır.",
+        "sk": "Dodržiavajte mazivo predpísané výrobcom – nesprávne mazivo priťahuje prach a ložiská sa rýchlejšie opotrebujú.",
     },
     "Moist filament pops and strings — hygroscopic materials (PETG, PA, TPU) need drying well before PLA does.": {
         "de": "Feuchtes Filament knistert und zieht Fäden — hygroskopische Materialien (PETG, PA, TPU) brauchen Trocknung deutlich früher als PLA.",
@@ -4017,6 +4190,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A nedves filament pattog és szálakat húz — a higroszkópos anyagok (PETG, PA, TPU) jóval hamarabb igényelnek szárítást, mint a PLA.",
         "ko": "습기 찬 필라멘트는 기포와 스트링을 만듭니다 — 흡습성 소재(PETG, PA, TPU)는 PLA보다 훨씬 먼저 건조가 필요합니다.",
         "tr": "Nemli filament baskıda patlama ve iplik yapar — higroskopik malzemelerin (PETG, PA, TPU) kurutulması PLA'dan çok daha önce gerekir.",
+        "sk": "Vlhký filament praská a ťahá vlákna – hygroskopické materiály (PETG, PA, TPU) treba sušiť oveľa skôr ako PLA.",
     },
     "Refill Detergent": {
         "de": "Waschmittel nachfüllen",
@@ -4040,6 +4214,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Mosószer utántöltése",
         "ko": "세제 보충",
         "tr": "Deterjan Doldur",
+        "sk": "Doplniť čistiaci prostriedok",
     },
     "Clean Carbon Rods": {
         "de": "Carbon-Stangen reinigen",
@@ -4063,6 +4238,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szénrudak tisztítása",
         "ko": "카본 로드 청소",
         "tr": "Karbon Çubukları Temizle",
+        "sk": "Vyčistiť uhlíkové tyčinky",
     },
     "Replace Purge Wiper": {
         "de": "Purge-Wiper ersetzen",
@@ -4086,6 +4262,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tisztítólapát cseréje",
         "ko": "퍼지 와이퍼 교체",
         "tr": "Temizleme Sileceğini Değiştir",
+        "sk": "Vymeniť čistiacu stierku",
     },
     "Replace Desiccant": {
         "de": "Trockenmittel ersetzen",
@@ -4109,6 +4286,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Nedvszívó cseréje",
         "ko": "제습제 교체",
         "tr": "Nem Alıcıyı Değiştir",
+        "sk": "Vymeniť vysúšadlo",
     },
     "Storage Cleanup": {
         "de": "Speicher aufräumen",
@@ -4132,6 +4310,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tárhely rendezése",
         "ko": "저장 공간 정리",
         "tr": "Depolama Temizliği",
+        "sk": "Upratanie skladu",
     },
     "Inspect Cable and Plug": {
         "de": "Kabel und Stecker prüfen",
@@ -4155,6 +4334,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kábel és csatlakozó ellenőrzése",
         "ko": "케이블 및 플러그 점검",
         "tr": "Kabloyu ve Fişi Kontrol Et",
+        "sk": "Skontrolovať kábel a zástrčku",
     },
     "Refill Heating Water": {
         "de": "Heizungswasser nachfüllen",
@@ -4178,6 +4358,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fűtővíz utántöltése",
         "ko": "난방수 보충",
         "tr": "Isıtma Suyunu Doldur",
+        "sk": "Doplniť vodu do vykurovania",
     },
     "Check Plant": {
         "de": "Pflanze prüfen",
@@ -4201,6 +4382,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Növény ellenőrzése",
         "ko": "식물 확인",
         "tr": "Bitkiyi Kontrol Et",
+        "sk": "Skontrolovať zariadenie",
     },
     "Cat Litter Box": {
         "de": "Katzenklo",
@@ -4224,6 +4406,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Macskatoalett",
         "ko": "고양이 화장실",
         "tr": "Kedi Kumu Kabı",
+        "sk": "Mačací záchod",
     },
     "Scoop Litter": {
         "de": "Klo säubern (Klumpen)",
@@ -4247,6 +4430,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Alom lapátolása",
         "ko": "배설물 치우기",
         "tr": "Kumu Küreyle Temizle",
+        "sk": "Vybrať exkrementy",
     },
     "Change Litter": {
         "de": "Streu wechseln",
@@ -4270,6 +4454,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Alom cseréje",
         "ko": "모래 전체 교체",
         "tr": "Kumu Değiştir",
+        "sk": "Vymeniť podstielku",
     },
     "Wash Litter Box": {
         "de": "Katzenklo auswaschen",
@@ -4293,6 +4478,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Alomtálca kimosása",
         "ko": "화장실 통 세척",
         "tr": "Kum Kabını Yıka",
+        "sk": "Umyť mačací záchod",
     },
     "Mild soap and hot water — strong chemicals can drive cats away from the box.": {
         "de": "Milde Seife und heißes Wasser — scharfe Chemie kann Katzen vom Klo fernhalten.",
@@ -4316,6 +4502,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Enyhe szappan és forró víz — az erős vegyszerek elriaszthatják a macskát a tálcától.",
         "ko": "순한 비누와 뜨거운 물을 사용하세요 — 강한 화학 약품은 고양이가 화장실을 피하게 만들 수 있습니다.",
         "tr": "Yumuşak sabun ve sıcak su — güçlü kimyasallar kedileri kaptan uzaklaştırabilir.",
+        "sk": "Jemné mydlo a horúca voda – silné chemikálie môžu mačky od záchoda odradiť.",
     },
     "Printer": {
         "de": "Drucker",
@@ -4339,6 +4526,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Nyomtató",
         "ko": "프린터",
         "tr": "Yazıcı",
+        "sk": "Tlačiareň",
     },
     "Nozzle Check": {
         "de": "Düsentest",
@@ -4362,6 +4550,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fúvóka-ellenőrzés",
         "ko": "노즐 점검",
         "tr": "Nozul Kontrolü",
+        "sk": "Kontrola trysiek",
     },
     "A monthly test print keeps inkjet nozzles from drying out — supported printers also report ink/toner levels for automatic triggers.": {
         "de": "Ein monatlicher Testdruck hält Tintendüsen frei — unterstützte Drucker melden zudem Tinten-/Tonerstände für automatische Trigger.",
@@ -4385,6 +4574,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Havi egy tesztnyomtatás megakadályozza a tintasugaras fúvókák kiszáradását — a támogatott nyomtatók a tinta-/tonerszintet is jelentik az automatikus kiváltókhoz.",
         "ko": "매달 테스트 인쇄를 하면 잉크젯 노즐이 마르는 것을 막을 수 있습니다 — 지원되는 프린터는 잉크/토너 잔량도 보고하므로 자동 트리거로 쓸 수 있습니다.",
         "tr": "Aylık bir test baskısı, mürekkep püskürtmeli nozulların kurumasını önler — desteklenen yazıcılar otomatik tetikleyiciler için mürekkep/toner seviyelerini de bildirir.",
+        "sk": "Mesačná skúšobná tlač chráni trysky atramentovej tlačiarne pred zaschnutím – podporované tlačiarne hlásia aj stav atramentu/tonera pre automatické spúšťače.",
     },
     "Replace Maintenance Box": {
         "de": "Wartungsbox ersetzen",
@@ -4408,6 +4598,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Karbantartódoboz cseréje",
         "ko": "유지보수 박스 교체",
         "tr": "Bakım Kutusunu Değiştir",
+        "sk": "Vymeniť nádobku na odpadový atrament",
     },
     "Clean Printer": {
         "de": "Drucker reinigen",
@@ -4431,6 +4622,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Nyomtató tisztítása",
         "ko": "프린터 청소",
         "tr": "Yazıcıyı Temizle",
+        "sk": "Vyčistiť tlačiareň",
     },
     "Smart Lock": {
         "de": "Smartes Türschloss",
@@ -4454,6 +4646,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Okoszár",
         "ko": "스마트 도어록",
         "tr": "Akıllı Kilit",
+        "sk": "Inteligentný zámok",
     },
     "Charge Battery": {
         "de": "Akku laden",
@@ -4477,6 +4670,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Akkumulátor töltése",
         "ko": "배터리 충전",
         "tr": "Bataryayı Şarj Et",
+        "sk": "Nabiť batériu",
     },
     "Lubricate Cylinder": {
         "de": "Zylinder schmieren",
@@ -4500,6 +4694,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Zárbetét kenése",
         "ko": "실린더 윤활",
         "tr": "Kilit Göbeğini Yağla",
+        "sk": "Namazať vložku",
     },
     "Graphite or PTFE lock lubricant only — oil gums up the pins.": {
         "de": "Nur Graphit- oder PTFE-Schlossschmiermittel — Öl verklebt die Stifte.",
@@ -4523,6 +4718,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kizárólag grafitos vagy PTFE zárkenőanyagot használjon — az olaj beragasztja a csapokat.",
         "ko": "흑연 또는 PTFE 전용 잠금장치 윤활제만 사용하세요 — 오일은 핀을 끈적하게 만듭니다.",
         "tr": "Yalnızca grafit veya PTFE kilit yağlayıcısı kullanın — yağ, pimleri yapışkanlaştırır.",
+        "sk": "Iba grafitové alebo PTFE mazivo na zámky – olej zlepí kolíky.",
     },
     "Recalibrate Lock": {
         "de": "Schloss kalibrieren",
@@ -4546,6 +4742,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Zár újrakalibrálása",
         "ko": "도어록 재보정",
         "tr": "Kilidi Yeniden Kalibre Et",
+        "sk": "Znova kalibrovať zámok",
     },
     "EV Wallbox": {
         "de": "Wallbox",
@@ -4569,6 +4766,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "EV fali töltő",
         "ko": "EV 월박스",
         "tr": "EV Şarj İstasyonu",
+        "sk": "Nabíjacia stanica pre elektromobil",
     },
     "Test RCD": {
         "de": "FI-Schutzschalter testen",
@@ -4592,6 +4790,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fi-relé tesztelése",
         "ko": "누전 차단기(RCD) 테스트",
         "tr": "Kaçak Akım Rölesini Test Et",
+        "sk": "Otestovať prúdový chránič",
     },
     "Press the test button twice a year — a residual-current device only protects if it still trips.": {
         "de": "Zweimal jährlich die Prüftaste drücken — ein FI schützt nur, wenn er noch auslöst.",
@@ -4615,6 +4814,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Évente kétszer nyomja meg a tesztgombot — az áram-védőkapcsoló csak akkor véd, ha még mindig lekapcsol.",
         "ko": "1년에 두 번 테스트 버튼을 누르세요 — 누전 차단기는 정상적으로 차단될 때만 보호 기능을 합니다.",
         "tr": "Test düğmesine yılda iki kez basın — kaçak akım rölesi ancak hâlâ atıyorsa koruma sağlar.",
+        "sk": "Dvakrát ročne stlačte testovacie tlačidlo – prúdový chránič chráni, len ak ešte vypína.",
     },
     "Clean Housing": {
         "de": "Gehäuse reinigen",
@@ -4638,6 +4838,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Burkolat tisztítása",
         "ko": "하우징 청소",
         "tr": "Gövdeyi Temizle",
+        "sk": "Vyčistiť kryt",
     },
     "Home Server / NAS": {
         "de": "Homeserver / NAS",
@@ -4661,6 +4862,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Otthoni szerver / NAS",
         "ko": "홈 서버 / NAS",
         "tr": "Ev Sunucusu / NAS",
+        "sk": "Domáci server / NAS",
     },
     "Test Backup Restore": {
         "de": "Backup-Wiederherstellung testen",
@@ -4684,6 +4886,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Biztonsági mentés visszaállításának tesztelése",
         "ko": "백업 복원 테스트",
         "tr": "Yedekten Geri Yüklemeyi Test Et",
+        "sk": "Otestovať obnovenie zálohy",
     },
     "A backup only exists once a restore has been proven to work.": {
         "de": "Ein Backup existiert erst, wenn eine Wiederherstellung nachweislich funktioniert hat.",
@@ -4707,6 +4910,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A biztonsági mentés csak akkor létezik igazán, ha a visszaállítás bizonyítottan működik.",
         "ko": "복원이 실제로 되는지 확인된 후에야 백업이 있다고 말할 수 있습니다.",
         "tr": "Bir yedek, ancak geri yüklemenin çalıştığı kanıtlandığında gerçekten var sayılır.",
+        "sk": "Záloha existuje až vtedy, keď sa overí, že obnovenie funguje.",
     },
     "Check Disk Health": {
         "de": "Festplatten-Zustand prüfen",
@@ -4730,6 +4934,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lemezek állapotának ellenőrzése",
         "ko": "디스크 상태 점검",
         "tr": "Disk Sağlığını Kontrol Et",
+        "sk": "Skontrolovať stav diskov",
     },
     "Update Firmware": {
         "de": "Firmware aktualisieren",
@@ -4753,6 +4958,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Firmware frissítése",
         "ko": "펌웨어 업데이트",
         "tr": "Aygıt Yazılımını Güncelle",
+        "sk": "Aktualizovať firmvér",
     },
     "Dust Out Device": {
         "de": "Gerät entstauben",
@@ -4776,6 +4982,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Készülék portalanítása",
         "ko": "기기 먼지 제거",
         "tr": "Cihazın Tozunu Al",
+        "sk": "Vyčistiť zariadenie od prachu",
     },
     "Security Camera": {
         "de": "Überwachungskamera",
@@ -4799,6 +5006,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Biztonsági kamera",
         "ko": "보안 카메라",
         "tr": "Güvenlik Kamerası",
+        "sk": "Bezpečnostná kamera",
     },
     "Clean Lens": {
         "de": "Linse reinigen",
@@ -4822,6 +5030,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Objektív tisztítása",
         "ko": "렌즈 청소",
         "tr": "Lensi Temizle",
+        "sk": "Vyčistiť objektív",
     },
     "Check Mounting": {
         "de": "Halterung prüfen",
@@ -4845,6 +5054,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Rögzítés ellenőrzése",
         "ko": "거치 상태 점검",
         "tr": "Montajı Kontrol Et",
+        "sk": "Skontrolovať upevnenie",
     },
     "Fitness Equipment": {
         "de": "Fitnessgeräte",
@@ -4868,6 +5078,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fitneszeszközök",
         "ko": "운동 기구",
         "tr": "Fitness Ekipmanı",
+        "sk": "Fitness vybavenie",
     },
     "Wipe Down Equipment": {
         "de": "Geräte abwischen",
@@ -4891,6 +5102,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Eszközök áttörlése",
         "ko": "기구 닦기",
         "tr": "Ekipmanı Silerek Temizle",
+        "sk": "Utrieť vybavenie",
     },
     "Check Bolts and Fasteners": {
         "de": "Schrauben und Verbindungen prüfen",
@@ -4914,6 +5126,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Csavarok és rögzítők ellenőrzése",
         "ko": "볼트 및 고정부 점검",
         "tr": "Cıvataları ve Bağlantı Elemanlarını Kontrol Et",
+        "sk": "Skontrolovať skrutky a spoje",
     },
     "Lubricate Moving Parts": {
         "de": "Bewegliche Teile schmieren",
@@ -4937,6 +5150,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Mozgó alkatrészek kenése",
         "ko": "구동부 윤활",
         "tr": "Hareketli Parçaları Yağla",
+        "sk": "Namazať pohyblivé časti",
     },
     "Treadmill belts, trainer chains and pivots — follow the manufacturer's lubricant spec.": {
         "de": "Laufband-Lauffläche, Trainer-Ketten und Gelenke — Schmiermittel-Vorgabe des Herstellers beachten.",
@@ -4960,6 +5174,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Futópadszalagok, tréner-láncok és csuklópontok — kövesse a gyártó kenőanyag-előírását.",
         "ko": "러닝머신 벨트, 트레이너 체인과 회전부 — 제조사의 윤활유 사양을 따르세요.",
         "tr": "Koşu bandı kayışları, trainer zincirleri ve mafsallar — üreticinin yağlayıcı önerisine uyun.",
+        "sk": "Pásy bežeckých pásov, reťaze trenažérov a kĺby – dodržiavajte mazivo predpísané výrobcom.",
     },
     "Garden Pond": {
         "de": "Gartenteich",
@@ -4983,6 +5198,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kerti tó",
         "ko": "정원 연못",
         "tr": "Bahçe Göleti",
+        "sk": "Záhradné jazierko",
     },
     "Clean Pond Filter": {
         "de": "Teichfilter reinigen",
@@ -5006,6 +5222,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tószűrő tisztítása",
         "ko": "연못 필터 청소",
         "tr": "Gölet Filtresini Temizle",
+        "sk": "Vyčistiť filter jazierka",
     },
     "Install Leaf Net": {
         "de": "Laubnetz anbringen",
@@ -5029,6 +5246,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lombháló felhelyezése",
         "ko": "낙엽 그물 설치",
         "tr": "Yaprak Ağını Kur",
+        "sk": "Natiahnuť sieť proti lístiu",
     },
     "Before autumn leaf fall — decomposing leaves feed algae and sludge.": {
         "de": "Vor dem herbstlichen Laubfall — zersetzendes Laub nährt Algen und Schlamm.",
@@ -5052,6 +5270,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Az őszi lombhullás előtt — a lebomló levelek táplálják az algákat és az iszapot.",
         "ko": "가을 낙엽이 지기 전에 설치하세요 — 썩는 낙엽은 조류와 침전물의 원인이 됩니다.",
         "tr": "Sonbahar yaprak dökümünden önce — çürüyen yapraklar yosunu ve çamuru besler.",
+        "sk": "Pred jesenným opadom lístia – rozkladajúce sa lístie živí riasy a kal.",
     },
     "Empty Waste Drawer": {
         "de": "Abfallschublade leeren",
@@ -5075,6 +5294,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Hulladékfiók ürítése",
         "ko": "배설물 서랍 비우기",
         "tr": "Atık Çekmecesini Boşalt",
+        "sk": "Vyprázdniť zásuvku na odpad",
     },
     "Refill Litter": {
         "de": "Streu nachfüllen",
@@ -5098,6 +5318,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Alom utántöltése",
         "ko": "모래 보충",
         "tr": "Kum Doldur",
+        "sk": "Doplniť podstielku",
     },
     "Empty Dustbin": {
         "de": "Staubbehälter leeren",
@@ -5121,6 +5342,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Portartály ürítése",
         "ko": "먼지통 비우기",
         "tr": "Toz Haznesini Boşalt",
+        "sk": "Vyprázdniť nádobu na prach",
     },
     "Replace Ventilation Filter": {
         "de": "Lüftungsfilter wechseln",
@@ -5144,6 +5366,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szellőzőszűrő cseréje",
         "ko": "환기 필터 교체",
         "tr": "Havalandırma Filtresini Değiştir",
+        "sk": "Vymeniť vetrací filter",
     },
     "Backflush Espresso Group": {
         "de": "Brühgruppe rückspülen",
@@ -5167,6 +5390,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Eszpresszó főzőfej visszaöblítése",
         "ko": "에스프레소 그룹 백플러시",
         "tr": "Espresso Grubunu Ters Yıka",
+        "sk": "Spätne prepláchnuť hlavu espressa",
     },
     "Replace Nozzle": {
         "de": "Düse wechseln",
@@ -5190,6 +5414,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fúvóka cseréje",
         "ko": "노즐 교체",
         "tr": "Nozulu Değiştir",
+        "sk": "Vymeniť trysku",
     },
     "Replace Brush Head": {
         "de": "Bürstenkopf wechseln",
@@ -5213,6 +5438,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kefefej cseréje",
         "ko": "브러시 헤드 교체",
         "tr": "Fırça Başlığını Değiştir",
+        "sk": "Vymeniť hlavicu kefky",
     },
     "Replace Wick": {
         "de": "Docht wechseln",
@@ -5236,6 +5462,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kanóc cseréje",
         "ko": "심지 교체",
         "tr": "Fitili Değiştir",
+        "sk": "Vymeniť knôt",
     },
     "Refill Softener Salt": {
         "de": "Enthärter-Salz nachfüllen",
@@ -5259,6 +5486,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vízlágyító só utántöltése",
         "ko": "연수기 소금 보충",
         "tr": "Yumuşatıcı Tuzunu Doldur",
+        "sk": "Doplniť soľ do zmäkčovača",
     },
     "Empty Ash Pan": {
         "de": "Aschekasten leeren",
@@ -5282,6 +5510,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Hamutálca ürítése",
         "ko": "재받이 비우기",
         "tr": "Kül Çekmecesini Boşalt",
+        "sk": "Vyprázdniť popolník",
     },
     "Oil Service": {
         "de": "Ölservice",
@@ -5305,6 +5534,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Olajszerviz",
         "ko": "오일 정비",
         "tr": "Yağ Bakımı",
+        "sk": "Servis s výmenou oleja",
     },
     "Replace Water Refresher": {
         "de": "Water Refresher ersetzen",
@@ -5328,6 +5558,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vízfrissítő cseréje",
         "ko": "워터 리프레셔 교체",
         "tr": "Su Tazeleyiciyi Değiştir",
+        "sk": "Vymeniť osviežovač vody",
     },
     "Lubricate Chain": {
         "de": "Kette schmieren",
@@ -5351,6 +5582,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lánc kenése",
         "ko": "체인 윤활",
         "tr": "Zinciri Yağla",
+        "sk": "Namazať reťaz",
     },
     "Bike Service": {
         "de": "Fahrrad-Service",
@@ -5374,6 +5606,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kerékpárszerviz",
         "ko": "자전거 정비",
         "tr": "Bisiklet Bakımı",
+        "sk": "Servis bicykla",
     },
     "Refill Pool Salt": {
         "de": "Poolsalz nachfüllen",
@@ -5397,6 +5630,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Medencesó utántöltése",
         "ko": "수영장 소금 보충",
         "tr": "Havuz Tuzu Doldur",
+        "sk": "Doplniť bazénovú soľ",
     },
     "Clean Sprinkler Heads": {
         "de": "Sprinklerdüsen reinigen",
@@ -5420,6 +5654,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szórófejek tisztítása",
         "ko": "스프링클러 헤드 청소",
         "tr": "Fıskiye Başlıklarını Temizle",
+        "sk": "Vyčistiť hlavice postrekovačov",
     },
     "Clean Grease Trap": {
         "de": "Fettwanne reinigen",
@@ -5443,6 +5678,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Zsírfogó tisztítása",
         "ko": "그리스 트랩 청소",
         "tr": "Yağ Tutucuyu Temizle",
+        "sk": "Vyčistiť lapač tukov",
     },
     "Replace CO2 Bottle": {
         "de": "CO2-Flasche ersetzen",
@@ -5466,6 +5702,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "CO2-palack cseréje",
         "ko": "CO2 실린더 교체",
         "tr": "CO2 Tüpünü Değiştir",
+        "sk": "Vymeniť fľašu CO2",
     },
     # ── Battery Fleet seeding (helpers/battery_fleet_setup.py) ──────────────
     # The object/task/part names + notes the one-click fleet setup creates.
@@ -5493,6 +5730,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Elemflotta",
         "ko": "배터리 플리트",
         "tr": "Pil Filosu",
+        "sk": "Batérie",
     },
     "Replace low batteries": {
         "de": "Schwache Batterien ersetzen",
@@ -5516,6 +5754,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gyenge elemek cseréje",
         "ko": "부족한 배터리 교체",
         "tr": "Zayıf pilleri değiştir",
+        "sk": "Vymeniť slabé batérie",
     },
     "Aggregate battery check. The detail view lists which devices are low and which battery types to buy.": {
         "de": "Gesammelte Batterie-Prüfung. Die Detailansicht zeigt, welche Geräte schwach sind und welche Batterietypen zu kaufen sind.",
@@ -5539,6 +5778,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Összesített elem-ellenőrzés. A részletnézet felsorolja, mely eszközökben gyenge az elem, és milyen elemtípusokat kell vásárolni.",
         "ko": "배터리 일괄 점검입니다. 상세 보기에서 어떤 기기의 배터리가 부족한지, 어떤 종류의 배터리를 사야 하는지 확인할 수 있습니다.",
         "tr": "Toplu pil kontrolü. Ayrıntı görünümü, hangi cihazların pilinin zayıf olduğunu ve hangi pil türlerinin alınacağını listeler.",
+        "sk": "Súhrnná kontrola batérií. Podrobné zobrazenie ukazuje, ktoré zariadenia majú slabú batériu a ktoré typy batérií treba kúpiť.",
     },
     "{type} battery": {
         "de": "{type}-Batterie",
@@ -5562,6 +5802,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "{type} elem",
         "ko": "{type} 배터리",
         "tr": "{type} pil",
+        "sk": "Batéria {type}",
     },
     "Typical service life ~{months} months.": {
         "de": "Typische Lebensdauer ~{months} Monate.",
@@ -5585,6 +5826,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Jellemző élettartam: ~{months} hónap.",
         "ko": "일반적인 수명은 약 {months}개월입니다.",
         "tr": "Tipik kullanım ömrü ~{months} ay.",
+        "sk": "Typická životnosť ~{months} mesiacov.",
     },
     # ── CPAP / sleep-therapy template (roadmap 3a) ──────────────────────────
     "CPAP Machine": {
@@ -5609,6 +5851,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "CPAP készülék",
         "ko": "CPAP 기기",
         "tr": "CPAP Cihazı",
+        "sk": "Prístroj CPAP",
     },
     "Clean Mask & Humidifier Tub": {
         "de": "Maske & Befeuchterkammer reinigen",
@@ -5632,6 +5875,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Maszk és párásítótartály tisztítása",
         "ko": "마스크·가습 챔버 세척",
         "tr": "Maskeyi ve Nemlendirici Haznesini Temizle",
+        "sk": "Vyčistiť masku a nádobu zvlhčovača",
     },
     "Replace Mask Cushion": {
         "de": "Maskenkissen ersetzen",
@@ -5655,6 +5899,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Maszkpárna cseréje",
         "ko": "마스크 쿠션 교체",
         "tr": "Maske Yastığını Değiştir",
+        "sk": "Vymeniť vankúšik masky",
     },
     "Replace Tubing": {
         "de": "Schlauch ersetzen",
@@ -5678,6 +5923,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Cső cseréje",
         "ko": "튜브 교체",
         "tr": "Hortumu Değiştir",
+        "sk": "Vymeniť hadicu",
     },
     "Replace Humidifier Tub": {
         "de": "Befeuchterkammer ersetzen",
@@ -5701,6 +5947,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Párásítótartály cseréje",
         "ko": "가습 챔버 교체",
         "tr": "Nemlendirici Haznesini Değiştir",
+        "sk": "Vymeniť nádobu zvlhčovača",
     },
     "Replace Headgear & Frame": {
         "de": "Kopfband & Maskenrahmen ersetzen",
@@ -5724,6 +5971,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fejpánt és keret cseréje",
         "ko": "헤드기어·프레임 교체",
         "tr": "Kafa Bandını ve Çerçeveyi Değiştir",
+        "sk": "Vymeniť náhlavný popruh a rám",
     },
     "Wash the mask cushion and humidifier tub in warm soapy water; air-dry away from direct sunlight.": {
         "de": "Maskenkissen und Befeuchterkammer mit warmem Seifenwasser reinigen; fern von direktem Sonnenlicht an der Luft trocknen.",
@@ -5747,6 +5995,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Mossa el a maszkpárnát és a párásítótartályt meleg szappanos vízben; közvetlen napfénytől távol, levegőn szárítsa.",
         "ko": "마스크 쿠션과 가습 챔버를 따뜻한 비눗물로 세척하고, 직사광선을 피해 자연 건조하세요.",
         "tr": "Maske yastığını ve nemlendirici haznesini ılık sabunlu suda yıkayın; doğrudan güneş ışığından uzakta kurumaya bırakın.",
+        "sk": "Vankúšik masky a nádobu zvlhčovača umyte v teplej mydlovej vode; nechajte uschnúť na vzduchu mimo priameho slnka.",
     },
     "Replace sooner if it looks discolored or dusty.": {
         "de": "Früher ersetzen, wenn er verfärbt oder staubig aussieht.",
@@ -5770,6 +6019,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Cserélje hamarabb, ha elszíneződöttnek vagy porosnak tűnik.",
         "ko": "변색되었거나 먼지가 보이면 더 일찍 교체하세요.",
         "tr": "Rengi solmuş veya tozlu görünüyorsa daha erken değiştirin.",
+        "sk": "Ak vyzerá zafarbená alebo zaprášená, vymeňte skôr.",
     },
     # ── Template-worthiness lens templates (roadmap 3b) ────────────────────
     "Fire Safety Equipment": {
@@ -5794,6 +6044,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tűzvédelmi felszerelés",
         "ko": "소방 안전 장비",
         "tr": "Yangın Güvenliği Ekipmanı",
+        "sk": "Protipožiarne vybavenie",
     },
     "Inspect Fire Extinguisher": {
         "de": "Feuerlöscher prüfen",
@@ -5817,6 +6068,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tűzoltó készülék ellenőrzése",
         "ko": "소화기 점검",
         "tr": "Yangın Söndürücüyü Kontrol Et",
+        "sk": "Skontrolovať hasiaci prístroj",
     },
     "Fire Extinguisher Service": {
         "de": "Feuerlöscher-Wartung",
@@ -5840,6 +6092,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tűzoltó készülék szervize",
         "ko": "소화기 정비",
         "tr": "Yangın Söndürücü Bakımı",
+        "sk": "Servis hasiaceho prístroja",
     },
     "Check First-Aid Kit": {
         "de": "Erste-Hilfe-Kasten prüfen",
@@ -5863,6 +6116,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Elsősegélydoboz ellenőrzése",
         "ko": "구급함 점검",
         "tr": "İlk Yardım Çantasını Kontrol Et",
+        "sk": "Skontrolovať lekárničku",
     },
     "Aquarium": {
         "de": "Aquarium",
@@ -5886,6 +6140,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Akvárium",
         "ko": "수족관",
         "tr": "Akvaryum",
+        "sk": "Akvárium",
     },
     "Partial Water Change": {
         "de": "Teilwasserwechsel",
@@ -5909,6 +6164,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Részleges vízcsere",
         "ko": "부분 물갈이",
         "tr": "Kısmi Su Değişimi",
+        "sk": "Čiastočná výmena vody",
     },
     "Test Water Values": {
         "de": "Wasserwerte testen",
@@ -5932,6 +6188,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vízértékek mérése",
         "ko": "수질 수치 검사",
         "tr": "Su Değerlerini Test Et",
+        "sk": "Otestovať hodnoty vody",
     },
     "Clean Filter Media": {
         "de": "Filtermedien reinigen",
@@ -5955,6 +6212,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szűrőanyag tisztítása",
         "ko": "여과재 청소",
         "tr": "Filtre Malzemesini Temizle",
+        "sk": "Vyčistiť filtračné médiá",
     },
     "Replace Activated Carbon": {
         "de": "Aktivkohle ersetzen",
@@ -5978,6 +6236,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Aktív szén cseréje",
         "ko": "활성탄 교체",
         "tr": "Aktif Karbonu Değiştir",
+        "sk": "Vymeniť aktívne uhlie",
     },
     "Clean Glass & Decor": {
         "de": "Scheiben & Deko reinigen",
@@ -6001,6 +6260,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Üveg és dekoráció tisztítása",
         "ko": "유리·장식물 청소",
         "tr": "Camı ve Dekoru Temizle",
+        "sk": "Vyčistiť sklo a dekorácie",
     },
     "Hearing Aids": {
         "de": "Hörgeräte",
@@ -6024,6 +6284,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Hallókészülékek",
         "ko": "보청기",
         "tr": "İşitme Cihazları",
+        "sk": "Načúvacie prístroje",
     },
     "Replace Wax Guards": {
         "de": "Cerumenfilter ersetzen",
@@ -6047,6 +6308,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Cerumenszűrők cseréje",
         "ko": "왁스 가드 교체",
         "tr": "Kulak Kiri Filtrelerini Değiştir",
+        "sk": "Vymeniť filtre proti ušnému mazu",
     },
     "Replace Domes": {
         "de": "Schirmchen ersetzen",
@@ -6070,6 +6332,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Dómok cseréje",
         "ko": "돔(이어팁) 교체",
         "tr": "Silikon Uçları Değiştir",
+        "sk": "Vymeniť olivky",
     },
     "Deep Clean & Dry": {
         "de": "Gründlich reinigen & trocknen",
@@ -6093,6 +6356,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Alapos tisztítás és szárítás",
         "ko": "정밀 세척 및 건조",
         "tr": "Derinlemesine Temizle ve Kurut",
+        "sk": "Dôkladne vyčistiť a vysušiť",
     },
     "Professional Check & Adjustment": {
         "de": "Fachliche Prüfung & Anpassung",
@@ -6116,6 +6380,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szakszervizes ellenőrzés és beállítás",
         "ko": "전문가 점검 및 조정",
         "tr": "Profesyonel Kontrol ve Ayar",
+        "sk": "Odborná kontrola a nastavenie",
     },
     "Check the pressure gauge, seal and pin; make sure it is accessible and undamaged.": {
         "de": "Manometer, Plombe und Sicherungsstift prüfen; auf Zugänglichkeit und Unversehrtheit achten.",
@@ -6139,6 +6404,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ellenőrizze a nyomásmérőt, a plombát és a biztosítószeget; győződjön meg róla, hogy hozzáférhető és sértetlen.",
         "ko": "압력 게이지, 봉인, 안전핀을 점검하고 손상 없이 접근하기 쉬운 곳에 있는지 확인하세요.",
         "tr": "Basınç göstergesini, mührü ve pimi kontrol edin; erişilebilir ve hasarsız olduğundan emin olun.",
+        "sk": "Skontrolujte manometer, plombu a poistku; uistite sa, že je prístupný a nepoškodený.",
     },
     "Professional inspection per the label — commonly every 2 years; replace the unit after 10-15 years.": {
         "de": "Sachkundige Prüfung laut Plakette — üblich alle 2 Jahre; Austausch des Geräts nach 10–15 Jahren.",
@@ -6162,6 +6428,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szakszervizes felülvizsgálat a címke szerint — jellemzően 2 évente; a készüléket 10–15 év után cserélje.",
         "ko": "라벨에 따라 전문 점검을 받으세요 — 보통 2년마다이며, 10-15년 후에는 소화기를 교체하세요.",
         "tr": "Etikette belirtildiği şekilde profesyonel kontrol — genellikle 2 yılda bir; üniteyi 10-15 yıl sonra değiştirin.",
+        "sk": "Odborná kontrola podľa štítku – zvyčajne každé 2 roky; prístroj vymeňte po 10 – 15 rokoch.",
     },
     "Replace expired sterile items and restock anything used.": {
         "de": "Abgelaufene Sterilartikel ersetzen und Verbrauchtes auffüllen.",
@@ -6185,6 +6452,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Cserélje ki a lejárt steril eszközöket, és pótolja, amit felhasznált.",
         "ko": "유효기간이 지난 멸균 용품을 교체하고 사용한 물품을 다시 채워 넣으세요.",
         "tr": "Süresi geçmiş steril malzemeleri değiştirin ve kullanılan her şeyi yeniden stoklayın.",
+        "sk": "Vymeňte sterilné položky po záruke a doplňte všetko použité.",
     },
     "Change 20-30 % of the water; match temperature and treat tap water with conditioner.": {
         "de": "20–30 % des Wassers wechseln; Temperatur angleichen und Leitungswasser mit Wasseraufbereiter behandeln.",
@@ -6208,6 +6476,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Cserélje le a víz 20–30%-át; egyeztesse a hőmérsékletet, és kezelje a csapvizet vízkezelő szerrel.",
         "ko": "물의 20-30 %를 교체하세요. 수온을 맞추고 수돗물에는 물갈이제(컨디셔너)를 사용하세요.",
         "tr": "Suyun %20-30'unu değiştirin; sıcaklığı eşitleyin ve musluk suyunu su düzenleyiciyle arıtın.",
+        "sk": "Vymeňte 20 – 30 % vody; zlaďte teplotu a vodu z vodovodu upravte kondicionérom.",
     },
     "Rinse media in removed tank water - never under the tap, that kills the bacteria culture.": {
         "de": "Medien im abgelassenen Aquarienwasser ausspülen — nie unter dem Wasserhahn, das tötet die Bakterienkultur.",
@@ -6231,6 +6500,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A szűrőanyagot a leengedett akváriumvízben öblítse ki — soha ne csap alatt, az elpusztítja a baktériumkultúrát.",
         "ko": "여과재는 빼낸 수조 물로 헹구세요 - 수돗물로 헹구면 박테리아 군집이 죽습니다.",
         "tr": "Filtre malzemesini akvaryumdan alınan suyla durulayın - asla musluk altında değil, bu bakteri kültürünü öldürür.",
+        "sk": "Médiá oplachujte vo vode odobratej z akvária – nikdy nie pod tečúcou vodou, tá zničí kolónie baktérií.",
     },
     "Brush off earwax and use a drying capsule or electronic dryer overnight.": {
         "de": "Cerumen abbürsten und über Nacht Trockenkapsel oder elektrischen Trockner verwenden.",
@@ -6254,6 +6524,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kefélje le a fülzsírt, és éjszakára használjon szárítókapszulát vagy elektromos szárítót.",
         "ko": "귀지를 솔로 털어내고, 밤새 건조 캡슐이나 전자 건조기를 사용하세요.",
         "tr": "Kulak kirini fırçayla temizleyin ve gece boyunca kurutma kapsülü veya elektronik kurutucu kullanın.",
+        "sk": "Ušný maz odstráňte kefkou a cez noc použite vysúšaciu kapsulu alebo elektronickú sušičku.",
     },
     # --- v2.55: Ventilation System + Fireplace & Wood Stove ---
     "Ventilation System": {
@@ -6278,6 +6549,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szellőztetőrendszer",
         "ko": "환기 시스템",
         "tr": "Havalandırma Sistemi",
+        "sk": "Vetranie s rekuperáciou",
     },
     "Replace Ventilation Filters": {
         "de": "Lüftungsfilter wechseln",
@@ -6301,6 +6573,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szellőzőszűrők cseréje",
         "ko": "환기 필터 교체",
         "tr": "Havalandırma Filtrelerini Değiştir",
+        "sk": "Vymeniť filtre vetrania",
     },
     "Check quarterly and replace at the latest every 6 months (manufacturer guidance) — sooner during pollen season or in dusty areas.": {
         "de": "Vierteljährlich prüfen und spätestens alle 6 Monate wechseln (Herstellerempfehlung) — in der Pollensaison oder staubiger Umgebung früher.",
@@ -6324,6 +6597,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Negyedévente ellenőrizze, és legkésőbb 6 havonta cserélje (gyártói ajánlás) — pollenszezonban vagy poros környezetben korábban.",
         "ko": "분기마다 점검하고 늦어도 6개월마다 교체하세요(제조사 권장). 꽃가루철이나 먼지가 많은 환경에서는 더 자주.",
         "tr": "Üç ayda bir kontrol edin ve en geç 6 ayda bir değiştirin (üretici önerisi) — polen mevsiminde veya tozlu ortamlarda daha erken.",
+        "sk": "Kontrolujte raz za štvrťrok a vymieňajte najneskôr každých 6 mesiacov (podľa výrobcu) – skôr počas peľovej sezóny alebo v prašnom prostredí.",
     },
     "Clean Air Valves": {
         "de": "Tellerventile reinigen",
@@ -6347,6 +6621,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szellőzőszelepek tisztítása",
         "ko": "환기 밸브 청소",
         "tr": "Hava Valflerini Temizle",
+        "sk": "Vyčistiť vzduchové ventily",
     },
     "Check Condensate Drain": {
         "de": "Kondensatablauf prüfen",
@@ -6370,6 +6645,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kondenzvíz-elvezetés ellenőrzése",
         "ko": "응축수 배수 점검",
         "tr": "Yoğuşma Tahliyesini Kontrol Et",
+        "sk": "Skontrolovať odvod kondenzátu",
     },
     "Clean Heat Exchanger": {
         "de": "Wärmetauscher reinigen",
@@ -6393,6 +6669,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Hőcserélő tisztítása",
         "ko": "열교환기 청소",
         "tr": "Isı Eşanjörünü Temizle",
+        "sk": "Vyčistiť výmenník tepla",
     },
     "Part of the full service every 2 years — many manufacturers recommend a professional for this.": {
         "de": "Teil des großen Service alle 2 Jahre — viele Hersteller empfehlen dafür den Fachbetrieb.",
@@ -6416,6 +6693,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A 2 évenkénti teljes szerviz része — sok gyártó szakembert ajánl hozzá.",
         "ko": "2년마다 하는 전체 정비의 일부입니다. 많은 제조사가 전문가 의뢰를 권장합니다.",
         "tr": "2 yılda bir yapılan tam bakımın parçası — birçok üretici bunun için profesyonel önerir.",
+        "sk": "Súčasť kompletného servisu každé 2 roky – mnohí výrobcovia na to odporúčajú odborníka.",
     },
     "Fireplace & Wood Stove": {
         "de": "Kamin & Holzofen",
@@ -6439,6 +6717,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kandalló és fatüzelésű kályha",
         "ko": "벽난로 및 장작 난로",
         "tr": "Şömine ve Odun Sobası",
+        "sk": "Krb a kachle",
     },
     "Chimney Sweep Appointment": {
         "de": "Schornsteinfeger-Termin",
@@ -6462,6 +6741,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kéményseprő időpont",
         "ko": "굴뚝 청소 예약",
         "tr": "Baca Temizliği Randevusu",
+        "sk": "Termín u kominára",
     },
     "Legally regulated in many countries — follow your chimney sweep's schedule or the local rules.": {
         "de": "In vielen Ländern gesetzlich geregelt — nach den Terminen des Schornsteinfegers oder den örtlichen Vorschriften richten.",
@@ -6485,6 +6765,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Sok országban jogszabály írja elő — kövesse a kéményseprő ütemtervét vagy a helyi előírásokat.",
         "ko": "많은 나라에서 법으로 규제됩니다 — 굴뚝 청소업자의 일정이나 지역 규정을 따르세요.",
         "tr": "Birçok ülkede yasal olarak düzenlenmiştir — baca temizleyicinizin takvimine veya yerel kurallara uyun.",
+        "sk": "V mnohých krajinách upravené zákonom – riaďte sa harmonogramom kominára alebo miestnymi predpismi.",
     },
     "Inspect Door Gasket": {
         "de": "Türdichtung prüfen",
@@ -6508,6 +6789,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ajtótömítés ellenőrzése",
         "ko": "도어 가스켓 점검",
         "tr": "Kapı Contasını Kontrol Et",
+        "sk": "Skontrolovať tesnenie dvierok",
     },
     "During the heating season — preset to October–April (mirrored in the southern hemisphere); adjust it in the task dialog.": {
         "de": "Während der Heizsaison — voreingestellt auf Oktober–April (auf der Südhalbkugel gespiegelt); im Aufgaben-Dialog anpassbar.",
@@ -6531,6 +6813,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A fűtési szezonban — alapértelmezés szerint október–április (a déli féltekén fordítva); a feladat párbeszédablakában módosítható.",
         "ko": "난방철 동안 — 10월~4월로 미리 설정됨(남반구에서는 반대로); 작업 대화 상자에서 조정하세요.",
         "tr": "Isıtma sezonunda — Ekim–Nisan olarak önceden ayarlı (güney yarımkürede tersine çevrilir); görev penceresinde değiştirebilirsiniz.",
+        "sk": "Počas vykurovacej sezóny – prednastavené na október – apríl (na južnej pologuli zrkadlovo); upravte v dialógu úlohy.",
     },
     "Clean Stove Glass": {
         "de": "Ofenscheibe reinigen",
@@ -6554,6 +6837,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kályhaüveg tisztítása",
         "ko": "난로 유리 청소",
         "tr": "Soba Camını Temizle",
+        "sk": "Vyčistiť sklo kachlí",
     },
     "During the heating season — soot builds up faster when burning at low temperatures or with damp wood.": {
         "de": "Während der Heizsaison — Ruß setzt sich schneller ab, wenn mit niedriger Temperatur oder feuchtem Holz geheizt wird.",
@@ -6577,6 +6861,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A fűtési szezonban — a korom gyorsabban rakódik le alacsony hőmérsékleten vagy nedves fával való tüzelésnél.",
         "ko": "난방철 동안 — 낮은 온도로 태우거나 젖은 장작을 쓰면 그을음이 더 빨리 낍니다.",
         "tr": "Isıtma sezonunda — düşük sıcaklıkta veya nemli odunla yakıldığında is daha hızlı birikir.",
+        "sk": "Počas vykurovacej sezóny – sadze pribúdajú rýchlejšie pri kúrení na nízku teplotu alebo vlhkým drevom.",
     },
     "Replace Air Freshener": {
         "de": "Lufterfrischer ersetzen",
@@ -6600,6 +6885,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Légfrissítő cseréje",
         "ko": "방향제 교체",
         "tr": "Oda Kokusunu Değiştir",
+        "sk": "Vymeniť osviežovač vzduchu",
     },
     "Replace UV Lamp": {
         "de": "UV-Lampe ersetzen",
@@ -6623,6 +6909,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "UV-lámpa cseréje",
         "ko": "UV 램프 교체",
         "tr": "UV Lambasını Değiştir",
+        "sk": "Vymeniť UV lampu",
     },
     "Replace Lens Brush": {
         "de": "Linsenbürste ersetzen",
@@ -6646,6 +6933,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lencsekefe cseréje",
         "ko": "렌즈 브러시 교체",
         "tr": "Lens Fırçasını Değiştir",
+        "sk": "Vymeniť kefku šošovky",
     },
     "Replace Trimmer Brush": {
         "de": "Trimmerbürste ersetzen",
@@ -6669,6 +6957,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szegélynyíró kefe cseréje",
         "ko": "트리머 브러시 교체",
         "tr": "Kenar Kesme Fırçasını Değiştir",
+        "sk": "Vymeniť kefu zastrihávača",
     },
     "Replace Trimmer Line": {
         "de": "Trimmerfaden ersetzen",
@@ -6692,6 +6981,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Damil cseréje",
         "ko": "트리머 줄 교체",
         "tr": "Misinayı Değiştir",
+        "sk": "Vymeniť strunu vyžínača",
     },
     "Replace Dock Strainer": {
         "de": "Stationssieb ersetzen",
@@ -6715,6 +7005,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Állomásszita cseréje",
         "ko": "도크 스트레이너 교체",
         "tr": "İstasyon Süzgecini Değiştir",
+        "sk": "Vymeniť sitko stanice",
     },
     "Replace Maintenance Brush": {
         "de": "Wartungsbürste ersetzen",
@@ -6738,6 +7029,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Karbantartó kefe cseréje",
         "ko": "유지보수 브러시 교체",
         "tr": "Bakım Fırçasını Değiştir",
+        "sk": "Vymeniť údržbovú kefu",
     },
     "Replace Laser Unit": {
         "de": "Lasereinheit ersetzen",
@@ -6761,6 +7053,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lézeregység cseréje",
         "ko": "레이저 유닛 교체",
         "tr": "Lazer Ünitesini Değiştir",
+        "sk": "Vymeniť laserovú jednotku",
     },
     "Replace Paper Feed Kit": {
         "de": "Papiereinzugskit ersetzen",
@@ -6784,6 +7077,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Papíradagoló készlet cseréje",
         "ko": "급지 키트 교체",
         "tr": "Kağıt Besleme Kitini Değiştir",
+        "sk": "Vymeniť súpravu podávača papiera",
     },
     "Replace Shaver Head": {
         "de": "Scherkopf ersetzen",
@@ -6807,6 +7101,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Borotvafej cseréje",
         "ko": "면도기 헤드 교체",
         "tr": "Tıraş Başlığını Değiştir",
+        "sk": "Vymeniť holiacu hlavu",
     },
     "Replace Salt Cartridge": {
         "de": "Salzkartusche ersetzen",
@@ -6830,6 +7125,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Sópatron cseréje",
         "ko": "소금 카트리지 교체",
         "tr": "Tuz Kartuşunu Değiştir",
+        "sk": "Vymeniť soľnú kartušu",
     },
     "Heat Pump": {
         "de": "Wärmepumpe",
@@ -6853,6 +7149,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Hőszivattyú",
         "ko": "히트펌프",
         "tr": "Isı Pompası",
+        "sk": "Tepelné čerpadlo",
     },
     "Clear Outdoor Unit": {
         "de": "Außeneinheit freiräumen",
@@ -6876,6 +7173,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kültéri egység szabaddá tétele",
         "ko": "실외기 주변 정리",
         "tr": "Dış Ünitenin Çevresini Temizle",
+        "sk": "Uvoľniť vonkajšiu jednotku",
     },
     "Refrigerant Leak Check": {
         "de": "Kältemittel-Dichtheitsprüfung",
@@ -6899,6 +7197,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Hűtőközeg-szivárgás ellenőrzése",
         "ko": "냉매 누설 점검",
         "tr": "Soğutucu Akışkan Kaçak Kontrolü",
+        "sk": "Kontrola tesnosti chladiva",
     },
     "Check Heating Water Pressure": {
         "de": "Heizungsdruck prüfen",
@@ -6922,6 +7221,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fűtővíz nyomásának ellenőrzése",
         "ko": "난방수 압력 점검",
         "tr": "Isıtma Suyu Basıncını Kontrol Et",
+        "sk": "Skontrolovať tlak vody vo vykurovaní",
     },
     "Leaves, snow and plants must not block the outdoor unit — the air has to flow freely.": {
         "de": "Laub, Schnee und Pflanzen dürfen die Außeneinheit nicht zustellen — die Luft muss frei strömen können.",
@@ -6945,6 +7245,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Levelek, hó és növények nem takarhatják el a kültéri egységet — a levegőnek szabadon kell áramolnia.",
         "ko": "낙엽, 눈, 식물이 실외기를 막지 않도록 하세요 — 공기가 자유롭게 흘러야 합니다.",
         "tr": "Yapraklar, kar ve bitkiler dış üniteyi engellememeli — havanın serbestçe akabilmesi gerekir.",
+        "sk": "Lístie, sneh a rastliny nesmú blokovať vonkajšiu jednotku – vzduch musí voľne prúdiť.",
     },
     "Solar PV System": {
         "de": "Photovoltaikanlage",
@@ -6968,6 +7269,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Napelemes rendszer",
         "ko": "태양광 발전 시스템",
         "tr": "Güneş Enerjisi Sistemi",
+        "sk": "Fotovoltická elektráreň",
     },
     "Check Yield and Inverter Errors": {
         "de": "Ertrag und Wechselrichter-Fehler prüfen",
@@ -6991,6 +7293,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Hozam és inverterhibák ellenőrzése",
         "ko": "발전량 및 인버터 오류 점검",
         "tr": "Üretimi ve İnvertör Hatalarını Kontrol Et",
+        "sk": "Skontrolovať výnos a chyby meniča",
     },
     "Visual Inspection": {
         "de": "Sichtprüfung",
@@ -7014,6 +7317,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szemrevételezés",
         "ko": "육안 점검",
         "tr": "Görsel Kontrol",
+        "sk": "Vizuálna kontrola",
     },
     "Clean Panels": {
         "de": "Module reinigen",
@@ -7037,6 +7341,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Panelek tisztítása",
         "ko": "패널 청소",
         "tr": "Panelleri Temizle",
+        "sk": "Vyčistiť panely",
     },
     "Electrical Safety Inspection": {
         "de": "Elektrische Sicherheitsprüfung",
@@ -7060,6 +7365,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Villamos biztonsági felülvizsgálat",
         "ko": "전기 안전 점검",
         "tr": "Elektrik Güvenliği Denetimi",
+        "sk": "Revízia elektroinštalácie",
     },
     "Only when the yield drops — rain usually does the job; dusty or desert sites need it 2–4 times a year.": {
         "de": "Nur wenn der Ertrag sinkt — meist erledigt das der Regen; an staubigen Standorten oder in Wüstengebieten 2–4-mal im Jahr.",
@@ -7083,6 +7389,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Csak ha csökken a hozam — általában az eső elvégzi; poros vagy sivatagos helyeken évente 2–4 alkalommal szükséges.",
         "ko": "발전량이 떨어질 때만 하세요 — 보통은 비가 씻어 줍니다. 먼지가 많거나 사막 지역은 연 2–4회 필요합니다.",
         "tr": "Yalnızca üretim düştüğünde — genellikle yağmur bu işi görür; tozlu veya çöl bölgelerinde yılda 2–4 kez gerekir.",
+        "sk": "Len keď výnos klesne – zvyčajne to zvládne dážď; prašné alebo púštne lokality treba čistiť 2 – 4-krát ročne.",
     },
     "An electrician's inspection every 4 years is common practice (DIN VDE 0105-100 in Germany) and often asked for by insurers.": {
         "de": "Eine Prüfung durch eine Elektrofachkraft alle 4 Jahre ist gängige Praxis (in Deutschland DIN VDE 0105-100) und wird oft von Versicherern verlangt.",
@@ -7106,6 +7413,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A 4 évenkénti villanyszerelői felülvizsgálat bevett gyakorlat (Németországban DIN VDE 0105-100), és a biztosítók gyakran kérik.",
         "ko": "4년마다 전기 기술자의 점검을 받는 것이 일반적이며(독일은 DIN VDE 0105-100), 보험사가 요구하는 경우도 많습니다.",
         "tr": "4 yılda bir elektrikçi denetimi yaygın bir uygulamadır (Almanya'da DIN VDE 0105-100) ve sigortacılar bunu sıklıkla ister.",
+        "sk": "Revízia elektrikárom každé 4 roky je bežná prax (v Nemecku DIN VDE 0105-100) a často ju vyžadujú poisťovne.",
     },
     "Garage Door": {
         "de": "Garagentor",
@@ -7129,6 +7437,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Garázskapu",
         "ko": "차고 문",
         "tr": "Garaj Kapısı",
+        "sk": "Garážová brána",
     },
     "Test Auto-Reverse and Photo Eye": {
         "de": "Reversierautomatik und Lichtschranke testen",
@@ -7152,6 +7461,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Visszafordulás-funkció és fotocella tesztelése",
         "ko": "자동 반전 및 광센서 테스트",
         "tr": "Otomatik Geri Dönüşü ve Fotoseli Test Et",
+        "sk": "Otestovať spätný chod a fotobunku",
     },
     "Lubricate Hinges, Rollers and Springs": {
         "de": "Scharniere, Rollen und Federn schmieren",
@@ -7175,6 +7485,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Zsanérok, görgők és rugók kenése",
         "ko": "경첩·롤러·스프링 윤활",
         "tr": "Menteşeleri, Makaraları ve Yayları Yağla",
+        "sk": "Namazať pánty, kladky a pružiny",
     },
     "Professional Service": {
         "de": "Professionelle Wartung",
@@ -7198,6 +7509,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szakszervizes karbantartás",
         "ko": "전문가 정비",
         "tr": "Profesyonel Servis",
+        "sk": "Odborný servis",
     },
     "Close the door on a piece of wood: it must reverse on contact. The door industry (DASMA) recommends testing monthly.": {
         "de": "Tor auf ein Holzstück herunterfahren: Bei Kontakt muss es reversieren. Die Torbranche (DASMA) empfiehlt einen monatlichen Test.",
@@ -7221,6 +7533,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Engedje le a kaput egy fadarabra: érintkezéskor vissza kell fordulnia. A kapugyártók szövetsége (DASMA) havi tesztelést javasol.",
         "ko": "나무 조각 위로 문을 닫아 보세요: 닿는 즉시 반전되어야 합니다. 도어 업계(DASMA)는 매월 테스트를 권장합니다.",
         "tr": "Kapıyı bir tahta parçasının üzerine kapatın: temas ettiğinde geri dönmelidir. Kapı sektörü (DASMA) her ay test yapılmasını önerir.",
+        "sk": "Zatvorte bránu na kus dreva: pri kontakte musí cúvnuť. Odvetvie garážových brán (DASMA) odporúča testovať každý mesiac.",
     },
     "Silicone spray or white lithium grease; leave a belt drive dry.": {
         "de": "Silikonspray oder weißes Lithiumfett; einen Riemenantrieb trocken lassen.",
@@ -7244,6 +7557,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szilikonspray vagy fehér lítiumzsír; a szíjhajtást hagyja szárazon.",
         "ko": "실리콘 스프레이나 흰색 리튬 그리스를 사용하세요. 벨트 구동부는 건조하게 두세요.",
         "tr": "Silikon sprey veya beyaz lityum gres; kayışlı tahriki kuru bırakın.",
+        "sk": "Silikónový sprej alebo biele lítiové mazivo; remeňový pohon nechajte suchý.",
     },
     "Standby Generator": {
         "de": "Notstromaggregat",
@@ -7267,6 +7581,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tartalék áramfejlesztő",
         "ko": "비상 발전기",
         "tr": "Yedek Jeneratör",
+        "sk": "Záložný generátor",
     },
     "Check Weekly Exercise Run": {
         "de": "Wöchentlichen Probelauf prüfen",
@@ -7290,6 +7605,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Heti tesztfuttatás ellenőrzése",
         "ko": "주간 시운전 확인",
         "tr": "Haftalık Test Çalışmasını Kontrol Et",
+        "sk": "Skontrolovať týždenný skúšobný chod",
     },
     "Check Starter Battery": {
         "de": "Starterbatterie prüfen",
@@ -7313,6 +7629,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Indítóakkumulátor ellenőrzése",
         "ko": "시동 배터리 점검",
         "tr": "Marş Aküsünü Kontrol Et",
+        "sk": "Skontrolovať štartovaciu batériu",
     },
     "Most standby units run a short self-test every week — check that it actually ran.": {
         "de": "Die meisten Notstromaggregate führen jede Woche einen kurzen Selbsttest durch — prüfen, ob er tatsächlich gelaufen ist.",
@@ -7336,6 +7653,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A legtöbb tartalék áramfejlesztő hetente rövid öntesztet futtat — ellenőrizze, hogy valóban lefutott-e.",
         "ko": "대부분의 비상 발전기는 매주 짧은 자가 테스트를 실행합니다 — 실제로 실행되었는지 확인하세요.",
         "tr": "Çoğu yedek jeneratör her hafta kısa bir otomatik test yapar — gerçekten çalıştığını kontrol edin.",
+        "sk": "Väčšina záložných generátorov každý týždeň spustí krátky autotest – skontrolujte, či naozaj prebehol.",
     },
     "Hot Tub": {
         "de": "Whirlpool",
@@ -7359,6 +7677,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Masszázsmedence",
         "ko": "월풀 스파",
         "tr": "Jakuzi",
+        "sk": "Vírivka",
     },
     "Rinse Filter": {
         "de": "Filter ausspülen",
@@ -7382,6 +7701,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szűrő kiöblítése",
         "ko": "필터 헹굼",
         "tr": "Filtreyi Durula",
+        "sk": "Opláchnuť filter",
     },
     "Deep Clean Filter": {
         "de": "Filter gründlich reinigen",
@@ -7405,6 +7725,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szűrő alapos tisztítása",
         "ko": "필터 정밀 세척",
         "tr": "Filtreyi Derinlemesine Temizle",
+        "sk": "Dôkladne vyčistiť filter",
     },
     "Drain and Refill": {
         "de": "Ablassen und neu befüllen",
@@ -7428,6 +7749,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Leeresztés és újratöltés",
         "ko": "배수 및 물 교체",
         "tr": "Boşalt ve Yeniden Doldur",
+        "sk": "Vypustiť a znova napustiť",
     },
     "Clean Cover": {
         "de": "Abdeckung reinigen",
@@ -7451,6 +7773,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fedő tisztítása",
         "ko": "커버 청소",
         "tr": "Kapağı Temizle",
+        "sk": "Vyčistiť kryt",
     },
     "Every 3–4 months, sooner with heavy use.": {
         "de": "Alle 3–4 Monate, bei starker Nutzung früher.",
@@ -7474,6 +7797,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "3–4 havonta, intenzív használat mellett gyakrabban.",
         "ko": "3–4개월마다, 사용량이 많으면 더 자주.",
         "tr": "Her 3–4 ayda bir, yoğun kullanımda daha erken.",
+        "sk": "Každé 3 – 4 mesiace, pri intenzívnom používaní skôr.",
     },
     "Backflow Valve & Lifting Station": {
         "de": "Rückstauverschluss & Hebeanlage",
@@ -7497,6 +7821,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Visszaáramlás-gátló és szennyvízátemelő",
         "ko": "역류 방지 밸브 및 오수 펌프장",
         "tr": "Geri Akış Valfi ve Atık Su Terfi İstasyonu",
+        "sk": "Spätná klapka a prečerpávacia stanica",
     },
     "Check Backflow Valve": {
         "de": "Rückstauverschluss prüfen",
@@ -7520,6 +7845,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Visszaáramlás-gátló ellenőrzése",
         "ko": "역류 방지 밸브 점검",
         "tr": "Geri Akış Valfini Kontrol Et",
+        "sk": "Skontrolovať spätnú klapku",
     },
     "Backflow Valve Service": {
         "de": "Wartung Rückstauverschluss",
@@ -7543,6 +7869,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Visszaáramlás-gátló karbantartása",
         "ko": "역류 방지 밸브 정비",
         "tr": "Geri Akış Valfi Bakımı",
+        "sk": "Servis spätnej klapky",
     },
     "Lifting Station Service": {
         "de": "Wartung Hebeanlage",
@@ -7566,6 +7893,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szennyvízátemelő karbantartása",
         "ko": "오수 펌프장 정비",
         "tr": "Terfi İstasyonu Bakımı",
+        "sk": "Servis prečerpávacej stanice",
     },
     "DIN 1986-3: look at the valve once a month and operate the emergency closure.": {
         "de": "DIN 1986-3: den Rückstauverschluss einmal im Monat in Augenschein nehmen und den Notverschluss betätigen.",
@@ -7589,6 +7917,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "DIN 1986-3: havonta egyszer nézze meg a szelepet, és működtesse a vészelzárót.",
         "ko": "DIN 1986-3: 한 달에 한 번 밸브를 육안으로 확인하고 비상 차단 장치를 작동해 보세요.",
         "tr": "DIN 1986-3: valfi ayda bir gözden geçirin ve acil kapatmayı çalıştırın.",
+        "sk": "DIN 1986-3: raz za mesiac skontrolujte klapku a ovládnite núdzový uzáver.",
     },
     "DIN 1986-3: service by a qualified person twice a year.": {
         "de": "DIN 1986-3: zweimal jährlich Wartung durch eine sachkundige Person.",
@@ -7612,6 +7941,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "DIN 1986-3: évente kétszer szakember által végzett karbantartás.",
         "ko": "DIN 1986-3: 연 2회 자격을 갖춘 전문가의 정비.",
         "tr": "DIN 1986-3: yılda iki kez yetkin bir kişi tarafından bakım.",
+        "sk": "DIN 1986-3: servis odborne spôsobilou osobou dvakrát ročne.",
     },
     "DIN EN 12056-4: by a qualified person every 12 months in a single-family home, every 6 months in a multi-family building.": {
         "de": "DIN EN 12056-4: durch eine sachkundige Person alle 12 Monate im Einfamilienhaus, alle 6 Monate im Mehrfamilienhaus.",
@@ -7635,6 +7965,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "DIN EN 12056-4: szakember által családi házban 12 havonta, társasházban 6 havonta.",
         "ko": "DIN EN 12056-4: 자격을 갖춘 전문가가 단독 주택은 12개월마다, 다세대 건물은 6개월마다.",
         "tr": "DIN EN 12056-4: yetkin bir kişi tarafından müstakil evde 12 ayda bir, çok daireli binada 6 ayda bir.",
+        "sk": "DIN EN 12056-4: odborne spôsobilou osobou každých 12 mesiacov v rodinnom dome, každých 6 mesiacov v bytovom dome.",
     },
     "Septic System": {
         "de": "Klärgrubenanlage",
@@ -7658,6 +7989,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szeptikus rendszer",
         "ko": "정화조 시스템",
         "tr": "Foseptik Sistemi",
+        "sk": "Septik",
     },
     "Septic Inspection": {
         "de": "Klärgrubeninspektion",
@@ -7681,6 +8013,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szeptikus rendszer ellenőrzése",
         "ko": "정화조 점검",
         "tr": "Foseptik Denetimi",
+        "sk": "Kontrola septiku",
     },
     "Pump Out Tank": {
         "de": "Grube abpumpen",
@@ -7704,6 +8037,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tartály szippantása",
         "ko": "탱크 분뇨 수거",
         "tr": "Tankı Vidanjörle Boşalt",
+        "sk": "Vyviezť septik",
     },
     "Check Drain Field": {
         "de": "Sickerfeld prüfen",
@@ -7727,6 +8061,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szikkasztómező ellenőrzése",
         "ko": "배수 침투지 점검",
         "tr": "Drenaj Alanını Kontrol Et",
+        "sk": "Skontrolovať vsakovacie pole",
     },
     "Every 1–3 years; systems with pumps or float switches every year (US EPA).": {
         "de": "Alle 1–3 Jahre; Anlagen mit Pumpen oder Schwimmerschaltern jährlich (US EPA).",
@@ -7750,6 +8085,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "1–3 évente; szivattyúval vagy úszókapcsolóval ellátott rendszereknél évente (US EPA).",
         "ko": "1–3년마다; 펌프나 플로트 스위치가 있는 시스템은 매년(US EPA).",
         "tr": "1–3 yılda bir; pompalı veya şamandıralı şalterli sistemlerde her yıl (US EPA).",
+        "sk": "Každé 1 – 3 roky; systémy s čerpadlami alebo plavákovými spínačmi každý rok (US EPA).",
     },
     "Typically every 3–5 years, depending on tank size and household.": {
         "de": "Üblicherweise alle 3–5 Jahre, je nach Grubengröße und Haushalt.",
@@ -7773,6 +8109,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Általában 3–5 évente, a tartály méretétől és a háztartás nagyságától függően.",
         "ko": "보통 3–5년마다, 탱크 크기와 가구 구성에 따라 다릅니다.",
         "tr": "Genellikle tank boyutuna ve hane halkına bağlı olarak 3–5 yılda bir.",
+        "sk": "Zvyčajne každé 3 – 5 rokov podľa veľkosti nádrže a domácnosti.",
     },
     "Small Sewage Treatment Plant": {
         "de": "Kleinkläranlage",
@@ -7796,6 +8133,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Házi szennyvíztisztító",
         "ko": "소형 오수 처리 시설",
         "tr": "Ev Tipi Atık Su Arıtma Tesisi",
+        "sk": "Domová čistiareň odpadových vôd",
     },
     "Operator Check": {
         "de": "Eigenkontrolle",
@@ -7819,6 +8157,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Üzemeltetői ellenőrzés",
         "ko": "운영자 점검",
         "tr": "İşletmeci Kontrolü",
+        "sk": "Kontrola prevádzkovateľom",
     },
     "Maintenance by a Specialist Company": {
         "de": "Wartung durch Fachbetrieb",
@@ -7842,6 +8181,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szakcég általi karbantartás",
         "ko": "전문 업체 정비",
         "tr": "Uzman Firma Tarafından Bakım",
+        "sk": "Údržba odbornou firmou",
     },
     "The visual checks the plant's approval asks of the owner — note them in the operator log.": {
         "de": "Die Sichtkontrollen, die die Zulassung der Anlage vom Betreiber verlangt — im Betriebsbuch festhalten.",
@@ -7865,6 +8205,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A berendezés engedélye által az üzemeltetőtől elvárt szemrevételezéses ellenőrzések — jegyezze fel őket az üzemnaplóba.",
         "ko": "시설 승인 조건에 따라 소유자가 해야 하는 육안 점검입니다 — 운영 일지에 기록하세요.",
         "tr": "Tesisin onayının sahibinden istediği gözle kontroller — bunları işletme defterine kaydedin.",
+        "sk": "Vizuálne kontroly, ktoré od vlastníka vyžaduje schválenie čistiarne – zapíšte ich do prevádzkového denníka.",
     },
     "Germany: technical plants twice a year (three times for classes +P/+H), nature-based plants once a year.": {
         "de": "Deutschland: technische Anlagen zweimal jährlich (dreimal bei den Klassen +P/+H), naturnahe Anlagen einmal jährlich.",
@@ -7888,6 +8229,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Németország: műszaki berendezések évente kétszer (a +P/+H osztályúak háromszor), természetközeli berendezések évente egyszer.",
         "ko": "독일: 기계식 시설은 연 2회(+P/+H 등급은 연 3회), 자연형 시설은 연 1회.",
         "tr": "Almanya: teknik tesisler yılda iki kez (+P/+H sınıfları için üç kez), doğal arıtma tesisleri yılda bir kez.",
+        "sk": "Nemecko: technické čistiarne dvakrát ročne (triedy +P/+H trikrát), prírodné čistiarne raz ročne.",
     },
     "Radon Protection": {
         "de": "Radonschutz",
@@ -7911,6 +8253,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Radonvédelem",
         "ko": "라돈 방지",
         "tr": "Radon Koruması",
+        "sk": "Ochrana pred radónom",
     },
     "Radon Test": {
         "de": "Radonmessung",
@@ -7934,6 +8277,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Radonmérés",
         "ko": "라돈 측정",
         "tr": "Radon Testi",
+        "sk": "Meranie radónu",
     },
     "Check Mitigation Fan and Manometer": {
         "de": "Radonlüfter und Manometer prüfen",
@@ -7957,6 +8301,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Radonelszívó ventilátor és nyomásmérő ellenőrzése",
         "ko": "라돈 저감 팬 및 압력계 점검",
         "tr": "Radon Fanını ve Manometreyi Kontrol Et",
+        "sk": "Skontrolovať ventilátor odsávania a manometer",
     },
     "Sump Pump": {
         "de": "Sumpfpumpe",
@@ -7980,6 +8325,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Pinceakna-szivattyú",
         "ko": "집수정 펌프",
         "tr": "Bodrum Drenaj Pompası",
+        "sk": "Kalové čerpadlo",
     },
     "Test Sump Pump": {
         "de": "Sumpfpumpe testen",
@@ -8003,6 +8349,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Aknaszivattyú tesztelése",
         "ko": "집수정 펌프 테스트",
         "tr": "Drenaj Pompasını Test Et",
+        "sk": "Otestovať kalové čerpadlo",
     },
     "Clean Pit and Inlet Screen": {
         "de": "Pumpensumpf und Zulaufsieb reinigen",
@@ -8026,6 +8373,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Akna és bemeneti szűrőháló tisztítása",
         "ko": "집수정 및 유입구 스크린 청소",
         "tr": "Çukuru ve Giriş Süzgecini Temizle",
+        "sk": "Vyčistiť šachtu a sitko prítoku",
     },
     "Test Backup Battery": {
         "de": "Notstrombatterie testen",
@@ -8049,6 +8397,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tartalék akkumulátor tesztelése",
         "ko": "예비 배터리 테스트",
         "tr": "Yedek Aküyü Test Et",
+        "sk": "Otestovať záložnú batériu",
     },
     "Check Discharge Line Before Winter": {
         "de": "Druckleitung vor dem Winter prüfen",
@@ -8072,6 +8421,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Nyomócső ellenőrzése tél előtt",
         "ko": "겨울 전 배출관 점검",
         "tr": "Kış Öncesi Tahliye Hattını Kontrol Et",
+        "sk": "Pred zimou skontrolovať výtlačné potrubie",
     },
     "Pour water into the pit until the float lifts — the pump must start and drain it.": {
         "de": "Wasser in den Pumpensumpf gießen, bis der Schwimmer anhebt — die Pumpe muss anspringen und ihn leeren.",
@@ -8095,6 +8445,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Öntsön vizet az aknába, amíg az úszó meg nem emelkedik — a szivattyúnak be kell indulnia és ki kell szivattyúznia a vizet.",
         "ko": "플로트가 떠오를 때까지 집수정에 물을 부으세요 — 펌프가 작동해 물을 배출해야 합니다.",
         "tr": "Şamandıra kalkana kadar çukura su dökün — pompa çalışmalı ve suyu boşaltmalıdır.",
+        "sk": "Lejte do šachty vodu, kým sa plavák nezdvihne – čerpadlo sa musí spustiť a šachtu vyprázdniť.",
     },
     "Frost Protection": {
         "de": "Frostschutz",
@@ -8118,6 +8469,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fagyvédelem",
         "ko": "동파 방지",
         "tr": "Don Koruması",
+        "sk": "Ochrana pred mrazom",
     },
     "Shut Off and Drain Outdoor Faucets": {
         "de": "Außenwasserhähne absperren und entleeren",
@@ -8141,6 +8493,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kültéri csapok elzárása és leürítése",
         "ko": "실외 수도꼭지 잠금 및 물 빼기",
         "tr": "Dış Muslukları Kapat ve Boşalt",
+        "sk": "Uzavrieť a vypustiť vonkajšie kohútiky",
     },
     "Reopen Outdoor Faucets": {
         "de": "Außenwasserhähne wieder öffnen",
@@ -8164,6 +8517,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kültéri csapok visszanyitása",
         "ko": "실외 수도꼭지 다시 열기",
         "tr": "Dış Muslukları Yeniden Aç",
+        "sk": "Znova otvoriť vonkajšie kohútiky",
     },
     "Check Pipe Insulation and Heat Tape": {
         "de": "Rohrdämmung und Rohrbegleitheizung prüfen",
@@ -8187,6 +8541,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Csőszigetelés és csőfűtő kábel ellenőrzése",
         "ko": "배관 보온재 및 동파 방지 열선 점검",
         "tr": "Boru Yalıtımını ve Isıtma Kablosunu Kontrol Et",
+        "sk": "Skontrolovať izoláciu potrubia a vyhrievacie káble",
     },
     "Empty Rain Barrels": {
         "de": "Regentonnen leeren",
@@ -8210,6 +8565,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Esővízgyűjtő hordók ürítése",
         "ko": "빗물 통 비우기",
         "tr": "Yağmur Suyu Varillerini Boşalt",
+        "sk": "Vyprázdniť sudy na dažďovú vodu",
     },
     "After the last frost — check for split pipes when the water is back on.": {
         "de": "Nach dem letzten Frost — sobald das Wasser wieder läuft, auf geplatzte Leitungen prüfen.",
@@ -8233,6 +8589,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Az utolsó fagy után — a víz visszaengedésekor ellenőrizze, nincs-e megrepedt cső.",
         "ko": "마지막 서리가 지난 후 — 물을 다시 틀면 배관이 터진 곳이 없는지 확인하세요.",
         "tr": "Son dondan sonra — su yeniden açıldığında çatlamış boru olup olmadığını kontrol edin.",
+        "sk": "Po posledných mrazoch – po pustení vody skontrolujte, či nepopraskali rúry.",
     },
     "Snow Blower": {
         "de": "Schneefräse",
@@ -8256,6 +8613,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Hómaró",
         "ko": "제설기",
         "tr": "Kar Küreme Makinesi",
+        "sk": "Snežná fréza",
     },
     "Pre-Season Service": {
         "de": "Wartung vor der Saison",
@@ -8279,6 +8637,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szezon előtti szerviz",
         "ko": "시즌 전 정비",
         "tr": "Sezon Öncesi Bakım",
+        "sk": "Servis pred sezónou",
     },
     "Summer Storage": {
         "de": "Sommerlagerung",
@@ -8302,6 +8661,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Nyári tárolás",
         "ko": "여름 보관",
         "tr": "Yazlık Depolama",
+        "sk": "Letné uskladnenie",
     },
     "Change the oil and check spark plug, shear pins and belts before the first snow.": {
         "de": "Vor dem ersten Schnee Öl wechseln und Zündkerze, Scherbolzen und Riemen prüfen.",
@@ -8325,6 +8685,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Az első hó előtt cserélje le az olajat, és ellenőrizze a gyújtógyertyát, a nyírócsavarokat és a szíjakat.",
         "ko": "첫눈이 오기 전에 오일을 교환하고 점화 플러그, 전단 핀, 벨트를 점검하세요.",
         "tr": "İlk kardan önce yağı değiştirin; bujiyi, emniyet pimlerini ve kayışları kontrol edin.",
+        "sk": "Pred prvým snehom vymeňte olej a skontrolujte zapaľovaciu sviečku, strižné kolíky a remene.",
     },
     "Run the tank dry or add fuel stabilizer before storing.": {
         "de": "Vor dem Einlagern den Tank leer fahren oder Kraftstoffstabilisator zugeben.",
@@ -8348,6 +8709,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tárolás előtt járassa a motort, amíg ki nem fogy az üzemanyag, vagy adjon hozzá üzemanyag-stabilizátort.",
         "ko": "보관 전에 연료를 모두 소진하거나 연료 안정제를 넣으세요.",
         "tr": "Depolamadan önce motoru yakıt bitene kadar çalıştırın veya yakıt stabilizatörü ekleyin.",
+        "sk": "Pred uskladnením nechajte nádrž dobehnúť do prázdna alebo pridajte stabilizátor paliva.",
     },
     "Windows & Doors": {
         "de": "Fenster & Türen",
@@ -8371,6 +8733,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ablakok és ajtók",
         "ko": "창문 및 문",
         "tr": "Pencereler ve Kapılar",
+        "sk": "Okná a dvere",
     },
     "Lubricate Hinges and Fittings": {
         "de": "Scharniere und Beschläge schmieren",
@@ -8394,6 +8757,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Zsanérok és vasalatok kenése",
         "ko": "경첩 및 철물 윤활",
         "tr": "Menteşeleri ve Mekanizmaları Yağla",
+        "sk": "Namazať pánty a kovanie",
     },
     "Check Seals and Weatherstripping": {
         "de": "Dichtungen und Dichtprofile prüfen",
@@ -8417,6 +8781,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ablak- és ajtótömítések ellenőrzése",
         "ko": "실링 및 문풍지 점검",
         "tr": "Contaları ve Fitilleri Kontrol Et",
+        "sk": "Skontrolovať tesnenia",
     },
     "Clean Window Tracks and Drain Holes": {
         "de": "Fensterfalze und Entwässerungsöffnungen reinigen",
@@ -8440,6 +8805,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ablaksínek és vízelvezető nyílások tisztítása",
         "ko": "창틀 레일 및 배수 구멍 청소",
         "tr": "Pencere Raylarını ve Tahliye Deliklerini Temizle",
+        "sk": "Vyčistiť koľajnice okien a odtokové otvory",
     },
     "Check Roller Shutters": {
         "de": "Rollläden prüfen",
@@ -8463,6 +8829,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Redőnyök ellenőrzése",
         "ko": "롤러 셔터 점검",
         "tr": "Panjurları Kontrol Et",
+        "sk": "Skontrolovať rolety",
     },
     "Drains & Fixtures": {
         "de": "Abflüsse & Armaturen",
@@ -8486,6 +8853,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lefolyók és szerelvények",
         "ko": "배수구 및 수전",
         "tr": "Giderler ve Armatürler",
+        "sk": "Odtoky a armatúry",
     },
     "Clean Sink and Shower Drains": {
         "de": "Waschbecken- und Duschabflüsse reinigen",
@@ -8509,6 +8877,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Mosdó- és zuhanylefolyók tisztítása",
         "ko": "세면대 및 샤워 배수구 청소",
         "tr": "Lavabo ve Duş Giderlerini Temizle",
+        "sk": "Vyčistiť odtoky umývadiel a sprchy",
     },
     "Descale Showerheads and Aerators": {
         "de": "Duschköpfe und Strahlregler entkalken",
@@ -8532,6 +8901,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Zuhanyfejek és perlátorok vízkőtelenítése",
         "ko": "샤워헤드 및 에어레이터 스케일 제거",
         "tr": "Duş Başlıklarının ve Perlatörlerin Kirecini Çöz",
+        "sk": "Odvápniť sprchové hlavice a perlátory",
     },
     "Check Under-Sink Pipes for Leaks": {
         "de": "Rohre unter der Spüle auf Lecks prüfen",
@@ -8555,6 +8925,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Mosogató alatti csövek szivárgásának ellenőrzése",
         "ko": "싱크대 아래 배관 누수 점검",
         "tr": "Lavabo Altındaki Boruları Sızıntıya Karşı Kontrol Et",
+        "sk": "Skontrolovať úniky potrubia pod umývadlom",
     },
     "Check Washing Machine Hoses": {
         "de": "Waschmaschinenschläuche prüfen",
@@ -8578,6 +8949,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Mosógép tömlőinek ellenőrzése",
         "ko": "세탁기 호스 점검",
         "tr": "Çamaşır Makinesi Hortumlarını Kontrol Et",
+        "sk": "Skontrolovať hadice práčky",
     },
     "Replace them after about 5 years, or at the first bulge or crack.": {
         "de": "Nach etwa 5 Jahren ersetzen — oder schon bei der ersten Beule oder dem ersten Riss.",
@@ -8601,6 +8973,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Körülbelül 5 év után, vagy az első kidudorodásnál vagy repedésnél cserélje ki őket.",
         "ko": "약 5년 후, 또는 부풀거나 갈라진 곳이 처음 보이면 교체하세요.",
         "tr": "Yaklaşık 5 yıl sonra ya da ilk şişkinlik veya çatlakta değiştirin.",
+        "sk": "Vymeňte ich približne po 5 rokoch alebo pri prvom vydutí či prasknutí.",
     },
     "Wooden Deck & Facade": {
         "de": "Holzterrasse & Holzfassade",
@@ -8624,6 +8997,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fa terasz és homlokzat",
         "ko": "목재 데크 및 외벽",
         "tr": "Ahşap Teras ve Cephe",
+        "sk": "Drevená terasa a fasáda",
     },
     "Clean Deck": {
         "de": "Terrasse reinigen",
@@ -8647,6 +9021,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Terasz tisztítása",
         "ko": "데크 청소",
         "tr": "Terası Temizle",
+        "sk": "Vyčistiť terasu",
     },
     "Oil or Stain Deck": {
         "de": "Terrasse ölen oder lasieren",
@@ -8670,6 +9045,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Terasz olajozása vagy lazúrozása",
         "ko": "데크 오일 또는 스테인 도포",
         "tr": "Terasa Yağ veya Ahşap Koruyucu Sür",
+        "sk": "Naolejovať alebo namoriť terasu",
     },
     "Check Siding and Sealant Joints": {
         "de": "Fassadenverkleidung und Dichtfugen prüfen",
@@ -8693,6 +9069,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Homlokzatburkolat és tömítőfugák ellenőrzése",
         "ko": "외장재 및 실링 조인트 점검",
         "tr": "Cephe Kaplamasını ve Derz Dolgularını Kontrol Et",
+        "sk": "Skontrolovať obklad a tmelené špáry",
     },
     "Repaint Wooden Facade": {
         "de": "Holzfassade neu streichen",
@@ -8716,6 +9093,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fa homlokzat újrafestése",
         "ko": "목재 외벽 재도장",
         "tr": "Ahşap Cepheyi Yeniden Boya",
+        "sk": "Pretrieť drevenú fasádu",
     },
     "Opaque paint typically lasts 8–12 years (Nordic guidance); stains need it sooner.": {
         "de": "Deckende Farbe hält meist 8–12 Jahre (nordische Empfehlung); Lasuren müssen früher erneuert werden.",
@@ -8739,6 +9117,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A fedőfesték jellemzően 8–12 évig tart (skandináv ajánlás); a lazúrokat hamarabb kell felújítani.",
         "ko": "불투명 페인트는 보통 8–12년 유지됩니다(북유럽 지침). 스테인은 더 일찍 다시 칠해야 합니다.",
         "tr": "Örtücü boya genellikle 8–12 yıl dayanır (İskandinav önerileri); lazür türü koruyucuların daha erken yenilenmesi gerekir.",
+        "sk": "Krycí náter zvyčajne vydrží 8 – 12 rokov (podľa severských odporúčaní); lazúry treba obnoviť skôr.",
     },
     "Emergency Supplies": {
         "de": "Notvorrat",
@@ -8762,6 +9141,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vészhelyzeti készletek",
         "ko": "비상 물품",
         "tr": "Acil Durum Malzemeleri",
+        "sk": "Núdzové zásoby",
     },
     "Rotate Drinking Water": {
         "de": "Trinkwasservorrat erneuern",
@@ -8785,6 +9165,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ivóvízkészlet frissítése",
         "ko": "비상 식수 교체",
         "tr": "İçme Suyu Stokunu Yenile",
+        "sk": "Obmeniť zásobu pitnej vody",
     },
     "Check Food Supplies and Expiry Dates": {
         "de": "Lebensmittelvorrat und Haltbarkeitsdaten prüfen",
@@ -8808,6 +9189,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Élelmiszerkészlet és lejárati dátumok ellenőrzése",
         "ko": "비상식량 및 유통기한 점검",
         "tr": "Gıda Stoklarını ve Son Kullanma Tarihlerini Kontrol Et",
+        "sk": "Skontrolovať zásoby jedla a dátumy spotreby",
     },
     "Check Flashlights, Radio and Batteries": {
         "de": "Taschenlampen, Radio und Batterien prüfen",
@@ -8831,6 +9213,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Zseblámpák, rádió és elemek ellenőrzése",
         "ko": "손전등·라디오·배터리 점검",
         "tr": "El Fenerlerini, Radyoyu ve Pilleri Kontrol Et",
+        "sk": "Skontrolovať baterky, rádio a batérie",
     },
     "Review Emergency Plan and Contacts": {
         "de": "Notfallplan und Kontakte überprüfen",
@@ -8854,6 +9237,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vészhelyzeti terv és elérhetőségek átnézése",
         "ko": "비상 계획 및 연락처 검토",
         "tr": "Acil Durum Planını ve Kişileri Gözden Geçir",
+        "sk": "Prejsť núdzový plán a kontakty",
     },
     "Storm & Hurricane Preparation": {
         "de": "Sturm- & Hurrikanvorsorge",
@@ -8877,6 +9261,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Felkészülés viharokra és hurrikánokra",
         "ko": "폭풍 및 허리케인 대비",
         "tr": "Fırtına ve Kasırga Hazırlığı",
+        "sk": "Príprava na búrky a hurikány",
     },
     "Test Storm Shutters": {
         "de": "Sturmläden testen",
@@ -8900,6 +9285,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Viharredőnyök tesztelése",
         "ko": "폭풍 셔터 테스트",
         "tr": "Fırtına Kepenklerini Test Et",
+        "sk": "Otestovať protibúrkové okenice",
     },
     "Trim Trees and Secure Outdoor Items": {
         "de": "Bäume zurückschneiden und Gegenstände im Freien sichern",
@@ -8923,6 +9309,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fák metszése és kültéri tárgyak rögzítése",
         "ko": "나무 가지치기 및 실외 물품 고정",
         "tr": "Ağaçları Buda ve Dış Mekân Eşyalarını Sabitle",
+        "sk": "Orezať stromy a zabezpečiť predmety vonku",
     },
     "Check Roof and Gutters for Storm Season": {
         "de": "Dach und Dachrinnen vor der Sturmsaison prüfen",
@@ -8946,6 +9333,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tető és ereszcsatornák ellenőrzése a viharszezon előtt",
         "ko": "폭풍철 대비 지붕 및 빗물받이 점검",
         "tr": "Fırtına Sezonu İçin Çatıyı ve Olukları Kontrol Et",
+        "sk": "Skontrolovať strechu a odkvapy pred sezónou búrok",
     },
     "Test Generator Under Load": {
         "de": "Generator unter Last testen",
@@ -8969,6 +9357,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Áramfejlesztő tesztelése terhelés alatt",
         "ko": "부하 상태에서 발전기 테스트",
         "tr": "Jeneratörü Yük Altında Test Et",
+        "sk": "Otestovať generátor pod záťažou",
     },
     "Before the storm season starts — 1 June for the Atlantic, November in the southern hemisphere.": {
         "de": "Vor Beginn der Sturmsaison — 1. Juni für den Atlantik, November auf der Südhalbkugel.",
@@ -8992,6 +9381,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A viharszezon kezdete előtt — az Atlanti-óceánon június 1., a déli féltekén november.",
         "ko": "폭풍철이 시작되기 전에 — 대서양은 6월 1일, 남반구는 11월.",
         "tr": "Fırtına sezonu başlamadan önce — Atlantik için 1 Haziran, güney yarımkürede Kasım.",
+        "sk": "Pred začiatkom sezóny búrok – 1. júna pre Atlantik, v novembri na južnej pologuli.",
     },
     "Termite & Pest Protection": {
         "de": "Termiten- & Schädlingsschutz",
@@ -9015,6 +9405,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Termesz- és kártevővédelem",
         "ko": "흰개미 및 해충 방제",
         "tr": "Termit ve Haşere Koruması",
+        "sk": "Ochrana pred termitmi a škodcami",
     },
     "Professional Termite Inspection": {
         "de": "Termiteninspektion durch Fachbetrieb",
@@ -9038,6 +9429,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szakszerű termeszvizsgálat",
         "ko": "전문 흰개미 점검",
         "tr": "Profesyonel Termit Denetimi",
+        "sk": "Odborná kontrola termitov",
     },
     "Check Foundation for Mud Tubes": {
         "de": "Fundament auf Termiten-Lehmröhren prüfen",
@@ -9061,6 +9453,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Alapozás ellenőrzése termeszjáratokra",
         "ko": "기초의 흰개미 흙 터널 점검",
         "tr": "Temelde Termit Tünellerini Kontrol Et",
+        "sk": "Skontrolovať základy, či na nich nie sú blatové chodbičky",
     },
     "Pest Perimeter Treatment": {
         "de": "Schädlingsbehandlung rund ums Haus",
@@ -9084,6 +9477,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ház körüli kártevőirtás",
         "ko": "건물 외곽 해충 방제",
         "tr": "Bina Çevresi Haşere İlaçlaması",
+        "sk": "Ošetrenie obvodu proti škodcom",
     },
     "Once a year by a licensed pest professional — before the spring swarming season.": {
         "de": "Einmal im Jahr durch einen zugelassenen Schädlingsbekämpfer — vor der Schwärmzeit im Frühjahr.",
@@ -9107,6 +9501,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Évente egyszer engedéllyel rendelkező kártevőirtó szakemberrel — a tavaszi rajzás előtt.",
         "ko": "1년에 한 번 면허가 있는 해충 방제 전문가에게 맡기세요 — 봄철 군비행 시기 전에.",
         "tr": "Yılda bir kez lisanslı bir haşere uzmanı tarafından — bahardaki uçuş döneminden önce.",
+        "sk": "Raz ročne licencovaným odborníkom na škodcov – pred jarným rojením.",
     },
     "Split AC / Air-to-Air Heat Pump": {
         "de": "Split-Klimaanlage / Luft-Luft-Wärmepumpe",
@@ -9130,6 +9525,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Split klíma / levegő-levegő hőszivattyú",
         "ko": "분리형 에어컨 / 공기-공기 히트펌프",
         "tr": "Split Klima / Havadan Havaya Isı Pompası",
+        "sk": "Split klimatizácia / tepelné čerpadlo vzduch-vzduch",
     },
     "Clean Indoor Unit Filters": {
         "de": "Filter der Inneneinheit reinigen",
@@ -9153,6 +9549,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Beltéri egység szűrőinek tisztítása",
         "ko": "실내기 필터 청소",
         "tr": "İç Ünite Filtrelerini Temizle",
+        "sk": "Vyčistiť filtre vnútornej jednotky",
     },
     "Flush Condensate Drain": {
         "de": "Kondensatablauf spülen",
@@ -9176,6 +9573,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kondenzvíz-elvezetés átöblítése",
         "ko": "응축수 배수관 세척",
         "tr": "Yoğuşma Tahliye Hattını Yıka",
+        "sk": "Prepláchnuť odvod kondenzátu",
     },
     "Clean Outdoor Unit Coil": {
         "de": "Lamellen der Außeneinheit reinigen",
@@ -9199,6 +9597,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kültéri egység hőcserélőjének tisztítása",
         "ko": "실외기 코일 청소",
         "tr": "Dış Ünite Serpantinini Temizle",
+        "sk": "Vyčistiť výmenník vonkajšej jednotky",
     },
     "Hot and humid climates: monthly, with a cup of white vinegar, so algae cannot clog the line.": {
         "de": "In heißem, feuchtem Klima: monatlich mit einer Tasse Haushaltsessig, damit Algen die Leitung nicht verstopfen.",
@@ -9222,6 +9621,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Forró, párás éghajlaton: havonta, egy csésze háztartási ecettel, hogy az algák ne dugítsák el a vezetéket.",
         "ko": "덥고 습한 기후: 매달 백식초 한 컵을 부어 조류가 배관을 막지 않도록 하세요.",
         "tr": "Sıcak ve nemli iklimlerde: her ay bir fincan beyaz sirkeyle, böylece yosunlar hattı tıkayamaz.",
+        "sk": "V horúcom a vlhkom podnebí každý mesiac šálkou bieleho octu, aby riasy neupchali odvod.",
     },
     "Evaporative Cooler": {
         "de": "Verdunstungskühler",
@@ -9245,6 +9645,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Párologtatós léghűtő",
         "ko": "증발식 냉풍기",
         "tr": "Evaporatif Hava Soğutucu",
+        "sk": "Odparovací ochladzovač",
     },
     "Spring Startup": {
         "de": "Frühjahrsstart",
@@ -9268,6 +9669,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tavaszi beüzemelés",
         "ko": "봄철 가동 시작",
         "tr": "Bahar Açılışı",
+        "sk": "Jarné spustenie",
     },
     "Replace Cooler Pads": {
         "de": "Verdunstungsmatten ersetzen",
@@ -9291,6 +9693,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Párologtató betétek cseréje",
         "ko": "냉각 패드 교체",
         "tr": "Soğutucu Pedlerini Değiştir",
+        "sk": "Vymeniť chladiace podložky",
     },
     "Mid-Season Check": {
         "de": "Kontrolle zur Saisonmitte",
@@ -9314,6 +9717,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szezon közbeni ellenőrzés",
         "ko": "시즌 중간 점검",
         "tr": "Sezon Ortası Kontrolü",
+        "sk": "Kontrola v polovici sezóny",
     },
     "Fall Shutdown and Drain": {
         "de": "Herbst-Stilllegung und Entleerung",
@@ -9337,6 +9741,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Őszi leállítás és leürítés",
         "ko": "가을철 가동 중지 및 배수",
         "tr": "Sonbahar Kapatma ve Boşaltma",
+        "sk": "Jesenné odstavenie a vypustenie",
     },
     "Clean the reservoir, test the pump and float valve, check the belt and open the winter damper.": {
         "de": "Wanne reinigen, Pumpe und Schwimmerventil testen, Riemen prüfen und die Winterklappe öffnen.",
@@ -9360,6 +9765,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tisztítsa ki a víztartályt, tesztelje a szivattyút és az úszószelepet, ellenőrizze a szíjat, és nyissa ki a téli csappantyút.",
         "ko": "물통을 청소하고 펌프와 플로트 밸브를 테스트한 뒤 벨트를 점검하고 겨울용 댐퍼를 여세요.",
         "tr": "Hazneyi temizleyin, pompayı ve şamandıra valfini test edin, kayışı kontrol edin ve kış damperini açın.",
+        "sk": "Vyčistite nádrž, otestujte čerpadlo a plavákový ventil, skontrolujte remeň a otvorte zimnú klapku.",
     },
     "Aspen pads every season; rigid media pads last 3–5 years.": {
         "de": "Espenholzmatten jede Saison; starre Wabenmatten halten 3–5 Jahre.",
@@ -9383,6 +9789,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Nyárfaforgács-betétek minden szezonban; a merev cellás betétek 3–5 évig tartanak.",
         "ko": "아스펜 패드는 매 시즌 교체하고, 경질 미디어 패드는 3–5년 사용할 수 있습니다.",
         "tr": "Kavak lifi pedler her sezon; sert petek pedler 3–5 yıl dayanır.",
+        "sk": "Podložky z osikovej vlny každú sezónu; pevné podložky vydržia 3 – 5 rokov.",
     },
     "Drain and dry the pan, disconnect the water line and close the damper — prevents scale and frost damage.": {
         "de": "Wanne entleeren und trocknen, Wasserleitung abklemmen und Klappe schließen — verhindert Kalk- und Frostschäden.",
@@ -9406,6 +9813,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ürítse le és szárítsa ki a tálcát, válassza le a vízvezetéket, és zárja be a csappantyút — ez megelőzi a vízkövesedést és a fagykárokat.",
         "ko": "물받이를 비우고 말린 뒤 급수관을 분리하고 댐퍼를 닫으세요 — 스케일과 동파를 막아 줍니다.",
         "tr": "Hazneyi boşaltıp kurutun, su hattını ayırın ve damperi kapatın — kireçlenmeyi ve don hasarını önler.",
+        "sk": "Vypustite a vysušte vaničku, odpojte prívod vody a zatvorte klapku – zabráni to vodnému kameňu a škodám mrazom.",
     },
     "Dehumidifier": {
         "de": "Luftentfeuchter",
@@ -9429,6 +9837,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Párátlanító",
         "ko": "제습기",
         "tr": "Nem Alma Cihazı",
+        "sk": "Odvlhčovač",
     },
     "Empty and Clean Water Tank": {
         "de": "Wassertank leeren und reinigen",
@@ -9452,6 +9861,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Víztartály ürítése és tisztítása",
         "ko": "물통 비우기 및 청소",
         "tr": "Su Haznesini Boşalt ve Temizle",
+        "sk": "Vyprázdniť a vyčistiť nádobu na vodu",
     },
     "Clean Air Filter": {
         "de": "Luftfilter reinigen",
@@ -9475,6 +9885,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Levegőszűrő tisztítása",
         "ko": "에어 필터 청소",
         "tr": "Hava Filtresini Temizle",
+        "sk": "Vyčistiť vzduchový filter",
     },
     "Check Drain Hose": {
         "de": "Ablaufschlauch prüfen",
@@ -9498,6 +9909,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Leeresztő tömlő ellenőrzése",
         "ko": "배수 호스 점검",
         "tr": "Tahliye Hortumunu Kontrol Et",
+        "sk": "Skontrolovať odtokovú hadicu",
     },
     "Humidifier": {
         "de": "Luftbefeuchter",
@@ -9521,6 +9933,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Párásító",
         "ko": "가습기",
         "tr": "Nemlendirici",
+        "sk": "Zvlhčovač",
     },
     "Clean Tank": {
         "de": "Wassertank reinigen",
@@ -9544,6 +9957,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tartály tisztítása",
         "ko": "물통 청소",
         "tr": "Tankı Temizle",
+        "sk": "Vyčistiť nádobu",
     },
     "Replace Wick Filter": {
         "de": "Verdunstungsfilter ersetzen",
@@ -9567,6 +9981,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kanócszűrő cseréje",
         "ko": "가습 필터(심지) 교체",
         "tr": "Fitil Filtresini Değiştir",
+        "sk": "Vymeniť knotový filter",
     },
     "Seasonal Tires": {
         "de": "Sommer- & Winterreifen",
@@ -9590,6 +10005,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szezonális gumiabroncsok",
         "ko": "계절 타이어",
         "tr": "Mevsimlik Lastikler",
+        "sk": "Sezónne pneumatiky",
     },
     "Fit Winter Tires": {
         "de": "Winterreifen montieren",
@@ -9613,6 +10029,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Téli gumik felszerelése",
         "ko": "겨울 타이어 장착",
         "tr": "Kış Lastiklerini Tak",
+        "sk": "Prezuť na zimné pneumatiky",
     },
     "Fit Summer Tires": {
         "de": "Sommerreifen montieren",
@@ -9636,6 +10053,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Nyári gumik felszerelése",
         "ko": "여름 타이어 장착",
         "tr": "Yaz Lastiklerini Tak",
+        "sk": "Prezuť na letné pneumatiky",
     },
     "Check Tread Depth and Tire Age": {
         "de": "Profiltiefe und Reifenalter prüfen",
@@ -9659,6 +10077,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Profilmélység és abroncskor ellenőrzése",
         "ko": "트레드 깊이 및 타이어 연식 점검",
         "tr": "Diş Derinliğini ve Lastik Yaşını Kontrol Et",
+        "sk": "Skontrolovať hĺbku dezénu a vek pneumatík",
     },
     "German rule of thumb: from October to Easter — winter tires are required on wintry roads.": {
         "de": "Faustregel „von O bis O“: von Oktober bis Ostern — bei winterlichen Straßenverhältnissen sind Winterreifen Pflicht.",
@@ -9682,6 +10101,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Német ökölszabály: októbertől húsvétig — téli útviszonyok között kötelező a téli gumi.",
         "ko": "독일의 경험칙: 10월부터 부활절까지 — 겨울철 노면에서는 겨울 타이어가 의무입니다.",
         "tr": "Almanya'daki pratik kural: Ekim'den Paskalya'ya kadar — kış koşullarındaki yollarda kış lastiği zorunludur.",
+        "sk": "Nemecké pravidlo: od októbra do Veľkej noci – na zimných cestách sú zimné pneumatiky povinné.",
     },
     "Heating Oil Tank": {
         "de": "Heizöltank",
@@ -9705,6 +10125,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fűtőolajtartály",
         "ko": "난방유 탱크",
         "tr": "Kalorifer Yakıtı Tankı",
+        "sk": "Nádrž na vykurovací olej",
     },
     "Check Tank and Collecting Tray": {
         "de": "Tank und Auffangwanne prüfen",
@@ -9728,6 +10149,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tartály és felfogótálca ellenőrzése",
         "ko": "탱크 및 누유 받이 점검",
         "tr": "Tankı ve Taşma Tavasını Kontrol Et",
+        "sk": "Skontrolovať nádrž a záchytnú vaňu",
     },
     "Check Leak Detector and Level Gauge": {
         "de": "Leckanzeiger und Füllstandsanzeige prüfen",
@@ -9751,6 +10173,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szivárgásjelző és szintjelző ellenőrzése",
         "ko": "누유 감지기 및 레벨 게이지 점검",
         "tr": "Kaçak Dedektörünü ve Seviye Göstergesini Kontrol Et",
+        "sk": "Skontrolovať detektor únikov a stavoznak",
     },
     "Expert Inspection": {
         "de": "Sachverständigenprüfung",
@@ -9774,6 +10197,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szakértői felülvizsgálat",
         "ko": "전문가 검사",
         "tr": "Uzman Denetimi",
+        "sk": "Odborná kontrola",
     },
     "Germany (AwSV): every 5 years for underground tanks and above-ground tanks over 10,000 l — in water protection and flood areas from 1,000 l. A typical cellar tank below that is exempt.": {
         "de": "Deutschland (AwSV): alle 5 Jahre bei unterirdischen Tanks und oberirdischen Tanks über 10.000 l — in Wasserschutz- und Überschwemmungsgebieten ab 1.000 l. Ein typischer Kellertank darunter ist ausgenommen.",
@@ -9797,6 +10221,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Németország (AwSV): 5 évente a föld alatti tartályoknál és a 10 000 l feletti föld feletti tartályoknál — vízvédelmi és árvízveszélyes területeken már 1000 l-től. Az ez alatti tipikus pincei tartály mentes.",
         "ko": "독일(AwSV): 지하 탱크와 10,000 l 초과 지상 탱크는 5년마다 — 수원 보호 구역 및 홍수 구역에서는 1,000 l부터. 그보다 작은 일반적인 지하실 탱크는 면제됩니다.",
         "tr": "Almanya (AwSV): yeraltı tankları ve 10.000 l üzerindeki yerüstü tankları için 5 yılda bir — su koruma ve taşkın bölgelerinde 1.000 l'den itibaren. Bunun altındaki tipik bodrum tankı muaftır.",
+        "sk": "Nemecko (AwSV): každých 5 rokov pre podzemné nádrže a nadzemné nádrže nad 10 000 l – v ochranných pásmach vôd a záplavových oblastiach od 1 000 l. Bežná pivničná nádrž pod touto hranicou je oslobodená.",
     },
     "Water & Heat Meters": {
         "de": "Wasser- & Wärmezähler",
@@ -9820,6 +10245,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Víz- és hőmennyiségmérők",
         "ko": "수도 및 열량 계량기",
         "tr": "Su ve Isı Sayaçları",
+        "sk": "Merače vody a tepla",
     },
     "Record Meter Readings": {
         "de": "Zählerstände erfassen",
@@ -9843,6 +10269,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Mérőállások rögzítése",
         "ko": "계량기 검침값 기록",
         "tr": "Sayaç Değerlerini Kaydet",
+        "sk": "Zapísať stavy meračov",
     },
     "Balcony & Terrace": {
         "de": "Balkon & Terrasse",
@@ -9866,6 +10293,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Erkély és terasz",
         "ko": "발코니 및 테라스",
         "tr": "Balkon ve Teras",
+        "sk": "Balkón a terasa",
     },
     "Clear Balcony Drain": {
         "de": "Balkonablauf freimachen",
@@ -9889,6 +10317,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Erkélylefolyó tisztítása",
         "ko": "발코니 배수구 청소",
         "tr": "Balkon Giderini Temizle",
+        "sk": "Vyčistiť odtok balkóna",
     },
     "Check Railings and Sealing": {
         "de": "Geländer und Abdichtung prüfen",
@@ -9912,6 +10341,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Korlát és szigetelés ellenőrzése",
         "ko": "난간 및 방수 실링 점검",
         "tr": "Korkulukları ve Yalıtımı Kontrol Et",
+        "sk": "Skontrolovať zábradlie a tesnenie",
     },
     "Replace Meters When Calibration Expires": {
         "de": "Zählertausch nach Eichfrist",
@@ -9935,6 +10365,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lejárt hitelesítésű mérők cseréje",
         "ko": "검정 유효기간 만료 계량기 교체",
         "tr": "Damga Süresi Dolan Sayaçları Değiştir",
+        "sk": "Vymeniť merače po uplynutí platnosti overenia",
     },
     "France: annual boiler maintenance is mandatory for 4–400 kW; keep the certificate for at least two years.": {
         "de": "Frankreich: Für Heizkessel von 4–400 kW ist die jährliche Wartung Pflicht; die Bescheinigung mindestens zwei Jahre aufbewahren.",
@@ -9958,6 +10389,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Franciaország: a 4–400 kW-os kazánok éves karbantartása kötelező; a tanúsítványt legalább két évig őrizze meg.",
         "ko": "프랑스: 4–400 kW 보일러는 매년 정비가 의무이며, 정비 확인서는 최소 2년간 보관해야 합니다.",
         "tr": "Fransa: 4–400 kW arası kazanların yıllık bakımı zorunludur; belgeyi en az iki yıl saklayın.",
+        "sk": "Francúzsko: ročná údržba kotla je povinná pre 4 – 400 kW; potvrdenie uchovávajte aspoň dva roky.",
     },
     "Damp & Mould Prevention": {
         "de": "Feuchte- & Schimmelschutz",
@@ -9981,6 +10413,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Nedvesség- és penészmegelőzés",
         "ko": "습기 및 곰팡이 예방",
         "tr": "Nem ve Küf Önleme",
+        "sk": "Prevencia vlhkosti a plesní",
     },
     "Check for Mould and Condensation": {
         "de": "Auf Schimmel und Kondenswasser prüfen",
@@ -10004,6 +10437,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Penész és páralecsapódás ellenőrzése",
         "ko": "곰팡이 및 결로 점검",
         "tr": "Küf ve Yoğuşmayı Kontrol Et",
+        "sk": "Skontrolovať pleseň a kondenzáciu",
     },
     "Clean Extractor Fans and Trickle Vents": {
         "de": "Abluftventilatoren und Fensterfalzlüfter reinigen",
@@ -10027,6 +10461,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Elszívó ventilátorok és ablakos légbevezetők tisztítása",
         "ko": "환풍기 및 창문 환기구 청소",
         "tr": "Aspiratörleri ve Pencere Havalandırma Menfezlerini Temizle",
+        "sk": "Vyčistiť odsávacie ventilátory a vetracie štrbiny",
     },
     "Check Indoor Humidity": {
         "de": "Raumluftfeuchte prüfen",
@@ -10050,6 +10485,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Beltéri páratartalom ellenőrzése",
         "ko": "실내 습도 점검",
         "tr": "İç Mekân Nemini Kontrol Et",
+        "sk": "Skontrolovať vlhkosť v interiéri",
     },
     "Look behind furniture, in window reveals and in the corners of outside walls.": {
         "de": "Hinter Möbeln, in Fensterlaibungen und in den Ecken der Außenwände nachsehen.",
@@ -10073,6 +10509,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Nézzen be a bútorok mögé, az ablakkávákba és a külső falak sarkaiba.",
         "ko": "가구 뒤, 창문 옆 벽면, 외벽 모서리를 살펴보세요.",
         "tr": "Mobilyaların arkasına, pencere sövelerine ve dış duvarların köşelerine bakın.",
+        "sk": "Pozrite sa za nábytok, do okenných ostení a do rohov obvodových stien.",
     },
     "Aim for 40–60 % relative humidity; air rooms briefly and fully rather than tilting windows all day.": {
         "de": "40–60 % relative Luftfeuchte anstreben; lieber kurz und kräftig stoßlüften, statt die Fenster den ganzen Tag zu kippen.",
@@ -10096,6 +10533,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Törekedjen 40–60%-os relatív páratartalomra; a szobákat röviden, teljesen kitárt ablakkal szellőztesse, ne tartsa egész nap bukóra nyitva az ablakokat.",
         "ko": "상대 습도 40–60%를 목표로 하세요. 창문을 하루 종일 살짝 열어 두기보다 짧게 활짝 열어 환기하세요.",
         "tr": "%40–60 bağıl nem hedefleyin; pencereleri bütün gün vasistasta bırakmak yerine odaları kısa süre ve tamamen açarak havalandırın.",
+        "sk": "Cieľom je relatívna vlhkosť 40 – 60 %; miestnosti vetrajte krátko a naplno namiesto celodenne vyklopených okien.",
     },
     "Roof Moss & Algae": {
         "de": "Moos & Algen auf dem Dach",
@@ -10119,6 +10557,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Moha és alga a tetőn",
         "ko": "지붕 이끼 및 녹조류",
         "tr": "Çatıda Yosun ve Alg",
+        "sk": "Mach a riasy na streche",
     },
     "Remove Roof Moss": {
         "de": "Moos vom Dach entfernen",
@@ -10142,6 +10581,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tetőmoha eltávolítása",
         "ko": "지붕 이끼 제거",
         "tr": "Çatı Yosununu Temizle",
+        "sk": "Odstrániť mach zo strechy",
     },
     "Clean Paths and Patio": {
         "de": "Wege und Terrasse reinigen",
@@ -10165,6 +10605,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kerti utak és terasz tisztítása",
         "ko": "통로 및 테라스 청소",
         "tr": "Bahçe Yollarını ve Terası Temizle",
+        "sk": "Vyčistiť chodníky a terasu",
     },
     "Brush off or treat moss before it lifts the tiles — don't pressure-wash the roof.": {
         "de": "Moos abbürsten oder behandeln, bevor es die Ziegel anhebt — das Dach nicht mit dem Hochdruckreiniger bearbeiten.",
@@ -10188,6 +10629,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Söpörje le vagy kezelje a mohát, mielőtt megemeli a cserepeket — a tetőt ne mossa magasnyomású mosóval.",
         "ko": "기와가 들뜨기 전에 이끼를 솔로 털어내거나 약제로 처리하세요 — 지붕에 고압 세척은 하지 마세요.",
         "tr": "Yosun kiremitleri kaldırmadan önce fırçalayın veya ilaçlayın — çatıyı basınçlı suyla yıkamayın.",
+        "sk": "Mach zmeťte alebo ošetrite skôr, ako nadvihne škridly – strechu nečistite vysokotlakovým čističom.",
     },
     "Sauna": {
         "de": "Heimsauna",
@@ -10211,6 +10653,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Finn szauna",
         "ko": "사우나",
         "tr": "Sauna Kabini",
+        "sk": "Domáca sauna",
     },
     "Wash Benches and Floor": {
         "de": "Bänke und Boden abwaschen",
@@ -10234,6 +10677,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Padok és padló lemosása",
         "ko": "벤치 및 바닥 세척",
         "tr": "Bankları ve Zemini Yıka",
+        "sk": "Umyť lavice a podlahu",
     },
     "Restack Sauna Stones": {
         "de": "Saunasteine neu schichten",
@@ -10257,6 +10701,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szaunakövek átrakása",
         "ko": "사우나 스톤 다시 쌓기",
         "tr": "Sauna Taşlarını Yeniden Diz",
+        "sk": "Preskladať saunové kamene",
     },
     "Check Heater, Guard and Thermostat": {
         "de": "Saunaofen, Schutzgitter und Thermostat prüfen",
@@ -10280,6 +10725,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kályha, védőkorlát és termosztát ellenőrzése",
         "ko": "사우나 히터, 안전 가드 및 온도 조절기 점검",
         "tr": "Sobayı, Koruma Kafesini ve Termostatı Kontrol Et",
+        "sk": "Skontrolovať pec, ochranný kryt a termostat",
     },
     "Once a year: restack the stones and replace any that crumble or discolour (heater manufacturers' advice).": {
         "de": "Einmal im Jahr: Steine neu schichten und bröckelnde oder verfärbte ersetzen (Empfehlung der Ofenhersteller).",
@@ -10303,6 +10749,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Évente egyszer: rakja át a köveket, és cserélje ki a morzsolódókat vagy elszíneződötteket (a kályhagyártók ajánlása).",
         "ko": "연 1회: 돌을 다시 쌓고 부서지거나 변색된 돌은 교체하세요(히터 제조사 권장).",
         "tr": "Yılda bir kez: taşları yeniden dizin, ufalanan veya rengi değişenleri değiştirin (soba üreticilerinin önerisi).",
+        "sk": "Raz ročne: preskladajte kamene a vymeňte tie, ktoré sa drobia alebo menia farbu (odporúčanie výrobcov pecí).",
     },
     "Snow & Ice on the Roof": {
         "de": "Schnee & Eis auf dem Dach",
@@ -10326,6 +10773,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Hó és jég a tetőn",
         "ko": "지붕 위 눈과 얼음",
         "tr": "Çatıda Kar ve Buz",
+        "sk": "Sneh a ľad na streche",
     },
     "Check Roof Snow Load and Ice Dams": {
         "de": "Schneelast auf dem Dach und Eisbildung an der Traufe prüfen",
@@ -10349,6 +10797,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tető hóterhelésének és jégtorlaszainak ellenőrzése",
         "ko": "지붕 적설 하중 및 아이스댐 점검",
         "tr": "Çatıdaki Kar Yükünü ve Buz Birikintilerini Kontrol Et",
+        "sk": "Skontrolovať zaťaženie strechy snehom a ľadové bariéry",
     },
     "Test Roof and Gutter Heating Cables": {
         "de": "Heizkabel für Dach und Dachrinnen testen",
@@ -10372,6 +10821,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tető- és ereszfűtő kábelek tesztelése",
         "ko": "지붕 및 빗물받이 열선 테스트",
         "tr": "Çatı ve Oluk Isıtma Kablolarını Test Et",
+        "sk": "Otestovať vyhrievacie káble strechy a odkvapov",
     },
     "Flat Roof & Roof Terrace": {
         "de": "Flachdach & Dachterrasse",
@@ -10395,6 +10845,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lapostető és tetőterasz",
         "ko": "평지붕 및 옥상 테라스",
         "tr": "Düz Çatı ve Çatı Terası",
+        "sk": "Plochá strecha a strešná terasa",
     },
     "Clear Roof Drains": {
         "de": "Dachabläufe freimachen",
@@ -10418,6 +10869,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tetőlefolyók tisztítása",
         "ko": "지붕 배수구 청소",
         "tr": "Çatı Giderlerini Temizle",
+        "sk": "Vyčistiť strešné vpuste",
     },
     "Check Waterproofing Before the Rainy Season": {
         "de": "Abdichtung vor der Regenzeit prüfen",
@@ -10441,6 +10893,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vízszigetelés ellenőrzése az esős évszak előtt",
         "ko": "우기 전 방수층 점검",
         "tr": "Yağmur Sezonundan Önce Su Yalıtımını Kontrol Et",
+        "sk": "Pred obdobím dažďov skontrolovať hydroizoláciu",
     },
     "Recoat Waterproofing": {
         "de": "Abdichtung neu beschichten",
@@ -10464,6 +10917,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vízszigetelő bevonat megújítása",
         "ko": "방수층 재도장",
         "tr": "Su Yalıtım Kaplamasını Yenile",
+        "sk": "Obnoviť hydroizolačný náter",
     },
     "Elastic roof coatings usually need a fresh coat every 4–5 years.": {
         "de": "Elastische Dachbeschichtungen brauchen meist alle 4–5 Jahre eine neue Schicht.",
@@ -10487,6 +10941,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A rugalmas tetőbevonatokat általában 4–5 évente új réteggel kell ellátni.",
         "ko": "탄성 지붕 도막은 보통 4–5년마다 새로 칠해야 합니다.",
         "tr": "Elastik çatı kaplamaları genellikle 4–5 yılda bir yeni kat ister.",
+        "sk": "Elastické strešné nátery zvyčajne potrebujú novú vrstvu každé 4 – 5 rokov.",
     },
     "Mosquito Prevention": {
         "de": "Mückenschutz",
@@ -10510,6 +10965,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szúnyogok elleni védekezés",
         "ko": "모기 예방",
         "tr": "Sivrisinek Önleme",
+        "sk": "Prevencia proti komárom",
     },
     "Empty Standing Water": {
         "de": "Stehendes Wasser beseitigen",
@@ -10533,6 +10989,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Pangó víz kiöntése",
         "ko": "고인 물 비우기",
         "tr": "Birikmiş Suyu Boşalt",
+        "sk": "Vyliať stojatú vodu",
     },
     "Check Window and Door Screens": {
         "de": "Fliegengitter an Fenstern und Türen prüfen",
@@ -10556,6 +11013,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ablak- és ajtószúnyoghálók ellenőrzése",
         "ko": "창문 및 문 방충망 점검",
         "tr": "Pencere ve Kapı Sinekliklerini Kontrol Et",
+        "sk": "Skontrolovať sieťky v oknách a dverách",
     },
     "Plant saucers, buckets, gutters and rain barrels — a week is enough for larvae to hatch.": {
         "de": "Blumenuntersetzer, Eimer, Dachrinnen und Regentonnen — eine Woche reicht, damit Larven schlüpfen.",
@@ -10579,6 +11037,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Virágalátétek, vödrök, ereszcsatornák és esővízgyűjtő hordók — egy hét elég ahhoz, hogy kikeljenek a lárvák.",
         "ko": "화분 받침, 양동이, 빗물받이, 빗물 통 등 — 일주일이면 유충이 부화합니다.",
         "tr": "Saksı altlıkları, kovalar, oluklar ve yağmur suyu varilleri — larvaların çıkması için bir hafta yeterlidir.",
+        "sk": "Podmisky, vedrá, odkvapy a sudy na dažďovú vodu – na vyliahnutie lariev stačí týždeň.",
     },
     "Wildfire Preparation": {
         "de": "Waldbrandvorsorge",
@@ -10602,6 +11061,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Felkészülés erdőtüzekre",
         "ko": "산불 대비",
         "tr": "Orman Yangını Hazırlığı",
+        "sk": "Príprava na lesné požiare",
     },
     "Clear Defensible Space": {
         "de": "Schutzzone ums Haus freiräumen",
@@ -10625,6 +11085,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tűzvédelmi sáv megtisztítása a ház körül",
         "ko": "주택 주변 방화 공간 정리",
         "tr": "Evin Çevresindeki Yangın Güvenlik Alanını Temizle",
+        "sk": "Vyčistiť ochranný priestor okolo domu",
     },
     "Clear Leaves from Roof and Gutters": {
         "de": "Laub von Dach und Dachrinnen entfernen",
@@ -10648,6 +11109,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lomb eltávolítása a tetőről és az ereszcsatornákból",
         "ko": "지붕 및 빗물받이 낙엽 제거",
         "tr": "Çatıdaki ve Oluklardaki Yaprakları Temizle",
+        "sk": "Odstrániť lístie zo strechy a odkvapov",
     },
     "Check Ember-Proof Vent Screens": {
         "de": "Funkenschutzgitter der Lüftungsöffnungen prüfen",
@@ -10671,6 +11133,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szellőzőnyílások szikrafogó hálójának ellenőrzése",
         "ko": "통풍구 불티 차단망 점검",
         "tr": "Havalandırma Menfezlerindeki Kıvılcım Önleyici Telleri Kontrol Et",
+        "sk": "Skontrolovať sieťky vetracích otvorov proti iskrám",
     },
     "Cut back dry vegetation; keep the first 1.5 m (5 ft) around the house free of anything that burns (CAL FIRE Zone 0).": {
         "de": "Trockene Vegetation zurückschneiden; die ersten 1,5 m (5 ft) rund ums Haus frei von allem Brennbaren halten (CAL FIRE Zone 0).",
@@ -10694,6 +11157,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vágja vissza a száraz növényzetet; a ház körüli első 1,5 métert (5 lábat) tartsa mentesen mindentől, ami éghet (CAL FIRE Zone 0).",
         "ko": "마른 초목을 잘라 내고, 집 주변 1.5 m 이내에는 탈 수 있는 것을 일절 두지 마세요(CAL FIRE Zone 0).",
         "tr": "Kuru bitki örtüsünü budayın; evin çevresindeki ilk 1,5 m'yi (5 fit) yanabilecek her şeyden arındırın (CAL FIRE Zone 0).",
+        "sk": "Odstráňte suchú vegetáciu; prvých 1,5 m okolo domu udržiavajte bez čohokoľvek horľavého (CAL FIRE Zone 0).",
     },
     "Vents covered with 3 mm (⅛ in) metal mesh keep embers out.": {
         "de": "Lüftungsöffnungen mit Metallgitter von 3 mm (⅛ in) Maschenweite halten Glutfunken draußen.",
@@ -10717,6 +11181,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A 3 mm-es (⅛ hüvelykes) fémhálóval fedett szellőzőnyílásokon nem jut be a parázs.",
         "ko": "3 mm 금속망을 씌운 통풍구는 불티가 들어오는 것을 막아 줍니다.",
         "tr": "3 mm (⅛ inç) metal telle kaplı menfezler közlerin içeri girmesini engeller.",
+        "sk": "Vetracie otvory zakryté kovovou sieťkou 3 mm zastavia iskry.",
     },
     "Rainwater Tank": {
         "de": "Regenwassertank",
@@ -10740,6 +11205,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Esővíztartály",
         "ko": "빗물 저장 탱크",
         "tr": "Yağmur Suyu Tankı",
+        "sk": "Nádrž na dažďovú vodu",
     },
     "Clean Leaf Screens and First-Flush Diverter": {
         "de": "Laubsiebe und Erstregenabscheider reinigen",
@@ -10763,6 +11229,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lombfogó szűrők és az első csapadékvíz-leválasztó tisztítása",
         "ko": "낙엽 거름망 및 초기 우수 배제 장치 청소",
         "tr": "Yaprak Süzgeçlerini ve İlk Yağmur Suyu Ayırıcısını Temizle",
+        "sk": "Vyčistiť sitá na lístie a odlučovač prvého splachu",
     },
     "Check Tank for Sediment": {
         "de": "Tank auf Ablagerungen prüfen",
@@ -10786,6 +11253,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Üledék ellenőrzése a tartályban",
         "ko": "탱크 침전물 점검",
         "tr": "Tanktaki Tortuyu Kontrol Et",
+        "sk": "Skontrolovať usadeniny v nádrži",
     },
     "Check Pump and Filter": {
         "de": "Pumpe und Filter prüfen",
@@ -10809,6 +11277,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szivattyú és szűrő ellenőrzése",
         "ko": "펌프 및 필터 점검",
         "tr": "Pompayı ve Filtreyi Kontrol Et",
+        "sk": "Skontrolovať čerpadlo a filter",
     },
     "Australian health guidance: check for sediment every 2–3 years and clean the tank once the bottom is covered.": {
         "de": "Australische Gesundheitsempfehlung: alle 2–3 Jahre auf Ablagerungen prüfen und den Tank reinigen, sobald der Boden bedeckt ist.",
@@ -10832,6 +11301,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ausztrál egészségügyi ajánlás: 2–3 évente ellenőrizze az üledéket, és tisztítsa ki a tartályt, ha az már beborítja az alját.",
         "ko": "호주 보건 당국 지침: 2–3년마다 침전물을 확인하고, 바닥이 덮이면 탱크를 청소하세요.",
         "tr": "Avustralya sağlık önerileri: tortuyu 2–3 yılda bir kontrol edin ve taban kaplandığında tankı temizleyin.",
+        "sk": "Austrálske zdravotné odporúčanie: usadeniny kontrolujte každé 2 – 3 roky a nádrž vyčistite, keď pokryjú dno.",
     },
     "Water Storage Tank": {
         "de": "Wasservorratstank",
@@ -10855,6 +11325,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ivóvíztároló tartály",
         "ko": "저수조",
         "tr": "İçme Suyu Deposu",
+        "sk": "Zásobník vody",
     },
     "Clean and Disinfect Tank": {
         "de": "Tank reinigen und desinfizieren",
@@ -10878,6 +11349,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tartály tisztítása és fertőtlenítése",
         "ko": "탱크 청소 및 소독",
         "tr": "Depoyu Temizle ve Dezenfekte Et",
+        "sk": "Vyčistiť a vydezinfikovať nádrž",
     },
     "Check Lid, Overflow and Float Valve": {
         "de": "Deckel, Überlauf und Schwimmerventil prüfen",
@@ -10901,6 +11373,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fedél, túlfolyó és úszószelep ellenőrzése",
         "ko": "뚜껑, 오버플로관 및 플로트 밸브 점검",
         "tr": "Kapağı, Taşma Borusunu ve Şamandıra Valfini Kontrol Et",
+        "sk": "Skontrolovať veko, prepad a plavákový ventil",
     },
     "Brazil: at least every 6 months (Ministry of Health guidance).": {
         "de": "Brasilien: mindestens alle 6 Monate (Empfehlung des Gesundheitsministeriums).",
@@ -10924,6 +11397,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Brazília: legalább 6 havonta (az egészségügyi minisztérium ajánlása).",
         "ko": "브라질: 최소 6개월마다(보건부 지침).",
         "tr": "Brezilya: en az 6 ayda bir (Sağlık Bakanlığı önerisi).",
+        "sk": "Brazília: aspoň každých 6 mesiacov (odporúčanie ministerstva zdravotníctva).",
     },
     "Inverter Battery Backup": {
         "de": "Notstrom-Wechselrichter mit Batterie",
@@ -10947,6 +11421,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Inverteres, akkumulátoros szünetmentes táp",
         "ko": "인버터 배터리 백업 전원",
         "tr": "Akülü İnvertör Yedek Güç Sistemi",
+        "sk": "Záložné batérie meniča",
     },
     "Top Up Distilled Water": {
         "de": "Destilliertes Wasser nachfüllen",
@@ -10970,6 +11445,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Desztillált víz utántöltése",
         "ko": "증류수 보충",
         "tr": "Distile Su Ekle",
+        "sk": "Doliať destilovanú vodu",
     },
     "Clean Battery Terminals": {
         "de": "Batteriepole reinigen",
@@ -10993,6 +11469,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Akkumulátor pólusainak tisztítása",
         "ko": "배터리 단자 청소",
         "tr": "Akü Kutup Başlarını Temizle",
+        "sk": "Vyčistiť svorky batérie",
     },
     "Test Backup Runtime": {
         "de": "Überbrückungszeit testen",
@@ -11016,6 +11493,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Áthidalási idő tesztelése",
         "ko": "백업 가동 시간 테스트",
         "tr": "Yedek Çalışma Süresini Test Et",
+        "sk": "Otestovať dobu záložnej prevádzky",
     },
     "Every 2–4 months — distilled water only, never tap water.": {
         "de": "Alle 2–4 Monate — nur destilliertes Wasser, nie Leitungswasser.",
@@ -11039,6 +11517,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "2–4 havonta — csak desztillált vizet használjon, csapvizet soha.",
         "ko": "2–4개월마다 — 증류수만 사용하고, 수돗물은 절대 사용하지 마세요.",
         "tr": "Her 2–4 ayda bir — yalnızca distile su kullanın, asla musluk suyu kullanmayın.",
+        "sk": "Každé 2 – 4 mesiace – iba destilovanú vodu, nikdy nie z vodovodu.",
     },
     "Holiday Home / Cabin": {
         "de": "Ferienhaus / Hütte",
@@ -11062,6 +11541,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Nyaraló / hétvégi ház",
         "ko": "별장/산장",
         "tr": "Yazlık / Dağ Evi",
+        "sk": "Rekreačný dom / chata",
     },
     "Close for Winter": {
         "de": "Winterfest machen",
@@ -11085,6 +11565,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Téli bezárás",
         "ko": "겨울 대비 폐쇄",
         "tr": "Kış İçin Kapat",
+        "sk": "Zazimovať",
     },
     "Open for the Season": {
         "de": "Für die Saison öffnen",
@@ -11108,6 +11589,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szezonnyitás",
         "ko": "시즌 맞이 개방",
         "tr": "Sezon İçin Aç",
+        "sk": "Otvoriť na sezónu",
     },
     "Check for Storm and Snow Damage": {
         "de": "Auf Sturm- und Schneeschäden prüfen",
@@ -11131,6 +11613,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vihar- és hókárok ellenőrzése",
         "ko": "폭풍 및 폭설 피해 점검",
         "tr": "Fırtına ve Kar Hasarını Kontrol Et",
+        "sk": "Skontrolovať škody po búrke a snehu",
     },
     "Drain pipes, pump and water heater before the frosts — best while the daily mean is still +5 to +10 °C.": {
         "de": "Leitungen, Pumpe und Warmwasserbereiter vor den Frösten entleeren — am besten, solange das Tagesmittel noch bei +5 bis +10 °C liegt.",
@@ -11154,6 +11637,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A fagyok előtt ürítse le a csöveket, a szivattyút és a vízmelegítőt — a legjobb, amíg a napi középhőmérséklet még +5 és +10 °C között van.",
         "ko": "서리가 내리기 전에 배관, 펌프, 온수기의 물을 빼세요 — 일평균 기온이 아직 +5~+10 °C일 때가 가장 좋습니다.",
         "tr": "Donlardan önce boruları, pompayı ve su ısıtıcısını boşaltın — en iyisi günlük ortalama hâlâ +5 ile +10 °C arasındayken.",
+        "sk": "Pred mrazmi vypustite potrubie, čerpadlo a ohrievač vody – najlepšie, kým je denný priemer ešte +5 až +10 °C.",
     },
     "Flush the water system and check for frost and pest damage.": {
         "de": "Wasserleitungen durchspülen und auf Frost- und Schädlingsschäden prüfen.",
@@ -11177,6 +11661,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Öblítse át a vízrendszert, és ellenőrizze a fagy- és kártevőkárokat.",
         "ko": "급수 시스템을 세척하고 동파 및 해충 피해가 없는지 확인하세요.",
         "tr": "Su sistemini yıkayın ve don ile haşere hasarını kontrol edin.",
+        "sk": "Prepláchnite vodovodný systém a skontrolujte škody mrazom a škodcami.",
     },
     "Tatami & Futon Care": {
         "de": "Tatami- & Futonpflege",
@@ -11200,6 +11685,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tatami- és futonápolás",
         "ko": "다다미 및 이불 관리",
         "tr": "Tatami ve Futon Bakımı",
+        "sk": "Starostlivosť o tatami a futon",
     },
     "Air Tatami and Futons": {
         "de": "Tatami und Futons lüften",
@@ -11223,6 +11709,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tatamik és futonok szellőztetése",
         "ko": "다다미 및 이불 말리기",
         "tr": "Tatami ve Futonları Havalandır",
+        "sk": "Vyvetrať tatami a futony",
     },
     "Vacuum Tatami Along the Grain": {
         "de": "Tatami in Faserrichtung saugen",
@@ -11246,6 +11733,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tatami porszívózása a szálirány mentén",
         "ko": "다다미 결을 따라 진공청소",
         "tr": "Tatamiyi Lif Yönünde Süpürgeyle Temizle",
+        "sk": "Vysávať tatami v smere vlákien",
     },
     "Mould Check in the Rainy Season": {
         "de": "Schimmelkontrolle in der Regenzeit",
@@ -11269,6 +11757,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Penészellenőrzés az esős évszakban",
         "ko": "장마철 곰팡이 점검",
         "tr": "Yağmur Mevsiminde Küf Kontrolü",
+        "sk": "Kontrola plesní v období dažďov",
     },
     "Twice a year on a dry, sunny day.": {
         "de": "Zweimal im Jahr an einem trockenen, sonnigen Tag.",
@@ -11292,6 +11781,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Évente kétszer, száraz, napos időben.",
         "ko": "연 2회, 맑고 건조한 날에 하세요.",
         "tr": "Yılda iki kez, kuru ve güneşli bir günde.",
+        "sk": "Dvakrát ročne za suchého, slnečného dňa.",
     },
     "During tsuyu keep the humidity below 60 % — a dehumidifier helps in tatami rooms.": {
         "de": "Während der Tsuyu-Regenzeit die Luftfeuchte unter 60 % halten — in Tatami-Räumen hilft ein Luftentfeuchter.",
@@ -11315,6 +11805,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A cuju (esős évszak) idején tartsa a páratartalmat 60% alatt — a tatamis szobákban segít egy párátlanító.",
         "ko": "장마철(쓰유)에는 습도를 60% 미만으로 유지하세요 — 다다미방에는 제습기가 도움이 됩니다.",
         "tr": "Tsuyu döneminde nemi %60'ın altında tutun — tatamili odalarda nem alma cihazı işe yarar.",
+        "sk": "Počas cuju udržiavajte vlhkosť pod 60 % – v miestnostiach s tatami pomôže odvlhčovač.",
     },
     "Earthquake Preparedness": {
         "de": "Erdbebenvorsorge",
@@ -11338,6 +11829,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Felkészülés földrengésre",
         "ko": "지진 대비",
         "tr": "Deprem Hazırlığı",
+        "sk": "Príprava na zemetrasenie",
     },
     "Check Water Heater Straps and Furniture Anchors": {
         "de": "Haltegurte am Warmwasserbereiter und Möbelsicherungen prüfen",
@@ -11361,6 +11853,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vízmelegítő-pántok és bútorrögzítések ellenőrzése",
         "ko": "온수기 고정 스트랩 및 가구 고정 장치 점검",
         "tr": "Su Isıtıcısı Kayışlarını ve Mobilya Sabitleyicilerini Kontrol Et",
+        "sk": "Skontrolovať upevnenie ohrievača vody a kotvenie nábytku",
     },
     "Check Gas Shut-Off Tool and Location": {
         "de": "Gasabsperrschlüssel und Lage des Haupthahns prüfen",
@@ -11384,6 +11877,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gázelzáró helyének és kulcsának ellenőrzése",
         "ko": "가스 차단 공구 및 밸브 위치 점검",
         "tr": "Gaz Vanasının Yerini ve Kapatma Anahtarını Kontrol Et",
+        "sk": "Skontrolovať nástroj na uzavretie plynu a jeho umiestnenie",
     },
     "Know where the valve is and keep the wrench next to it; once shut off, let the gas utility turn it back on.": {
         "de": "Wissen, wo der Haupthahn sitzt, und den Schlüssel direkt daneben aufbewahren; nach dem Absperren das Gas nur vom Versorger wieder aufdrehen lassen.",
@@ -11407,6 +11901,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tudja meg, hol van a szelep, és a kulcsot tartsa mellette; elzárás után a gázt a gázszolgáltatóval nyittassa vissza.",
         "ko": "밸브 위치를 알아 두고 렌치를 옆에 보관하세요. 한 번 잠갔다면 다시 여는 것은 가스 회사에 맡기세요.",
         "tr": "Vananın yerini öğrenin ve anahtarı yanında tutun; kapatıldıktan sonra gazı yeniden gaz dağıtım şirketine açtırın.",
+        "sk": "Vedzte, kde je ventil, a kľúč majte hneď pri ňom; po uzavretí nechajte plyn znova pustiť plynárenskú spoločnosť.",
     },
     "Private Well": {
         "de": "Hausbrunnen",
@@ -11430,6 +11925,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Saját kút",
         "ko": "개인 우물",
         "tr": "Özel Kuyu",
+        "sk": "Vlastná studňa",
     },
     "Test Well Water": {
         "de": "Brunnenwasser testen",
@@ -11453,6 +11949,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kútvíz vizsgálata",
         "ko": "우물물 수질 검사",
         "tr": "Kuyu Suyunu Test Et",
+        "sk": "Otestovať vodu zo studne",
     },
     "Check Pump and Pressure Tank": {
         "de": "Pumpe und Druckkessel prüfen",
@@ -11476,6 +11973,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szivattyú és hidrofortartály ellenőrzése",
         "ko": "펌프 및 압력 탱크 점검",
         "tr": "Pompayı ve Hidrofor Tankını Kontrol Et",
+        "sk": "Skontrolovať čerpadlo a tlakovú nádobu",
     },
     "Inspect Wellhead and Cap": {
         "de": "Brunnenkopf und Abdeckung prüfen",
@@ -11499,6 +11997,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kútfej és kútfedél ellenőrzése",
         "ko": "우물 상단부 및 덮개 점검",
         "tr": "Kuyu Başlığını ve Kapağını Kontrol Et",
+        "sk": "Skontrolovať zhlavie a veko studne",
     },
     "US EPA: test for bacteria and nitrates every year, a full chemical panel every 3–5 years.": {
         "de": "US EPA: jährlich auf Bakterien und Nitrat testen, alle 3–5 Jahre eine vollständige chemische Analyse.",
@@ -11522,6 +12021,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "US EPA: évente vizsgáltassa a vizet baktériumokra és nitrátra, 3–5 évente pedig végeztessen teljes kémiai elemzést.",
         "ko": "US EPA: 세균과 질산염은 매년, 전체 화학 성분 검사는 3–5년마다 실시하세요.",
         "tr": "US EPA: her yıl bakteri ve nitrat testi, 3–5 yılda bir de tam kimyasal analiz yaptırın.",
+        "sk": "US EPA: baktérie a dusičnany testujte každý rok, úplný chemický rozbor každé 3 – 5 rokov.",
     },
     "GHG Quota (THG-Quote)": {
         "de": "THG-Quote beantragen",
@@ -11545,6 +12045,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Üvegházgáz-kvóta (THG-Quote)",
         "ko": "온실가스 쿼터 (THG-Quote)",
         "tr": "Sera gazı kotası (THG-Quote)",
+        "sk": "Kvóta skleníkových plynov (THG-Quote)",
     },
     "Germany: the greenhouse-gas savings of a fully electric car (THG-Quote) can be certified and sold once per calendar year — usually through a quota service, with a copy of the registration certificate (Part I). Quota services set their own deadlines — check yours.": {
         "de": "Deutschland: Die Treibhausgas-Einsparung eines reinen Elektroautos (THG-Quote) kann einmal pro Kalenderjahr bescheinigt und verkauft werden — meist über einen Quotenhändler, mit einer Kopie der Zulassungsbescheinigung Teil I. Die Händler setzen eigene Fristen — rechtzeitig prüfen.",
@@ -11568,6 +12069,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Németország: egy tisztán elektromos autó üvegházhatásúgáz-megtakarítása (THG-Quote) naptári évenként egyszer igazoltatható és eladható — általában egy kvótaszolgáltatón keresztül, a forgalmi engedély (I. rész) másolatával. A szolgáltatók saját határidőket szabnak — érdemes ellenőrizni.",
         "ko": "독일: 순수 전기차의 온실가스 감축량(THG-Quote)은 매 역년마다 한 번 인증받아 판매할 수 있습니다 — 보통 쿼터 중개 서비스를 통해 차량 등록증(제I부) 사본을 제출합니다. 서비스마다 마감일이 다르니 확인하세요.",
         "tr": "Almanya: tamamen elektrikli bir otomobilin sera gazı tasarrufu (THG-Quote) her takvim yılında bir kez belgelendirilip satılabilir — genellikle bir kota hizmeti aracılığıyla, ruhsatın (Bölüm I) bir kopyasıyla. Her hizmetin kendi son tarihleri vardır — kontrol edin.",
+        "sk": "Nemecko: úsporu skleníkových plynov plne elektrického auta (THG-Quote) možno raz za kalendárny rok certifikovať a predať – zvyčajne cez sprostredkovateľa kvót s kópiou osvedčenia o evidencii (časť I). Sprostredkovatelia si stanovujú vlastné lehoty – overte si tú svoju.",
     },
     "Roadworthiness Test": {
         "de": "Hauptuntersuchung (HU)",
@@ -11591,6 +12093,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Műszaki vizsga",
         "ko": "자동차 검사",
         "tr": "Araç Muayenesi",
+        "sk": "Technická kontrola",
     },
     "The first test and the cycle depend on the country and the vehicle's age — the due date is on the registration papers or the inspection sticker.": {
         "de": "Erste Prüfung und Rhythmus hängen vom Land und vom Fahrzeugalter ab — der Termin steht in den Fahrzeugpapieren oder auf der Prüfplakette.",
@@ -11614,6 +12117,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Az első vizsga és a vizsgálati ciklus az országtól és a jármű korától függ — az esedékesség a forgalmi engedélyben vagy a vizsgamatricán található.",
         "ko": "첫 검사 시기와 주기는 국가와 차령에 따라 다릅니다 — 만료일은 자동차 등록증이나 검사 스티커에서 확인할 수 있습니다.",
         "tr": "İlk muayene ve muayene aralığı ülkeye ve aracın yaşına bağlıdır — son tarih ruhsatta veya muayene etiketinde yazar.",
+        "sk": "Prvá kontrola a interval závisia od krajiny a veku vozidla – termín je v technickom preukaze alebo na kontrolnej nálepke.",
     },
     "Switzerland: vehicle inspection (MFK) after 5 years, 3 years later, then every 2 years.": {
         "de": "Schweiz: Motorfahrzeugkontrolle (MFK) nach 5 Jahren, 3 Jahre später, danach alle 2 Jahre.",
@@ -11637,6 +12141,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Svájc: járművizsga (MFK) 5 év után, majd 3 évvel később, azután 2 évente.",
         "ko": "스위스: 차량 검사(MFK)는 5년 후, 그 3년 후, 이후 2년마다.",
         "tr": "İsviçre: araç muayenesi (MFK) 5 yıl sonra, 3 yıl sonra tekrar, ardından 2 yılda bir.",
+        "sk": "Švajčiarsko: kontrola vozidla (MFK) po 5 rokoch, o 3 roky neskôr, potom každé 2 roky.",
     },
     "Germany: HU (TÜV, DEKRA …) 3 years after first registration, then every 2 years.": {
         "de": "Deutschland: HU (TÜV, DEKRA …) 3 Jahre nach der Erstzulassung, danach alle 2 Jahre.",
@@ -11660,6 +12165,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Németország: HU (TÜV, DEKRA …) 3 évvel az első forgalomba helyezés után, azután 2 évente.",
         "ko": "독일: HU(TÜV, DEKRA 등)는 최초 등록 후 3년, 이후 2년마다.",
         "tr": "Almanya: HU (TÜV, DEKRA …) ilk tescilden 3 yıl sonra, ardından 2 yılda bir.",
+        "sk": "Nemecko: HU (TÜV, DEKRA …) 3 roky po prvej registrácii, potom každé 2 roky.",
     },
     "Spain: ITV from 4 years every 2 years, from 10 years every year.": {
         "de": "Spanien: ITV ab 4 Jahren alle 2 Jahre, ab 10 Jahren jährlich.",
@@ -11683,6 +12189,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Spanyolország: ITV 4 éves kortól 2 évente, 10 éves kortól évente.",
         "ko": "스페인: ITV는 차령 4년부터 2년마다, 10년부터는 매년.",
         "tr": "İspanya: ITV 4 yaşından itibaren 2 yılda bir, 10 yaşından itibaren her yıl.",
+        "sk": "Španielsko: ITV od 4 rokov každé 2 roky, od 10 rokov každý rok.",
     },
     "France: contrôle technique 4 years after first registration, then every 2 years.": {
         "de": "Frankreich: contrôle technique 4 Jahre nach der Erstzulassung, danach alle 2 Jahre.",
@@ -11706,6 +12213,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Franciaország: contrôle technique 4 évvel az első forgalomba helyezés után, azután 2 évente.",
         "ko": "프랑스: contrôle technique는 최초 등록 후 4년, 이후 2년마다.",
         "tr": "Fransa: contrôle technique ilk tescilden 4 yıl sonra, ardından 2 yılda bir.",
+        "sk": "Francúzsko: contrôle technique 4 roky po prvej registrácii, potom každé 2 roky.",
     },
     "UK: MOT 3 years after first registration (Northern Ireland: 4), then every year.": {
         "de": "Vereinigtes Königreich: MOT 3 Jahre nach der Erstzulassung (Nordirland: 4), danach jährlich.",
@@ -11729,6 +12237,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Egyesült Királyság: MOT 3 évvel az első forgalomba helyezés után (Észak-Írország: 4), azután évente.",
         "ko": "영국: MOT는 최초 등록 후 3년(북아일랜드: 4년), 이후 매년.",
         "tr": "Birleşik Krallık: MOT ilk tescilden 3 yıl sonra (Kuzey İrlanda: 4), ardından her yıl.",
+        "sk": "Spojené kráľovstvo: MOT 3 roky po prvej registrácii (Severné Írsko: 4), potom každý rok.",
     },
     "Italy: revisione 4 years after first registration, then every 2 years.": {
         "de": "Italien: revisione 4 Jahre nach der Erstzulassung, danach alle 2 Jahre.",
@@ -11752,6 +12261,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Olaszország: revisione 4 évvel az első forgalomba helyezés után, azután 2 évente.",
         "ko": "이탈리아: revisione는 최초 등록 후 4년, 이후 2년마다.",
         "tr": "İtalya: revisione ilk tescilden 4 yıl sonra, ardından 2 yılda bir.",
+        "sk": "Taliansko: revisione 4 roky po prvej registrácii, potom každé 2 roky.",
     },
     "Poland: przegląd techniczny after 3 years, after 5 years, then every year.": {
         "de": "Polen: przegląd techniczny nach 3 Jahren, nach 5 Jahren, danach jährlich.",
@@ -11775,6 +12285,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lengyelország: przegląd techniczny 3 év után, 5 év után, azután évente.",
         "ko": "폴란드: przegląd techniczny는 3년 후, 5년 후, 이후 매년.",
         "tr": "Polonya: przegląd techniczny 3 yıl sonra, 5 yıl sonra, ardından her yıl.",
+        "sk": "Poľsko: przegląd techniczny po 3 rokoch, po 5 rokoch, potom každý rok.",
     },
     "Sweden: besiktning after 3 years, after 5 years, then every 14 months.": {
         "de": "Schweden: besiktning nach 3 Jahren, nach 5 Jahren, danach alle 14 Monate.",
@@ -11798,6 +12309,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Svédország: besiktning 3 év után, 5 év után, azután 14 havonta.",
         "ko": "스웨덴: besiktning은 3년 후, 5년 후, 이후 14개월마다.",
         "tr": "İsveç: besiktning 3 yıl sonra, 5 yıl sonra, ardından 14 ayda bir.",
+        "sk": "Švédsko: besiktning po 3 rokoch, po 5 rokoch, potom každých 14 mesiacov.",
     },
     "Germany: HU every 2 years, the first one 2 years after first registration.": {
         "de": "Deutschland: HU alle 2 Jahre, die erste 2 Jahre nach der Erstzulassung.",
@@ -11821,6 +12333,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Németország: HU 2 évente, először 2 évvel az első forgalomba helyezés után.",
         "ko": "독일: HU는 2년마다, 첫 검사는 최초 등록 후 2년.",
         "tr": "Almanya: HU 2 yılda bir, ilki ilk tescilden 2 yıl sonra.",
+        "sk": "Nemecko: HU každé 2 roky, prvá 2 roky po prvej registrácii.",
     },
     "Spain: ITV from 4 years every 2 years (mopeds from 3 years).": {
         "de": "Spanien: ITV ab 4 Jahren alle 2 Jahre (Mopeds ab 3 Jahren).",
@@ -11844,6 +12357,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Spanyolország: ITV 4 éves kortól 2 évente (segédmotoros kerékpárok 3 éves kortól).",
         "ko": "스페인: ITV는 차령 4년부터 2년마다(모페드는 3년부터).",
         "tr": "İspanya: ITV 4 yaşından itibaren 2 yılda bir (mopedler 3 yaşından itibaren).",
+        "sk": "Španielsko: ITV od 4 rokov každé 2 roky (mopedy od 3 rokov).",
     },
     "France: contrôle technique for motorcycles and scooters since 15 April 2024 — in the 6 months before the 5th anniversary, then every 3 years; older bikes follow a transition calendar.": {
         "de": "Frankreich: contrôle technique für Motorräder und Roller seit 15. April 2024 — in den 6 Monaten vor dem 5. Jahrestag der Erstzulassung, danach alle 3 Jahre; ältere Maschinen folgen einem Übergangskalender.",
@@ -11867,6 +12381,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Franciaország: contrôle technique motorkerékpárokra és robogókra 2024. április 15. óta — az első forgalomba helyezés 5. évfordulója előtti 6 hónapban, azután 3 évente; a régebbi motorokra átmeneti ütemterv vonatkozik.",
         "ko": "프랑스: 오토바이와 스쿠터는 2024년 4월 15일부터 contrôle technique 대상 — 최초 등록 5주년 전 6개월 이내에 받고, 이후 3년마다; 오래된 차량은 경과 일정표를 따릅니다.",
         "tr": "Fransa: 15 Nisan 2024'ten bu yana motosikletler ve skuterler için contrôle technique — ilk tescilin 5. yıl dönümünden önceki 6 ay içinde, ardından 3 yılda bir; daha eski motosikletler için geçiş takvimi uygulanır.",
+        "sk": "Francúzsko: contrôle technique pre motocykle a skútre od 15. apríla 2024 – v 6 mesiacoch pred 5. výročím, potom každé 3 roky; staršie stroje sa riadia prechodným kalendárom.",
     },
     "Netherlands: motorcycles have no APK.": {
         "de": "Niederlande: Für Motorräder gibt es keine APK.",
@@ -11890,6 +12405,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Hollandia: a motorkerékpárokra nincs APK.",
         "ko": "네덜란드: 오토바이는 APK 대상이 아닙니다.",
         "tr": "Hollanda: motosikletler için APK yoktur.",
+        "sk": "Holandsko: motocykle nemajú APK.",
     },
     "Sweden: besiktning within 4 years, then every 2 years.": {
         "de": "Schweden: besiktning innerhalb von 4 Jahren, danach alle 2 Jahre.",
@@ -11913,6 +12429,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Svédország: besiktning 4 éven belül, azután 2 évente.",
         "ko": "스웨덴: besiktning은 4년 이내, 이후 2년마다.",
         "tr": "İsveç: besiktning 4 yıl içinde, ardından 2 yılda bir.",
+        "sk": "Švédsko: besiktning do 4 rokov, potom každé 2 roky.",
     },
     "France: installers recommend operating the safety group (groupe de sécurité) once a month so scale cannot block it.": {
         "de": "Frankreich: Installateure empfehlen, die Sicherheitsgruppe (groupe de sécurité) einmal im Monat zu betätigen, damit Kalk sie nicht blockieren kann.",
@@ -11936,6 +12453,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Franciaország: a szerelők azt javasolják, hogy havonta egyszer működtesse a biztonsági szelepcsoportot (groupe de sécurité), hogy a vízkő ne tudja eltömíteni.",
         "ko": "프랑스: 설치업체는 스케일로 막히지 않도록 안전 밸브 그룹(groupe de sécurité)을 한 달에 한 번 작동해 볼 것을 권장합니다.",
         "tr": "Fransa: tesisatçılar, kireç tıkamasın diye emniyet grubunun (groupe de sécurité) ayda bir kez çalıştırılmasını önerir.",
+        "sk": "Francúzsko: inštalatéri odporúčajú raz za mesiac uviesť do činnosti bezpečnostnú skupinu (groupe de sécurité), aby ju nezablokoval vodný kameň.",
     },
     "Poland: the gas installation and the chimneys must be checked every year, single-family homes included (Building Law, Art. 62).": {
         "de": "Polen: Gasinstallation und Schornsteine müssen jedes Jahr geprüft werden, auch in Einfamilienhäusern (Baugesetz, Art. 62).",
@@ -11959,6 +12477,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lengyelország: a gázrendszert és a kéményeket évente ellenőrizni kell, a családi házakban is (építési törvény, Art. 62).",
         "ko": "폴란드: 가스 설비와 굴뚝은 단독 주택을 포함해 매년 점검해야 합니다(건축법 Art. 62).",
         "tr": "Polonya: gaz tesisatı ve bacalar, müstakil evler dahil her yıl kontrol edilmelidir (Yapı Kanunu, Art. 62).",
+        "sk": "Poľsko: plynovú inštaláciu a komíny treba kontrolovať každý rok, aj v rodinných domoch (stavebný zákon, čl. 62).",
     },
     "Russia: in-house gas equipment must be serviced under a maintenance contract at least once a year.": {
         "de": "Russland: Die hausinterne Gasausrüstung muss im Rahmen eines Wartungsvertrags mindestens einmal im Jahr gewartet werden.",
@@ -11982,6 +12501,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Oroszország: a házon belüli gázberendezéseket karbantartási szerződés alapján legalább évente egyszer karban kell tartani.",
         "ko": "러시아: 주택 내 가스 설비는 유지보수 계약에 따라 최소 연 1회 정비를 받아야 합니다.",
         "tr": "Rusya: bina içi gaz ekipmanlarının bir bakım sözleşmesi kapsamında en az yılda bir kez bakımı yapılmalıdır.",
+        "sk": "Rusko: domové plynové zariadenia musia byť servisované na základe zmluvy o údržbe aspoň raz ročne.",
     },
     "Austria: the sweeping intervals are set by state law.": {
         "de": "Österreich: Die Kehrintervalle sind im jeweiligen Landesgesetz festgelegt.",
@@ -12005,6 +12525,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ausztria: a kéményseprés gyakoriságát tartományi törvények szabályozzák.",
         "ko": "오스트리아: 청소 주기는 주법으로 정해집니다.",
         "tr": "Avusturya: temizlik aralıkları eyalet yasalarıyla belirlenir.",
+        "sk": "Rakúsko: intervaly čistenia komínov určujú zákony spolkových krajín.",
     },
     "Finland: sweeping every year, for holiday homes every 3 years (Rescue Act).": {
         "de": "Finnland: Kehrung jährlich, bei Ferienhäusern alle 3 Jahre (Rettungsgesetz).",
@@ -12028,6 +12549,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Finnország: kéményseprés évente, nyaralóknál 3 évente (mentési törvény).",
         "ko": "핀란드: 굴뚝 청소는 매년, 별장은 3년마다(구조법).",
         "tr": "Finlandiya: baca temizliği her yıl, yazlık evlerde 3 yılda bir (Kurtarma Kanunu).",
+        "sk": "Fínsko: čistenie komína každý rok, pri rekreačných domoch každé 3 roky (zákon o záchrannej službe).",
     },
     "Czechia: solid fuels up to 50 kW — clean the flue 3 times a year (twice with seasonal use) and have it inspected once a year.": {
         "de": "Tschechien: feste Brennstoffe bis 50 kW — Abgasweg 3-mal im Jahr reinigen (bei saisonaler Nutzung 2-mal) und einmal im Jahr prüfen lassen.",
@@ -12051,6 +12573,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Csehország: szilárd tüzelés 50 kW-ig — a füstelvezetőt évente 3-szor tisztítsa (idényszerű használatnál kétszer), és évente egyszer ellenőriztesse.",
         "ko": "체코: 50 kW 이하 고체 연료 — 연도를 연 3회(계절 사용 시 2회) 청소하고 연 1회 점검을 받으세요.",
         "tr": "Çekya: 50 kW'a kadar katı yakıt — baca kanalını yılda 3 kez temizleyin (mevsimlik kullanımda iki kez) ve yılda bir kez denetletin.",
+        "sk": "Česko: tuhé palivá do 50 kW – spalinovú cestu čistiť 3-krát ročne (pri sezónnom používaní dvakrát) a raz ročne dať skontrolovať.",
     },
     "US: NFPA 211 calls for a chimney inspection at least once a year.": {
         "de": "USA: NFPA 211 verlangt mindestens einmal im Jahr eine Schornsteininspektion.",
@@ -12074,6 +12597,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "USA: az NFPA 211 legalább évente egyszer előírja a kémény ellenőrzését.",
         "ko": "미국: NFPA 211은 최소 연 1회 굴뚝 점검을 요구합니다.",
         "tr": "ABD: NFPA 211, bacanın en az yılda bir kez denetlenmesini öngörür.",
+        "sk": "USA: NFPA 211 vyžaduje kontrolu komína aspoň raz ročne.",
     },
     "France: every home needs at least one smoke alarm (DAAF) since March 2015; the occupant keeps it working.": {
         "de": "Frankreich: Seit März 2015 braucht jede Wohnung mindestens einen Rauchmelder (DAAF); der Bewohner hält ihn funktionsfähig.",
@@ -12097,6 +12621,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Franciaország: 2015 márciusa óta minden lakásban legalább egy füstérzékelőnek kell lennie (DAAF); a működőképességéről a lakó gondoskodik.",
         "ko": "프랑스: 2015년 3월부터 모든 주택에 최소 1개의 연기 경보기(DAAF)가 필요하며, 작동 상태 유지는 거주자의 몫입니다.",
         "tr": "Fransa: Mart 2015'ten bu yana her konutta en az bir duman dedektörü (DAAF) bulunmalıdır; çalışır durumda tutulmasından konutta oturan kişi sorumludur.",
+        "sk": "Francúzsko: od marca 2015 musí mať každá domácnosť aspoň jeden detektor dymu (DAAF); o jeho funkčnosť sa stará užívateľ bytu.",
     },
     "Netherlands: a smoke alarm on every floor with a living space or escape route is mandatory since 1 July 2022.": {
         "de": "Niederlande: Seit 1. Juli 2022 ist auf jeder Etage mit Wohnraum oder Fluchtweg ein Rauchmelder Pflicht.",
@@ -12120,6 +12645,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Hollandia: 2022. július 1. óta kötelező a füstérzékelő minden olyan szinten, ahol lakótér vagy menekülési útvonal van.",
         "ko": "네덜란드: 2022년 7월 1일부터 거실 공간이나 대피로가 있는 모든 층에 연기 경보기 설치가 의무입니다.",
         "tr": "Hollanda: 1 Temmuz 2022'den bu yana yaşam alanı veya kaçış yolu bulunan her katta duman dedektörü zorunludur.",
+        "sk": "Holandsko: od 1. júla 2022 je povinný detektor dymu na každom podlaží s obytným priestorom alebo únikovou cestou.",
     },
     "Japan: residential fire alarms are mandatory in all homes; the fire agency recommends replacing them after 10 years.": {
         "de": "Japan: Heimrauchmelder sind in allen Wohnungen Pflicht; die Feuerwehrbehörde empfiehlt den Austausch nach 10 Jahren.",
@@ -12143,6 +12669,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Japán: a lakossági tűzjelzők minden otthonban kötelezők; a tűzoltósági hivatal 10 év után javasolja a cseréjüket.",
         "ko": "일본: 모든 주택에 주택용 화재경보기 설치가 의무이며, 소방청은 10년이 지나면 교체할 것을 권장합니다.",
         "tr": "Japonya: konut tipi yangın alarmları tüm evlerde zorunludur; itfaiye idaresi bunların 10 yıl sonra değiştirilmesini önerir.",
+        "sk": "Japonsko: požiarne hlásiče sú povinné vo všetkých domácnostiach; hasičský úrad odporúča vymeniť ich po 10 rokoch.",
     },
     "Australia: the rules differ by state — e.g. in Queensland every home needs interconnected photoelectric alarms in each bedroom, hallway and storey from 1 January 2027.": {
         "de": "Australien: Die Regeln unterscheiden sich je nach Bundesstaat — z. B. braucht in Queensland ab 1. Januar 2027 jedes Haus vernetzte photoelektrische Rauchmelder in jedem Schlafzimmer, Flur und Stockwerk.",
@@ -12166,6 +12693,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ausztrália: a szabályok államonként eltérnek — pl. Queenslandben 2027. január 1-jétől minden otthonban összekapcsolt fotoelektromos füstérzékelők kellenek minden hálószobában, folyosón és szinten.",
         "ko": "호주: 규정은 주마다 다릅니다 — 예: 퀸즐랜드에서는 2027년 1월 1일부터 모든 주택의 각 침실, 복도, 층마다 연동형 광전식 경보기가 필요합니다.",
         "tr": "Avustralya: kurallar eyaletten eyalete değişir — ör. Queensland'de 1 Ocak 2027'den itibaren her evde her yatak odasında, koridorda ve katta birbirine bağlı fotoelektrik alarmlar gerekir.",
+        "sk": "Austrália: pravidlá sa líšia podľa štátu – napr. v Queenslande musí mať od 1. januára 2027 každá domácnosť prepojené fotoelektrické hlásiče v každej spálni, chodbe a na každom podlaží.",
     },
     "Replace CO Alarms": {
         "de": "CO-Melder austauschen",
@@ -12189,6 +12717,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "CO-érzékelők cseréje",
         "ko": "CO 경보기 교체",
         "tr": "CO Dedektörlerini Değiştir",
+        "sk": "Vymeniť detektory CO",
     },
     "CO sensors age faster than smoke sensors — depending on the model after 5–10 years; the end-of-life date is printed on the unit.": {
         "de": "CO-Sensoren altern schneller als Rauchsensoren — je nach Modell nach 5–10 Jahren; das Ablaufdatum ist auf dem Gerät aufgedruckt.",
@@ -12212,6 +12741,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A CO-szenzorok gyorsabban öregszenek, mint a füstérzékelők — típustól függően 5–10 év után; az élettartam végének dátuma rá van nyomtatva a készülékre.",
         "ko": "CO 센서는 연기 센서보다 빨리 노화됩니다 — 모델에 따라 5–10년 후; 수명 만료일은 기기에 인쇄되어 있습니다.",
         "tr": "CO sensörleri duman sensörlerinden daha hızlı yaşlanır — modele göre 5–10 yıl sonra; kullanım ömrü sonu tarihi cihazın üzerinde yazılıdır.",
+        "sk": "Senzory CO starnú rýchlejšie ako senzory dymu – podľa modelu po 5 – 10 rokoch; dátum konca životnosti je vytlačený na zariadení.",
     },
     "Check Pool Safety Barrier or Alarm": {
         "de": "Poolzaun oder Poolalarm prüfen",
@@ -12235,6 +12765,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Medence biztonsági kerítésének vagy riasztójának ellenőrzése",
         "ko": "수영장 안전 펜스 또는 경보기 점검",
         "tr": "Havuz Güvenlik Bariyerini veya Alarmını Kontrol Et",
+        "sk": "Skontrolovať bezpečnostnú zábranu alebo alarm bazéna",
     },
     "Gates must close and latch by themselves, nothing to climb on near the fence; test the alarm.": {
         "de": "Tore müssen selbsttätig schließen und einrasten, in Zaunnähe nichts zum Hinaufklettern; Alarm testen.",
@@ -12258,6 +12789,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A kapuknak maguktól kell becsukódniuk és bereteszelődniük, a kerítés közelében ne legyen semmi, amire fel lehet mászni; tesztelje a riasztót.",
         "ko": "문은 저절로 닫히고 잠겨야 하며, 펜스 근처에 딛고 올라갈 만한 물건이 없어야 합니다. 경보기를 테스트하세요.",
         "tr": "Kapılar kendiliğinden kapanıp kilitlenmeli, çitin yakınında tırmanılabilecek hiçbir şey olmamalı; alarmı test edin.",
+        "sk": "Bránky sa musia samy zatvárať a zapadnúť, pri plote nesmie byť nič, po čom sa dá vyliezť; otestujte alarm.",
     },
     "France: private in-ground pools must have one of four standardised safety devices — barrier, cover, shelter or alarm (Code de la construction, L134-10).": {
         "de": "Frankreich: Private eingelassene Pools müssen eine von vier genormten Sicherheitsvorrichtungen haben — Absperrung, Abdeckung, Überdachung oder Alarm (Code de la construction, L134-10).",
@@ -12281,6 +12813,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Franciaország: a földbe süllyesztett magánmedencéknél a négy szabványos biztonsági eszköz egyike kötelező — kerítés, takaró, medencefedés vagy riasztó (Code de la construction, L134-10).",
         "ko": "프랑스: 개인 매립형 수영장에는 표준화된 4가지 안전장치 — 펜스, 덮개, 셸터, 경보기 — 중 하나가 있어야 합니다(Code de la construction, L134-10).",
         "tr": "Fransa: zemine gömülü özel havuzlarda dört standart güvenlik düzeneğinden biri bulunmalıdır — bariyer, örtü, kapalı muhafaza veya alarm (Code de la construction, L134-10).",
+        "sk": "Francúzsko: súkromné zapustené bazény musia mať jedno zo štyroch normovaných bezpečnostných zariadení – zábranu, kryt, prístrešok alebo alarm (Code de la construction, L134-10).",
     },
     "Australia: barrier rules differ by state — e.g. Victoria requires a compliance certificate every 4 years and Western Australia inspects at least every 4 years; NSW and Queensland need a certificate on sale or lease.": {
         "de": "Australien: Die Vorschriften für Absperrungen unterscheiden sich je nach Bundesstaat — z. B. verlangt Victoria alle 4 Jahre eine Konformitätsbescheinigung und Western Australia prüft mindestens alle 4 Jahre; NSW und Queensland verlangen eine Bescheinigung bei Verkauf oder Vermietung.",
@@ -12304,6 +12837,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ausztrália: a kerítésre vonatkozó szabályok államonként eltérnek — pl. Victoria 4 évente megfelelőségi tanúsítványt ír elő, Nyugat-Ausztrália pedig legalább 4 évente ellenőriz; Új-Dél-Walesben és Queenslandben eladáskor vagy bérbeadáskor kell tanúsítvány.",
         "ko": "호주: 수영장 펜스 규정은 주마다 다릅니다 — 예: 빅토리아주는 4년마다 적합 증명서가 필요하고, 서호주는 최소 4년마다 점검합니다. NSW와 퀸즐랜드는 매매 또는 임대 시 증명서가 필요합니다.",
         "tr": "Avustralya: bariyer kuralları eyalete göre değişir — ör. Victoria 4 yılda bir uygunluk sertifikası ister, Batı Avustralya en az 4 yılda bir denetim yapar; Yeni Güney Galler ve Queensland'de satış veya kiralamada sertifika gerekir.",
+        "sk": "Austrália: pravidlá pre zábrany sa líšia podľa štátu – napr. Victoria vyžaduje osvedčenie o zhode každé 4 roky a Západná Austrália kontroluje aspoň každé 4 roky; NSW a Queensland vyžadujú osvedčenie pri predaji alebo prenájme.",
     },
     "New Zealand: residential pool barriers must be inspected at least every 3 years.": {
         "de": "Neuseeland: Absperrungen privater Pools müssen mindestens alle 3 Jahre geprüft werden.",
@@ -12327,6 +12861,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Új-Zéland: a lakóingatlanok medencéinek kerítését legalább 3 évente ellenőrizni kell.",
         "ko": "뉴질랜드: 주거용 수영장 펜스는 최소 3년마다 점검을 받아야 합니다.",
         "tr": "Yeni Zelanda: konut havuzlarının bariyerleri en az 3 yılda bir denetlenmelidir.",
+        "sk": "Nový Zéland: zábrany súkromných bazénov sa musia kontrolovať aspoň každé 3 roky.",
     },
     "Close Pool for Winter": {
         "de": "Pool einwintern",
@@ -12350,6 +12885,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Medence téliesítése",
         "ko": "겨울 대비 수영장 폐쇄",
         "tr": "Havuzu Kış İçin Kapat",
+        "sk": "Zazimovať bazén",
     },
     "Balance the water, lower it below the skimmer, drain the pump and filter, then cover the pool.": {
         "de": "Wasserwerte einstellen, Wasserstand unter den Skimmer absenken, Pumpe und Filter entleeren, dann den Pool abdecken.",
@@ -12373,6 +12909,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Állítsa be a víz egyensúlyát, engedje a vízszintet a skimmer alá, ürítse le a szivattyút és a szűrőt, majd takarja le a medencét.",
         "ko": "수질을 맞추고 수위를 스키머 아래로 낮춘 뒤 펌프와 필터의 물을 빼고 수영장을 덮으세요.",
         "tr": "Suyun dengesini ayarlayın, seviyesini skimmer'ın altına indirin, pompayı ve filtreyi boşaltın, ardından havuzu örtün.",
+        "sk": "Vyvážte vodu, znížte jej hladinu pod skimmer, vypustite čerpadlo a filter a potom bazén zakryte.",
     },
     "Open Pool for the Season": {
         "de": "Pool für die Saison öffnen",
@@ -12396,6 +12933,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Medence szezonnyitása",
         "ko": "시즌 맞이 수영장 개방",
         "tr": "Havuzu Sezon İçin Aç",
+        "sk": "Otvoriť bazén na sezónu",
     },
     "Remove the cover, top up the water, restart the filter and shock-treat the water.": {
         "de": "Abdeckung entfernen, Wasser auffüllen, Filter wieder in Betrieb nehmen und eine Stoßchlorung durchführen.",
@@ -12419,6 +12957,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vegye le a takarót, töltse fel a vizet, indítsa újra a szűrőt, és végezzen sokkoló vízkezelést.",
         "ko": "덮개를 걷고 물을 보충한 뒤 필터를 다시 가동하고 물을 쇼크 처리하세요.",
         "tr": "Örtüyü kaldırın, suyu tamamlayın, filtreyi yeniden çalıştırın ve suya şok dezenfeksiyon uygulayın.",
+        "sk": "Odstráňte kryt, doplňte vodu, znova spustite filter a vodu šokovo ošetrite.",
     },
     "All year when the unit also heats — and keep the outdoor unit free of snow and ice in winter.": {
         "de": "Ganzjährig, wenn das Gerät auch heizt — und im Winter die Außeneinheit frei von Schnee und Eis halten.",
@@ -12442,6 +12981,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Egész évben, ha a készülék fűt is — télen pedig tartsa a kültéri egységet hó- és jégmentesen.",
         "ko": "난방에도 사용한다면 연중 내내 — 겨울에는 실외기에 눈과 얼음이 쌓이지 않게 하세요.",
         "tr": "Cihaz ısıtma da yapıyorsa tüm yıl boyunca — kışın da dış üniteyi kar ve buzdan arındırın.",
+        "sk": "Celoročne, ak jednotka aj kúri – a v zime udržiavajte vonkajšiu jednotku bez snehu a ľadu.",
     },
     "Electrical Safety": {
         "de": "Elektrische Sicherheit",
@@ -12465,6 +13005,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Elektromos biztonság",
         "ko": "전기 안전",
         "tr": "Elektrik Güvenliği",
+        "sk": "Elektrická bezpečnosť",
     },
     "Test RCD / GFCI": {
         "de": "FI-Schutzschalter testen",
@@ -12488,6 +13029,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fi-relé (RCD / GFCI) tesztelése",
         "ko": "누전 차단기 테스트(RCD / GFCI)",
         "tr": "Kaçak Akım Rölesini (RCD / GFCI) Test Et",
+        "sk": "Otestovať prúdový chránič",
     },
     "Press the test button — the device must trip at once. Manufacturers call for this every 6 months.": {
         "de": "Prüftaste drücken — der Schalter muss sofort auslösen. Die Hersteller schreiben das alle 6 Monate vor.",
@@ -12511,6 +13053,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Nyomja meg a tesztgombot — a készüléknek azonnal le kell oldania. A gyártók ezt 6 havonta írják elő.",
         "ko": "테스트 버튼을 누르면 즉시 차단되어야 합니다. 제조사는 6개월마다 이 테스트를 요구합니다.",
         "tr": "Test düğmesine basın — cihaz hemen atmalıdır. Üreticiler bunu 6 ayda bir öngörür.",
+        "sk": "Stlačte testovacie tlačidlo – chránič musí okamžite vypnúť. Výrobcovia to predpisujú každých 6 mesiacov.",
     },
     "US and Canada: test GFCIs and AFCIs every month, as their labels say.": {
         "de": "USA und Kanada: GFCI und AFCI jeden Monat testen, wie es auf ihrem Etikett steht.",
@@ -12534,6 +13077,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "USA és Kanada: a GFCI- és AFCI-készülékeket havonta tesztelje, ahogy a címkéjükön áll.",
         "ko": "미국 및 캐나다: 라벨에 적힌 대로 GFCI와 AFCI를 매달 테스트하세요.",
         "tr": "ABD ve Kanada: GFCI ve AFCI'ları etiketlerinde yazdığı gibi her ay test edin.",
+        "sk": "USA a Kanada: GFCI a AFCI testujte každý mesiac, ako uvádzajú ich štítky.",
     },
     "Check Sockets, Plugs and Extension Leads": {
         "de": "Steckdosen, Stecker und Verlängerungskabel prüfen",
@@ -12557,6 +13101,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Konnektorok, csatlakozódugók és hosszabbítók ellenőrzése",
         "ko": "콘센트, 플러그 및 연장선 점검",
         "tr": "Prizleri, Fişleri ve Uzatma Kablolarını Kontrol Et",
+        "sk": "Skontrolovať zásuvky, zástrčky a predlžovačky",
     },
     "Look for scorch marks, loose or warm sockets, damaged cables and power strips plugged into each other.": {
         "de": "Auf Brandspuren, lockere oder warme Steckdosen, beschädigte Kabel und ineinandergesteckte Mehrfachsteckdosen achten.",
@@ -12580,6 +13125,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Keressen égésnyomokat, laza vagy meleg konnektorokat, sérült kábeleket és egymásba dugott elosztókat.",
         "ko": "그을린 자국, 헐겁거나 뜨거운 콘센트, 손상된 케이블, 서로 연결된 멀티탭이 없는지 살펴보세요.",
         "tr": "Yanık izlerine, gevşek veya ısınan prizlere, hasarlı kablolara ve birbirine takılmış çoklu prizlere bakın.",
+        "sk": "Hľadajte stopy po pripálení, uvoľnené alebo teplé zásuvky, poškodené káble a do seba zapojené rozbočovače.",
     },
     "Electrical Installation Inspection": {
         "de": "Prüfung der Elektroinstallation",
@@ -12603,6 +13149,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Elektromos hálózat felülvizsgálata",
         "ko": "전기 설비 점검",
         "tr": "Elektrik Tesisatı Denetimi",
+        "sk": "Revízia elektroinštalácie",
     },
     "Recommended about every 10 years for an owner-occupied home — sooner for an old installation or after water damage.": {
         "de": "Für selbst genutztes Wohneigentum etwa alle 10 Jahre empfohlen — bei alter Installation oder nach einem Wasserschaden früher.",
@@ -12626,6 +13173,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A tulajdonos által lakott otthonban nagyjából 10 évente ajánlott — régi hálózatnál vagy beázás után korábban.",
         "ko": "자가 주택은 약 10년마다 권장됩니다 — 설비가 오래되었거나 누수 피해를 입은 후에는 더 일찍.",
         "tr": "Sahibinin oturduğu bir konutta yaklaşık 10 yılda bir önerilir — eski bir tesisatta veya su hasarından sonra daha erken.",
+        "sk": "V dome obývanom vlastníkom sa odporúča približne každých 10 rokov – pri starej inštalácii alebo po zatopení skôr.",
     },
     "Germany: the electrical trade recommends an E-Check of the fixed installation every 4 years (voluntary for private homes).": {
         "de": "Deutschland: Das Elektrohandwerk empfiehlt alle 4 Jahre einen E-Check der festen Installation (für Privathaushalte freiwillig).",
@@ -12649,6 +13197,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Németország: a villamos szakma 4 évente javasolja a fix telepítésű hálózat E-Check vizsgálatát (magánlakásoknál önkéntes).",
         "ko": "독일: 전기 업계는 4년마다 고정 설비의 E-Check를 권장합니다(개인 주택은 선택 사항).",
         "tr": "Almanya: elektrik sektörü sabit tesisatın 4 yılda bir E-Check ile kontrol edilmesini önerir (özel konutlar için isteğe bağlı).",
+        "sk": "Nemecko: elektrikári odporúčajú E-Check pevnej inštalácie každé 4 roky (pre súkromné domácnosti dobrovoľný).",
     },
     "Domestic Water Installation": {
         "de": "Trinkwasserinstallation",
@@ -12672,6 +13221,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Házi vízhálózat",
         "ko": "주택 급수 설비",
         "tr": "Ev Su Tesisatı",
+        "sk": "Domový vodovod",
     },
     "Backwash House Water Filter": {
         "de": "Hauswasserfilter rückspülen",
@@ -12695,6 +13245,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Házi vízszűrő visszamosatása",
         "ko": "주택 급수 필터 역세척",
         "tr": "Ev Su Filtresini Ters Yıka",
+        "sk": "Spätne prepláchnuť domový vodný filter",
     },
     "DIN EN 806-5: at least every 6 months — manufacturers recommend about every 2 months. A filter without backwash: replace the cartridge every 6 months.": {
         "de": "DIN EN 806-5: mindestens alle 6 Monate — Hersteller empfehlen etwa alle 2 Monate. Filter ohne Rückspülung: Filtereinsatz alle 6 Monate wechseln.",
@@ -12718,6 +13269,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "DIN EN 806-5: legalább 6 havonta — a gyártók nagyjából 2 havonta javasolják. Visszamosás nélküli szűrőnél: 6 havonta cserélje a betétet.",
         "ko": "DIN EN 806-5: 최소 6개월마다 — 제조사는 약 2개월마다를 권장합니다. 역세척 기능이 없는 필터는 6개월마다 카트리지를 교체하세요.",
         "tr": "DIN EN 806-5: en az 6 ayda bir — üreticiler yaklaşık 2 ayda bir önerir. Ters yıkamasız filtre: kartuşu 6 ayda bir değiştirin.",
+        "sk": "DIN EN 806-5: aspoň každých 6 mesiacov – výrobcovia odporúčajú približne každé 2 mesiace. Filter bez spätného preplachu: vložku vymieňajte každých 6 mesiacov.",
     },
     "Pressure Reducer Maintenance": {
         "de": "Druckminderer warten",
@@ -12741,6 +13293,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Nyomáscsökkentő karbantartása",
         "ko": "감압 밸브 정비",
         "tr": "Basınç Düşürücü Bakımı",
+        "sk": "Údržba redukčného ventilu",
     },
     "DIN EN 806-5: inspect and service it once a year — check the outlet pressure on the gauge and clean the strainer.": {
         "de": "DIN EN 806-5: einmal im Jahr inspizieren und warten — Hinterdruck am Manometer prüfen und das Sieb reinigen.",
@@ -12764,6 +13317,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "DIN EN 806-5: évente egyszer ellenőrizze és tartsa karban — nézze meg a kimeneti nyomást a manométeren, és tisztítsa ki a szűrőszitát.",
         "ko": "DIN EN 806-5: 연 1회 점검 및 정비 — 게이지에서 출구 압력을 확인하고 스트레이너를 청소하세요.",
         "tr": "DIN EN 806-5: yılda bir kez kontrol edip bakımını yapın — manometreden çıkış basıncını kontrol edin ve süzgeci temizleyin.",
+        "sk": "DIN EN 806-5: raz ročne skontrolovať a vykonať údržbu – na manometri skontrolujte výstupný tlak a vyčistite sitko.",
     },
     "Operate Shut-Off Valves": {
         "de": "Absperrventile betätigen",
@@ -12787,6 +13341,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Elzárószelepek átmozgatása",
         "ko": "차단 밸브 작동",
         "tr": "Kesme Vanalarını Açıp Kapat",
+        "sk": "Pretočiť uzatváracie ventily",
     },
     "Close and reopen the main valve and the floor valves once or twice a year so they cannot seize.": {
         "de": "Hauptabsperrventil und Etagenventile ein- bis zweimal im Jahr schließen und wieder öffnen, damit sie nicht festsitzen.",
@@ -12810,6 +13365,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Évente egyszer-kétszer zárja el és nyissa ki újra a főelzárót és a szinti elzárókat, hogy ne ragadjanak be.",
         "ko": "메인 밸브와 층별 밸브를 1년에 한두 번 잠갔다가 다시 열어 고착되지 않게 하세요.",
         "tr": "Sıkışmamaları için ana vanayı ve kat vanalarını yılda bir ya da iki kez kapatıp yeniden açın.",
+        "sk": "Hlavný ventil a ventily na podlažiach raz či dvakrát ročne zatvorte a znova otvorte, aby sa nezasekli.",
     },
     "Test Leak Protection": {
         "de": "Leckageschutz testen",
@@ -12833,6 +13389,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szivárgásvédelem tesztelése",
         "ko": "누수 방지 장치 테스트",
         "tr": "Su Kaçağı Korumasını Test Et",
+        "sk": "Otestovať ochranu pred únikom vody",
     },
     "Wet each water sensor and check that the shut-off valve closes and the alert arrives.": {
         "de": "Jeden Wassersensor befeuchten und prüfen, ob das Absperrventil schließt und die Warnung ankommt.",
@@ -12856,6 +13413,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Nedvesítse meg az összes vízérzékelőt, és ellenőrizze, hogy az elzárószelep bezár-e és megérkezik-e a riasztás.",
         "ko": "각 누수 센서를 적셔 차단 밸브가 닫히고 알림이 오는지 확인하세요.",
         "tr": "Her su sensörünü ıslatın ve kesme vanasının kapandığını ve uyarının geldiğini kontrol edin.",
+        "sk": "Navlhčite každý senzor vody a skontrolujte, či sa uzatvárací ventil zatvorí a príde upozornenie.",
     },
     "Air Purifier": {
         "de": "Luftreiniger",
@@ -12879,6 +13437,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Légtisztító",
         "ko": "공기청정기",
         "tr": "Hava Temizleyici",
+        "sk": "Čistička vzduchu",
     },
     "Clean Pre-Filter": {
         "de": "Vorfilter reinigen",
@@ -12902,6 +13461,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Előszűrő tisztítása",
         "ko": "프리필터 청소",
         "tr": "Ön Filtreyi Temizle",
+        "sk": "Vyčistiť predfilter",
     },
     "Vacuum or rinse it every 2–4 weeks.": {
         "de": "Alle 2–4 Wochen absaugen oder ausspülen.",
@@ -12925,6 +13485,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "2–4 hetente porszívózza ki vagy öblítse le.",
         "ko": "2–4주마다 청소기로 빨아들이거나 물로 헹구세요.",
         "tr": "2–4 haftada bir süpürün veya durulayın.",
+        "sk": "Vysávajte alebo oplachujte ho každé 2 – 4 týždne.",
     },
     "Replace Main Filter": {
         "de": "Hauptfilter ersetzen",
@@ -12948,6 +13509,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Főszűrő cseréje",
         "ko": "메인 필터 교체",
         "tr": "Ana Filtreyi Değiştir",
+        "sk": "Vymeniť hlavný filter",
     },
     "HEPA and carbon filters last 6–12 months — less with smoke, heavy pollution or pets. Many purifiers report the filter life to Home Assistant.": {
         "de": "HEPA- und Aktivkohlefilter halten 6–12 Monate — bei Rauch, starker Luftverschmutzung oder Haustieren kürzer. Viele Luftreiniger melden die Filterlebensdauer an Home Assistant.",
@@ -12971,6 +13533,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A HEPA- és szénszűrők 6–12 hónapig bírják — füst, erős légszennyezés vagy háziállatok mellett rövidebb ideig. Sok légtisztító jelenti a szűrő élettartamát a Home Assistant felé.",
         "ko": "HEPA 및 활성탄 필터는 6–12개월 사용할 수 있으며, 연기, 심한 오염, 반려동물이 있으면 더 짧아집니다. 많은 공기청정기가 필터 수명을 Home Assistant에 보고합니다.",
         "tr": "HEPA ve karbon filtreler 6–12 ay dayanır — duman, yoğun kirlilik veya evcil hayvan varsa daha kısa. Birçok hava temizleyici filtre ömrünü Home Assistant'a bildirir.",
+        "sk": "Filtre HEPA a uhlíkové filtre vydržia 6 – 12 mesiacov – pri dyme, silnom znečistení alebo domácich zvieratách menej. Mnohé čističky hlásia životnosť filtra do Home Assistanta.",
     },
     "Wipe Housing and Air-Quality Sensor": {
         "de": "Gehäuse und Luftqualitätssensor abwischen",
@@ -12994,6 +13557,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Burkolat és légminőség-érzékelő áttörlése",
         "ko": "본체 및 공기질 센서 닦기",
         "tr": "Gövdeyi ve Hava Kalitesi Sensörünü Sil",
+        "sk": "Utrieť kryt a senzor kvality vzduchu",
     },
     "Uninterruptible Power Supply (UPS)": {
         "de": "USV (unterbrechungsfreie Stromversorgung)",
@@ -13017,6 +13581,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szünetmentes tápegység (UPS)",
         "ko": "무정전 전원 장치(UPS)",
         "tr": "Kesintisiz Güç Kaynağı (UPS)",
+        "sk": "Záložný zdroj (UPS)",
     },
     "Run Self-Test and Check Runtime": {
         "de": "Selbsttest starten und Überbrückungszeit prüfen",
@@ -13040,6 +13605,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Önteszt futtatása és áthidalási idő ellenőrzése",
         "ko": "자가 테스트 실행 및 백업 시간 점검",
         "tr": "Kendi Kendine Testi Çalıştır ve Yedek Çalışma Süresini Kontrol Et",
+        "sk": "Spustiť autotest a skontrolovať dobu prevádzky",
     },
     "Compare the estimated runtime with the connected load — a shrinking runtime announces a tired battery.": {
         "de": "Die geschätzte Überbrückungszeit mit der angeschlossenen Last vergleichen — sinkt sie, kündigt sich eine schwächelnde Batterie an.",
@@ -13063,6 +13629,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vesse össze a becsült áthidalási időt a csatlakoztatott terheléssel — a csökkenő áthidalási idő elhasználódó akkumulátort jelez.",
         "ko": "예상 백업 시간을 연결된 부하와 비교하세요 — 백업 시간이 줄어들면 배터리가 노화되고 있다는 신호입니다.",
         "tr": "Tahmini çalışma süresini bağlı yükle karşılaştırın — kısalan çalışma süresi yorulan bir aküye işaret eder.",
+        "sk": "Porovnajte odhadovanú dobu prevádzky s pripojenou záťažou – skracujúca sa doba ohlasuje opotrebovanú batériu.",
     },
     "Replace UPS Battery": {
         "de": "USV-Batterie ersetzen",
@@ -13086,6 +13653,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "UPS-akkumulátor cseréje",
         "ko": "UPS 배터리 교체",
         "tr": "UPS Aküsünü Değiştir",
+        "sk": "Vymeniť batériu UPS",
     },
     "Lead-acid UPS batteries last 3–5 years — less in a warm room.": {
         "de": "Blei-Säure-Batterien in USVs halten 3–5 Jahre — in warmen Räumen kürzer.",
@@ -13109,6 +13677,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Az ólomsavas UPS-akkumulátorok 3–5 évig bírják — meleg helyiségben rövidebb ideig.",
         "ko": "UPS용 납축전지는 3–5년 사용할 수 있으며, 따뜻한 방에서는 더 짧아집니다.",
         "tr": "Kurşun asit UPS aküleri 3–5 yıl dayanır — sıcak bir odada daha kısa.",
+        "sk": "Olovené batérie UPS vydržia 3 – 5 rokov – v teplej miestnosti menej.",
     },
     "Clean Vents": {
         "de": "Lüftungsschlitze reinigen",
@@ -13132,6 +13701,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szellőzőnyílások tisztítása",
         "ko": "통풍구 청소",
         "tr": "Havalandırma Deliklerini Temizle",
+        "sk": "Vyčistiť vetracie otvory",
     },
     "Caravan & Motorhome": {
         "de": "Wohnwagen & Wohnmobil",
@@ -13155,6 +13725,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lakókocsi és lakóautó",
         "ko": "캐러밴 및 캠핑카",
         "tr": "Karavan ve Motokaravan",
+        "sk": "Karavan a obytné auto",
     },
     "LPG System Test": {
         "de": "Gasprüfung",
@@ -13178,6 +13749,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "PB-gázrendszer ellenőrzése",
         "ko": "LPG 설비 검사",
         "tr": "LPG Sistemi Testi",
+        "sk": "Revízia plynového zariadenia",
     },
     "Have hoses, regulator and appliances checked by an expert; replace hoses and the regulator by the date printed on them.": {
         "de": "Schläuche, Druckregler und Geräte von einem Sachkundigen prüfen lassen; Schläuche und Regler bis zum aufgedruckten Datum ersetzen.",
@@ -13201,6 +13773,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ellenőriztesse szakemberrel a tömlőket, a nyomásszabályzót és a készülékeket; a tömlőket és a nyomásszabályzót a rájuk nyomtatott dátumig cserélje ki.",
         "ko": "호스, 조정기, 가스 기기를 전문가에게 점검받으세요. 호스와 조정기는 표시된 날짜까지 교체하세요.",
         "tr": "Hortumları, regülatörü ve cihazları bir uzmana kontrol ettirin; hortumları ve regülatörü üzerlerinde yazan tarihe kadar değiştirin.",
+        "sk": "Hadice, regulátor a spotrebiče dajte skontrolovať odborníkovi; hadice a regulátor vymeňte podľa dátumu, ktorý je na nich vytlačený.",
     },
     "Germany: the gas test (DVGW G 607) is mandatory every 2 years since 19 June 2025 — separately from the HU.": {
         "de": "Deutschland: Die Gasprüfung (DVGW G 607) ist seit 19. Juni 2025 alle 2 Jahre Pflicht — getrennt von der HU.",
@@ -13224,6 +13797,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Németország: 2025. június 19. óta a gázvizsgálat (DVGW G 607) 2 évente kötelező — a HU-tól külön.",
         "ko": "독일: 2025년 6월 19일부터 가스 검사(DVGW G 607)가 2년마다 의무입니다 — HU와는 별도입니다.",
         "tr": "Almanya: 19 Haziran 2025'ten bu yana gaz testi (DVGW G 607) 2 yılda bir zorunludur — HU'dan ayrı olarak.",
+        "sk": "Nemecko: plynová skúška (DVGW G 607) je od 19. júna 2025 povinná každé 2 roky – oddelene od HU.",
     },
     "Damp and Habitation Check": {
         "de": "Feuchtigkeits- und Dichtigkeitsprüfung",
@@ -13247,6 +13821,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Nedvesség- és lakótér-ellenőrzés",
         "ko": "습기 측정 및 거주 공간 점검",
         "tr": "Nem ve Yaşam Alanı Kontrolü",
+        "sk": "Kontrola vlhkosti obytnej časti",
     },
     "Moisture readings along roof seams, windows and floor — most manufacturers require a yearly check to keep the water-ingress warranty.": {
         "de": "Feuchtigkeitsmessung an Dachnähten, Fenstern und Boden — die meisten Hersteller verlangen eine jährliche Prüfung, damit die Dichtigkeitsgarantie erhalten bleibt.",
@@ -13270,6 +13845,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Nedvességmérés a tetővarratok, az ablakok és a padló mentén — a legtöbb gyártó évente előírja az ellenőrzést a beázás elleni garancia megtartásához.",
         "ko": "지붕 이음매, 창문, 바닥을 따라 습도를 측정하세요 — 대부분의 제조사는 누수 보증을 유지하려면 매년 점검을 받도록 요구합니다.",
         "tr": "Çatı ek yerleri, pencereler ve zemin boyunca nem ölçümü — çoğu üretici su sızdırmazlık garantisinin geçerli kalması için yıllık kontrol şart koşar.",
+        "sk": "Merania vlhkosti pozdĺž strešných spojov, okien a podlahy – väčšina výrobcov vyžaduje ročnú kontrolu, inak zaniká záruka na zatekanie.",
     },
     "Check Roof Seals and Windows": {
         "de": "Dachdichtungen und Fenster prüfen",
@@ -13293,6 +13869,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tetőtömítések és ablakok ellenőrzése",
         "ko": "지붕 실링 및 창문 점검",
         "tr": "Çatı Contalarını ve Pencereleri Kontrol Et",
+        "sk": "Skontrolovať tesnenia strechy a okien",
     },
     "Winterize Water System": {
         "de": "Wasseranlage winterfest machen",
@@ -13316,6 +13893,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vízrendszer téliesítése",
         "ko": "급수 시스템 월동 준비",
         "tr": "Su Sistemini Kışa Hazırla",
+        "sk": "Zazimovať vodný systém",
     },
     "Drain the tanks, the boiler and all pipes and leave the taps open — frost cracks pumps and fittings.": {
         "de": "Tanks, Boiler und alle Leitungen entleeren und die Hähne offen lassen — Frost sprengt Pumpen und Armaturen.",
@@ -13339,6 +13917,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ürítse le a tartályokat, a bojlert és az összes csövet, a csapokat pedig hagyja nyitva — a fagy szétrepeszti a szivattyúkat és a szerelvényeket.",
         "ko": "탱크, 온수기, 모든 배관의 물을 빼고 수도꼭지를 열어 두세요 — 동결되면 펌프와 이음쇠가 터집니다.",
         "tr": "Tankları, boyleri ve tüm boruları boşaltın, muslukları açık bırakın — don, pompaları ve bağlantı parçalarını çatlatır.",
+        "sk": "Vypustite nádrže, bojler a celé potrubie a nechajte kohútiky otvorené – mráz roztrhne čerpadlá a armatúry.",
     },
     "Sanitize Fresh Water System": {
         "de": "Frischwassersystem desinfizieren",
@@ -13362,6 +13941,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Frissvíz-rendszer fertőtlenítése",
         "ko": "청수 시스템 소독",
         "tr": "Temiz Su Sistemini Dezenfekte Et",
+        "sk": "Vydezinfikovať systém čistej vody",
     },
     "Before the season: disinfect the tank and pipes, then flush them with fresh water.": {
         "de": "Vor der Saison: Tank und Leitungen desinfizieren, dann mit Frischwasser spülen.",
@@ -13385,6 +13965,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A szezon előtt: fertőtlenítse a tartályt és a csöveket, majd öblítse át őket friss vízzel.",
         "ko": "시즌 전: 탱크와 배관을 소독한 뒤 깨끗한 물로 헹구세요.",
         "tr": "Sezon öncesinde: tankı ve boruları dezenfekte edin, ardından temiz suyla durulayın.",
+        "sk": "Pred sezónou: vydezinfikujte nádrž a potrubie a potom ich prepláchnite čistou vodou.",
     },
     "Check Tire Age": {
         "de": "Reifenalter prüfen",
@@ -13408,6 +13989,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Abroncskor ellenőrzése",
         "ko": "타이어 연식 점검",
         "tr": "Lastik Yaşını Kontrol Et",
+        "sk": "Skontrolovať vek pneumatík",
     },
     "Caravan tires age before they wear out — replace them after about 6 years whatever the tread.": {
         "de": "Wohnwagenreifen altern, bevor sie abgefahren sind — nach etwa 6 Jahren unabhängig vom Profil ersetzen.",
@@ -13431,6 +14013,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A lakókocsi-abroncsok előbb öregszenek el, mint hogy elkopnának — kb. 6 év után cserélje őket, a mintázat mélységétől függetlenül.",
         "ko": "캐러밴 타이어는 닳기 전에 노화됩니다 — 트레드 상태와 관계없이 약 6년 후 교체하세요.",
         "tr": "Karavan lastikleri aşınmadan önce yaşlanır — diş derinliği ne olursa olsun yaklaşık 6 yıl sonra değiştirin.",
+        "sk": "Pneumatiky karavanu zostarnú skôr, ako sa zodrú – vymeňte ich približne po 6 rokoch bez ohľadu na dezén.",
     },
     "Germany: the 100 km/h approval for trailers requires tires younger than 6 years.": {
         "de": "Deutschland: Die 100-km/h-Zulassung für Anhänger setzt Reifen voraus, die jünger als 6 Jahre sind.",
@@ -13454,6 +14037,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Németország: a pótkocsik 100 km/h-s engedélyéhez 6 évnél fiatalabb abroncsok kellenek.",
         "ko": "독일: 트레일러의 100 km/h 주행 허가를 받으려면 타이어가 6년 미만이어야 합니다.",
         "tr": "Almanya: römorklar için 100 km/s onayı, 6 yaşından genç lastikler gerektirir.",
+        "sk": "Nemecko: schválenie prívesov na 100 km/h vyžaduje pneumatiky mladšie ako 6 rokov.",
     },
     "Balcony Solar": {
         "de": "Balkonkraftwerk",
@@ -13477,6 +14061,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Balkonerőmű",
         "ko": "베란다형 태양광",
         "tr": "Balkon Güneş Enerjisi Sistemi",
+        "sk": "Balkónová elektráreň",
     },
     "Check Mounting, Cable and Plug": {
         "de": "Halterung, Kabel und Stecker prüfen",
@@ -13500,6 +14085,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Rögzítés, kábel és csatlakozó ellenőrzése",
         "ko": "거치대, 케이블 및 플러그 점검",
         "tr": "Montajı, Kabloyu ve Fişi Kontrol Et",
+        "sk": "Skontrolovať upevnenie, kábel a zástrčku",
     },
     "And after every storm — a loose panel on a balcony railing endangers the people below.": {
         "de": "Und nach jedem Sturm — ein loses Modul am Balkongeländer gefährdet die Menschen darunter.",
@@ -13523,6 +14109,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "És minden vihar után — egy meglazult panel az erkélykorláton veszélyezteti a lent tartózkodókat.",
         "ko": "폭풍이 지나간 후에도 매번 — 발코니 난간의 패널이 헐거우면 아래에 있는 사람이 위험합니다.",
         "tr": "Ve her fırtınadan sonra — balkon korkuluğundaki gevşek bir panel aşağıdaki insanları tehlikeye atar.",
+        "sk": "A po každej búrke – uvoľnený panel na zábradlí balkóna ohrozuje ľudí pod ním.",
     },
     "Gas Cooker & LPG Cylinder": {
         "de": "Gasherd & Gasflasche",
@@ -13546,6 +14133,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gáztűzhely és PB-palack",
         "ko": "가스레인지 및 LPG 용기",
         "tr": "Gazlı Ocak ve LPG Tüpü",
+        "sk": "Plynový sporák a fľaša na propán-bután",
     },
     "Check Gas Hose for Leaks": {
         "de": "Gasschlauch auf Dichtheit prüfen",
@@ -13569,6 +14157,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gáztömlő szivárgásának ellenőrzése",
         "ko": "가스 호스 누설 점검",
         "tr": "Gaz Hortumunu Kaçağa Karşı Kontrol Et",
+        "sk": "Skontrolovať tesnosť plynovej hadice",
     },
     "Brush soapy water over the hose and its connections with the valve open — bubbles mean a leak. Never test with a flame.": {
         "de": "Bei geöffnetem Ventil Seifenwasser auf Schlauch und Anschlüsse pinseln — Blasen bedeuten ein Leck. Nie mit einer Flamme prüfen.",
@@ -13592,6 +14181,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Nyitott szelepnél ecsettel kenjen szappanos vizet a tömlőre és a csatlakozásaira — a buborékok szivárgást jeleznek. Soha ne próbálja ki lánggal.",
         "ko": "밸브를 연 상태에서 호스와 연결부에 비눗물을 붓으로 바르세요 — 거품이 생기면 새는 것입니다. 절대 불꽃으로 확인하지 마세요.",
         "tr": "Vana açıkken hortuma ve bağlantılarına fırçayla sabunlu su sürün — kabarcıklar kaçak olduğunu gösterir. Asla alevle test etmeyin.",
+        "sk": "Pri otvorenom ventile natrite hadicu a jej spoje mydlovou vodou – bubliny znamenajú únik. Nikdy neskúšajte plameňom.",
     },
     "Replace Gas Hose": {
         "de": "Gasschlauch ersetzen",
@@ -13615,6 +14205,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gáztömlő cseréje",
         "ko": "가스 호스 교체",
         "tr": "Gaz Hortumunu Değiştir",
+        "sk": "Vymeniť plynovú hadicu",
     },
     "By the date printed on the hose — at once if it is cracked or brittle.": {
         "de": "Bis zu dem auf dem Schlauch aufgedruckten Datum — sofort, wenn er rissig oder spröde ist.",
@@ -13638,6 +14229,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A tömlőre nyomtatott dátumig — azonnal, ha repedezett vagy rideg.",
         "ko": "호스에 인쇄된 날짜까지 교체하세요 — 갈라지거나 딱딱해졌다면 즉시 교체하세요.",
         "tr": "Hortumun üzerinde yazan tarihe kadar — çatlamış veya sertleşmişse hemen.",
+        "sk": "Podľa dátumu vytlačeného na hadici – ihneď, ak je popraskaná alebo krehká.",
     },
     "Brazil: hose and regulator are valid for 5 years (INMETRO) — the date follows \"VAL.\" on the part.": {
         "de": "Brasilien: Schlauch und Regler sind 5 Jahre gültig (INMETRO) — das Datum steht auf dem Teil hinter \"VAL.\".",
@@ -13661,6 +14253,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Brazília: a tömlő és a nyomásszabályzó 5 évig érvényes (INMETRO) — a dátum az alkatrészen a \"VAL.\" után áll.",
         "ko": "브라질: 호스와 조정기의 유효기간은 5년입니다(INMETRO) — 날짜는 부품의 \"VAL.\" 뒤에 표시되어 있습니다.",
         "tr": "Brezilya: hortum ve regülatör 5 yıl geçerlidir (INMETRO) — tarih, parçanın üzerinde \"VAL.\" ifadesinden sonra yer alır.",
+        "sk": "Brazília: hadica a regulátor platia 5 rokov (INMETRO) – dátum nasleduje za „VAL.“ na diele.",
     },
     "China: plain rubber hoses last only about 18 months — metal hoses are recommended.": {
         "de": "China: Einfache Gummischläuche halten nur etwa 18 Monate — Metallschläuche werden empfohlen.",
@@ -13684,6 +14277,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kína: az egyszerű gumitömlők csak kb. 18 hónapig bírják — fémtömlők ajánlottak.",
         "ko": "중국: 일반 고무 호스는 약 18개월밖에 가지 않으므로 금속 호스를 권장합니다.",
         "tr": "Çin: düz kauçuk hortumlar yalnızca yaklaşık 18 ay dayanır — metal hortumlar önerilir.",
+        "sk": "Čína: obyčajné gumené hadice vydržia len asi 18 mesiacov – odporúčajú sa kovové hadice.",
     },
     "France: plain rubber tubes last 5 years, reinforced hoses with screw ends 10 years; stainless-steel hoses have no expiry date.": {
         "de": "Frankreich: Einfache Gummischläuche halten 5 Jahre, verstärkte Schläuche mit Schraubanschlüssen 10 Jahre; Edelstahlschläuche haben kein Ablaufdatum.",
@@ -13707,6 +14301,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Franciaország: az egyszerű gumicsövek 5 évig, a menetes végű, erősített tömlők 10 évig bírják; a rozsdamentes acél tömlőknek nincs lejárati idejük.",
         "ko": "프랑스: 일반 고무관은 5년, 나사식 연결부가 있는 보강 호스는 10년이며, 스테인리스강 호스는 유효기간이 없습니다.",
         "tr": "Fransa: düz kauçuk borular 5 yıl, vidalı uçlu takviyeli hortumlar 10 yıl dayanır; paslanmaz çelik hortumların son kullanma tarihi yoktur.",
+        "sk": "Francúzsko: obyčajné gumené hadice vydržia 5 rokov, vystužené hadice so skrutkovými koncami 10 rokov; nerezové hadice nemajú dátum exspirácie.",
     },
     "India: the Suraksha hose lasts 5 years; replace a plain rubber tube with one.": {
         "de": "Indien: Der Suraksha-Schlauch hält 5 Jahre; einen einfachen Gummischlauch durch einen solchen ersetzen.",
@@ -13730,6 +14325,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "India: a Suraksha tömlő 5 évig bírja; az egyszerű gumicsövet cserélje le ilyenre.",
         "ko": "인도: Suraksha 호스는 5년 사용할 수 있습니다. 일반 고무관은 Suraksha 호스로 교체하세요.",
         "tr": "Hindistan: Suraksha hortumu 5 yıl dayanır; düz kauçuk boruyu bu hortumla değiştirin.",
+        "sk": "India: hadica Suraksha vydrží 5 rokov; obyčajnú gumenú hadicu ňou nahraďte.",
     },
     "Replace Gas Regulator": {
         "de": "Gasdruckregler ersetzen",
@@ -13753,6 +14349,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gáznyomás-szabályzó cseréje",
         "ko": "가스 조정기 교체",
         "tr": "Gaz Regülatörünü Değiştir",
+        "sk": "Vymeniť plynový regulátor",
     },
     "By the date printed on the regulator.": {
         "de": "Bis zu dem auf dem Regler aufgedruckten Datum.",
@@ -13776,6 +14373,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A nyomásszabályzóra nyomtatott dátumig.",
         "ko": "조정기에 인쇄된 날짜까지 교체하세요.",
         "tr": "Regülatörün üzerinde yazan tarihe kadar.",
+        "sk": "Podľa dátumu vytlačeného na regulátore.",
     },
     "Gas Installation Inspection": {
         "de": "Prüfung der Gasinstallation",
@@ -13799,6 +14397,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gázberendezés felülvizsgálata",
         "ko": "가스 설비 점검",
         "tr": "Gaz Tesisatı Denetimi",
+        "sk": "Revízia plynovej inštalácie",
     },
     "Have a qualified fitter check the whole installation.": {
         "de": "Die gesamte Installation von einem Fachinstallateur prüfen lassen.",
@@ -13822,6 +14421,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ellenőriztesse a teljes rendszert képzett szerelővel.",
         "ko": "자격을 갖춘 시공 기사에게 설비 전체를 점검받으세요.",
         "tr": "Tüm tesisatı yetkin bir tesisatçıya kontrol ettirin.",
+        "sk": "Celú inštaláciu dajte skontrolovať kvalifikovanému technikovi.",
     },
     "India: your LPG distributor's mandatory inspection is due every 5 years.": {
         "de": "Indien: Die Pflichtinspektion durch den LPG-Händler ist alle 5 Jahre fällig.",
@@ -13845,6 +14445,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "India: az LPG-forgalmazó kötelező ellenőrzése 5 évente esedékes.",
         "ko": "인도: LPG 판매점의 의무 점검은 5년마다 받아야 합니다.",
         "tr": "Hindistan: LPG bayinizin zorunlu denetimi 5 yılda bir yapılır.",
+        "sk": "India: povinná kontrola vaším distribútorom LPG je každých 5 rokov.",
     },
     "Australia: only NSW has a regular check — a yearly safety inspection (pink slip) for most light vehicles older than 5 years; the other states and territories inspect on sale, transfer or re-registration.": {
         "de": "Australien: Nur NSW hat eine regelmäßige Prüfung — eine jährliche Sicherheitsinspektion (pink slip) für die meisten leichten Fahrzeuge, die älter als 5 Jahre sind; die übrigen Bundesstaaten und Territorien prüfen bei Verkauf, Umschreibung oder erneuter Zulassung.",
@@ -13868,6 +14469,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ausztrália: rendszeres vizsga csak NSW-ben van — a legtöbb 5 évnél idősebb könnyű járműnél évenkénti biztonsági vizsgálat (pink slip); a többi állam és terület eladáskor, átíráskor vagy újbóli forgalomba helyezéskor ellenőriz.",
         "ko": "호주: 정기 검사는 NSW에만 있습니다 — 5년이 넘은 대부분의 경량 차량은 매년 안전 검사(pink slip)를 받습니다. 다른 주와 준주는 매매, 명의 이전 또는 재등록 시 검사합니다.",
         "tr": "Avustralya: düzenli muayene yalnızca NSW'de vardır — 5 yaşından büyük hafif araçların çoğu için yıllık güvenlik muayenesi (pink slip); diğer eyaletler ve bölgeler satış, devir veya yeniden tescil sırasında muayene yapar.",
+        "sk": "Austrália: pravidelnú kontrolu má len NSW – ročnú bezpečnostnú kontrolu (pink slip) pre väčšinu ľahkých vozidiel starších ako 5 rokov; ostatné štáty a teritóriá kontrolujú pri predaji, prevode alebo opätovnej registrácii.",
     },
     "New Zealand: Warrant of Fitness 3 years after first registration, then every year (cars from before 2000: every 6 months) — planned from 1 November 2026: after 4 years, then every 2 years until the car is 14, then every year.": {
         "de": "Neuseeland: Warrant of Fitness 3 Jahre nach der Erstzulassung, danach jährlich (Autos aus der Zeit vor 2000: alle 6 Monate) — geplant ab 1. November 2026: nach 4 Jahren, dann alle 2 Jahre, bis das Auto 14 Jahre alt ist, danach jährlich.",
@@ -13891,6 +14493,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Új-Zéland: Warrant of Fitness 3 évvel az első forgalomba helyezés után, azután évente (a 2000 előtti autóknál: 6 havonta) — 2026. november 1-jétől a tervek szerint: 4 év után, majd 2 évente, amíg az autó 14 éves nem lesz, azután évente.",
         "ko": "뉴질랜드: Warrant of Fitness는 최초 등록 후 3년, 이후 매년(2000년 이전 차량: 6개월마다) — 2026년 11월 1일부터는 4년 후, 이후 차량이 14년이 될 때까지 2년마다, 그 뒤 매년으로 바뀔 예정입니다.",
         "tr": "Yeni Zelanda: Warrant of Fitness ilk tescilden 3 yıl sonra, ardından her yıl (2000 öncesi otomobiller: 6 ayda bir) — 1 Kasım 2026'dan itibaren planlanan: 4 yıl sonra, ardından otomobil 14 yaşına gelene kadar 2 yılda bir, sonra her yıl.",
+        "sk": "Nový Zéland: Warrant of Fitness 3 roky po prvej registrácii, potom každý rok (autá spred roku 2000: každých 6 mesiacov) – od 1. novembra 2026 sa plánuje: po 4 rokoch, potom každé 2 roky, kým má auto 14 rokov, potom každý rok.",
     },
     "New Zealand: Warrant of Fitness every year (motorcycles from before 2000: every 6 months until 31 October 2026).": {
         "de": "Neuseeland: Warrant of Fitness jährlich (Motorräder aus der Zeit vor 2000: alle 6 Monate bis zum 31. Oktober 2026).",
@@ -13914,6 +14517,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Új-Zéland: Warrant of Fitness évente (a 2000 előtti motorkerékpároknál: 2026. október 31-ig 6 havonta).",
         "ko": "뉴질랜드: Warrant of Fitness는 매년(2000년 이전 오토바이: 2026년 10월 31일까지 6개월마다).",
         "tr": "Yeni Zelanda: Warrant of Fitness her yıl (2000 öncesi motosikletler: 31 Ekim 2026'ya kadar 6 ayda bir).",
+        "sk": "Nový Zéland: Warrant of Fitness každý rok (motocykle spred roku 2000: každých 6 mesiacov do 31. októbra 2026).",
     },
     "Australia and New Zealand: manufacturers call for easing the relief-valve lever every 6 months and replacing the valve at least every 5 years.": {
         "de": "Australien und Neuseeland: Die Hersteller schreiben vor, den Hebel des Sicherheitsventils alle 6 Monate vorsichtig anzuheben und das Ventil mindestens alle 5 Jahre zu ersetzen.",
@@ -13937,6 +14541,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ausztrália és Új-Zéland: a gyártók előírják, hogy a biztonsági szelep karját 6 havonta óvatosan meg kell emelni, a szelepet pedig legalább 5 évente ki kell cserélni.",
         "ko": "호주 및 뉴질랜드: 제조사는 6개월마다 릴리프 밸브 레버를 살짝 들어 올려 작동시키고, 최소 5년마다 밸브를 교체하도록 요구합니다.",
         "tr": "Avustralya ve Yeni Zelanda: üreticiler, tahliye valfi kolunun 6 ayda bir yavaşça kaldırılmasını ve valfin en az 5 yılda bir değiştirilmesini öngörür.",
+        "sk": "Austrália a Nový Zéland: výrobcovia predpisujú každých 6 mesiacov pohnúť pákou poistného ventilu a ventil vymeniť aspoň každých 5 rokov.",
     },
     "Australia: Energy Safe Victoria recommends servicing gas heaters at least every 2 years, including a carbon-monoxide test.": {
         "de": "Australien: Energy Safe Victoria empfiehlt, Gasheizgeräte mindestens alle 2 Jahre warten zu lassen, einschließlich eines Kohlenmonoxid-Tests.",
@@ -13960,6 +14565,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ausztrália: az Energy Safe Victoria azt javasolja, hogy a gázüzemű fűtőkészülékeket legalább 2 évente szervizeltesse, szén-monoxid-teszttel együtt.",
         "ko": "호주: Energy Safe Victoria는 일산화탄소 검사를 포함해 가스 히터를 최소 2년마다 점검·정비할 것을 권장합니다.",
         "tr": "Avustralya: Energy Safe Victoria, gazlı ısıtıcıların karbon monoksit testi dahil en az 2 yılda bir bakımdan geçirilmesini önerir.",
+        "sk": "Austrália: Energy Safe Victoria odporúča servis plynových ohrievačov aspoň každé 2 roky vrátane testu oxidu uhoľnatého.",
     },
     "Australia: fire services advise cleaning the flue once a year (e.g. ACT Fire & Rescue).": {
         "de": "Australien: Die Feuerwehren raten, den Rauchabzug einmal im Jahr zu reinigen (z. B. ACT Fire & Rescue).",
@@ -13983,6 +14589,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ausztrália: a tűzoltóságok azt tanácsolják, hogy a füstjáratot évente egyszer tisztítsák ki (pl. ACT Fire & Rescue).",
         "ko": "호주: 소방 당국은 연통을 연 1회 청소할 것을 권고합니다(예: ACT Fire & Rescue).",
         "tr": "Avustralya: itfaiye teşkilatları baca kanalının yılda bir kez temizlenmesini tavsiye eder (ör. ACT Fire & Rescue).",
+        "sk": "Austrália: hasiči odporúčajú čistiť dymovod raz ročne (napr. ACT Fire & Rescue).",
     },
     "Clean Salt Cell": {
         "de": "Elektrolysezelle reinigen",
@@ -14006,6 +14613,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Sóbontó cella tisztítása",
         "ko": "염소 발생기 셀 청소",
         "tr": "Tuz Hücresini Temizle",
+        "sk": "Vyčistiť soľnú elektrolytickú celu",
     },
     "Salt chlorinators only: inspect the cell every 3 months and descale it when white deposits show — scale cuts the chlorine output.": {
         "de": "Nur bei Salzelektrolyse: die Zelle alle 3 Monate prüfen und entkalken, sobald sich weiße Ablagerungen zeigen — Kalk verringert die Chlorproduktion.",
@@ -14029,6 +14637,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Csak sóbontós rendszereknél: 3 havonta ellenőrizze a cellát, és vízkőtelenítse, ha fehér lerakódás látszik — a vízkő csökkenti a klórtermelést.",
         "ko": "소금 방식 염소 발생기만 해당: 3개월마다 셀을 점검하고 흰색 침착물이 보이면 스케일을 제거하세요. 스케일은 염소 생성량을 떨어뜨립니다.",
         "tr": "Yalnızca tuz klorinatörlerinde: hücreyi 3 ayda bir kontrol edin ve beyaz birikintiler görününce kirecini çözün — kireç klor üretimini düşürür.",
+        "sk": "Len pre soľné chlorátory: celu kontrolujte každé 3 mesiace a odvápnite ju, keď sa objavia biele usadeniny – vodný kameň znižuje výrobu chlóru.",
     },
     "Australia: aerated wastewater treatment systems are serviced as the council approval requires — every 3 months in NSW, usually every 3 months in Queensland too; the servicer reports to the owner and the council.": {
         "de": "Australien: Belüftete Abwasserbehandlungsanlagen werden so gewartet, wie es die Genehmigung der Gemeinde verlangt — in NSW alle 3 Monate, in Queensland meist ebenfalls alle 3 Monate; der Wartungsdienst berichtet an Eigentümer und Gemeinde.",
@@ -14052,6 +14661,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ausztrália: a levegőztetett szennyvíztisztító rendszereket az önkormányzati engedélyben előírtak szerint tartják karban — NSW-ben 3 havonta, Queenslandben általában szintén 3 havonta; a karbantartó jelentést tesz a tulajdonosnak és az önkormányzatnak.",
         "ko": "호주: 폭기식 오수 처리 시스템은 지방 의회 승인 조건에 따라 정비합니다 — NSW에서는 3개월마다, 퀸즐랜드에서도 보통 3개월마다이며, 정비 업체는 소유자와 지방 의회에 보고합니다.",
         "tr": "Avustralya: havalandırmalı atık su arıtma sistemlerinin bakımı, yerel yönetim onayının gerektirdiği şekilde yapılır — NSW'de 3 ayda bir, Queensland'de de genellikle 3 ayda bir; bakımı yapan kişi sahibine ve yerel yönetime rapor verir.",
+        "sk": "Austrália: prevzdušňované systémy čistenia odpadových vôd sa servisujú podľa povolenia obce – v NSW každé 3 mesiace, v Queenslande zvyčajne tiež každé 3 mesiace; servisný technik podáva správu vlastníkovi aj obci.",
     },
     "Australia: Queensland, Victoria and Western Australia recommend testing safety switches every 3 months, NSW at least every 6 months.": {
         "de": "Australien: Queensland, Victoria und Western Australia empfehlen, FI-Schutzschalter alle 3 Monate zu testen, NSW mindestens alle 6 Monate.",
@@ -14075,6 +14685,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ausztrália: Queensland, Victoria és Nyugat-Ausztrália azt javasolja, hogy a Fi-reléket 3 havonta teszteljék, NSW pedig legalább 6 havonta.",
         "ko": "호주: 퀸즐랜드, 빅토리아주, 서호주는 누전 차단기를 3개월마다, NSW는 최소 6개월마다 테스트할 것을 권장합니다.",
         "tr": "Avustralya: Queensland, Victoria ve Batı Avustralya kaçak akım rölelerinin 3 ayda bir, NSW ise en az 6 ayda bir test edilmesini önerir.",
+        "sk": "Austrália: Queensland, Victoria a Západná Austrália odporúčajú testovať prúdové chrániče každé 3 mesiace, NSW aspoň každých 6 mesiacov.",
     },
     "Austria: §57a inspection (Pickerl) 3 years after first registration, 2 years later, then every year — from 19 May 2027 (law passed in 2026): after 4, 2, 2 and 2 years, then every year; this also applies to motorcycles and to trailers up to 3.5 t.": {
         "de": "Österreich: §57a-Begutachtung (Pickerl) 3 Jahre nach der Erstzulassung, 2 Jahre später, danach jährlich — ab 19. Mai 2027 (2026 beschlossen): nach 4, 2, 2 und 2 Jahren, danach jährlich; das gilt auch für Motorräder und Anhänger bis 3,5 t.",
@@ -14098,6 +14709,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ausztria: §57a szerinti vizsga (Pickerl) 3 évvel az első forgalomba helyezés után, majd 2 évvel később, azután évente — 2027. május 19-től (a törvényt 2026-ban fogadták el): 4, 2, 2 és 2 év után, azután évente; ez a motorkerékpárokra és a legfeljebb 3,5 t-s pótkocsikra is vonatkozik.",
         "ko": "오스트리아: §57a 검사(Pickerl)는 최초 등록 후 3년, 그 2년 후, 이후 매년 — 2027년 5월 19일부터(2026년 법 통과)는 4년, 2년, 2년, 2년 후, 이후 매년이며, 오토바이와 3.5톤 이하 트레일러에도 적용됩니다.",
         "tr": "Avusturya: §57a muayenesi (Pickerl) ilk tescilden 3 yıl sonra, 2 yıl sonra tekrar, ardından her yıl — 19 Mayıs 2027'den itibaren (yasa 2026'da kabul edildi): 4, 2, 2 ve 2 yıl sonra, ardından her yıl; bu, motosikletler ve 3,5 t'ye kadar römorklar için de geçerlidir.",
+        "sk": "Rakúsko: kontrola podľa §57a (Pickerl) 3 roky po prvej registrácii, o 2 roky neskôr, potom každý rok – od 19. mája 2027 (zákon prijatý v roku 2026): po 4, 2, 2 a 2 rokoch, potom každý rok; platí to aj pre motocykle a prívesy do 3,5 t.",
     },
     "Canada (Health Canada): test for bacteria at least twice a year — in spring and autumn — and after a flood.": {
         "de": "Kanada (Health Canada): mindestens zweimal im Jahr auf Bakterien testen — im Frühjahr und im Herbst — sowie nach einer Überschwemmung.",
@@ -14121,6 +14733,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kanada (Health Canada): évente legalább kétszer vizsgáltassa a vizet baktériumokra — tavasszal és ősszel —, valamint árvíz után.",
         "ko": "캐나다(Health Canada): 세균 검사는 최소 연 2회(봄과 가을), 그리고 홍수 후에 실시하세요.",
         "tr": "Kanada (Health Canada): yılda en az iki kez — ilkbaharda ve sonbaharda — ve bir selden sonra bakteri testi yaptırın.",
+        "sk": "Kanada (Health Canada): baktérie testujte aspoň dvakrát ročne – na jar a na jeseň – a po povodni.",
     },
     "EU F-gas rules (2024/573): units from 5 t CO₂-equivalent of refrigerant (about 2.4 kg of R410A; hermetically sealed units from 10 t) need a leak check by certified staff every 12 months, every 24 with leak detection — a typical R32 split unit stays below that.": {
         "de": "EU-F-Gase-Verordnung (2024/573): Anlagen ab 5 t CO₂-Äquivalent Kältemittel (etwa 2,4 kg R410A; hermetisch geschlossene Anlagen ab 10 t) brauchen alle 12 Monate eine Dichtheitsprüfung durch zertifiziertes Personal, mit Leckage-Erkennungssystem alle 24 — ein typisches R32-Split-Gerät bleibt darunter.",
@@ -14144,6 +14757,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Az EU F-gáz-szabályai (2024/573) szerint a legalább 5 t CO₂-egyenértékű hűtőközeget tartalmazó berendezéseken (kb. 2,4 kg R410A; hermetikusan zárt berendezéseknél 10 t-tól) 12 havonta, szivárgásérzékelő rendszerrel 24 havonta tanúsított szakembernek kell szivárgásvizsgálatot végeznie — egy tipikus R32-es split klíma ez alatt marad.",
         "ko": "EU 불소계 온실가스(F-가스) 규정(2024/573): 냉매가 CO₂ 환산 5톤 이상인 기기(R410A 약 2.4 kg, 밀폐형 기기는 10톤 이상)는 12개월마다, 누설 감지 시스템이 있으면 24개월마다 인증 인력의 누설 점검이 필요합니다 — 일반적인 R32 분리형 에어컨은 이 기준에 미치지 않습니다.",
         "tr": "AB F-gaz kuralları (2024/573): 5 t CO₂ eşdeğeri ve üzeri soğutucu akışkan içeren cihazlar (yaklaşık 2,4 kg R410A; hermetik olarak kapalı cihazlarda 10 t'dan itibaren) her 12 ayda bir, kaçak tespit sistemi varsa her 24 ayda bir sertifikalı personel tarafından kaçak kontrolünden geçirilmelidir — tipik bir R32 split klima bunun altında kalır.",
+        "sk": "Pravidlá EÚ pre F-plyny (2024/573): zariadenia od 5 t ekvivalentu CO₂ chladiva (asi 2,4 kg R410A; hermeticky uzavreté od 10 t) potrebujú kontrolu tesnosti certifikovaným personálom každých 12 mesiacov, s detekciou únikov každých 24 – bežná split jednotka s R32 zostáva pod touto hranicou.",
     },
     "Fit them before the first snow or frost; several countries require winter tires by law — see the note for your country.": {
         "de": "Vor dem ersten Schnee oder Frost montieren; mehrere Länder schreiben Winterreifen gesetzlich vor — siehe Länderhinweis.",
@@ -14167,6 +14781,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Az első hó vagy fagy előtt szerelje fel; több országban törvény írja elő a téli gumit — lásd az országára vonatkozó megjegyzést.",
         "ko": "첫눈이나 서리 전에 장착하세요. 여러 나라에서 겨울 타이어를 법으로 의무화하고 있습니다 — 해당 국가의 안내를 확인하세요.",
         "tr": "İlk kar veya dondan önce takın; birçok ülkede kış lastiği yasal olarak zorunludur — ülkenize ait nota bakın.",
+        "sk": "Prezujte pred prvým snehom alebo mrazom; viaceré krajiny vyžadujú zimné pneumatiky zákonom – pozrite poznámku pre vašu krajinu.",
     },
     "France: heat pumps of 4–70 kW must be serviced every 2 years; the EU F-gas rules add a yearly leak check from 5 t CO₂-equivalent of refrigerant (every 2 years with leak detection).": {
         "de": "Frankreich: Wärmepumpen von 4–70 kW müssen alle 2 Jahre gewartet werden; die EU-F-Gase-Verordnung schreibt ab 5 t CO₂-Äquivalent Kältemittel zusätzlich eine jährliche Dichtheitsprüfung vor (mit Leckage-Erkennungssystem alle 2 Jahre).",
@@ -14190,6 +14805,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Franciaország: a 4–70 kW-os hőszivattyúkat 2 évente karban kell tartani; az EU F-gáz-szabályai ehhez 5 t CO₂-egyenértéknyi hűtőközegtől évenkénti szivárgásvizsgálatot is előírnak (szivárgásérzékelő rendszerrel 2 évente).",
         "ko": "프랑스: 4–70 kW 히트펌프는 2년마다 정비해야 하며, EU F-가스 규정에 따라 냉매가 CO₂ 환산 5톤 이상이면 매년 누설 점검이 추가됩니다(누설 감지 시스템이 있으면 2년마다).",
         "tr": "Fransa: 4–70 kW ısı pompalarının bakımı 2 yılda bir yapılmalıdır; AB F-gaz kuralları 5 t CO₂ eşdeğeri ve üzeri soğutucu akışkan için buna yıllık kaçak kontrolü ekler (kaçak tespit sistemi varsa 2 yılda bir).",
+        "sk": "Francúzsko: tepelné čerpadlá 4 – 70 kW musia mať servis každé 2 roky; pravidlá EÚ pre F-plyny pridávajú ročnú kontrolu tesnosti od 5 t ekvivalentu CO₂ chladiva (s detekciou únikov každé 2 roky).",
     },
     "France: sweep the flue at least once a year (many départements still require twice, once in the heating season); since October 2023 stoves, inserts and closed fireplaces also need a yearly service; keep the certificates.": {
         "de": "Frankreich: Abgasweg mindestens einmal jährlich kehren lassen (viele Départements verlangen weiterhin zweimal, davon einmal in der Heizperiode); seit Oktober 2023 brauchen auch Öfen, Kamineinsätze und geschlossene Kamine eine jährliche Wartung; die Bescheinigungen aufbewahren.",
@@ -14213,6 +14829,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Franciaország: a füstelvezetőt évente legalább egyszer ki kell seperni (sok megye továbbra is kétszer írja elő, ebből egyszer a fűtési idényben); 2023 októbere óta a kályhák, kandallóbetétek és zárt kandallók is éves karbantartást igényelnek; őrizze meg a tanúsítványokat.",
         "ko": "프랑스: 연도는 최소 연 1회 청소해야 합니다(많은 데파르트망에서는 여전히 연 2회, 그중 1회는 난방철에 요구). 2023년 10월부터는 난로, 인서트형 벽난로, 밀폐형 벽난로도 매년 정비가 필요합니다. 확인서를 보관하세요.",
         "tr": "Fransa: baca kanalını yılda en az bir kez temizletin (birçok departman hâlâ biri ısıtma sezonunda olmak üzere iki kez şart koşuyor); Ekim 2023'ten bu yana sobalar, şömine içlikleri ve kapalı şömineler için de yıllık bakım gerekir; belgeleri saklayın.",
+        "sk": "Francúzsko: dymovod čistite aspoň raz ročne (mnohé departementy stále vyžadujú dvakrát, raz počas vykurovacej sezóny); od októbra 2023 potrebujú ročný servis aj kachle, krbové vložky a uzavreté krby; potvrdenia si uschovajte.",
     },
     "France: the SPANC inspects non-collective sanitation at most every 10 years (often every 4–8).": {
         "de": "Frankreich: Der SPANC kontrolliert Kleinkläranlagen spätestens alle 10 Jahre (oft alle 4–8).",
@@ -14236,6 +14853,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Franciaország: a SPANC legfeljebb 10 évente (gyakran 4–8 évente) ellenőrzi a közcsatornára nem kötött szennyvízelvezetést.",
         "ko": "프랑스: SPANC가 개별 오수 처리 시설을 최대 10년 간격으로(보통 4–8년마다) 점검합니다.",
         "tr": "Fransa: SPANC, kanalizasyona bağlı olmayan atık su sistemlerini en geç 10 yılda bir (çoğu zaman 4–8 yılda bir) denetler.",
+        "sk": "Francúzsko: SPANC kontroluje nekanalizované čistenie odpadových vôd najviac každých 10 rokov (často každé 4 – 8).",
     },
     "Germany: smoke alarms are required in homes in all 16 states; the yearly check follows DIN 14676.": {
         "de": "Deutschland: Rauchmelder sind in Wohnungen in allen 16 Bundesländern Pflicht; die jährliche Prüfung erfolgt nach DIN 14676.",
@@ -14259,6 +14877,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Németország: mind a 16 tartományban kötelező a füstérzékelő a lakásokban; az éves ellenőrzés a DIN 14676 szerint történik.",
         "ko": "독일: 16개 모든 주에서 주택에 연기 경보기 설치가 의무이며, 연 1회 점검은 DIN 14676에 따릅니다.",
         "tr": "Almanya: 16 eyaletin tamamında konutlarda duman dedektörü zorunludur; yıllık kontrol DIN 14676'ya göre yapılır.",
+        "sk": "Nemecko: detektory dymu sú v domácnostiach povinné vo všetkých 16 spolkových krajinách; ročná kontrola sa riadi DIN 14676.",
     },
     "Germany: the sweeping dates are set in your Feuerstättenbescheid (usually 1–4 times a year depending on fuel and use); the chimney sweep also inspects every fireplace twice in seven years (Feuerstättenschau).": {
         "de": "Deutschland: Die Kehrtermine stehen im Feuerstättenbescheid (je nach Brennstoff und Nutzung meist 1–4-mal im Jahr); außerdem begutachtet der Schornsteinfeger jede Feuerstätte zweimal in sieben Jahren (Feuerstättenschau).",
@@ -14282,6 +14901,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Németország: a tisztítási időpontokat a Feuerstättenbescheid rögzíti (a tüzelőanyagtól és a használattól függően általában évente 1–4 alkalommal); emellett a kéményseprő hét év alatt kétszer minden tüzelőberendezést átvizsgál (Feuerstättenschau).",
         "ko": "독일: 청소 일정은 Feuerstättenbescheid에 정해져 있습니다(연료와 사용량에 따라 보통 연 1~4회). 또한 굴뚝 청소업자가 7년에 두 번 모든 화기 설비를 점검합니다(Feuerstättenschau).",
         "tr": "Almanya: temizlik tarihleri Feuerstättenbescheid belgenizde belirtilir (yakıta ve kullanıma göre genellikle yılda 1–4 kez); baca temizleyicisi ayrıca her ocağı yedi yılda iki kez denetler (Feuerstättenschau).",
+        "sk": "Nemecko: termíny čistenia určuje váš Feuerstättenbescheid (zvyčajne 1 – 4-krát ročne podľa paliva a používania); kominár navyše dvakrát za sedem rokov skontroluje každé ohnisko (Feuerstättenschau).",
     },
     "Inspection duties depend on the country, the tank size and the location (water protection or flood areas) — see the note for your country.": {
         "de": "Die Prüfpflichten hängen vom Land, von der Tankgröße und vom Standort ab (Wasserschutz- oder Überschwemmungsgebiet) — siehe Länderhinweis.",
@@ -14305,6 +14925,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Az ellenőrzési kötelezettség az országtól, a tartály méretétől és a helytől (vízvédelmi vagy árvízveszélyes terület) függ — lásd az országára vonatkozó megjegyzést.",
         "ko": "점검 의무는 국가, 탱크 크기, 설치 위치(수원 보호 구역 또는 홍수 구역)에 따라 다릅니다 — 해당 국가의 안내를 확인하세요.",
         "tr": "Denetim yükümlülükleri ülkeye, tank boyutuna ve konuma (su koruma veya taşkın bölgeleri) bağlıdır — ülkenize ait nota bakın.",
+        "sk": "Povinnosť kontrol závisí od krajiny, veľkosti nádrže a umiestnenia (ochranné pásma vôd alebo záplavové oblasti) – pozrite poznámku pre vašu krajinu.",
     },
     "Italy: flue-gas check every 4 years for gas boilers of 10–100 kW, every 2 years for oil, wood or pellet boilers; some regions are stricter (e.g. Lombardy and Emilia-Romagna: gas every 2 years).": {
         "de": "Italien: Abgasmessung alle 4 Jahre bei Gaskesseln von 10–100 kW, alle 2 Jahre bei Öl-, Holz- oder Pelletkesseln; manche Regionen sind strenger (z. B. Lombardei und Emilia-Romagna: Gas alle 2 Jahre).",
@@ -14328,6 +14949,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Olaszország: füstgázmérés 4 évente a 10–100 kW-os gázkazánoknál, 2 évente az olaj-, fa- és pellettüzelésű kazánoknál; egyes régiók szigorúbbak (pl. Lombardia és Emilia-Romagna: gáz 2 évente).",
         "ko": "이탈리아: 10–100 kW 가스 보일러는 4년마다, 기름·장작·펠릿 보일러는 2년마다 배기가스 검사를 받아야 하며, 일부 주는 더 엄격합니다(예: 롬바르디아와 에밀리아로마냐 — 가스 2년마다).",
         "tr": "İtalya: baca gazı ölçümü 10–100 kW gazlı kazanlarda 4 yılda bir, sıvı yakıtlı, odunlu veya peletli kazanlarda 2 yılda bir; bazı bölgeler daha katıdır (ör. Lombardiya ve Emilia-Romagna: gaz 2 yılda bir).",
+        "sk": "Taliansko: kontrola spalín každé 4 roky pre plynové kotly 10 – 100 kW, každé 2 roky pre kotly na olej, drevo alebo pelety; niektoré regióny sú prísnejšie (napr. Lombardia a Emilia-Romagna: plyn každé 2 roky).",
     },
     "Italy: have the flue and a pellet or wood stove cleaned by a qualified technician every year (UNI 10683 standard; required by law in Lombardy).": {
         "de": "Italien: Abgasweg und Pellet- oder Holzofen jedes Jahr von einem qualifizierten Techniker reinigen lassen (Norm UNI 10683; in der Lombardei gesetzlich vorgeschrieben).",
@@ -14351,6 +14973,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Olaszország: a füstelvezetőt és a pellet- vagy fatüzelésű kályhát évente tisztíttassa ki képzett szakemberrel (UNI 10683 szabvány; Lombardiában törvényi előírás).",
         "ko": "이탈리아: 연도와 펠릿 또는 장작 난로는 매년 자격을 갖춘 기술자에게 청소를 맡기세요(UNI 10683 표준, 롬바르디아에서는 법적 의무).",
         "tr": "İtalya: baca kanalını ve pelet ya da odun sobasını her yıl yetkin bir teknisyene temizletin (UNI 10683 standardı; Lombardiya'da yasal zorunluluk).",
+        "sk": "Taliansko: dymovod a kachle na pelety alebo drevo dajte každý rok vyčistiť kvalifikovanému technikovi (norma UNI 10683; v Lombardii povinné zo zákona).",
     },
     "Netherlands: APK for petrol and electric cars after 4 years, then every 2 years and from 8 years every year; diesel, LPG and CNG cars after 3 years, then every year; cars from 30 years every 2 years, from 50 years exempt.": {
         "de": "Niederlande: APK für Benzin- und Elektroautos nach 4 Jahren, danach alle 2 Jahre und ab 8 Jahren jährlich; Diesel-, LPG- und CNG-Autos nach 3 Jahren, danach jährlich; Autos ab 30 Jahren alle 2 Jahre, ab 50 Jahren befreit.",
@@ -14374,6 +14997,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Hollandia: APK a benzines és elektromos autóknál 4 év után, majd 2 évente, 8 éves kortól évente; a dízel-, LPG- és CNG-üzemű autóknál 3 év után, azután évente; 30 éves kortól 2 évente, 50 éves kortól mentes.",
         "ko": "네덜란드: 휘발유차와 전기차의 APK는 4년 후, 이후 2년마다, 차령 8년부터는 매년; 디젤·LPG·CNG 차량은 3년 후, 이후 매년; 차령 30년부터는 2년마다, 50년부터는 면제.",
         "tr": "Hollanda: benzinli ve elektrikli otomobillerde APK 4 yıl sonra, ardından 2 yılda bir, 8 yaşından itibaren her yıl; dizel, LPG ve CNG'li otomobillerde 3 yıl sonra, ardından her yıl; 30 yaşından itibaren 2 yılda bir, 50 yaşından itibaren muaf.",
+        "sk": "Holandsko: APK pre benzínové a elektrické autá po 4 rokoch, potom každé 2 roky a od 8 rokov každý rok; autá na naftu, LPG a CNG po 3 rokoch, potom každý rok; autá od 30 rokov každé 2 roky, od 50 rokov oslobodené.",
     },
     "Poland: przegląd techniczny after 3 years, after 5 years, then every year; cars with LPG or CNG every year from the start.": {
         "de": "Polen: przegląd techniczny nach 3 Jahren, nach 5 Jahren, danach jährlich; Autos mit LPG oder CNG von Anfang an jährlich.",
@@ -14397,6 +15021,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lengyelország: przegląd techniczny 3 év után, 5 év után, azután évente; az LPG- vagy CNG-üzemű autóknál kezdettől fogva évente.",
         "ko": "폴란드: przegląd techniczny는 3년 후, 5년 후, 이후 매년; LPG 또는 CNG 차량은 처음부터 매년.",
         "tr": "Polonya: przegląd techniczny 3 yıl sonra, 5 yıl sonra, ardından her yıl; LPG veya CNG'li otomobillerde en baştan itibaren her yıl.",
+        "sk": "Poľsko: przegląd techniczny po 3 rokoch, po 5 rokoch, potom každý rok; autá s LPG alebo CNG od začiatku každý rok.",
     },
     "Retest after renovations or when you start using a lower floor; with a mitigation system, every two years (US EPA).": {
         "de": "Nach Renovierungen oder wenn ein tiefer gelegenes Geschoss neu genutzt wird, erneut messen; mit einer Radon-Sanierungsanlage alle zwei Jahre (US EPA).",
@@ -14420,6 +15045,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Felújítások után, vagy ha elkezd használni egy alacsonyabb szintet, ismételje meg a mérést; radoncsökkentő rendszer esetén kétévente (US EPA).",
         "ko": "리모델링 후나 더 낮은 층을 사용하기 시작할 때 재측정하세요. 저감 시스템이 있으면 2년마다 측정합니다(US EPA).",
         "tr": "Tadilatlardan sonra veya daha alt bir katı kullanmaya başladığınızda yeniden test edin; radon azaltma sistemi varsa iki yılda bir (US EPA).",
+        "sk": "Meranie zopakujte po rekonštrukcii alebo keď začnete využívať nižšie podlažie; so systémom odvetrania každé dva roky (US EPA).",
     },
     "Spain: gas boilers up to 70 kW must be serviced by an authorised company every 2 years (RITE); the gas installation is inspected every 5 years.": {
         "de": "Spanien: Gaskessel bis 70 kW müssen alle 2 Jahre von einem zugelassenen Betrieb gewartet werden (RITE); die Gasinstallation wird alle 5 Jahre geprüft.",
@@ -14443,6 +15069,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Spanyolország: a legfeljebb 70 kW-os gázkazánokat 2 évente engedéllyel rendelkező cégnek kell karbantartania (RITE); a gázrendszert 5 évente ellenőrzik.",
         "ko": "스페인: 70 kW 이하 가스 보일러는 2년마다 인가 업체의 정비를 받아야 합니다(RITE). 가스 설비는 5년마다 점검합니다.",
         "tr": "İspanya: 70 kW'a kadar gazlı kazanların bakımı 2 yılda bir yetkili bir firma tarafından yapılmalıdır (RITE); gaz tesisatı 5 yılda bir denetlenir.",
+        "sk": "Španielsko: plynové kotly do 70 kW musí servisovať autorizovaná firma každé 2 roky (RITE); plynová inštalácia sa kontroluje každých 5 rokov.",
     },
     "Spain: piped-gas installations are inspected by the distributor every 5 years; bottled-gas installations need a revisión by an authorised installer every 5 years.": {
         "de": "Spanien: Anlagen mit Leitungsgas werden alle 5 Jahre vom Netzbetreiber geprüft; Flaschengasanlagen brauchen alle 5 Jahre eine revisión durch einen zugelassenen Installateur.",
@@ -14466,6 +15093,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Spanyolország: a vezetékes gázrendszereket 5 évente a gázelosztó ellenőrzi; a palackos gázrendszereknél 5 évente revisión szükséges engedéllyel rendelkező szerelőtől.",
         "ko": "스페인: 배관 가스 설비는 5년마다 가스 공급사가 점검하며, 용기 가스 설비는 5년마다 인가된 설치업자의 revisión을 받아야 합니다.",
         "tr": "İspanya: şebeke gazı tesisatları 5 yılda bir dağıtım şirketi tarafından denetlenir; tüplü gaz tesisatları için 5 yılda bir yetkili bir tesisatçı tarafından revisión gerekir.",
+        "sk": "Španielsko: inštalácie so zemným plynom kontroluje distribútor každých 5 rokov; inštalácie s fľašovým plynom potrebujú revisión autorizovaným inštalatérom každých 5 rokov.",
     },
     "Sweden: the municipality's sweep does fire-safety inspections every 3 years for solid fuel and every 6 years for other fireplaces.": {
         "de": "Schweden: Der kommunale Schornsteinfeger führt bei Feuerstätten für feste Brennstoffe alle 3 Jahre, bei anderen Feuerstätten alle 6 Jahre eine Brandschutzkontrolle durch.",
@@ -14489,6 +15117,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Svédország: az önkormányzat kéményseprője a szilárd tüzelésű berendezéseknél 3 évente, a többinél 6 évente végez tűzvédelmi ellenőrzést.",
         "ko": "스웨덴: 지자체 굴뚝 청소업자가 고체 연료 화기 설비는 3년마다, 그 밖의 화기 설비는 6년마다 화재 안전 점검을 실시합니다.",
         "tr": "İsveç: belediyenin baca temizleyicisi katı yakıtlı ocaklarda 3 yılda bir, diğer ocaklarda 6 yılda bir yangın güvenliği denetimi yapar.",
+        "sk": "Švédsko: obecný kominár vykonáva protipožiarne kontroly každé 3 roky pri tuhom palive a každých 6 rokov pri ostatných ohniskách.",
     },
     "Switzerland: the Clean Air Ordinance (LRV) requires an emissions check every 2 years for oil and every 4 years for gas and for wood boilers up to 70 kW; the canton or municipality carries it out.": {
         "de": "Schweiz: Die Luftreinhalte-Verordnung (LRV) schreibt eine Feuerungskontrolle alle 2 Jahre bei Öl und alle 4 Jahre bei Gas sowie bei Holzkesseln bis 70 kW vor; durchgeführt wird sie von Kanton oder Gemeinde.",
@@ -14512,6 +15141,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Svájc: a levegőtisztaság-védelmi rendelet (LRV) olajnál 2 évente, gáznál és a legfeljebb 70 kW-os fatüzelésű kazánoknál 4 évente ír elő károsanyag-kibocsátási ellenőrzést; ezt a kanton vagy a település végzi.",
         "ko": "스위스: 대기오염방지령(LRV)에 따라 기름은 2년마다, 가스와 70 kW 이하 장작 보일러는 4년마다 배출가스 검사를 받아야 하며, 검사는 칸톤이나 지자체가 실시합니다.",
         "tr": "İsviçre: Hava Kirliliği Yönetmeliği (LRV), sıvı yakıtta 2 yılda bir, gazda ve 70 kW'a kadar odun kazanlarında 4 yılda bir emisyon kontrolü öngörür; kontrolü kanton veya belediye yapar.",
+        "sk": "Švajčiarsko: nariadenie o ochrane ovzdušia (LRV) vyžaduje kontrolu emisií každé 2 roky pri oleji a každé 4 roky pri plyne a kotloch na drevo do 70 kW; vykonáva ju kantón alebo obec.",
     },
     "Switzerland: vehicle inspection (MFK) after 5 years (at the latest after 6), 3 years later, then every 2 years.": {
         "de": "Schweiz: Motorfahrzeugkontrolle (MFK) nach 5 Jahren (spätestens nach 6), 3 Jahre später, danach alle 2 Jahre.",
@@ -14535,6 +15165,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Svájc: járművizsga (MFK) 5 év után (legkésőbb 6 év után), majd 3 évvel később, azután 2 évente.",
         "ko": "스위스: 차량 검사(MFK)는 5년 후(늦어도 6년 후), 그 3년 후, 이후 2년마다.",
         "tr": "İsviçre: araç muayenesi (MFK) 5 yıl sonra (en geç 6 yıl sonra), 3 yıl sonra tekrar, ardından 2 yılda bir.",
+        "sk": "Švajčiarsko: kontrola vozidla (MFK) po 5 rokoch (najneskôr po 6), o 3 roky neskôr, potom každé 2 roky.",
     },
     "UK: Electrical Safety First recommends an EICR at least every 10 years for an owner-occupied home; landlords in all four nations need one every 5 years.": {
         "de": "Vereinigtes Königreich: Electrical Safety First empfiehlt für selbst genutztes Wohneigentum mindestens alle 10 Jahre einen EICR; Vermieter brauchen in allen vier Landesteilen alle 5 Jahre einen.",
@@ -14558,6 +15189,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Egyesült Királyság: az Electrical Safety First a tulajdonos által lakott otthonokban legalább 10 évente javasol EICR-t; mind a négy országrészben a bérbeadóknak 5 évente kell.",
         "ko": "영국: Electrical Safety First는 자가 주택에 최소 10년마다 EICR을 권장하며, 4개 구성국 모두에서 임대인은 5년마다 받아야 합니다.",
         "tr": "Birleşik Krallık: Electrical Safety First, sahibinin oturduğu bir konut için en az 10 yılda bir EICR önerir; dört ülkenin tamamında kiraya verenler için 5 yılda bir gereklidir.",
+        "sk": "Spojené kráľovstvo: Electrical Safety First odporúča EICR aspoň každých 10 rokov v dome obývanom vlastníkom; prenajímatelia vo všetkých štyroch krajinách ho potrebujú každých 5 rokov.",
     },
     "UK: have it serviced by a Gas Safe registered engineer (oil boilers: an OFTEC technician); landlords need a gas safety check every year.": {
         "de": "Vereinigtes Königreich: Wartung durch einen bei Gas Safe registrierten Techniker durchführen lassen (Ölkessel: durch einen OFTEC-Techniker); Vermieter brauchen jedes Jahr eine Gassicherheitsprüfung.",
@@ -14581,6 +15213,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Egyesült Királyság: a karbantartást Gas Safe-regisztrált szerelővel végeztesse (olajkazánoknál OFTEC-szakemberrel); a bérbeadóknak évente gázbiztonsági ellenőrzés kell.",
         "ko": "영국: Gas Safe 등록 엔지니어에게 정비를 받으세요(기름 보일러는 OFTEC 기술자). 임대인은 매년 가스 안전 점검을 받아야 합니다.",
         "tr": "Birleşik Krallık: bakımını Gas Safe kayıtlı bir teknisyene yaptırın (sıvı yakıtlı kazanlar: bir OFTEC teknisyenine); kiraya verenler her yıl gaz güvenliği kontrolü yaptırmalıdır.",
+        "sk": "Spojené kráľovstvo: servis zverte technikovi registrovanému v Gas Safe (olejové kotly: technikovi OFTEC); prenajímatelia potrebujú každý rok kontrolu plynovej bezpečnosti.",
     },
     "Austria: winter tires are required from 1 November to 15 April when the roads are wintry.": {
         "de": "Österreich: Winterreifen sind vom 1. November bis 15. April bei winterlichen Fahrbahnverhältnissen Pflicht.",
@@ -14604,6 +15237,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ausztria: november 1. és április 15. között téli útviszonyok esetén kötelező a téli gumi.",
         "ko": "오스트리아: 11월 1일부터 4월 15일까지 도로가 겨울 상태일 때는 겨울 타이어가 의무입니다.",
         "tr": "Avusturya: 1 Kasım ile 15 Nisan arasında yollarda kış koşulları varsa kış lastiği zorunludur.",
+        "sk": "Rakúsko: zimné pneumatiky sú povinné od 1. novembra do 15. apríla pri zimných podmienkach na cestách.",
     },
     "Belgium: camping trailers every 2 years; other trailers over 750 kg and motorhomes every year.": {
         "de": "Belgien: Wohnwagen alle 2 Jahre; andere Anhänger über 750 kg und Wohnmobile jährlich.",
@@ -14627,6 +15261,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Belgium: lakókocsik 2 évente; egyéb 750 kg feletti pótkocsik és lakóautók évente.",
         "ko": "벨기에: 캐러밴은 2년마다, 750 kg 초과 기타 트레일러와 캠핑카는 매년.",
         "tr": "Belçika: karavanlar 2 yılda bir; 750 kg üzerindeki diğer römorklar ve motokaravanlar her yıl.",
+        "sk": "Belgicko: obytné prívesy každé 2 roky; ostatné prívesy nad 750 kg a obytné autá každý rok.",
     },
     "Belgium: first test after 4 years, then every year in Wallonia and Brussels; Flanders tests every 2 years from 1 September 2026.": {
         "de": "Belgien: erste Prüfung nach 4 Jahren, danach in Wallonien und Brüssel jährlich; Flandern prüft ab 1. September 2026 alle 2 Jahre.",
@@ -14650,6 +15285,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Belgium: első vizsga 4 év után, azután Vallóniában és Brüsszelben évente; Flandriában 2026. szeptember 1-jétől 2 évente.",
         "ko": "벨기에: 첫 검사는 4년 후, 이후 왈로니아와 브뤼셀에서는 매년; 플란데런은 2026년 9월 1일부터 2년마다 검사합니다.",
         "tr": "Belçika: ilk muayene 4 yıl sonra, ardından Valon Bölgesi ve Brüksel'de her yıl; Flaman Bölgesi'nde 1 Eylül 2026'dan itibaren 2 yılda bir.",
+        "sk": "Belgicko: prvá kontrola po 4 rokoch, potom každý rok vo Valónsku a Bruseli; Flámsko od 1. septembra 2026 kontroluje každé 2 roky.",
     },
     "Belgium: motorcycles have no periodic test — only on resale (over 125 cc) or after an accident.": {
         "de": "Belgien: Motorräder haben keine regelmäßige Prüfung — nur beim Weiterverkauf (über 125 cm³) oder nach einem Unfall.",
@@ -14673,6 +15309,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Belgium: a motorkerékpároknak nincs időszakos műszaki vizsgája — csak továbbértékesítéskor (125 cm³ felett) vagy baleset után.",
         "ko": "벨기에: 오토바이는 정기 검사가 없으며, 재판매 시(125 cc 초과) 또는 사고 후에만 검사합니다.",
         "tr": "Belçika: motosikletlerin periyodik muayenesi yoktur — yalnızca yeniden satışta (125 cc üzeri) veya kazadan sonra.",
+        "sk": "Belgicko: motocykle nemajú pravidelnú kontrolu – len pri ďalšom predaji (nad 125 cm³) alebo po nehode.",
     },
     "Bulgaria: caravans are tested every year.": {
         "de": "Bulgarien: Wohnwagen werden jährlich geprüft.",
@@ -14696,6 +15333,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Bulgária: a lakókocsikat évente vizsgálják.",
         "ko": "불가리아: 캐러밴은 매년 검사를 받습니다.",
         "tr": "Bulgaristan: karavanlar her yıl muayene edilir.",
+        "sk": "Bulharsko: obytné prívesy sa kontrolujú každý rok.",
     },
     "Bulgaria: motorcycles are tested every 2 years.": {
         "de": "Bulgarien: Motorräder werden alle 2 Jahre geprüft.",
@@ -14719,6 +15357,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Bulgária: a motorkerékpárokat 2 évente vizsgálják.",
         "ko": "불가리아: 오토바이는 2년마다 검사를 받습니다.",
         "tr": "Bulgaristan: motosikletler 2 yılda bir muayene edilir.",
+        "sk": "Bulharsko: motocykle sa kontrolujú každé 2 roky.",
     },
     "Bulgaria: winter tires are mandatory from 15 November to 1 March.": {
         "de": "Bulgarien: Winterreifen sind vom 15. November bis 1. März Pflicht.",
@@ -14742,6 +15381,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Bulgária: november 15. és március 1. között kötelező a téli gumi.",
         "ko": "불가리아: 11월 15일부터 3월 1일까지 겨울 타이어가 의무입니다.",
         "tr": "Bulgaristan: 15 Kasım ile 1 Mart arasında kış lastiği zorunludur.",
+        "sk": "Bulharsko: zimné pneumatiky sú povinné od 15. novembra do 1. marca.",
     },
     "Croatia: new vehicles are first tested after 2 years, then every year.": {
         "de": "Kroatien: Neufahrzeuge werden erstmals nach 2 Jahren geprüft, danach jährlich.",
@@ -14765,6 +15405,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Horvátország: az új járműveket először 2 év után vizsgálják, azután évente.",
         "ko": "크로아티아: 신차는 2년 후 첫 검사를 받고, 이후 매년 받습니다.",
         "tr": "Hırvatistan: yeni araçlar ilk kez 2 yıl sonra, ardından her yıl muayene edilir.",
+        "sk": "Chorvátsko: nové vozidlá idú na prvú kontrolu po 2 rokoch, potom každý rok.",
     },
     "Czechia: STK after 4 years, then every 2 years.": {
         "de": "Tschechien: STK nach 4 Jahren, danach alle 2 Jahre.",
@@ -14788,6 +15429,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Csehország: STK 4 év után, azután 2 évente.",
         "ko": "체코: STK는 4년 후, 이후 2년마다.",
         "tr": "Çekya: STK 4 yıl sonra, ardından 2 yılda bir.",
+        "sk": "Česko: STK po 4 rokoch, potom každé 2 roky.",
     },
     "Czechia: STK for motorcycles after 6 years, then every 4 years.": {
         "de": "Tschechien: STK für Motorräder nach 6 Jahren, danach alle 4 Jahre.",
@@ -14811,6 +15453,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Csehország: motorkerékpárok STK-ja 6 év után, azután 4 évente.",
         "ko": "체코: 오토바이 STK는 6년 후, 이후 4년마다.",
         "tr": "Çekya: motosikletler için STK 6 yıl sonra, ardından 4 yılda bir.",
+        "sk": "Česko: STK pre motocykle po 6 rokoch, potom každé 4 roky.",
     },
     "Czechia: winter tires are required from 1 November to 31 March when the roads are wintry.": {
         "de": "Tschechien: Winterreifen sind vom 1. November bis 31. März bei winterlichen Fahrbahnverhältnissen Pflicht.",
@@ -14834,6 +15477,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Csehország: november 1. és március 31. között téli útviszonyok esetén kötelező a téli gumi.",
         "ko": "체코: 11월 1일부터 3월 31일까지 도로가 겨울 상태일 때는 겨울 타이어가 의무입니다.",
         "tr": "Çekya: 1 Kasım ile 31 Mart arasında yollarda kış koşulları varsa kış lastiği zorunludur.",
+        "sk": "Česko: zimné pneumatiky sú povinné od 1. novembra do 31. marca pri zimných podmienkach na cestách.",
     },
     "Denmark: caravans are only tested when approved for 100 km/h (Tempo 100).": {
         "de": "Dänemark: Wohnwagen werden nur geprüft, wenn sie für 100 km/h zugelassen sind (Tempo 100).",
@@ -14857,6 +15501,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Dánia: a lakókocsikat csak akkor vizsgálják, ha 100 km/h-ra engedélyezettek (Tempo 100).",
         "ko": "덴마크: 캐러밴은 시속 100 km 주행 승인을 받은 경우(Tempo 100)에만 검사를 받습니다.",
         "tr": "Danimarka: karavanlar yalnızca 100 km/sa için onaylıysa (Tempo 100) muayene edilir.",
+        "sk": "Dánsko: obytné prívesy sa kontrolujú len pri schválení na 100 km/h (Tempo 100).",
     },
     "Denmark: private motorcycles have no periodic test.": {
         "de": "Dänemark: Privat genutzte Motorräder haben keine regelmäßige Prüfung.",
@@ -14880,6 +15525,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Dánia: a magáncélú motorkerékpároknak nincs időszakos műszaki vizsgája.",
         "ko": "덴마크: 개인 오토바이는 정기 검사가 없습니다.",
         "tr": "Danimarka: özel motosikletlerin periyodik muayenesi yoktur.",
+        "sk": "Dánsko: súkromné motocykle nemajú pravidelnú kontrolu.",
     },
     "Denmark: syn after 4 years, then every 2 years.": {
         "de": "Dänemark: syn nach 4 Jahren, danach alle 2 Jahre.",
@@ -14903,6 +15549,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Dánia: syn 4 év után, azután 2 évente.",
         "ko": "덴마크: syn은 4년 후, 이후 2년마다.",
         "tr": "Danimarka: syn 4 yıl sonra, ardından 2 yılda bir.",
+        "sk": "Dánsko: syn po 4 rokoch, potom každé 2 roky.",
     },
     "Estonia: caravans (class O2) are tested every year.": {
         "de": "Estland: Wohnwagen (Klasse O2) werden jährlich geprüft.",
@@ -14926,6 +15573,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Észtország: a lakókocsikat (O2 kategória) évente vizsgálják.",
         "ko": "에스토니아: 캐러밴(O2 등급)은 매년 검사를 받습니다.",
         "tr": "Estonya: karavanlar (O2 sınıfı) her yıl muayene edilir.",
+        "sk": "Estónsko: obytné prívesy (kategória O2) sa kontrolujú každý rok.",
     },
     "Estonia: technical inspection after 4 years, every 2 years until the vehicle is 10, then every year.": {
         "de": "Estland: technische Prüfung nach 4 Jahren, alle 2 Jahre, bis das Fahrzeug 10 Jahre alt ist, danach jährlich.",
@@ -14949,6 +15597,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Észtország: műszaki vizsga 4 év után, 2 évente, amíg a jármű 10 éves nem lesz, azután évente.",
         "ko": "에스토니아: 기술 검사는 4년 후, 차령 10년까지 2년마다, 이후 매년.",
         "tr": "Estonya: teknik muayene 4 yıl sonra, araç 10 yaşına gelene kadar 2 yılda bir, ardından her yıl.",
+        "sk": "Estónsko: technická kontrola po 4 rokoch, každé 2 roky do veku 10 rokov, potom každý rok.",
     },
     "Finland: caravans are tested every 2 years.": {
         "de": "Finnland: Wohnwagen werden alle 2 Jahre geprüft.",
@@ -14972,6 +15621,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Finnország: a lakókocsikat 2 évente vizsgálják.",
         "ko": "핀란드: 캐러밴은 2년마다 검사를 받습니다.",
         "tr": "Finlandiya: karavanlar 2 yılda bir muayene edilir.",
+        "sk": "Fínsko: obytné prívesy sa kontrolujú každé 2 roky.",
     },
     "Finland: katsastus after 4 years, then every 2 years, every year once the car is older than 10 years.": {
         "de": "Finnland: katsastus nach 4 Jahren, danach alle 2 Jahre, jährlich, sobald das Auto älter als 10 Jahre ist.",
@@ -14995,6 +15645,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Finnország: katsastus 4 év után, azután 2 évente, 10 évnél idősebb autóknál évente.",
         "ko": "핀란드: katsastus는 4년 후, 이후 2년마다, 차령 10년 초과 시 매년.",
         "tr": "Finlandiya: katsastus 4 yıl sonra, ardından 2 yılda bir, otomobil 10 yaşını geçince her yıl.",
+        "sk": "Fínsko: katsastus po 4 rokoch, potom každé 2 roky, každý rok, keď je auto staršie ako 10 rokov.",
     },
     "Finland: motorcycles have no periodic test.": {
         "de": "Finnland: Motorräder haben keine regelmäßige Prüfung.",
@@ -15018,6 +15669,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Finnország: a motorkerékpároknak nincs időszakos műszaki vizsgája.",
         "ko": "핀란드: 오토바이는 정기 검사가 없습니다.",
         "tr": "Finlandiya: motosikletlerin periyodik muayenesi yoktur.",
+        "sk": "Fínsko: motocykle nemajú pravidelnú kontrolu.",
     },
     "Finland: winter tires are mandatory from December to February; studded tires may be used from November to March.": {
         "de": "Finnland: Winterreifen sind von Dezember bis Februar Pflicht; Spikereifen dürfen von November bis März gefahren werden.",
@@ -15041,6 +15693,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Finnország: decembertől februárig kötelező a téli gumi; szöges gumi novembertől márciusig használható.",
         "ko": "핀란드: 12월부터 2월까지 겨울 타이어가 의무이며, 스파이크 타이어는 11월부터 3월까지 사용할 수 있습니다.",
         "tr": "Finlandiya: Aralık–Şubat arasında kış lastiği zorunludur; çivili lastikler Kasım–Mart arasında kullanılabilir.",
+        "sk": "Fínsko: zimné pneumatiky sú povinné od decembra do februára; pneumatiky s hrotmi sa smú používať od novembra do marca.",
     },
     "France: motorhomes up to 3.5 t follow the car rules (after 4 years, then every 2 years); caravans up to 3.5 t have no test.": {
         "de": "Frankreich: Wohnmobile bis 3,5 t folgen den Regeln für Pkw (nach 4 Jahren, danach alle 2 Jahre); Wohnwagen bis 3,5 t haben keine Prüfung.",
@@ -15064,6 +15717,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Franciaország: a legfeljebb 3,5 t-s lakóautókra a személyautók szabályai vonatkoznak (4 év után, azután 2 évente); a legfeljebb 3,5 t-s lakókocsiknak nincs vizsgája.",
         "ko": "프랑스: 3.5톤 이하 캠핑카는 승용차 규정을 따르며(4년 후, 이후 2년마다), 3.5톤 이하 캐러밴은 검사가 없습니다.",
         "tr": "Fransa: 3,5 t'ye kadar motokaravanlar otomobil kurallarına tabidir (4 yıl sonra, ardından 2 yılda bir); 3,5 t'ye kadar karavanların muayenesi yoktur.",
+        "sk": "Francúzsko: obytné autá do 3,5 t sa riadia pravidlami pre autá (po 4 rokoch, potom každé 2 roky); obytné prívesy do 3,5 t kontrolu nemajú.",
     },
     "Germany: HU for caravans and trailers up to 3.5 t every 2 years (up to 750 kg: first after 3 years); motorhomes up to 3.5 t after 3 years, then every 2 years.": {
         "de": "Deutschland: HU für Wohnwagen und Anhänger bis 3,5 t alle 2 Jahre (bis 750 kg: erstmals nach 3 Jahren); Wohnmobile bis 3,5 t nach 3 Jahren, danach alle 2 Jahre.",
@@ -15087,6 +15741,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Németország: HU a legfeljebb 3,5 t-s lakókocsiknál és pótkocsiknál 2 évente (750 kg-ig: először 3 év után); a legfeljebb 3,5 t-s lakóautóknál 3 év után, azután 2 évente.",
         "ko": "독일: 3.5톤 이하 캐러밴과 트레일러의 HU는 2년마다(750 kg 이하: 첫 검사는 3년 후); 3.5톤 이하 캠핑카는 3년 후, 이후 2년마다.",
         "tr": "Almanya: 3,5 t'ye kadar karavan ve römorklar için HU 2 yılda bir (750 kg'a kadar: ilki 3 yıl sonra); 3,5 t'ye kadar motokaravanlar 3 yıl sonra, ardından 2 yılda bir.",
+        "sk": "Nemecko: HU pre obytné prívesy a prívesy do 3,5 t každé 2 roky (do 750 kg: prvá po 3 rokoch); obytné autá do 3,5 t po 3 rokoch, potom každé 2 roky.",
     },
     "Germany: tell the health office when you build, use, change or shut down a well; there is no routine test duty, a yearly test is advised.": {
         "de": "Deutschland: Bau, Inbetriebnahme, Änderung oder Stilllegung eines Brunnens dem Gesundheitsamt melden; eine routinemäßige Untersuchungspflicht gibt es nicht, eine jährliche Untersuchung wird empfohlen.",
@@ -15110,6 +15765,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Németország: a kút létesítését, használatba vételét, módosítását vagy megszüntetését be kell jelenteni az egészségügyi hivatalnak (Gesundheitsamt); rendszeres vizsgálati kötelezettség nincs, évente egy vizsgálat ajánlott.",
         "ko": "독일: 우물을 설치·사용·변경·폐쇄할 때는 보건소(Gesundheitsamt)에 신고해야 합니다. 정기 검사 의무는 없지만 매년 검사를 권장합니다.",
         "tr": "Almanya: kuyu açarken, kullanmaya başlarken, değiştirirken veya kapatırken sağlık dairesine (Gesundheitsamt) bildirin; rutin test zorunluluğu yoktur, yılda bir test önerilir.",
+        "sk": "Nemecko: zriadenie, používanie, zmenu alebo zrušenie studne oznámte úradu verejného zdravotníctva; pravidelná povinnosť testovať neexistuje, odporúča sa ročný test.",
     },
     "Greece: KTEO test after 4 years, then every 2 years.": {
         "de": "Griechenland: KTEO-Prüfung nach 4 Jahren, danach alle 2 Jahre.",
@@ -15133,6 +15789,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Görögország: KTEO-vizsga 4 év után, azután 2 évente.",
         "ko": "그리스: KTEO 검사는 4년 후, 이후 2년마다.",
         "tr": "Yunanistan: KTEO muayenesi 4 yıl sonra, ardından 2 yılda bir.",
+        "sk": "Grécko: kontrola KTEO po 4 rokoch, potom každé 2 roky.",
     },
     "Greece: light trailers have no periodic test.": {
         "de": "Griechenland: Leichte Anhänger haben keine regelmäßige Prüfung.",
@@ -15156,6 +15813,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Görögország: a könnyű pótkocsiknak nincs időszakos műszaki vizsgája.",
         "ko": "그리스: 경량 트레일러는 정기 검사가 없습니다.",
         "tr": "Yunanistan: hafif römorkların periyodik muayenesi yoktur.",
+        "sk": "Grécko: ľahké prívesy nemajú pravidelnú kontrolu.",
     },
     "Hungary: roadworthiness test after 4 years, then every 2 years.": {
         "de": "Ungarn: technische Prüfung nach 4 Jahren, danach alle 2 Jahre.",
@@ -15179,6 +15837,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Magyarország: műszaki vizsga 4 év után, azután 2 évente.",
         "ko": "헝가리: 자동차 검사는 4년 후, 이후 2년마다.",
         "tr": "Macaristan: araç muayenesi 4 yıl sonra, ardından 2 yılda bir.",
+        "sk": "Maďarsko: technická kontrola po 4 rokoch, potom každé 2 roky.",
     },
     "Iceland: travel trailers are tested every 2 years.": {
         "de": "Island: Wohnwagen werden alle 2 Jahre geprüft.",
@@ -15202,6 +15861,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Izland: a lakókocsikat 2 évente vizsgálják.",
         "ko": "아이슬란드: 캐러밴은 2년마다 검사를 받습니다.",
         "tr": "İzlanda: karavanlar 2 yılda bir muayene edilir.",
+        "sk": "Island: obytné prívesy sa kontrolujú každé 2 roky.",
     },
     "Iceland: vehicle test after 4 years, after 2 and 2 more years, then every year.": {
         "de": "Island: Fahrzeugprüfung nach 4 Jahren, nach weiteren 2 und nochmals 2 Jahren, danach jährlich.",
@@ -15225,6 +15885,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Izland: járművizsga 4 év után, majd 2 és újabb 2 év után, azután évente.",
         "ko": "아이슬란드: 차량 검사는 4년 후, 이어서 2년 후와 다시 2년 후, 이후 매년.",
         "tr": "İzlanda: araç muayenesi 4 yıl sonra, ardından 2 ve 2 yıl daha sonra, sonra her yıl.",
+        "sk": "Island: kontrola vozidla po 4 rokoch, po ďalších 2 a 2 rokoch, potom každý rok.",
     },
     "Ireland (EPA): test for bacteria every year and a chemical panel every 3 years.": {
         "de": "Irland (EPA): jährlich auf Bakterien testen und alle 3 Jahre eine chemische Analyse.",
@@ -15248,6 +15909,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Írország (EPA): baktériumvizsgálat évente, kémiai vizsgálat 3 évente.",
         "ko": "아일랜드(EPA): 세균 검사는 매년, 화학 검사는 3년마다.",
         "tr": "İrlanda (EPA): her yıl bakteri testi, 3 yılda bir kimyasal analiz.",
+        "sk": "Írsko (EPA): baktérie testujte každý rok a chemický rozbor každé 3 roky.",
     },
     "Ireland: NCT after 4 years, then every 2 years, every year from 10 years; cars aged 30–39 years every 2 years, from 40 exempt.": {
         "de": "Irland: NCT nach 4 Jahren, danach alle 2 Jahre, ab 10 Jahren jährlich; Autos im Alter von 30–39 Jahren alle 2 Jahre, ab 40 befreit.",
@@ -15271,6 +15933,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Írország: NCT 4 év után, azután 2 évente, 10 éves kortól évente; a 30–39 éves autók 2 évente, 40 éves kortól mentesek.",
         "ko": "아일랜드: NCT는 4년 후, 이후 2년마다, 차령 10년부터 매년; 차령 30–39년 차량은 2년마다, 40년부터는 면제.",
         "tr": "İrlanda: NCT 4 yıl sonra, ardından 2 yılda bir, 10 yaşından itibaren her yıl; 30–39 yaşındaki otomobiller 2 yılda bir, 40 yaşından itibaren muaf.",
+        "sk": "Írsko: NCT po 4 rokoch, potom každé 2 roky, od 10 rokov každý rok; autá vo veku 30 – 39 rokov každé 2 roky, od 40 oslobodené.",
     },
     "Latvia: motorcycles, trailers and caravans after 2 years, then every 2 years.": {
         "de": "Lettland: Motorräder, Anhänger und Wohnwagen nach 2 Jahren, danach alle 2 Jahre.",
@@ -15294,6 +15957,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lettország: motorkerékpárok, pótkocsik és lakókocsik 2 év után, azután 2 évente.",
         "ko": "라트비아: 오토바이, 트레일러, 캐러밴은 2년 후, 이후 2년마다.",
         "tr": "Letonya: motosikletler, römorklar ve karavanlar 2 yıl sonra, ardından 2 yılda bir.",
+        "sk": "Lotyšsko: motocykle, prívesy a obytné prívesy po 2 rokoch, potom každé 2 roky.",
     },
     "Latvia: new cars within 3 years, then three times every 2 years, then every year.": {
         "de": "Lettland: Neuwagen innerhalb von 3 Jahren, danach dreimal alle 2 Jahre, dann jährlich.",
@@ -15317,6 +15981,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lettország: új autók 3 éven belül, majd háromszor 2 évente, azután évente.",
         "ko": "라트비아: 신차는 3년 이내, 이후 2년마다 세 번, 그다음 매년.",
         "tr": "Letonya: yeni otomobiller 3 yıl içinde, ardından üç kez 2 yılda bir, sonra her yıl.",
+        "sk": "Lotyšsko: nové autá do 3 rokov, potom trikrát každé 2 roky, potom každý rok.",
     },
     "Liechtenstein: motorhomes after 4 years, then every 2 years; trailers over 750 kg after 5 years, then every 3 years.": {
         "de": "Liechtenstein: Wohnmobile nach 4 Jahren, danach alle 2 Jahre; Anhänger über 750 kg nach 5 Jahren, danach alle 3 Jahre.",
@@ -15340,6 +16005,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Liechtenstein: lakóautók 4 év után, azután 2 évente; 750 kg feletti pótkocsik 5 év után, azután 3 évente.",
         "ko": "리히텐슈타인: 캠핑카는 4년 후, 이후 2년마다; 750 kg 초과 트레일러는 5년 후, 이후 3년마다.",
         "tr": "Lihtenştayn: motokaravanlar 4 yıl sonra, ardından 2 yılda bir; 750 kg üzerindeki römorklar 5 yıl sonra, ardından 3 yılda bir.",
+        "sk": "Lichtenštajnsko: obytné autá po 4 rokoch, potom každé 2 roky; prívesy nad 750 kg po 5 rokoch, potom každé 3 roky.",
     },
     "Liechtenstein: vehicle inspection after 4 years, then every 2 years.": {
         "de": "Liechtenstein: Motorfahrzeugkontrolle nach 4 Jahren, danach alle 2 Jahre.",
@@ -15363,6 +16029,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Liechtenstein: járművizsga 4 év után, azután 2 évente.",
         "ko": "리히텐슈타인: 차량 검사는 4년 후, 이후 2년마다.",
         "tr": "Lihtenştayn: araç muayenesi 4 yıl sonra, ardından 2 yılda bir.",
+        "sk": "Lichtenštajnsko: kontrola vozidla po 4 rokoch, potom každé 2 roky.",
     },
     "Luxembourg: contrôle technique (SNCT) after 4 years, after 6 years, then every year — also for motorcycles and trailers of 0.75–3.5 t.": {
         "de": "Luxemburg: contrôle technique (SNCT) nach 4 Jahren, nach 6 Jahren, danach jährlich — auch für Motorräder und Anhänger von 0,75–3,5 t.",
@@ -15386,6 +16053,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Luxemburg: contrôle technique (SNCT) 4 év után, 6 év után, azután évente — a motorkerékpárokra és a 0,75–3,5 t-s pótkocsikra is.",
         "ko": "룩셈부르크: contrôle technique(SNCT)는 4년 후, 6년 후, 이후 매년 — 오토바이와 0.75–3.5톤 트레일러도 해당됩니다.",
         "tr": "Lüksemburg: contrôle technique (SNCT) 4 yıl sonra, 6 yıl sonra, ardından her yıl — motosikletler ve 0,75–3,5 t römorklar için de.",
+        "sk": "Luxembursko: contrôle technique (SNCT) po 4 rokoch, po 6 rokoch, potom každý rok – aj pre motocykle a prívesy 0,75 – 3,5 t.",
     },
     "Malta: VRT after 4 years, then every 2 years — every year once the car has done over 160,000 km.": {
         "de": "Malta: VRT nach 4 Jahren, danach alle 2 Jahre — jährlich, sobald das Auto mehr als 160.000 km gefahren ist.",
@@ -15409,6 +16077,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Málta: VRT 4 év után, azután 2 évente — évente, ha az autó már több mint 160 000 km-t futott.",
         "ko": "몰타: VRT는 4년 후, 이후 2년마다 — 주행거리가 160,000 km를 넘으면 매년.",
         "tr": "Malta: VRT 4 yıl sonra, ardından 2 yılda bir — otomobil 160.000 km'yi aştığında her yıl.",
+        "sk": "Malta: VRT po 4 rokoch, potom každé 2 roky – každý rok, keď má auto najazdených viac ako 160 000 km.",
     },
     "Malta: the periodic test for motorcycles over 125 cc is not in force yet.": {
         "de": "Malta: Die regelmäßige Prüfung für Motorräder über 125 cm³ ist noch nicht in Kraft.",
@@ -15432,6 +16101,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Málta: a 125 cm³ feletti motorkerékpárok időszakos műszaki vizsgája még nem lépett hatályba.",
         "ko": "몰타: 125 cc 초과 오토바이의 정기 검사는 아직 시행되지 않고 있습니다.",
         "tr": "Malta: 125 cc üzeri motosikletler için periyodik muayene henüz yürürlükte değil.",
+        "sk": "Malta: pravidelná kontrola motocyklov nad 125 cm³ ešte neplatí.",
     },
     "Malta: trailers after 2 years, then every 2 years.": {
         "de": "Malta: Anhänger nach 2 Jahren, danach alle 2 Jahre.",
@@ -15455,6 +16125,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Málta: pótkocsik 2 év után, azután 2 évente.",
         "ko": "몰타: 트레일러는 2년 후, 이후 2년마다.",
         "tr": "Malta: römorklar 2 yıl sonra, ardından 2 yılda bir.",
+        "sk": "Malta: prívesy po 2 rokoch, potom každé 2 roky.",
     },
     "Netherlands: caravans have no periodic test.": {
         "de": "Niederlande: Wohnwagen haben keine regelmäßige Prüfung.",
@@ -15478,6 +16149,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Hollandia: a lakókocsiknak nincs időszakos műszaki vizsgája.",
         "ko": "네덜란드: 캐러밴은 정기 검사가 없습니다.",
         "tr": "Hollanda: karavanların periyodik muayenesi yoktur.",
+        "sk": "Holandsko: obytné prívesy nemajú pravidelnú kontrolu.",
     },
     "Norway: EU-kontroll after 4 years, then every 2 years; cars aged 30–50 years every 5 years.": {
         "de": "Norwegen: EU-kontroll nach 4 Jahren, danach alle 2 Jahre; Autos im Alter von 30–50 Jahren alle 5 Jahre.",
@@ -15501,6 +16173,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Norvégia: EU-kontroll 4 év után, azután 2 évente; a 30–50 éves autók 5 évente.",
         "ko": "노르웨이: EU-kontroll은 4년 후, 이후 2년마다; 차령 30–50년 차량은 5년마다.",
         "tr": "Norveç: EU-kontroll 4 yıl sonra, ardından 2 yılda bir; 30–50 yaşındaki otomobiller 5 yılda bir.",
+        "sk": "Nórsko: EU-kontroll po 4 rokoch, potom každé 2 roky; autá vo veku 30 – 50 rokov každých 5 rokov.",
     },
     "Norway: caravans are exempt unless approved for 100 km/h (Tempo 100); motorhomes follow the car rules.": {
         "de": "Norwegen: Wohnwagen sind befreit, sofern sie nicht für 100 km/h zugelassen sind (Tempo 100); Wohnmobile folgen den Regeln für Pkw.",
@@ -15524,6 +16197,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Norvégia: a lakókocsik mentesek, kivéve ha 100 km/h-ra engedélyezettek (Tempo 100); a lakóautókra a személyautók szabályai vonatkoznak.",
         "ko": "노르웨이: 캐러밴은 시속 100 km 주행 승인(Tempo 100)을 받지 않는 한 면제되며, 캠핑카는 승용차 규정을 따릅니다.",
         "tr": "Norveç: karavanlar 100 km/sa için onaylı (Tempo 100) değilse muaftır; motokaravanlar otomobil kurallarına tabidir.",
+        "sk": "Nórsko: obytné prívesy sú oslobodené, ak nie sú schválené na 100 km/h (Tempo 100); obytné autá sa riadia pravidlami pre autá.",
     },
     "Norway: every home and holiday home needs a smoke alarm on each floor plus a fire hose or an extinguisher (6 kg powder or 9 l foam); the owner tests them.": {
         "de": "Norwegen: Jede Wohnung und jedes Ferienhaus braucht auf jeder Etage einen Rauchmelder sowie einen Feuerlöschschlauch oder einen Feuerlöscher (6 kg Pulver oder 9 l Schaum); der Eigentümer prüft sie.",
@@ -15547,6 +16221,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Norvégia: minden lakásban és nyaralóban szintenként kell egy füstérzékelő, valamint egy tűzoltó tömlő vagy egy tűzoltó készülék (6 kg por vagy 9 l hab); ezeket a tulajdonos ellenőrzi.",
         "ko": "노르웨이: 모든 주택과 별장에는 층마다 연기 경보기와 함께 소방 호스나 소화기(분말 6 kg 또는 포말 9 l)가 있어야 하며, 소유자가 이를 점검합니다.",
         "tr": "Norveç: her konut ve yazlıkta her katta bir duman dedektörü ile bir yangın hortumu veya yangın söndürücü (6 kg kuru toz ya da 9 l köpük) bulunmalıdır; bunları mal sahibi test eder.",
+        "sk": "Nórsko: každý dom aj rekreačný dom potrebuje detektor dymu na každom podlaží a požiarnu hadicu alebo hasiaci prístroj (6 kg prášok alebo 9 l pena); testuje ich vlastník.",
     },
     "Norway: motorcycles have no periodic test.": {
         "de": "Norwegen: Motorräder haben keine regelmäßige Prüfung.",
@@ -15570,6 +16245,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Norvégia: a motorkerékpároknak nincs időszakos műszaki vizsgája.",
         "ko": "노르웨이: 오토바이는 정기 검사가 없습니다.",
         "tr": "Norveç: motosikletlerin periyodik muayenesi yoktur.",
+        "sk": "Nórsko: motocykle nemajú pravidelnú kontrolu.",
     },
     "Norway: there is no fixed winter-tire date — the tires must suit the road conditions.": {
         "de": "Norwegen: Es gibt keinen festen Stichtag für Winterreifen — die Reifen müssen zu den Straßenverhältnissen passen.",
@@ -15593,6 +16269,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Norvégia: nincs rögzített dátum a téli gumira — az abroncsoknak az útviszonyoknak kell megfelelniük.",
         "ko": "노르웨이: 겨울 타이어의 고정된 교체 날짜는 없으며, 타이어가 도로 상황에 맞아야 합니다.",
         "tr": "Norveç: kış lastiği için sabit bir tarih yoktur — lastikler yol koşullarına uygun olmalıdır.",
+        "sk": "Nórsko: pevný dátum pre zimné pneumatiky neexistuje – pneumatiky musia zodpovedať podmienkam na ceste.",
     },
     "Portugal: inspeção (IPO) after 4 years, every 2 years until the car is 8, then every year.": {
         "de": "Portugal: inspeção (IPO) nach 4 Jahren, alle 2 Jahre, bis das Auto 8 Jahre alt ist, danach jährlich.",
@@ -15616,6 +16293,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Portugália: inspeção (IPO) 4 év után, 2 évente, amíg az autó 8 éves nem lesz, azután évente.",
         "ko": "포르투갈: inspeção(IPO)는 4년 후, 차령 8년까지 2년마다, 이후 매년.",
         "tr": "Portekiz: inspeção (IPO) 4 yıl sonra, otomobil 8 yaşına gelene kadar 2 yılda bir, ardından her yıl.",
+        "sk": "Portugalsko: inspeção (IPO) po 4 rokoch, každé 2 roky do veku 8 rokov, potom každý rok.",
     },
     "Portugal: the periodic test for motorcycles over 250 cc is not in force yet.": {
         "de": "Portugal: Die regelmäßige Prüfung für Motorräder über 250 cm³ ist noch nicht in Kraft.",
@@ -15639,6 +16317,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Portugália: a 250 cm³ feletti motorkerékpárok időszakos műszaki vizsgája még nem lépett hatályba.",
         "ko": "포르투갈: 250 cc 초과 오토바이의 정기 검사는 아직 시행되지 않고 있습니다.",
         "tr": "Portekiz: 250 cc üzeri motosikletler için periyodik muayene henüz yürürlükte değil.",
+        "sk": "Portugalsko: pravidelná kontrola motocyklov nad 250 cm³ ešte neplatí.",
     },
     "Romania: ITP after 3 years, then every 2 years, every year from 12 years.": {
         "de": "Rumänien: ITP nach 3 Jahren, danach alle 2 Jahre, ab 12 Jahren jährlich.",
@@ -15662,6 +16341,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Románia: ITP 3 év után, azután 2 évente, 12 éves kortól évente.",
         "ko": "루마니아: ITP는 3년 후, 이후 2년마다, 차령 12년부터 매년.",
         "tr": "Romanya: ITP 3 yıl sonra, ardından 2 yılda bir, 12 yaşından itibaren her yıl.",
+        "sk": "Rumunsko: ITP po 3 rokoch, potom každé 2 roky, od 12 rokov každý rok.",
     },
     "Romania: caravans are tested every 3 years.": {
         "de": "Rumänien: Wohnwagen werden alle 3 Jahre geprüft.",
@@ -15685,6 +16365,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Románia: a lakókocsikat 3 évente vizsgálják.",
         "ko": "루마니아: 캐러밴은 3년마다 검사를 받습니다.",
         "tr": "Romanya: karavanlar 3 yılda bir muayene edilir.",
+        "sk": "Rumunsko: obytné prívesy sa kontrolujú každé 3 roky.",
     },
     "Slovakia: technical inspection for motorcycles after 4 years, then every 4 years.": {
         "de": "Slowakei: technische Prüfung für Motorräder nach 4 Jahren, danach alle 4 Jahre.",
@@ -15708,6 +16389,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szlovákia: motorkerékpárok műszaki vizsgája 4 év után, azután 4 évente.",
         "ko": "슬로바키아: 오토바이 기술 검사는 4년 후, 이후 4년마다.",
         "tr": "Slovakya: motosikletler için teknik muayene 4 yıl sonra, ardından 4 yılda bir.",
+        "sk": "Slovensko: technická kontrola motocyklov po 4 rokoch, potom každé 4 roky.",
     },
     "Slovakia: trailers over 750 kg after 4 years, then every 4 years.": {
         "de": "Slowakei: Anhänger über 750 kg nach 4 Jahren, danach alle 4 Jahre.",
@@ -15731,6 +16413,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szlovákia: 750 kg feletti pótkocsik 4 év után, azután 4 évente.",
         "ko": "슬로바키아: 750 kg 초과 트레일러는 4년 후, 이후 4년마다.",
         "tr": "Slovakya: 750 kg üzerindeki römorklar 4 yıl sonra, ardından 4 yılda bir.",
+        "sk": "Slovensko: prívesy nad 750 kg po 4 rokoch, potom každé 4 roky.",
     },
     "Slovenia: technical inspection after 4 years, every 2 years until the vehicle is 8, then every year.": {
         "de": "Slowenien: technische Prüfung nach 4 Jahren, alle 2 Jahre, bis das Fahrzeug 8 Jahre alt ist, danach jährlich.",
@@ -15754,6 +16437,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szlovénia: műszaki vizsga 4 év után, 2 évente, amíg a jármű 8 éves nem lesz, azután évente.",
         "ko": "슬로베니아: 기술 검사는 4년 후, 차령 8년까지 2년마다, 이후 매년.",
         "tr": "Slovenya: teknik muayene 4 yıl sonra, araç 8 yaşına gelene kadar 2 yılda bir, ardından her yıl.",
+        "sk": "Slovinsko: technická kontrola po 4 rokoch, každé 2 roky do veku 8 rokov, potom každý rok.",
     },
     "Spain: caravans over 750 kg have their first ITV after 6 years, then every 2 years; lighter trailers have none.": {
         "de": "Spanien: Wohnwagen über 750 kg haben ihre erste ITV nach 6 Jahren, danach alle 2 Jahre; leichtere Anhänger haben keine.",
@@ -15777,6 +16461,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Spanyolország: a 750 kg feletti lakókocsik első ITV-je 6 év után esedékes, azután 2 évente; a könnyebb pótkocsiknak nincs.",
         "ko": "스페인: 750 kg 초과 캐러밴은 6년 후 첫 ITV를 받고, 이후 2년마다 받습니다. 그보다 가벼운 트레일러는 검사가 없습니다.",
         "tr": "İspanya: 750 kg üzerindeki karavanlar ilk ITV'ye 6 yıl sonra, ardından 2 yılda bir girer; daha hafif römorkların muayenesi yoktur.",
+        "sk": "Španielsko: obytné prívesy nad 750 kg majú prvú ITV po 6 rokoch, potom každé 2 roky; ľahšie prívesy žiadnu.",
     },
     "Sweden (Livsmedelsverket): test every 3 years — every year if children under 5 drink the water.": {
         "de": "Schweden (Livsmedelsverket): alle 3 Jahre testen — jährlich, wenn Kinder unter 5 Jahren das Wasser trinken.",
@@ -15800,6 +16485,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Svédország (Livsmedelsverket): vizsgálat 3 évente — évente, ha 5 év alatti gyerekek isszák a vizet.",
         "ko": "스웨덴(Livsmedelsverket): 3년마다 검사 — 5세 미만 어린이가 그 물을 마신다면 매년.",
         "tr": "İsveç (Livsmedelsverket): 3 yılda bir test — suyu 5 yaşından küçük çocuklar içiyorsa her yıl.",
+        "sk": "Švédsko (Livsmedelsverket): test každé 3 roky – každý rok, ak vodu pijú deti mladšie ako 5 rokov.",
     },
     "Sweden: caravans and light trailers within 4 years, then every 2 years.": {
         "de": "Schweden: Wohnwagen und leichte Anhänger innerhalb von 4 Jahren, danach alle 2 Jahre.",
@@ -15823,6 +16509,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Svédország: lakókocsik és könnyű pótkocsik 4 éven belül, azután 2 évente.",
         "ko": "스웨덴: 캐러밴과 경량 트레일러는 4년 이내, 이후 2년마다.",
         "tr": "İsveç: karavanlar ve hafif römorklar 4 yıl içinde, ardından 2 yılda bir.",
+        "sk": "Švédsko: obytné prívesy a ľahké prívesy do 4 rokov, potom každé 2 roky.",
     },
     "Sweden: smoke alarms are only required in new homes; test them every month.": {
         "de": "Schweden: Rauchmelder sind nur in Neubauwohnungen vorgeschrieben; monatlich testen.",
@@ -15846,6 +16533,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Svédország: füstérzékelő csak új lakásokban kötelező; havonta tesztelje.",
         "ko": "스웨덴: 연기 경보기는 신축 주택에만 의무입니다. 매달 테스트하세요.",
         "tr": "İsveç: duman dedektörleri yalnızca yeni konutlarda zorunludur; her ay test edin.",
+        "sk": "Švédsko: detektory dymu sú povinné len v nových domácnostiach; testujte ich každý mesiac.",
     },
     "Sweden: winter tires are required from 1 December to 31 March when there are winter road conditions.": {
         "de": "Schweden: Winterreifen sind vom 1. Dezember bis 31. März bei winterlichen Straßenverhältnissen Pflicht.",
@@ -15869,6 +16557,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Svédország: december 1. és március 31. között téli útviszonyok esetén kötelező a téli gumi.",
         "ko": "스웨덴: 12월 1일부터 3월 31일까지 겨울철 도로 상황일 때는 겨울 타이어가 의무입니다.",
         "tr": "İsveç: 1 Aralık ile 31 Mart arasında yollarda kış koşulları varsa kış lastiği zorunludur.",
+        "sk": "Švédsko: zimné pneumatiky sú povinné od 1. decembra do 31. marca pri zimných podmienkach na cestách.",
     },
     "Switzerland: motorhomes after 4 years, 3 years later, then every 2 years; trailers over 750 kg after 5, then 3, then every 2 years; lighter trailers have no test.": {
         "de": "Schweiz: Wohnmobile nach 4 Jahren, 3 Jahre später, danach alle 2 Jahre; Anhänger über 750 kg nach 5, dann nach 3, danach alle 2 Jahre; leichtere Anhänger haben keine Prüfung.",
@@ -15892,6 +16581,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Svájc: lakóautók 4 év után, 3 évvel később, azután 2 évente; 750 kg feletti pótkocsik 5, majd 3 év után, azután 2 évente; a könnyebb pótkocsiknak nincs vizsgája.",
         "ko": "스위스: 캠핑카는 4년 후, 그 3년 후, 이후 2년마다; 750 kg 초과 트레일러는 5년 후, 그 3년 후, 이후 2년마다; 그보다 가벼운 트레일러는 검사가 없습니다.",
         "tr": "İsviçre: motokaravanlar 4 yıl sonra, 3 yıl sonra tekrar, ardından 2 yılda bir; 750 kg üzerindeki römorklar 5, sonra 3 yıl sonra, ardından 2 yılda bir; daha hafif römorkların muayenesi yoktur.",
+        "sk": "Švajčiarsko: obytné autá po 4 rokoch, o 3 roky neskôr, potom každé 2 roky; prívesy nad 750 kg po 5, potom po 3, potom každé 2 roky; ľahšie prívesy kontrolu nemajú.",
     },
     "UK: towed caravans have no MOT; motorhomes follow the car rules.": {
         "de": "Vereinigtes Königreich: Gezogene Wohnwagen haben keinen MOT; Wohnmobile folgen den Regeln für Pkw.",
@@ -15915,6 +16605,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Egyesült Királyság: a vontatott lakókocsiknak nincs MOT-vizsgája; a lakóautókra a személyautók szabályai vonatkoznak.",
         "ko": "영국: 견인식 캐러밴은 MOT가 없으며, 캠핑카는 승용차 규정을 따릅니다.",
         "tr": "Birleşik Krallık: çekilen karavanlar için MOT yoktur; motokaravanlar otomobil kurallarına tabidir.",
+        "sk": "Spojené kráľovstvo: ťahané obytné prívesy nemajú MOT; obytné autá sa riadia pravidlami pre autá.",
     },
     "Austria: Vienna and Burgenland require a check of heat pumps and air conditioners from 12 kW every 3 years.": {
         "de": "Österreich: Wien und das Burgenland schreiben für Wärmepumpen und Klimaanlagen ab 12 kW alle 3 Jahre eine Überprüfung vor.",
@@ -15938,6 +16629,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ausztria: Bécs és Burgenland a 12 kW-os és nagyobb hőszivattyúk és klímaberendezések 3 évenkénti ellenőrzését írja elő.",
         "ko": "오스트리아: 빈과 부르겐란트주는 12 kW 이상 히트펌프와 에어컨을 3년마다 점검하도록 규정합니다.",
         "tr": "Avusturya: Viyana ve Burgenland, 12 kW ve üzeri ısı pompaları ile klimaların 3 yılda bir denetlenmesini zorunlu kılar.",
+        "sk": "Rakúsko: Viedeň a Burgenland vyžadujú kontrolu tepelných čerpadiel a klimatizácií od 12 kW každé 3 roky.",
     },
     "Austria: each state sets the inspection intervals — oil and solid-fuel heating every 2 years almost everywhere, small gas units under 26 kW every 3–4 years (Lower Austria: 6–50 kW every 3 years for all fuels; Vorarlberg: every 2 years).": {
         "de": "Österreich: Jedes Bundesland legt die Überprüfungsintervalle selbst fest — Öl- und Festbrennstoffheizungen fast überall alle 2 Jahre, kleine Gasgeräte unter 26 kW alle 3–4 Jahre (Niederösterreich: 6–50 kW alle 3 Jahre für alle Brennstoffe; Vorarlberg: alle 2 Jahre).",
@@ -15961,6 +16653,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ausztria: az ellenőrzési gyakoriságot tartományonként szabályozzák — az olaj- és szilárdtüzelésű fűtést szinte mindenhol 2 évente, a 26 kW alatti kis gázkészülékeket 3–4 évente (Alsó-Ausztria: 6–50 kW között minden tüzelőanyagnál 3 évente; Vorarlberg: 2 évente).",
         "ko": "오스트리아: 점검 주기는 주마다 정합니다 — 기름·고체 연료 난방은 거의 모든 곳에서 2년마다, 26 kW 미만 소형 가스 기기는 3~4년마다(니더외스터라이히: 모든 연료 6~50 kW 3년마다, 포어아를베르크: 2년마다).",
         "tr": "Avusturya: denetim aralıklarını her eyalet belirler — sıvı ve katı yakıtlı ısıtma neredeyse her yerde 2 yılda bir, 26 kW altındaki küçük gazlı cihazlar 3–4 yılda bir (Aşağı Avusturya: tüm yakıtlarda 6–50 kW için 3 yılda bir; Vorarlberg: 2 yılda bir).",
+        "sk": "Rakúsko: intervaly kontrol určuje každá spolková krajina – olejové a tuhopalivové vykurovanie takmer všade každé 2 roky, malé plynové zariadenia pod 26 kW každé 3 – 4 roky (Dolné Rakúsko: 6 – 50 kW každé 3 roky pre všetky palivá; Vorarlbersko: každé 2 roky).",
     },
     "Austria: gas installation checks are set by state law — e.g. Tyrol every 2 years, Vorarlberg every 6; Upper Austria every 15 years for natural gas and every 6 for LPG.": {
         "de": "Österreich: Die Überprüfung der Gasanlage regelt das Landesrecht — z. B. Tirol alle 2 Jahre, Vorarlberg alle 6; Oberösterreich alle 15 Jahre bei Erdgas und alle 6 bei Flüssiggas.",
@@ -15984,6 +16677,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ausztria: a gázberendezések ellenőrzését tartományi törvény szabályozza — pl. Tirolban 2 évente, Vorarlbergben 6 évente; Felső-Ausztriában földgáznál 15, PB-gáznál 6 évente.",
         "ko": "오스트리아: 가스 설비 점검은 주법으로 정합니다 — 예: 티롤 2년마다, 포어아를베르크 6년마다; 오버외스터라이히는 천연가스 15년마다, LPG 6년마다.",
         "tr": "Avusturya: gaz tesisatı denetimleri eyalet yasalarıyla belirlenir — ör. Tirol'de 2 yılda bir, Vorarlberg'de 6 yılda bir; Yukarı Avusturya'da doğal gazda 15 yılda bir, LPG'de 6 yılda bir.",
+        "sk": "Rakúsko: kontroly plynových inštalácií určujú zákony spolkových krajín – napr. Tirolsko každé 2 roky, Vorarlbersko každých 6; Horné Rakúsko každých 15 rokov pre zemný plyn a každých 6 pre LPG.",
     },
     "Austria: only Carinthia requires smoke alarms in existing homes (since 2013); the other states require them in new buildings.": {
         "de": "Österreich: Nur Kärnten schreibt Rauchmelder auch in bestehenden Wohnungen vor (seit 2013); die übrigen Bundesländer verlangen sie in Neubauten.",
@@ -16007,6 +16701,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ausztria: csak Karintia írja elő a füstérzékelőt a meglévő lakásokban (2013 óta); a többi tartomány az új épületekben követeli meg.",
         "ko": "오스트리아: 기존 주택에도 연기 경보기를 의무화한 곳은 케른텐주뿐입니다(2013년부터). 다른 주는 신축 건물에 의무화합니다.",
         "tr": "Avusturya: mevcut konutlarda duman dedektörünü yalnızca Karintiya zorunlu tutar (2013'ten beri); diğer eyaletler bunu yeni binalarda ister.",
+        "sk": "Rakúsko: detektory dymu v existujúcich domácnostiach vyžaduje len Korutánsko (od roku 2013); ostatné spolkové krajiny ich vyžadujú v novostavbách.",
     },
     "Belgium: a smoke alarm on every floor is mandatory in Flanders and Wallonia; Brussels requires sealed 10-year or mains-powered alarms since 2025, interconnected by 2028 where four or more are needed.": {
         "de": "Belgien: In Flandern und Wallonien ist auf jeder Etage ein Rauchmelder Pflicht; Brüssel verlangt seit 2025 Melder mit fest eingebauter 10-Jahres-Batterie oder Netzanschluss — wo vier oder mehr nötig sind, müssen sie bis 2028 vernetzt sein.",
@@ -16030,6 +16725,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Belgium: Flandriában és Vallóniában minden szinten kötelező a füstérzékelő; Brüsszel 2025 óta beépített 10 éves elemes vagy hálózati tápellátású érzékelőket ír elő, amelyeket 2028-ig össze kell kapcsolni, ahol négy vagy több szükséges.",
         "ko": "벨기에: 플란데런과 왈로니아에서는 모든 층에 연기 경보기가 의무입니다. 브뤼셀은 2025년부터 10년 밀봉 배터리형 또는 상시 전원형 경보기를 요구하며, 4개 이상 필요한 곳은 2028년까지 연동해야 합니다.",
         "tr": "Belçika: Flaman ve Valon bölgelerinde her katta duman dedektörü zorunludur; Brüksel 2025'ten beri 10 yıllık sabit pilli veya şebekeye bağlı dedektörler ister; dört ya da daha fazlası gereken yerlerde bunlar 2028'e kadar birbirine bağlanmalıdır.",
+        "sk": "Belgicko: detektor dymu na každom podlaží je povinný vo Flámsku a vo Valónsku; Brusel od roku 2025 vyžaduje zapečatené 10-ročné alebo sieťové detektory a do roku 2028 ich prepojenie tam, kde sú potrebné štyri alebo viac.",
     },
     "Belgium: oil and solid-fuel boilers every year; gas boilers every 2 years in Flanders and Brussels (there gas water heaters too), every 3 years in Wallonia (up to 100 kW).": {
         "de": "Belgien: Öl- und Festbrennstoffkessel jährlich; Gaskessel in Flandern und Brüssel alle 2 Jahre (dort auch Gas-Warmwasserbereiter), in Wallonien alle 3 Jahre (bis 100 kW).",
@@ -16053,6 +16749,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Belgium: az olaj- és szilárdtüzelésű kazánokat évente; a gázkazánokat Flandriában és Brüsszelben 2 évente (ott a gázüzemű vízmelegítőket is), Vallóniában 3 évente (100 kW-ig).",
         "ko": "벨기에: 기름·고체 연료 보일러는 매년; 가스 보일러는 플란데런과 브뤼셀에서 2년마다(브뤼셀은 가스 온수기도 포함), 왈로니아에서 3년마다(100 kW 이하).",
         "tr": "Belçika: sıvı ve katı yakıtlı kazanlar her yıl; gazlı kazanlar Flaman Bölgesi ve Brüksel'de 2 yılda bir (orada gazlı su ısıtıcıları da), Valon Bölgesi'nde 3 yılda bir (100 kW'a kadar).",
+        "sk": "Belgicko: olejové a tuhopalivové kotly každý rok; plynové kotly každé 2 roky vo Flámsku a v Bruseli (tam aj plynové ohrievače vody), každé 3 roky vo Valónsku (do 100 kW).",
     },
     "Check Collectors, Pipes and Insulation": {
         "de": "Kollektoren, Leitungen und Dämmung prüfen",
@@ -16076,6 +16773,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kollektorok, csövek és szigetelés ellenőrzése",
         "ko": "집열기·배관·보온재 점검",
         "tr": "Kolektörleri, Boruları ve Yalıtımı Kontrol Et",
+        "sk": "Skontrolovať kolektory, potrubie a izoláciu",
     },
     "Clean Collector Glass": {
         "de": "Kollektorglas reinigen",
@@ -16099,6 +16797,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kollektorüveg tisztítása",
         "ko": "집열기 유리 청소",
         "tr": "Kolektör Camını Temizle",
+        "sk": "Vyčistiť sklo kolektorov",
     },
     "Czechia: solid-fuel central-heating boilers of 10–300 kW need an inspection by a certified technician every 3 years.": {
         "de": "Tschechien: Festbrennstoffkessel für die Zentralheizung mit 10–300 kW müssen alle 3 Jahre von einem zertifizierten Techniker geprüft werden.",
@@ -16122,6 +16821,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Csehország: a 10–300 kW-os szilárdtüzelésű központi fűtési kazánokat 3 évente tanúsított szakembernek kell ellenőriznie.",
         "ko": "체코: 10–300 kW 고체 연료 중앙난방 보일러는 3년마다 인증 기술자의 점검이 필요합니다.",
         "tr": "Çekya: 10–300 kW katı yakıtlı merkezi ısıtma kazanları 3 yılda bir sertifikalı bir teknisyen tarafından denetlenmelidir.",
+        "sk": "Česko: kotly ústredného vykurovania na tuhé palivo 10 – 300 kW potrebujú kontrolu certifikovaným technikom každé 3 roky.",
     },
     "Denmark: the chimney sweep comes at least once a year; wood stoves made before 2003 must be removed when the house is sold.": {
         "de": "Dänemark: Der Schornsteinfeger kommt mindestens einmal im Jahr; Holzöfen, die vor 2003 hergestellt wurden, müssen beim Verkauf des Hauses entfernt werden.",
@@ -16145,6 +16845,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Dánia: a kéményseprő legalább évente egyszer kijön; a 2003 előtt gyártott fatüzelésű kályhákat a ház eladásakor el kell távolítani.",
         "ko": "덴마크: 굴뚝 청소업자가 최소 연 1회 방문합니다. 2003년 이전에 제조된 장작 난로는 주택을 매도할 때 철거해야 합니다.",
         "tr": "Danimarka: baca temizleyicisi en az yılda bir kez gelir; 2003'ten önce üretilmiş odun sobaları ev satılırken sökülmelidir.",
+        "sk": "Dánsko: kominár príde aspoň raz ročne; kachle na drevo vyrobené pred rokom 2003 treba pri predaji domu odstrániť.",
     },
     "Dust and limescale cut the yield — rinse the glass in the early morning or evening, never when it is hot.": {
         "de": "Staub und Kalk mindern den Ertrag — das Glas früh morgens oder abends abspülen, nie wenn es heiß ist.",
@@ -16168,6 +16869,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A por és a vízkő csökkenti a hozamot — kora reggel vagy este öblítse le az üveget, soha ne forrón.",
         "ko": "먼지와 물때는 효율을 떨어뜨립니다 — 유리는 이른 아침이나 저녁에 헹구고, 뜨거울 때는 절대 하지 마세요.",
         "tr": "Toz ve kireç verimi düşürür — camı sabah erken veya akşam durulayın, asla sıcakken değil.",
+        "sk": "Prach a vodný kameň znižujú výnos – sklo oplachujte skoro ráno alebo večer, nikdy nie keď je horúce.",
     },
     "Estonia: clean the stove and flue every year (you may do it yourself) and have a certified chimney sweep check them every 5 years.": {
         "de": "Estland: Ofen und Abgasweg jährlich reinigen (auch in Eigenregie möglich) und alle 5 Jahre von einem zertifizierten Schornsteinfeger prüfen lassen.",
@@ -16191,6 +16893,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Észtország: a kályhát és a füstjáratot évente tisztítsa (ezt saját maga is elvégezheti), és 5 évente ellenőriztesse tanúsított kéményseprővel.",
         "ko": "에스토니아: 난로와 연도는 매년 청소하고(직접 해도 됨), 5년마다 인증 굴뚝 청소업자의 점검을 받으세요.",
         "tr": "Estonya: sobayı ve bacayı her yıl temizleyin (bunu kendiniz yapabilirsiniz) ve 5 yılda bir sertifikalı bir baca temizleyicisine kontrol ettirin.",
+        "sk": "Estónsko: kachle a dymovod čistite každý rok (môžete aj sami) a každých 5 rokov ich dajte skontrolovať certifikovanému kominárovi.",
     },
     "Finland: since 1 January 2026 the building owner (the housing company for flats) must fit smoke alarms — at least one per started 60 m² on every floor.": {
         "de": "Finnland: Seit 1. Januar 2026 muss der Gebäudeeigentümer (bei Wohnungen die Wohnungsgesellschaft) Rauchmelder anbringen — mindestens einen je angefangene 60 m² auf jeder Etage.",
@@ -16214,6 +16917,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Finnország: 2026. január 1. óta az épület tulajdonosának (lakásoknál a társasháznak) kell füstérzékelőt felszerelnie — minden szinten minden megkezdett 60 m²-re legalább egyet.",
         "ko": "핀란드: 2026년 1월 1일부터 건물 소유자(공동주택은 주택회사)가 연기 경보기를 설치해야 합니다 — 각 층마다 면적 60 m²당 최소 1개(나머지 면적도 1개로 계산).",
         "tr": "Finlandiya: 1 Ocak 2026'dan bu yana bina sahibi (dairelerde konut şirketi) duman dedektörü takmak zorundadır — her katta başlanan her 60 m² için en az bir tane.",
+        "sk": "Fínsko: od 1. januára 2026 musí detektory dymu namontovať vlastník budovy (pri bytoch bytové družstvo) – aspoň jeden na každých začatých 60 m² na každom podlaží.",
     },
     "France: since October 2023 stoves, inserts and closed fireplaces must be serviced by a professional every year (décret 2023-641); keep the certificate.": {
         "de": "Frankreich: Seit Oktober 2023 müssen Öfen, Kamineinsätze und geschlossene Kamine jährlich von einem Fachbetrieb gewartet werden (décret 2023-641); die Bescheinigung aufbewahren.",
@@ -16237,6 +16941,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Franciaország: 2023 októbere óta a kályhákat, kandallóbetéteket és zárt kandallókat évente szakemberrel kell karbantartatni (décret 2023-641); őrizze meg az igazolást.",
         "ko": "프랑스: 2023년 10월부터 난로, 벽난로 인서트, 밀폐형 벽난로는 매년 전문가의 정비를 받아야 합니다(décret 2023-641). 확인서를 보관하세요.",
         "tr": "Fransa: Ekim 2023'ten bu yana sobalar, şömine kasetleri ve kapalı şömineler her yıl bir uzman tarafından bakımdan geçirilmelidir (décret 2023-641); belgeyi saklayın.",
+        "sk": "Francúzsko: od októbra 2023 musia mať kachle, krbové vložky a uzavreté krby každý rok servis od odborníka (décret 2023-641); potvrdenie si uschovajte.",
     },
     "Germany: the chimney sweep's measuring and inspection dates are set in your Feuerstättenbescheid — oil and gas boilers are measured every 3rd year, every 2nd once they are older than 12 years; every heating appliance is also inspected twice in seven years (Feuerstättenschau).": {
         "de": "Deutschland: Die Mess- und Überprüfungstermine des Schornsteinfegers stehen im Feuerstättenbescheid — Öl- und Gaskessel werden jedes 3. Jahr gemessen, jedes 2., sobald sie älter als 12 Jahre sind; außerdem wird jede Feuerstätte zweimal in sieben Jahren begutachtet (Feuerstättenschau).",
@@ -16260,6 +16965,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Németország: a kéményseprő mérési és ellenőrzési időpontjait a Feuerstättenbescheid rögzíti — az olaj- és gázkazánokat 3 évente mérik, a 12 évnél idősebbeket 2 évente; emellett minden fűtőberendezést hét év alatt kétszer átvizsgálnak (Feuerstättenschau).",
         "ko": "독일: 굴뚝 청소업자의 측정 및 점검 일정은 Feuerstättenbescheid에 정해져 있습니다 — 기름·가스 보일러는 3년마다 측정하며, 12년이 넘으면 2년마다 측정합니다. 또한 모든 난방 기기는 7년에 두 번 점검을 받습니다(Feuerstättenschau).",
         "tr": "Almanya: baca temizleyicisinin ölçüm ve denetim tarihleri Feuerstättenbescheid belgenizde belirtilir — sıvı yakıtlı ve gazlı kazanlar 3 yılda bir, 12 yaşından büyük olanlar 2 yılda bir ölçülür; ayrıca her ısıtma cihazı yedi yılda iki kez denetlenir (Feuerstättenschau).",
+        "sk": "Nemecko: termíny merania a kontroly kominárom určuje váš Feuerstättenbescheid – olejové a plynové kotly sa merajú každý 3. rok, po 12 rokoch veku každý 2.; každý vykurovací spotrebič sa navyše dvakrát za sedem rokov skontroluje (Feuerstättenschau).",
     },
     "Have a qualified technician service the stove or insert — seals, baffle plates, flue connection and combustion air.": {
         "de": "Ofen oder Kamineinsatz von einem Fachbetrieb warten lassen — Dichtungen, Umlenkplatten, Rauchrohranschluss und Verbrennungsluft.",
@@ -16283,6 +16989,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szakemberrel végeztesse a kályha vagy a kandallóbetét karbantartását — tömítések, terelőlemezek, füstcső-csatlakozás és égési levegő.",
         "ko": "자격을 갖춘 기술자에게 난로나 벽난로 인서트 정비를 맡기세요 — 가스켓, 배플 판, 연도 연결부, 연소 공기.",
         "tr": "Sobanın veya şömine kasetinin bakımını yetkin bir teknisyene yaptırın — contalar, deflektör plakaları, baca bağlantısı ve yanma havası.",
+        "sk": "Servis kachlí alebo krbovej vložky zverte kvalifikovanému technikovi – tesnenia, deflektory, napojenie na dymovod a prívod spaľovacieho vzduchu.",
     },
     "Heat-transfer fluid, pressure, valves and the backup heater — before winter where it freezes.": {
         "de": "Solarflüssigkeit, Druck, Ventile und die Nachheizung — in Frostgebieten vor dem Winter.",
@@ -16306,6 +17013,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Hőhordozó folyadék, nyomás, szelepek és a kiegészítő fűtés — fagyveszélyes helyen a tél előtt.",
         "ko": "열매체, 압력, 밸브, 보조 히터 — 겨울에 어는 지역에서는 겨울 전에.",
         "tr": "Isı transfer sıvısı, basınç, vanalar ve yedek ısıtıcı — don olan yerlerde kıştan önce.",
+        "sk": "Teplonosná kvapalina, tlak, ventily a záložný ohrev – pred zimou tam, kde mrzne.",
     },
     "Hungary: the free state chimney service checks solid- and liquid-fuel flues every year, gas and room-sealed ones every 2 years, holiday homes every 4 years.": {
         "de": "Ungarn: Der kostenlose staatliche Schornsteinfegerdienst prüft Abgaswege für feste und flüssige Brennstoffe jährlich, für Gas und raumluftunabhängige Geräte alle 2 Jahre, bei Ferienhäusern alle 4 Jahre.",
@@ -16329,6 +17037,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Magyarország: az ingyenes állami kéményseprő-szolgáltatás évente ellenőrzi a szilárd és folyékony tüzelésű égéstermék-elvezetőket, 2 évente a gáztüzelésűeket és a zárt égésterűeket, üdülőkben 4 évente.",
         "ko": "헝가리: 무료 국영 굴뚝 서비스가 고체·액체 연료 연도는 매년, 가스 및 밀폐식 연도는 2년마다, 별장은 4년마다 점검합니다.",
         "tr": "Macaristan: ücretsiz devlet baca hizmeti katı ve sıvı yakıtlı bacaları her yıl, gazlı ve hermetik cihaz bacalarını 2 yılda bir, yazlık evlerde 4 yılda bir denetler.",
+        "sk": "Maďarsko: bezplatná štátna kominárska služba kontroluje dymovody na tuhé a kvapalné palivá každý rok, plynové a uzavreté každé 2 roky, rekreačné domy každé 4 roky.",
     },
     "Ireland: have gas boilers serviced every year by a Registered Gas Installer (RGI) and fit a CO alarm in every room with a fuel-burning appliance.": {
         "de": "Irland: Gaskessel jährlich von einem Registered Gas Installer (RGI) warten lassen und in jedem Raum mit einer Feuerstätte einen CO-Melder anbringen.",
@@ -16352,6 +17061,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Írország: a gázkazánokat évente regisztrált gázszerelővel (Registered Gas Installer, RGI) szervizeltesse, és minden olyan helyiségben, ahol tüzelőberendezés van, szereljen fel CO-érzékelőt.",
         "ko": "아일랜드: 가스 보일러는 매년 등록 가스 설치업자(Registered Gas Installer, RGI)에게 정비를 받고, 연료 연소 기기가 있는 모든 방에 일산화탄소 경보기를 설치하세요.",
         "tr": "İrlanda: gazlı kazanlara her yıl kayıtlı bir gaz tesisatçısına (Registered Gas Installer, RGI) bakım yaptırın ve yakıt yakan cihaz bulunan her odaya CO alarmı takın.",
+        "sk": "Írsko: plynové kotly dajte každý rok servisovať registrovaným plynárom (RGI) a do každej miestnosti so spotrebičom na palivo namontujte detektor CO.",
     },
     "Ireland: septic tanks must be registered and emptied by an authorised collector — keep the receipts for 5 years; how often depends on tank size and household (e.g. 3.5 m³ with 3 people: every 4 years).": {
         "de": "Irland: Klärgruben müssen registriert und von einem zugelassenen Entsorger geleert werden — Belege 5 Jahre aufbewahren; wie oft, hängt von Grubengröße und Haushalt ab (z. B. 3,5 m³ bei 3 Personen: alle 4 Jahre).",
@@ -16375,6 +17085,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Írország: a szeptikus tartályokat regisztrálni kell, és csak engedélyezett szolgáltató ürítheti őket — a számlákat 5 évig őrizze meg; a gyakoriság a tartály méretétől és a háztartás létszámától függ (pl. 3,5 m³ és 3 fő: 4 évente).",
         "ko": "아일랜드: 정화조는 등록해야 하며 인가된 수거업체가 비워야 합니다 — 영수증은 5년간 보관하세요. 주기는 정화조 크기와 가구원 수에 따라 다릅니다(예: 3.5 m³, 3인: 4년마다).",
         "tr": "İrlanda: fosseptikler kayıt ettirilmeli ve yetkili bir toplayıcı tarafından boşaltılmalıdır — makbuzları 5 yıl saklayın; sıklık tank büyüklüğüne ve haneye bağlıdır (ör. 3,5 m³ ve 3 kişi: 4 yılda bir).",
+        "sk": "Írsko: septiky musia byť zaregistrované a vyprázdňované autorizovaným zberateľom – potvrdenia si uschovajte 5 rokov; frekvencia závisí od veľkosti nádrže a domácnosti (napr. 3,5 m³ pri 3 osobách: každé 4 roky).",
     },
     "Italy: heat pumps and air conditioners over 12 kW need an efficiency check every 4 years and a system logbook (libretto di impianto).": {
         "de": "Italien: Wärmepumpen und Klimaanlagen über 12 kW brauchen alle 4 Jahre eine Effizienzprüfung und ein Anlagenbuch (libretto di impianto).",
@@ -16398,6 +17109,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Olaszország: a 12 kW feletti hőszivattyúkhoz és klímaberendezésekhez 4 évente hatékonysági ellenőrzés és berendezésnapló (libretto di impianto) szükséges.",
         "ko": "이탈리아: 12 kW 초과 히트펌프와 에어컨은 4년마다 효율 점검을 받아야 하며 설비 일지(libretto di impianto)가 필요합니다.",
         "tr": "İtalya: 12 kW üzerindeki ısı pompaları ve klimalar 4 yılda bir verimlilik kontrolü ve bir sistem kayıt defteri (libretto di impianto) gerektirir.",
+        "sk": "Taliansko: tepelné čerpadlá a klimatizácie nad 12 kW potrebujú kontrolu účinnosti každé 4 roky a knihu zariadenia (libretto di impianto).",
     },
     "Latvia: every home needs a smoke alarm on each floor (since 2020), every house also a fire extinguisher.": {
         "de": "Lettland: Jede Wohnung braucht auf jeder Etage einen Rauchmelder (seit 2020), jedes Haus zusätzlich einen Feuerlöscher.",
@@ -16421,6 +17133,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lettország: minden lakásban minden szinten kell füstérzékelő (2020 óta), minden házban ezenfelül tűzoltó készülék is.",
         "ko": "라트비아: 모든 주거지는 층마다 연기 경보기가 필요하며(2020년부터), 단독주택은 소화기도 갖춰야 합니다.",
         "tr": "Letonya: her konutta her katta duman dedektörü (2020'den beri), her müstakil evde ayrıca yangın söndürücü bulunmalıdır.",
+        "sk": "Lotyšsko: každá domácnosť potrebuje detektor dymu na každom podlaží (od roku 2020), každý dom aj hasiaci prístroj.",
     },
     "Latvia: every house must have an extinguisher — check it yourself every year and have it serviced every 5 years.": {
         "de": "Lettland: Jedes Haus muss einen Feuerlöscher haben — jährlich selbst prüfen und alle 5 Jahre warten lassen.",
@@ -16444,6 +17157,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lettország: minden házban kötelező a tűzoltó készülék — évente ellenőrizze saját maga, és 5 évente szervizeltesse.",
         "ko": "라트비아: 모든 단독주택에는 소화기가 있어야 합니다 — 매년 직접 점검하고 5년마다 정비를 받으세요.",
         "tr": "Letonya: her müstakil evde yangın söndürücü bulunmalıdır — her yıl kendiniz kontrol edin ve 5 yılda bir bakıma verin.",
+        "sk": "Lotyšsko: každý dom musí mať hasiaci prístroj – každý rok ho sami skontrolujte a každých 5 rokov dajte servisovať.",
     },
     "Latvia: gas appliances must be serviced every year.": {
         "de": "Lettland: Gasgeräte müssen jährlich gewartet werden.",
@@ -16467,6 +17181,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lettország: a gázkészülékeket évente szervizeltetni kell.",
         "ko": "라트비아: 가스 기기는 매년 정비를 받아야 합니다.",
         "tr": "Letonya: gazlı cihazların her yıl bakımı yapılmalıdır.",
+        "sk": "Lotyšsko: plynové spotrebiče musia mať servis každý rok.",
     },
     "Latvia: solid-fuel flues must be cleaned before 1 November each year.": {
         "de": "Lettland: Abgaswege für feste Brennstoffe müssen jedes Jahr vor dem 1. November gereinigt werden.",
@@ -16490,6 +17205,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lettország: a szilárdtüzelésű égéstermék-elvezetőket minden évben november 1. előtt ki kell tisztítani.",
         "ko": "라트비아: 고체 연료 연도는 매년 11월 1일 전에 청소해야 합니다.",
         "tr": "Letonya: katı yakıtlı bacalar her yıl 1 Kasım'dan önce temizlenmelidir.",
+        "sk": "Lotyšsko: dymovody na tuhé palivo treba každý rok vyčistiť pred 1. novembrom.",
     },
     "Liechtenstein: oil and gas heating needs a yearly firing control; gas appliances also need a service contract.": {
         "de": "Liechtenstein: Öl- und Gasheizungen brauchen eine jährliche Feuerungskontrolle; für Gasgeräte ist zudem ein Wartungsvertrag nötig.",
@@ -16513,6 +17229,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Liechtenstein: az olaj- és gázfűtésnél évente tüzeléstechnikai ellenőrzés kötelező; a gázkészülékekhez karbantartási szerződés is kell.",
         "ko": "리히텐슈타인: 기름·가스 난방은 매년 연소 점검을 받아야 하며, 가스 기기는 정비 계약도 필요합니다.",
         "tr": "Lihtenştayn: sıvı yakıtlı ve gazlı ısıtmada her yıl yanma kontrolü gerekir; gazlı cihazlar için ayrıca bakım sözleşmesi şarttır.",
+        "sk": "Lichtenštajnsko: olejové a plynové vykurovanie potrebuje ročnú kontrolu spaľovania; plynové spotrebiče aj servisnú zmluvu.",
     },
     "Liechtenstein: sweeping twice a year for solid fuel, once for oil.": {
         "de": "Liechtenstein: Kaminfegen zweimal jährlich bei festen Brennstoffen, einmal bei Öl.",
@@ -16536,6 +17253,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Liechtenstein: kéményseprés szilárd tüzelőanyagnál évente kétszer, olajnál egyszer.",
         "ko": "리히텐슈타인: 굴뚝 청소는 고체 연료는 연 2회, 기름은 연 1회.",
         "tr": "Lihtenştayn: baca temizliği katı yakıtta yılda iki kez, sıvı yakıtta bir kez.",
+        "sk": "Lichtenštajnsko: čistenie dvakrát ročne pri tuhom palive, raz pri oleji.",
     },
     "Look for leaks, cracked glass and pipe insulation damaged by the sun.": {
         "de": "Auf Undichtigkeiten, gesprungenes Glas und von der Sonne beschädigte Rohrdämmung achten.",
@@ -16559,6 +17277,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Keressen szivárgást, repedt üveget és a nap által károsított csőszigetelést.",
         "ko": "누수, 금 간 유리, 햇빛에 손상된 배관 보온재가 있는지 살펴보세요.",
         "tr": "Sızıntıları, çatlak camı ve güneşten zarar görmüş boru yalıtımını kontrol edin.",
+        "sk": "Hľadajte úniky, prasknuté sklo a izoláciu potrubia poškodenú slnkom.",
     },
     "Luxembourg: every home needs smoke alarms in the bedrooms and along the escape route (since 2023); the owner fits them, the occupant maintains them.": {
         "de": "Luxemburg: Jede Wohnung braucht Rauchmelder in den Schlafräumen und entlang des Fluchtwegs (seit 2023); der Eigentümer installiert sie, der Bewohner wartet sie.",
@@ -16582,6 +17301,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Luxemburg: minden lakásban kell füstérzékelő a hálószobákban és a menekülési útvonal mentén (2023 óta); a tulajdonos szereli fel, a lakó tartja karban.",
         "ko": "룩셈부르크: 모든 주거지는 침실과 대피 경로를 따라 연기 경보기가 필요합니다(2023년부터). 설치는 소유자가, 관리는 거주자가 합니다.",
         "tr": "Lüksemburg: her konutta yatak odalarında ve kaçış yolu boyunca duman dedektörü bulunmalıdır (2023'ten beri); dedektörleri mülk sahibi takar, oturan kişi bakımını yapar.",
+        "sk": "Luxembursko: každá domácnosť potrebuje detektory dymu v spálňach a pozdĺž únikovej cesty (od roku 2023); montuje ich vlastník, udržiava užívateľ.",
     },
     "Netherlands: servicing is not mandatory for owners, but since April 2023 only CO-certified companies may install or maintain gas appliances; the fire service advises a yearly check.": {
         "de": "Niederlande: Für Eigentümer ist die Wartung keine Pflicht, doch seit April 2023 dürfen nur CO-zertifizierte Betriebe Gasgeräte installieren oder warten; die Feuerwehr empfiehlt eine jährliche Kontrolle.",
@@ -16605,6 +17325,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Hollandia: a tulajdonosok számára a karbantartás nem kötelező, de 2023 áprilisa óta gázkészüléket csak CO-tanúsítvánnyal rendelkező cég szerelhet be vagy tarthat karban; a tűzoltóság évenkénti ellenőrzést javasol.",
         "ko": "네덜란드: 소유자에게 정비 의무는 없지만, 2023년 4월부터 CO 인증 업체만 가스 기기를 설치하거나 정비할 수 있습니다. 소방당국은 매년 점검을 권장합니다.",
         "tr": "Hollanda: bakım mülk sahipleri için zorunlu değildir, ancak Nisan 2023'ten bu yana gazlı cihazları yalnızca CO sertifikalı firmalar kurabilir veya bakımını yapabilir; itfaiye yılda bir kontrol önerir.",
+        "sk": "Holandsko: servis nie je pre vlastníkov povinný, ale od apríla 2023 smú plynové spotrebiče inštalovať alebo udržiavať len firmy s certifikáciou CO; hasiči odporúčajú ročnú kontrolu.",
     },
     "Netherlands: the fire service advises sweeping the chimney at least once a year.": {
         "de": "Niederlande: Die Feuerwehr empfiehlt, den Schornstein mindestens einmal im Jahr fegen zu lassen.",
@@ -16628,6 +17349,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Hollandia: a tűzoltóság legalább évi egyszeri kéményseprést javasol.",
         "ko": "네덜란드: 소방당국은 최소 연 1회 굴뚝 청소를 권장합니다.",
         "tr": "Hollanda: itfaiye bacanın en az yılda bir kez temizlenmesini önerir.",
+        "sk": "Holandsko: hasiči odporúčajú čistiť komín aspoň raz ročne.",
     },
     "Norway: every home must have a fire hose or an extinguisher; check it yourself every 6 months.": {
         "de": "Norwegen: Jede Wohnung muss einen Löschschlauch oder einen Feuerlöscher haben; alle 6 Monate selbst prüfen.",
@@ -16651,6 +17373,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Norvégia: minden lakásban kötelező a tűzoltótömlő vagy a tűzoltó készülék; 6 havonta ellenőrizze saját maga.",
         "ko": "노르웨이: 모든 주거지에는 소방 호스나 소화기가 있어야 합니다. 6개월마다 직접 점검하세요.",
         "tr": "Norveç: her konutta yangın hortumu veya yangın söndürücü bulunmalıdır; 6 ayda bir kendiniz kontrol edin.",
+        "sk": "Nórsko: každá domácnosť musí mať požiarnu hadicu alebo hasiaci prístroj; každých 6 mesiacov ich sami skontrolujte.",
     },
     "Norway: heating with fossil oil is banned since 2020; buried steel tanks over 3,200 l are checked from 15 years of age, then every 5 years.": {
         "de": "Norwegen: Heizen mit fossilem Öl ist seit 2020 verboten; erdverlegte Stahltanks über 3.200 l werden ab einem Alter von 15 Jahren geprüft, danach alle 5 Jahre.",
@@ -16674,6 +17397,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Norvégia: a fosszilis olajjal való fűtés 2020 óta tilos; a 3200 l feletti, föld alatti acéltartályokat 15 éves koruktól, majd 5 évente ellenőrzik.",
         "ko": "노르웨이: 화석 연료유 난방은 2020년부터 금지되었습니다. 3,200 l를 초과하는 지하 매설 강철 탱크는 15년이 되면 점검하고 이후 5년마다 점검합니다.",
         "tr": "Norveç: fosil kalorifer yakıtıyla ısınma 2020'den beri yasaktır; 3.200 l üzerindeki gömülü çelik tanklar 15 yaşından itibaren, ardından 5 yılda bir denetlenir.",
+        "sk": "Nórsko: vykurovanie fosílnym olejom je od roku 2020 zakázané; zakopané oceľové nádrže nad 3 200 l sa kontrolujú od veku 15 rokov, potom každých 5 rokov.",
     },
     "Norway: the municipality sweeps and inspects based on risk; the owner checks the fireplace and gives the sweep access.": {
         "de": "Norwegen: Die Gemeinde fegt und prüft nach Risikobewertung; der Eigentümer kontrolliert die Feuerstätte und gewährt dem Schornsteinfeger Zugang.",
@@ -16697,6 +17421,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Norvégia: az önkormányzat kockázatalapon végzi a kéményseprést és az ellenőrzést; a tulajdonos ellenőrzi a tüzelőberendezést, és biztosítja a kéményseprő hozzáférését.",
         "ko": "노르웨이: 지방자치단체가 위험도에 따라 굴뚝 청소와 점검을 하며, 소유자는 난로를 점검하고 굴뚝 청소업자의 출입을 보장합니다.",
         "tr": "Norveç: belediye risk değerlendirmesine göre baca temizliği ve denetim yapar; ev sahibi soba veya şömineyi kontrol eder ve baca temizleyicisine erişim sağlar.",
+        "sk": "Nórsko: obec čistí a kontroluje podľa rizika; vlastník kontroluje ohnisko a umožní kominárovi prístup.",
     },
     "Poland: solid-fuel flues must be cleaned every 3 months (gas and oil every 6, ventilation ducts every year) — you may do it yourself in your own house; plus a chimney sweep's inspection every year.": {
         "de": "Polen: Abgaswege für feste Brennstoffe müssen alle 3 Monate gereinigt werden (Gas und Öl alle 6, Lüftungskanäle jährlich) — im eigenen Haus auch in Eigenregie; dazu jährlich eine Überprüfung durch den Schornsteinfeger.",
@@ -16720,6 +17445,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lengyelország: a szilárdtüzelésű égéstermék-elvezetőket 3 havonta kell tisztítani (gáz és olaj esetén 6 havonta, a szellőzőcsatornákat évente) — saját házban ezt maga is elvégezheti; emellett évente kéményseprői ellenőrzés is kell.",
         "ko": "폴란드: 고체 연료 연도는 3개월마다 청소해야 합니다(가스·기름은 6개월마다, 환기 덕트는 매년). 자기 집이라면 직접 해도 됩니다. 여기에 매년 굴뚝 청소업자의 점검도 받아야 합니다.",
         "tr": "Polonya: katı yakıtlı bacalar 3 ayda bir temizlenmelidir (gaz ve sıvı yakıtta 6 ayda bir, havalandırma kanalları her yıl) — kendi evinizde bunu kendiniz yapabilirsiniz; ayrıca her yıl baca temizleyicisi denetimi gerekir.",
+        "sk": "Poľsko: dymovody na tuhé palivo treba čistiť každé 3 mesiace (plyn a olej každých 6, vetracie potrubie každý rok) – vo vlastnom dome to môžete urobiť sami; k tomu každý rok kontrola kominárom.",
     },
     "Poland: the gas installation must be checked every year, single-family homes included (Building Law, Art. 62).": {
         "de": "Polen: Die Gasinstallation muss jährlich geprüft werden, auch in Einfamilienhäusern (Baugesetz, Art. 62).",
@@ -16743,6 +17469,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lengyelország: a gázrendszert évente ellenőrizni kell, a családi házakban is (építési törvény, 62. cikk).",
         "ko": "폴란드: 가스 설비는 단독주택을 포함해 매년 점검해야 합니다(건축법 제62조).",
         "tr": "Polonya: gaz tesisatı müstakil evler dahil her yıl kontrol edilmelidir (İnşaat Kanunu, md. 62).",
+        "sk": "Poľsko: plynovú inštaláciu treba kontrolovať každý rok, aj v rodinných domoch (stavebný zákon, čl. 62).",
     },
     "Portugal: gas installations are inspected every 5 years (older installations for the first time by August 2028); if the inspection is missed, the supply is cut.": {
         "de": "Portugal: Gasinstallationen werden alle 5 Jahre geprüft (ältere Anlagen erstmals bis August 2028); wird die Prüfung versäumt, wird die Versorgung eingestellt.",
@@ -16766,6 +17493,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Portugália: a gázrendszereket 5 évente vizsgálják (a régebbieket először 2028 augusztusáig); ha az ellenőrzés elmarad, a gázszolgáltatást felfüggesztik.",
         "ko": "포르투갈: 가스 설비는 5년마다 검사합니다(오래된 설비는 2028년 8월까지 첫 검사). 검사를 받지 않으면 공급이 중단됩니다.",
         "tr": "Portekiz: gaz tesisatları 5 yılda bir denetlenir (eski tesisatlar ilk kez Ağustos 2028'e kadar); denetim kaçırılırsa gaz kesilir.",
+        "sk": "Portugalsko: plynové inštalácie sa kontrolujú každých 5 rokov (staršie inštalácie prvýkrát do augusta 2028); ak sa kontrola zmešká, dodávka sa preruší.",
     },
     "Romania: boilers up to 400 kW need an ISCIR technical check every 2 years; the gas installation is verified every 2 years and revised every 10 years.": {
         "de": "Rumänien: Heizkessel bis 400 kW brauchen alle 2 Jahre eine technische ISCIR-Prüfung; die Gasinstallation wird alle 2 Jahre überprüft und alle 10 Jahre einer Revision unterzogen.",
@@ -16789,6 +17517,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Románia: a 400 kW-ig terjedő kazánoknak 2 évente ISCIR műszaki ellenőrzés kell; a gázrendszert 2 évente ellenőrzik, 10 évente pedig teljes körű felülvizsgálaton esik át.",
         "ko": "루마니아: 400 kW 이하 보일러는 2년마다 ISCIR 기술 점검이 필요합니다. 가스 설비는 2년마다 점검하고 10년마다 정밀 점검을 받습니다.",
         "tr": "Romanya: 400 kW'a kadar kazanlar 2 yılda bir ISCIR teknik kontrolünden geçmelidir; gaz tesisatı 2 yılda bir kontrol edilir ve 10 yılda bir kapsamlı revizyondan geçer.",
+        "sk": "Rumunsko: kotly do 400 kW potrebujú technickú kontrolu ISCIR každé 2 roky; plynová inštalácia sa overuje každé 2 roky a reviduje každých 10 rokov.",
     },
     "Romania: every household gas installation needs a verification every 2 years and a revision every 10 years.": {
         "de": "Rumänien: Jede Gasinstallation im Haushalt braucht alle 2 Jahre eine Überprüfung und alle 10 Jahre eine Revision.",
@@ -16812,6 +17541,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Románia: minden háztartási gázrendszernek 2 évente ellenőrzésre, 10 évente teljes körű felülvizsgálatra van szüksége.",
         "ko": "루마니아: 모든 가정용 가스 설비는 2년마다 점검, 10년마다 정밀 점검을 받아야 합니다.",
         "tr": "Romanya: her konut gaz tesisatı 2 yılda bir kontrol ve 10 yılda bir kapsamlı revizyon gerektirir.",
+        "sk": "Rumunsko: každá domová plynová inštalácia potrebuje overenie každé 2 roky a revíziu každých 10 rokov.",
     },
     "Slovakia (up to 50 kW): solid and liquid fuels every 4 months, gas every 6 months (lined flues every 12); fireplaces used only occasionally every 2 years.": {
         "de": "Slowakei (bis 50 kW): feste und flüssige Brennstoffe alle 4 Monate, Gas alle 6 Monate (Schornsteine mit Innenrohr alle 12); nur gelegentlich genutzte Kamine alle 2 Jahre.",
@@ -16835,6 +17565,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szlovákia (50 kW-ig): szilárd és folyékony tüzelőanyag 4 havonta, gáz 6 havonta (bélelt kémények 12 havonta); csak alkalmanként használt kandallók 2 évente.",
         "ko": "슬로바키아(50 kW 이하): 고체·액체 연료는 4개월마다, 가스는 6개월마다(라이너 시공 연도는 12개월마다), 가끔만 쓰는 벽난로는 2년마다.",
         "tr": "Slovakya (50 kW'a kadar): katı ve sıvı yakıtlar 4 ayda bir, gaz 6 ayda bir (astarlı bacalar 12 ayda bir); yalnızca ara sıra kullanılan şömineler 2 yılda bir.",
+        "sk": "Slovensko (do 50 kW): tuhé a kvapalné palivá každé 4 mesiace, plyn každých 6 mesiacov (vložkované komíny každých 12); ohniská používané len občas každé 2 roky.",
     },
     "Slovenia: a licensed chimney sweep of your choice inspects every year; solid-fuel flues are cleaned 4 times per heating season (3 on the coast).": {
         "de": "Slowenien: Ein frei wählbarer zugelassener Schornsteinfeger prüft jährlich; Abgaswege für feste Brennstoffe werden 4-mal pro Heizsaison gereinigt (an der Küste 3-mal).",
@@ -16858,6 +17589,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szlovénia: egy szabadon választott, engedéllyel rendelkező kéményseprő évente ellenőriz; a szilárdtüzelésű égéstermék-elvezetőket fűtési idényenként 4-szer tisztítják (a tengerparton 3-szor).",
         "ko": "슬로베니아: 직접 선택한 면허 굴뚝 청소업자가 매년 점검합니다. 고체 연료 연도는 난방철마다 4회(해안 지역은 3회) 청소합니다.",
         "tr": "Slovenya: seçtiğiniz lisanslı bir baca temizleyicisi her yıl denetim yapar; katı yakıtlı bacalar her ısıtma sezonunda 4 kez (kıyıda 3 kez) temizlenir.",
+        "sk": "Slovinsko: licencovaný kominár podľa vášho výberu kontroluje každý rok; dymovody na tuhé palivo sa čistia 4-krát za vykurovaciu sezónu (na pobreží 3-krát).",
     },
     "Slovenia: a licensed chimney sweep of your choice measures the emissions of oil and open-flue gas heating every year.": {
         "de": "Slowenien: Ein frei wählbarer zugelassener Schornsteinfeger misst jährlich die Emissionen von Öl- und raumluftabhängigen Gasheizungen.",
@@ -16881,6 +17613,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szlovénia: egy szabadon választott, engedéllyel rendelkező kéményseprő évente méri az olajfűtés és a nyílt égésterű gázfűtés kibocsátását.",
         "ko": "슬로베니아: 직접 선택한 면허 굴뚝 청소업자가 매년 기름 난방과 반밀폐식 가스 난방의 배출가스를 측정합니다.",
         "tr": "Slovenya: seçtiğiniz lisanslı bir baca temizleyicisi sıvı yakıtlı ve bacalı (açık yanma odalı) gazlı ısıtmanın emisyonlarını her yıl ölçer.",
+        "sk": "Slovinsko: licencovaný kominár podľa vášho výberu každý rok meria emisie olejového a plynového vykurovania s otvorenou spaľovacou komorou.",
     },
     "Solar Water Heater": {
         "de": "Solar-Warmwasserbereiter",
@@ -16904,6 +17637,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Napkollektoros vízmelegítő",
         "ko": "태양열 온수기",
         "tr": "Güneş Enerjili Su Isıtıcısı",
+        "sk": "Solárny ohrev vody",
     },
     "Spain: heat pumps and air conditioners up to 12 kW must be serviced by an authorised company every 4 years (RITE).": {
         "de": "Spanien: Wärmepumpen und Klimaanlagen bis 12 kW müssen alle 4 Jahre von einem zugelassenen Fachbetrieb gewartet werden (RITE).",
@@ -16927,6 +17661,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Spanyolország: a 12 kW-ig terjedő hőszivattyúkat és klímaberendezéseket 4 évente engedéllyel rendelkező céggel kell karbantartatni (RITE).",
         "ko": "스페인: 12 kW 이하 히트펌프와 에어컨은 4년마다 인가 업체의 정비를 받아야 합니다(RITE).",
         "tr": "İspanya: 12 kW'a kadar ısı pompaları ve klimaların 4 yılda bir yetkili bir firma tarafından bakımı yapılmalıdır (RITE).",
+        "sk": "Španielsko: tepelné čerpadlá a klimatizácie do 12 kW musí servisovať autorizovaná firma každé 4 roky (RITE).",
     },
     "Spain: solar thermal systems up to 14 kW must be serviced by an authorised company every year (RITE).": {
         "de": "Spanien: Solarthermieanlagen bis 14 kW müssen jährlich von einem zugelassenen Fachbetrieb gewartet werden (RITE).",
@@ -16950,6 +17685,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Spanyolország: a 14 kW-ig terjedő napkollektoros rendszereket évente engedéllyel rendelkező céggel kell karbantartatni (RITE).",
         "ko": "스페인: 14 kW 이하 태양열 시스템은 매년 인가 업체의 정비를 받아야 합니다(RITE).",
         "tr": "İspanya: 14 kW'a kadar güneş enerjili ısıl sistemlerin her yıl yetkili bir firma tarafından bakımı yapılmalıdır (RITE).",
+        "sk": "Španielsko: solárne termické systémy do 14 kW musí servisovať autorizovaná firma každý rok (RITE).",
     },
     "Stove Service": {
         "de": "Ofenwartung",
@@ -16973,6 +17709,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kályha szervize",
         "ko": "난로 정비",
         "tr": "Soba Bakımı",
+        "sk": "Servis kachlí",
     },
     "Switzerland: units with more than 3 kg of refrigerant need a leak check at every service and a logbook.": {
         "de": "Schweiz: Geräte mit mehr als 3 kg Kältemittel brauchen bei jeder Wartung eine Dichtheitskontrolle und ein Wartungsheft.",
@@ -16996,6 +17733,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Svájc: a 3 kg-nál több hűtőközeget tartalmazó berendezéseknél minden szerviznél szivárgásvizsgálat és napló kötelező.",
         "ko": "스위스: 냉매가 3 kg을 초과하는 기기는 정비 때마다 누설 점검을 받아야 하며 일지를 갖춰야 합니다.",
         "tr": "İsviçre: 3 kg'dan fazla soğutucu akışkan içeren cihazlarda her bakımda sızdırmazlık kontrolü ve bir kayıt defteri gerekir.",
+        "sk": "Švajčiarsko: zariadenia s viac ako 3 kg chladiva potrebujú pri každom servise kontrolu tesnosti a prevádzkový denník.",
     },
     "UK: HETAS advises sweeping at least twice a year for wood or house coal, once for smokeless fuel.": {
         "de": "Großbritannien: HETAS empfiehlt bei Holz oder Steinkohle mindestens zweimal jährlich zu fegen, bei rauchfreien Brennstoffen einmal.",
@@ -17019,6 +17757,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Egyesült Királyság: a HETAS fa vagy kőszén esetén legalább évi kétszeri, füstmentes tüzelőanyagnál évi egyszeri kéményseprést javasol.",
         "ko": "영국: HETAS는 장작이나 유연탄을 때면 최소 연 2회, 무연 연료는 연 1회 굴뚝 청소를 권장합니다.",
         "tr": "Birleşik Krallık: HETAS odun veya taş kömürü için en az yılda iki, dumansız yakıt için yılda bir kez baca temizliği önerir.",
+        "sk": "Spojené kráľovstvo: HETAS odporúča čistiť komín aspoň dvakrát ročne pri dreve alebo uhlí, raz pri bezdymovom palive.",
     },
     "UK: in Scotland every home needs interlinked smoke alarms in the living room and every hall or landing, a heat alarm in the kitchen and a CO alarm by fuel-burning appliances; elsewhere in the UK the duty falls on landlords.": {
         "de": "Großbritannien: In Schottland braucht jede Wohnung vernetzte Rauchmelder im Wohnzimmer und in jedem Flur bzw. auf jedem Treppenabsatz, einen Hitzemelder in der Küche und einen CO-Melder bei Feuerstätten; im übrigen Vereinigten Königreich liegt die Pflicht bei den Vermietern.",
@@ -17042,6 +17781,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Egyesült Királyság: Skóciában minden lakásban kell összekapcsolt füstérzékelő a nappaliban és minden előszobában vagy lépcsőfordulóban, hőérzékelő a konyhában és CO-érzékelő a tüzelőberendezések közelében; az Egyesült Királyság többi részén a kötelezettség a bérbeadókat terheli.",
         "ko": "영국: 스코틀랜드에서는 모든 주거지에 거실과 모든 복도·계단참에 연동형 연기 경보기, 주방에 열 감지기, 연료 연소 기기 옆에 일산화탄소 경보기가 있어야 합니다. 영국의 다른 지역에서는 임대인에게 이 의무가 있습니다.",
         "tr": "Birleşik Krallık: İskoçya'da her konutta oturma odasında ve her koridor ya da merdiven sahanlığında birbirine bağlı duman dedektörleri, mutfakta ısı dedektörü ve yakıt yakan cihazların yanında CO alarmı bulunmalıdır; Birleşik Krallık'ın geri kalanında bu yükümlülük ev sahiplerine aittir.",
+        "sk": "Spojené kráľovstvo: v Škótsku potrebuje každá domácnosť prepojené detektory dymu v obývačke a v každej chodbe či na podeste, tepelný hlásič v kuchyni a detektor CO pri spotrebičoch na palivo; inde v Spojenom kráľovstve je to povinnosť prenajímateľov.",
     },
     "UK: tanks over 3,500 l (Scotland: 2,500 l) need a bund; OFTEC advises a yearly service of the boiler and the tank.": {
         "de": "Großbritannien: Tanks über 3.500 l (Schottland: 2.500 l) brauchen eine Auffangwanne; OFTEC empfiehlt eine jährliche Wartung von Heizkessel und Tank.",
@@ -17065,6 +17805,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Egyesült Királyság: a 3500 l feletti tartályokhoz (Skóciában 2500 l felett) kármentő kell; az OFTEC a kazán és a tartály évenkénti karbantartását javasolja.",
         "ko": "영국: 3,500 l를 초과하는 탱크(스코틀랜드: 2,500 l)에는 방유제가 필요합니다. OFTEC는 보일러와 탱크를 매년 정비할 것을 권장합니다.",
         "tr": "Birleşik Krallık: 3.500 l üzerindeki tanklar (İskoçya: 2.500 l) için sızıntı toplama havuzu gerekir; OFTEC kazan ve tankın yılda bir bakımını önerir.",
+        "sk": "Spojené kráľovstvo: nádrže nad 3 500 l (Škótsko: 2 500 l) potrebujú záchytnú vaňu; OFTEC odporúča ročný servis kotla aj nádrže.",
     },
     "As the plant's approval or your service contract requires — technical plants usually twice a year, nature-based plants once a year.": {
         "de": "Wie in der Zulassung der Anlage oder Ihrem Wartungsvertrag vorgeschrieben — technische Anlagen meist zweimal jährlich, naturnahe Anlagen einmal jährlich.",
@@ -17088,6 +17829,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A berendezés engedélye vagy a karbantartási szerződés előírása szerint — a műszaki berendezések általában évente kétszer, a természetközeli berendezések évente egyszer.",
         "ko": "시설 인가 조건이나 유지보수 계약에 따릅니다 — 기계식 시설은 보통 연 2회, 자연형 시설은 연 1회입니다.",
         "tr": "Tesisin onayında veya bakım sözleşmenizde belirtildiği şekilde — teknik tesisler genellikle yılda iki kez, doğal arıtma tesisleri yılda bir kez.",
+        "sk": "Podľa schválenia čistiarne alebo vašej servisnej zmluvy – technické čistiarne zvyčajne dvakrát ročne, prírodné raz ročne.",
     },
     "Austria: the rules differ by state — e.g. Tyrol: tanks over 1,000 l need their overfill device and leak detector checked at least every 6 years (every 3 with a liquid leak detector).": {
         "de": "Österreich: Die Regeln unterscheiden sich je nach Bundesland — z. B. Tirol: Bei Tanks über 1.000 l müssen Überfüllsicherung und Leckanzeiger mindestens alle 6 Jahre geprüft werden (alle 3 Jahre bei einem Flüssigkeits-Leckanzeiger).",
@@ -17111,6 +17853,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ausztria: a szabályok tartományonként eltérnek — pl. Tirolban az 1000 l feletti tartályok túltöltés-gátlóját és szivárgásjelzőjét legalább 6 évente ellenőrizni kell (folyadékos szivárgásjelzővel 3 évente).",
         "ko": "오스트리아: 규정은 주마다 다릅니다 — 예: 티롤주에서는 1,000 l 초과 탱크의 과충전 방지 장치와 누유 감지기를 최소 6년마다 점검해야 합니다(액체식 누유 감지기는 3년마다).",
         "tr": "Avusturya: kurallar eyaletten eyalete değişir — ör. Tirol'de 1.000 l üzerindeki tankların taşma önleyicisi ve sızıntı dedektörü en az 6 yılda bir kontrol edilmelidir (sıvılı sızıntı dedektöründe 3 yılda bir).",
+        "sk": "Rakúsko: pravidlá sa líšia podľa spolkovej krajiny – napr. Tirolsko: nádrže nad 1 000 l potrebujú kontrolu poistky proti preplneniu a detektora únikov aspoň každých 6 rokov (s kvapalinovým detektorom únikov každé 3).",
     },
     "Belgium: in Flanders buried tanks under 5,000 kg are checked every 5 years, above-ground ones not at all; in Wallonia buried single-wall tanks of 3,000–25,000 l are checked every 10, 5 or 3 years depending on their age.": {
         "de": "Belgien: In Flandern werden unterirdische Tanks unter 5.000 kg alle 5 Jahre geprüft, oberirdische gar nicht; in Wallonien werden unterirdische einwandige Tanks mit 3.000–25.000 l je nach Alter alle 10, 5 oder 3 Jahre geprüft.",
@@ -17134,6 +17877,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Belgium: Flandriában az 5000 kg alatti föld alatti tartályokat 5 évente ellenőrzik, a föld felettieket egyáltalán nem; Vallóniában a 3000–25 000 l-es egyfalú föld alatti tartályokat koruktól függően 10, 5 vagy 3 évente ellenőrzik.",
         "ko": "벨기에: 플란데런에서는 5,000 kg 미만 지하 탱크를 5년마다 점검하고 지상 탱크는 점검하지 않습니다. 왈로니아에서는 3,000–25,000 l의 단일벽 지하 탱크를 사용 연수에 따라 10년, 5년 또는 3년마다 점검합니다.",
         "tr": "Belçika: Flaman Bölgesi'nde 5.000 kg'ın altındaki yeraltı tankları 5 yılda bir kontrol edilir, yerüstü tankları hiç edilmez; Valon Bölgesi'nde 3.000–25.000 l'lik tek cidarlı yeraltı tankları yaşlarına göre 10, 5 veya 3 yılda bir kontrol edilir.",
+        "sk": "Belgicko: vo Flámsku sa zakopané nádrže pod 5 000 kg kontrolujú každých 5 rokov, nadzemné vôbec; vo Valónsku sa zakopané jednoplášťové nádrže 3 000 – 25 000 l kontrolujú každých 10, 5 alebo 3 roky podľa veku.",
     },
     "Belgium: radon is mainly found in the province of Luxembourg; test for 3 months between October and April.": {
         "de": "Belgien: Radon kommt vor allem in der Provinz Luxemburg vor; 3 Monate lang zwischen Oktober und April messen.",
@@ -17157,6 +17901,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Belgium: a radon főként Luxembourg tartományban fordul elő; mérjen 3 hónapig október és április között.",
         "ko": "벨기에: 라돈은 주로 룩셈부르크주에서 발견됩니다. 10월에서 4월 사이에 3개월간 측정하세요.",
         "tr": "Belçika: radon başlıca Lüksemburg ilinde görülür; ekim ile nisan arasında 3 ay boyunca ölçüm yapın.",
+        "sk": "Belgicko: radón sa vyskytuje najmä v provincii Luxemburg; merajte 3 mesiace v období od októbra do apríla.",
     },
     "Belgium: the electrical installation is inspected when the home is sold (the buyer then has 18 months to fix defects) and every 25 years.": {
         "de": "Belgien: Die Elektroinstallation wird beim Verkauf der Immobilie geprüft (der Käufer hat dann 18 Monate Zeit, Mängel zu beheben) und alle 25 Jahre.",
@@ -17180,6 +17925,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Belgium: az elektromos hálózatot az ingatlan eladásakor (a vevőnek ezután 18 hónapja van a hibák kijavítására) és 25 évente ellenőrzik.",
         "ko": "벨기에: 전기 설비는 주택 매도 시(매수인은 이후 18개월 안에 결함을 보수해야 함)와 25년마다 점검합니다.",
         "tr": "Belçika: elektrik tesisatı konut satılırken (alıcının ardından kusurları gidermek için 18 ayı vardır) ve 25 yılda bir denetlenir.",
+        "sk": "Belgicko: elektroinštalácia sa kontroluje pri predaji domu (kupujúci má potom 18 mesiacov na odstránenie nedostatkov) a každých 25 rokov.",
     },
     "Bulgaria: technical inspection at the end of the 3rd and the 5th year, then every year.": {
         "de": "Bulgarien: technische Prüfung am Ende des 3. und des 5. Jahres, danach jährlich.",
@@ -17203,6 +17949,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Bulgária: műszaki vizsga a 3. és az 5. év végén, azután évente.",
         "ko": "불가리아: 자동차 검사는 3년 차와 5년 차 말, 이후 매년.",
         "tr": "Bulgaristan: 3. ve 5. yılın sonunda teknik muayene, ardından her yıl.",
+        "sk": "Bulharsko: technická kontrola na konci 3. a 5. roka, potom každý rok.",
     },
     "Czechia: keep the receipts of the emptying for 2 years.": {
         "de": "Tschechien: Belege über die Entleerung 2 Jahre lang aufbewahren.",
@@ -17226,6 +17973,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Csehország: az ürítésről szóló bizonylatokat 2 évig őrizze meg.",
         "ko": "체코: 정화조 수거 영수증을 2년간 보관하세요.",
         "tr": "Çekya: boşaltma makbuzlarını 2 yıl saklayın.",
+        "sk": "Česko: doklady o vyvážaní uchovávajte 2 roky.",
     },
     "Czechia: mechanical water meters every 5 years, static ones every 8.": {
         "de": "Tschechien: mechanische Wasserzähler alle 5 Jahre, statische alle 8.",
@@ -17249,6 +17997,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Csehország: mechanikus vízmérők 5 évente, statikusak 8 évente.",
         "ko": "체코: 기계식 수도 계량기는 5년마다, 정적(전자식) 계량기는 8년마다.",
         "tr": "Çekya: mekanik su sayaçları 5 yılda bir, statik (elektronik) olanlar 8 yılda bir.",
+        "sk": "Česko: mechanické vodomery každých 5 rokov, statické každých 8.",
     },
     "Denmark: mini treatment plants need a service agreement.": {
         "de": "Dänemark: Kleinkläranlagen brauchen einen Wartungsvertrag.",
@@ -17272,6 +18021,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Dánia: a mini szennyvíztisztítókhoz karbantartási szerződés szükséges.",
         "ko": "덴마크: 소형 오수 처리 시설은 유지보수 계약이 필요합니다.",
         "tr": "Danimarka: mini arıtma tesisleri için bakım sözleşmesi gerekir.",
+        "sk": "Dánsko: domové mikročistiarne potrebujú servisnú zmluvu.",
     },
     "Denmark: tanks have a legal lifetime — above-ground steel tanks under 6,000 l 30 years (40 if type-approved), plastic ones 25 (40), buried tanks 40–50 years; a tank of unknown age must be taken out of use.": {
         "de": "Dänemark: Tanks haben eine gesetzliche Lebensdauer — oberirdische Stahltanks unter 6.000 l 30 Jahre (40 mit Typzulassung), Kunststofftanks 25 (40), unterirdische Tanks 40–50 Jahre; ein Tank unbekannten Alters muss stillgelegt werden.",
@@ -17295,6 +18045,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Dánia: a tartályoknak törvényben meghatározott élettartamuk van — a 6000 l alatti föld feletti acéltartályoké 30 év (típusjóváhagyással 40), a műanyagoké 25 (40), a föld alattiaké 40–50 év; az ismeretlen korú tartályt ki kell vonni a használatból.",
         "ko": "덴마크: 탱크에는 법정 사용 연한이 있습니다 — 6,000 l 미만 지상 강철 탱크 30년(형식 승인 시 40년), 플라스틱 탱크 25년(40년), 지하 탱크 40–50년. 사용 연수를 알 수 없는 탱크는 사용을 중지해야 합니다.",
         "tr": "Danimarka: tankların yasal bir kullanım ömrü vardır — 6.000 l'nin altındaki yerüstü çelik tanklar 30 yıl (tip onaylıysa 40), plastik olanlar 25 (40), yeraltı tankları 40–50 yıl; yaşı bilinmeyen bir tank kullanımdan kaldırılmalıdır.",
+        "sk": "Dánsko: nádrže majú zákonom stanovenú životnosť – nadzemné oceľové nádrže pod 6 000 l 30 rokov (40 pri typovom schválení), plastové 25 (40), zakopané 40 – 50 rokov; nádrž neznámeho veku sa musí prestať používať.",
     },
     "Finland: measure for at least 2 months between September and May; the reference level is 300 Bq/m³.": {
         "de": "Finnland: mindestens 2 Monate lang zwischen September und Mai messen; der Referenzwert liegt bei 300 Bq/m³.",
@@ -17318,6 +18069,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Finnország: legalább 2 hónapig mérjen szeptember és május között; a referenciaszint 300 Bq/m³.",
         "ko": "핀란드: 9월에서 5월 사이에 최소 2개월간 측정하세요. 참고 준위는 300 Bq/m³입니다.",
         "tr": "Finlandiya: eylül ile mayıs arasında en az 2 ay ölçüm yapın; referans düzeyi 300 Bq/m³'tür.",
+        "sk": "Fínsko: merajte aspoň 2 mesiace v období od septembra do mája; referenčná úroveň je 300 Bq/m³.",
     },
     "Finland: tanks in groundwater areas are first inspected at 10 years, then every 2–10 years depending on their condition.": {
         "de": "Finnland: Tanks in Grundwassergebieten werden erstmals nach 10 Jahren geprüft, danach je nach Zustand alle 2–10 Jahre.",
@@ -17341,6 +18093,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Finnország: a felszín alatti vízbázisok területén lévő tartályokat először 10 évesen vizsgálják, azután állapotuktól függően 2–10 évente.",
         "ko": "핀란드: 지하수 구역의 탱크는 10년 차에 첫 검사를 받고, 이후 상태에 따라 2–10년마다 검사합니다.",
         "tr": "Finlandiya: yeraltı suyu bölgelerindeki tanklar ilk kez 10 yaşında, ardından durumlarına göre 2–10 yılda bir denetlenir.",
+        "sk": "Fínsko: nádrže v oblastiach podzemných vôd sa prvýkrát kontrolujú po 10 rokoch, potom každé 2 – 10 rokov podľa stavu.",
     },
     "France: declare the well to the town hall and have the water analysed if you drink it.": {
         "de": "Frankreich: den Brunnen beim Rathaus anmelden und das Wasser analysieren lassen, wenn Sie es trinken.",
@@ -17364,6 +18117,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Franciaország: jelentse be a kutat a polgármesteri hivatalban, és ha issza a vizét, vizsgáltassa be.",
         "ko": "프랑스: 우물을 시청(mairie)에 신고하고, 물을 마신다면 수질 검사를 받으세요.",
         "tr": "Fransa: kuyuyu belediyeye bildirin ve suyunu içiyorsanız analiz ettirin.",
+        "sk": "Francúzsko: studňu nahláste na obecnom úrade a ak vodu pijete, dajte ju analyzovať.",
     },
     "France: empty the tank when the sludge reaches half of its useful volume.": {
         "de": "Frankreich: die Klärgrube entleeren, wenn der Schlamm die Hälfte ihres Nutzvolumens erreicht.",
@@ -17387,6 +18141,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Franciaország: ürítse ki a tartályt, amikor az iszap eléri a hasznos térfogat felét.",
         "ko": "프랑스: 슬러지가 유효 용량의 절반에 이르면 정화조를 비우세요.",
         "tr": "Fransa: çamur, tankın faydalı hacminin yarısına ulaştığında tankı boşaltın.",
+        "sk": "Francúzsko: nádrž vyprázdnite, keď kal dosiahne polovicu jej užitočného objemu.",
     },
     "France: in radon zone 3 buyers and tenants must be informed; measure for at least 2 months between mid-September and April; the reference level is 300 Bq/m³.": {
         "de": "Frankreich: In Radonzone 3 müssen Käufer und Mieter informiert werden; mindestens 2 Monate lang zwischen Mitte September und April messen; der Referenzwert liegt bei 300 Bq/m³.",
@@ -17410,6 +18165,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Franciaország: a 3-as radonzónában a vevőket és a bérlőket tájékoztatni kell; legalább 2 hónapig mérjen szeptember közepe és április között; a referenciaszint 300 Bq/m³.",
         "ko": "프랑스: 라돈 3구역에서는 매수인과 임차인에게 알려야 합니다. 9월 중순에서 4월 사이에 최소 2개월간 측정하세요. 참고 준위는 300 Bq/m³입니다.",
         "tr": "Fransa: radon bölgesi 3'te alıcılar ve kiracılar bilgilendirilmelidir; eylül ortası ile nisan arasında en az 2 ay ölçüm yapın; referans düzeyi 300 Bq/m³'tür.",
+        "sk": "Francúzsko: v radónovej zóne 3 musia byť kupujúci a nájomníci informovaní; merajte aspoň 2 mesiace od polovice septembra do apríla; referenčná úroveň je 300 Bq/m³.",
     },
     "France: there is no periodic re-test, but an overfill device is required and a disused tank must be decommissioned by a professional.": {
         "de": "Frankreich: Es gibt keine wiederkehrende Prüfung, aber eine Überfüllsicherung ist vorgeschrieben, und ein nicht mehr genutzter Tank muss von einem Fachbetrieb stillgelegt werden.",
@@ -17433,6 +18189,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Franciaország: nincs időszakos felülvizsgálat, de túltöltés-gátló kötelező, és a használaton kívüli tartályt szakembernek kell üzemen kívül helyeznie.",
         "ko": "프랑스: 정기 재검사는 없지만 과충전 방지 장치가 의무이며, 사용하지 않는 탱크는 전문가가 폐쇄 처리해야 합니다.",
         "tr": "Fransa: periyodik yeniden test yoktur, ancak taşma önleyici zorunludur ve kullanılmayan bir tank bir uzman tarafından devre dışı bırakılmalıdır.",
+        "sk": "Francúzsko: pravidelná opakovaná skúška neexistuje, ale je povinná poistka proti preplneniu a nepoužívanú nádrž musí vyradiť odborník.",
     },
     "Germany: calibration is valid for 6 years for cold-water meters and 5 years for hot-water and heat meters.": {
         "de": "Deutschland: Die Eichung gilt bei Kaltwasserzählern 6 Jahre, bei Warmwasser- und Wärmezählern 5 Jahre.",
@@ -17456,6 +18213,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Németország: a hitelesítés a hidegvízmérőknél 6 évig, a melegvízmérőknél és a hőmennyiségmérőknél 5 évig érvényes.",
         "ko": "독일: 검정 유효기간은 냉수 계량기 6년, 온수 계량기와 열량계 5년입니다.",
         "tr": "Almanya: damga, soğuk su sayaçlarında 6 yıl, sıcak su ve ısı sayaçlarında 5 yıl geçerlidir.",
+        "sk": "Nemecko: overenie platí 6 rokov pre vodomery na studenú vodu a 5 rokov pre vodomery na teplú vodu a merače tepla.",
     },
     "Germany: the reference level is 300 Bq/m³; there is no duty to measure in existing homes.": {
         "de": "Deutschland: Der Referenzwert liegt bei 300 Bq/m³; in bestehenden Wohnungen gibt es keine Messpflicht.",
@@ -17479,6 +18237,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Németország: a referenciaszint 300 Bq/m³; meglévő lakóépületekben nincs mérési kötelezettség.",
         "ko": "독일: 참고 준위는 300 Bq/m³이며, 기존 주택에는 측정 의무가 없습니다.",
         "tr": "Almanya: referans düzeyi 300 Bq/m³'tür; mevcut konutlarda ölçüm zorunluluğu yoktur.",
+        "sk": "Nemecko: referenčná úroveň je 300 Bq/m³; v existujúcich domácnostiach nie je povinnosť merať.",
     },
     "Hungary: water meters every 8 years.": {
         "de": "Ungarn: Wasserzähler alle 8 Jahre.",
@@ -17502,6 +18261,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Magyarország: vízmérők 8 évente.",
         "ko": "헝가리: 수도 계량기는 8년마다.",
         "tr": "Macaristan: su sayaçları 8 yılda bir.",
+        "sk": "Maďarsko: vodomery každých 8 rokov.",
     },
     "Ireland: testing is recommended in High Radon Areas; retest after remediation.": {
         "de": "Irland: In Gebieten mit erhöhtem Radonvorkommen (High Radon Areas) wird eine Messung empfohlen; nach einer Sanierung erneut messen.",
@@ -17525,6 +18285,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Írország: a magas radonszintű területeken (High Radon Areas) mérés javasolt; radoncsökkentés után mérjen újra.",
         "ko": "아일랜드: 라돈 고위험 지역(High Radon Areas)에서는 측정이 권장되며, 저감 조치 후에는 재측정하세요.",
         "tr": "İrlanda: yüksek radon bölgelerinde (High Radon Areas) test önerilir; iyileştirme çalışmasından sonra yeniden test edin.",
+        "sk": "Írsko: v oblastiach s vysokým výskytom radónu sa odporúča meranie; po sanácii ho zopakujte.",
     },
     "Latvia: the electrical installation must be checked every 10 years.": {
         "de": "Lettland: Die Elektroinstallation muss alle 10 Jahre geprüft werden.",
@@ -17548,6 +18309,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lettország: az elektromos hálózatot 10 évente ellenőrizni kell.",
         "ko": "라트비아: 전기 설비는 10년마다 점검해야 합니다.",
         "tr": "Letonya: elektrik tesisatı 10 yılda bir kontrol edilmelidir.",
+        "sk": "Lotyšsko: elektroinštaláciu treba kontrolovať každých 10 rokov.",
     },
     "Lithuania: technical inspection after 3 years, then every 2 years.": {
         "de": "Litauen: technische Prüfung nach 3 Jahren, danach alle 2 Jahre.",
@@ -17571,6 +18333,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Litvánia: műszaki vizsga 3 év után, azután 2 évente.",
         "ko": "리투아니아: 자동차 검사는 3년 후, 이후 2년마다.",
         "tr": "Litvanya: teknik muayene 3 yıl sonra, ardından 2 yılda bir.",
+        "sk": "Litva: technická kontrola po 3 rokoch, potom každé 2 roky.",
     },
     "Norway: an expert check every 5 years is advised.": {
         "de": "Norwegen: Eine Prüfung durch einen Fachmann alle 5 Jahre wird empfohlen.",
@@ -17594,6 +18357,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Norvégia: 5 évente szakemberi ellenőrzés javasolt.",
         "ko": "노르웨이: 5년마다 전문가 점검을 권장합니다.",
         "tr": "Norveç: 5 yılda bir uzman kontrolü önerilir.",
+        "sk": "Nórsko: odporúča sa odborná kontrola každých 5 rokov.",
     },
     "Norway: rented homes must stay below 200 Bq/m³.": {
         "de": "Norwegen: In Mietwohnungen muss die Radonkonzentration unter 200 Bq/m³ bleiben.",
@@ -17617,6 +18381,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Norvégia: a bérelt lakásokban a radonszintnek 200 Bq/m³ alatt kell maradnia.",
         "ko": "노르웨이: 임대 주택은 200 Bq/m³ 미만을 유지해야 합니다.",
         "tr": "Norveç: kiralık konutlarda radon seviyesi 200 Bq/m³'ün altında kalmalıdır.",
+        "sk": "Nórsko: prenajímané byty musia zostať pod 200 Bq/m³.",
     },
     "Poland: the electrical and lightning-protection installation must be checked every 5 years, single-family homes included (Building Law, Art. 62).": {
         "de": "Polen: Elektro- und Blitzschutzanlage müssen alle 5 Jahre geprüft werden, auch in Einfamilienhäusern (Baugesetz, Art. 62).",
@@ -17640,6 +18405,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lengyelország: az elektromos és a villámvédelmi rendszert 5 évente ellenőrizni kell, a családi házakban is (építési törvény, Art. 62).",
         "ko": "폴란드: 전기 설비와 피뢰 설비는 단독 주택을 포함해 5년마다 점검해야 합니다(건축법 Art. 62).",
         "tr": "Polonya: elektrik ve yıldırımdan korunma tesisatı, müstakil evler dahil 5 yılda bir kontrol edilmelidir (Yapı Kanunu, Art. 62).",
+        "sk": "Poľsko: elektroinštaláciu a bleskozvod treba kontrolovať každých 5 rokov, aj v rodinných domoch (stavebný zákon, čl. 62).",
     },
     "Poland: water meters must be replaced or re-verified every 5 years.": {
         "de": "Polen: Wasserzähler müssen alle 5 Jahre ausgetauscht oder neu geeicht werden.",
@@ -17663,6 +18429,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lengyelország: a vízmérőket 5 évente cserélni vagy újrahitelesíteni kell.",
         "ko": "폴란드: 수도 계량기는 5년마다 교체하거나 재검정해야 합니다.",
         "tr": "Polonya: su sayaçları 5 yılda bir değiştirilmeli veya yeniden damgalanmalıdır.",
+        "sk": "Poľsko: vodomery treba vymeniť alebo znova overiť každých 5 rokov.",
     },
     "Poland: you need a contract with an emptying company and must keep the receipts; the municipality sets how often.": {
         "de": "Polen: Sie brauchen einen Vertrag mit einem Entsorgungsunternehmen und müssen die Belege aufbewahren; wie oft geleert wird, legt die Gemeinde fest.",
@@ -17686,6 +18453,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lengyelország: szerződést kell kötni egy ürítést végző céggel, és a bizonylatokat meg kell őrizni; a gyakoriságot az önkormányzat határozza meg.",
         "ko": "폴란드: 분뇨 수거 업체와 계약해야 하며 영수증을 보관해야 합니다. 수거 주기는 지자체가 정합니다.",
         "tr": "Polonya: bir boşaltma şirketiyle sözleşme yapmanız ve makbuzları saklamanız gerekir; ne sıklıkla yapılacağını belediye belirler.",
+        "sk": "Poľsko: potrebujete zmluvu s firmou na vyvážanie a musíte uchovávať doklady; frekvenciu určuje obec.",
     },
     "Russia: the verification interval is usually 6 years for cold-water and 4 years for hot-water meters.": {
         "de": "Russland: Das Eichintervall beträgt meist 6 Jahre für Kaltwasser- und 4 Jahre für Warmwasserzähler.",
@@ -17709,6 +18477,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Oroszország: a hitelesítési időköz általában 6 év a hidegvízmérőknél és 4 év a melegvízmérőknél.",
         "ko": "러시아: 검정 주기는 보통 냉수 계량기 6년, 온수 계량기 4년입니다.",
         "tr": "Rusya: doğrulama aralığı genellikle soğuk su sayaçları için 6 yıl, sıcak su sayaçları için 4 yıldır.",
+        "sk": "Rusko: interval overenia je zvyčajne 6 rokov pre vodomery na studenú vodu a 4 roky pre vodomery na teplú vodu.",
     },
     "Slovakia: technical inspection after 4 years, then every 2 years.": {
         "de": "Slowakei: technische Prüfung nach 4 Jahren, danach alle 2 Jahre.",
@@ -17732,6 +18501,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szlovákia: műszaki vizsga 4 év után, azután 2 évente.",
         "ko": "슬로바키아: 자동차 검사는 4년 후, 이후 2년마다.",
         "tr": "Slovakya: teknik muayene 4 yıl sonra, ardından 2 yılda bir.",
+        "sk": "Slovensko: technická kontrola po 4 rokoch, potom každé 2 roky.",
     },
     "Sweden: tanks over 1 m³ — in water-protection areas from 150 l — fall under the Environmental Protection Agency's rules (NFS 2021:10).": {
         "de": "Schweden: Tanks über 1 m³ — in Wasserschutzgebieten ab 150 l — unterliegen den Vorschriften der Umweltschutzbehörde (Naturvårdsverket, NFS 2021:10).",
@@ -17755,6 +18525,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Svédország: az 1 m³ feletti tartályokra — vízvédelmi területeken már 150 l-től — a Környezetvédelmi Ügynökség szabályai vonatkoznak (Naturvårdsverket, NFS 2021:10).",
         "ko": "스웨덴: 1 m³ 초과 탱크(수원 보호 구역에서는 150 l부터)는 환경보호청(Naturvårdsverket)의 규정(NFS 2021:10)을 따릅니다.",
         "tr": "İsveç: 1 m³'ün üzerindeki tanklar — su koruma alanlarında 150 l'den itibaren — Çevre Koruma Ajansı'nın kurallarına (Naturvårdsverket, NFS 2021:10) tabidir.",
+        "sk": "Švédsko: nádrže nad 1 m³ – v ochranných pásmach vôd od 150 l – podliehajú pravidlám Agentúry pre ochranu životného prostredia (NFS 2021:10).",
     },
     "Switzerland: above 300 Bq/m³ the owner must remediate at their own cost.": {
         "de": "Schweiz: Über 300 Bq/m³ muss der Eigentümer auf eigene Kosten sanieren.",
@@ -17778,6 +18549,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Svájc: 300 Bq/m³ felett a tulajdonosnak saját költségén kell radoncsökkentést végeznie.",
         "ko": "스위스: 300 Bq/m³을 넘으면 소유자가 자비로 저감 조치를 해야 합니다.",
         "tr": "İsviçre: 300 Bq/m³'ün üzerinde mal sahibi iyileştirmeyi kendi masrafıyla yaptırmalıdır.",
+        "sk": "Švajčiarsko: nad 300 Bq/m³ musí vlastník vykonať sanáciu na vlastné náklady.",
     },
     "Switzerland: tanks that need a permit (over 2,000 l in endangered areas, over 450 l in groundwater zones) must be checked at least every 10 years.": {
         "de": "Schweiz: Bewilligungspflichtige Tanks (über 2.000 l in besonders gefährdeten Bereichen, über 450 l in Grundwasserschutzzonen) müssen mindestens alle 10 Jahre kontrolliert werden.",
@@ -17801,6 +18573,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Svájc: az engedélyköteles tartályokat (veszélyeztetett területeken 2000 l felett, felszín alatti vízvédelmi zónákban 450 l felett) legalább 10 évente ellenőrizni kell.",
         "ko": "스위스: 허가가 필요한 탱크(위험 구역에서 2,000 l 초과, 지하수 보호 구역에서 450 l 초과)는 최소 10년마다 점검해야 합니다.",
         "tr": "İsviçre: izne tabi tanklar (tehlike altındaki alanlarda 2.000 l'nin, yeraltı suyu bölgelerinde 450 l'nin üzerinde) en az 10 yılda bir kontrol edilmelidir.",
+        "sk": "Švajčiarsko: nádrže vyžadujúce povolenie (nad 2 000 l v ohrozených oblastiach, nad 450 l v pásmach podzemných vôd) sa musia kontrolovať aspoň každých 10 rokov.",
     },
     "The calibration validity depends on the country and the meter type — check the date on the meter.": {
         "de": "Die Eichgültigkeit hängt vom Land und vom Zählertyp ab — Datum auf dem Zähler prüfen.",
@@ -17824,6 +18597,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "A hitelesítés érvényessége az országtól és a mérő típusától függ — ellenőrizze a dátumot a mérőn.",
         "ko": "검정 유효기간은 국가와 계량기 종류에 따라 다릅니다 — 계량기에 표시된 날짜를 확인하세요.",
         "tr": "Damga geçerliliği ülkeye ve sayaç tipine bağlıdır — sayacın üzerindeki tarihi kontrol edin.",
+        "sk": "Platnosť overenia závisí od krajiny a typu merača – skontrolujte dátum na merači.",
     },
     "UK: have an unvented cylinder serviced every year by a G3-qualified installer, including its safety valves.": {
         "de": "Vereinigtes Königreich: Einen geschlossenen Warmwasserspeicher (unvented cylinder) samt Sicherheitsventilen jedes Jahr von einem Installateur mit G3-Qualifikation warten lassen.",
@@ -17847,6 +18621,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Egyesült Királyság: a zárt, nyomás alatti melegvíztárolót (unvented cylinder) a biztonsági szelepekkel együtt évente szervizeltesse G3-képesítésű szerelővel.",
         "ko": "영국: 밀폐식 온수 실린더(unvented cylinder)는 안전밸브를 포함해 매년 G3 자격을 갖춘 설치 기사에게 점검받으세요.",
         "tr": "Birleşik Krallık: kapalı (basınçlı) sıcak su silindirinin (unvented cylinder) emniyet valfleri dahil bakımını her yıl G3 yetkili bir tesisatçıya yaptırın.",
+        "sk": "Spojené kráľovstvo: uzavretý zásobník teplej vody dajte každý rok servisovať inštalatérovi s kvalifikáciou G3 vrátane poistných ventilov.",
     },
     "UK: in England the tank must be emptied at least once a year, or as the manufacturer says, by a registered waste carrier (General Binding Rules); in Scotland it must be registered with SEPA.": {
         "de": "Vereinigtes Königreich: In England muss die Klärgrube mindestens einmal im Jahr oder nach Herstellerangabe von einem registrierten Abfallbeförderer geleert werden (General Binding Rules); in Schottland muss sie bei der SEPA registriert sein.",
@@ -17870,6 +18645,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Egyesült Királyság: Angliában a tartályt legalább évente egyszer, vagy a gyártó előírása szerint, nyilvántartásba vett hulladékszállítónak kell ürítenie (General Binding Rules); Skóciában a SEPA-nál regisztrálni kell.",
         "ko": "영국: 잉글랜드에서는 등록된 폐기물 운반업체가 최소 연 1회, 또는 제조사 지침에 따라 정화조를 비워야 합니다(General Binding Rules). 스코틀랜드에서는 SEPA에 등록해야 합니다.",
         "tr": "Birleşik Krallık: İngiltere'de tank en az yılda bir kez veya üreticinin belirttiği şekilde kayıtlı bir atık taşıyıcısı tarafından boşaltılmalıdır (General Binding Rules); İskoçya'da SEPA'ya kaydedilmelidir.",
+        "sk": "Spojené kráľovstvo: v Anglicku sa nádrž musí vyprázdňovať aspoň raz ročne alebo podľa výrobcu registrovaným prepravcom odpadu (General Binding Rules); v Škótsku musí byť zaregistrovaná v SEPA.",
     },
     "UK: in radon-affected areas a 3-month test is advised; retest after remediation.": {
         "de": "Vereinigtes Königreich: In radonbelasteten Gebieten wird eine 3-monatige Messung empfohlen; nach einer Sanierung erneut messen.",
@@ -17893,6 +18669,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Egyesült Királyság: radonnal érintett területeken 3 hónapos mérés javasolt; radoncsökkentés után mérjen újra.",
         "ko": "영국: 라돈 영향 지역에서는 3개월간 측정이 권장되며, 저감 조치 후에는 재측정하세요.",
         "tr": "Birleşik Krallık: radondan etkilenen bölgelerde 3 aylık bir test önerilir; iyileştirme çalışmasından sonra yeniden test edin.",
+        "sk": "Spojené kráľovstvo: v oblastiach zasiahnutých radónom sa odporúča 3-mesačné meranie; po sanácii ho zopakujte.",
     },
     "California (PRC 4291): keep 100 ft (30 m) of defensible space around the house all year in the state responsibility area; selling a home in a high or very high fire hazard zone needs proof of it.": {
         "de": "Kalifornien (PRC 4291): im staatlichen Zuständigkeitsgebiet ganzjährig eine Schutzzone von 100 ft (30 m) ums Haus freihalten; beim Verkauf eines Hauses in einer Zone mit hoher oder sehr hoher Brandgefahr ist sie nachzuweisen.",
@@ -17916,6 +18693,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kalifornia (PRC 4291): az állami felelősségi területen egész évben 100 láb (30 m) széles tűzvédelmi sávot kell fenntartani a ház körül; magas vagy nagyon magas tűzveszélyességi zónában lévő ház eladásakor ezt igazolni kell.",
         "ko": "캘리포니아(PRC 4291): 주 책임 구역에서는 집 주변 100 ft(30 m)의 방화 공간을 연중 유지해야 합니다. 화재 위험이 높거나 매우 높은 구역의 주택을 팔 때는 이를 증명해야 합니다.",
         "tr": "Kaliforniya (PRC 4291): eyaletin sorumluluk alanında evin çevresinde yıl boyunca 100 ft (30 m) yangın güvenlik alanı korunmalıdır; yüksek veya çok yüksek yangın tehlikesi bölgesinde ev satarken bunun kanıtlanması gerekir.",
+        "sk": "Kalifornia (PRC 4291): v oblasti v zodpovednosti štátu udržiavajte celoročne ochranný priestor 30 m (100 ft) okolo domu; predaj domu vo vysoko alebo veľmi vysoko rizikovej požiarnej zóne si vyžaduje jeho preukázanie.",
     },
     "Canada (FireSmart): keep the first 1.5 m around the house free of anything that burns, plant fire-resistant within 10 m and thin the trees out to 30 m.": {
         "de": "Kanada (FireSmart): die ersten 1,5 m ums Haus frei von allem Brennbaren halten, innerhalb von 10 m feuerresistent bepflanzen und die Bäume bis 30 m auslichten.",
@@ -17939,6 +18717,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kanada (FireSmart): a ház körüli első 1,5 métert tartsa mentesen mindentől, ami éghet, 10 méteren belül tűzálló növényeket ültessen, 30 méterig pedig ritkítsa meg a fákat.",
         "ko": "캐나다(FireSmart): 집 주변 1.5 m 이내에는 탈 수 있는 것을 일절 두지 말고, 10 m 이내에는 불에 강한 식물을 심고, 30 m까지는 나무를 솎아 내세요.",
         "tr": "Kanada (FireSmart): evin çevresindeki ilk 1,5 m'yi yanabilecek her şeyden arındırın, 10 m içine yangına dayanıklı bitkiler dikin ve 30 m'ye kadar ağaçları seyreltin.",
+        "sk": "Kanada (FireSmart): prvých 1,5 m okolo domu udržiavajte bez čohokoľvek horľavého, do 10 m vysádzajte ohňovzdorné rastliny a stromy do 30 m preriedte.",
     },
     "Canada (Health Canada): test for at least 3 months in the heating season on the lowest lived-in floor; reduce the level if it is above 200 Bq/m³; with a mitigation system retest every 5 years.": {
         "de": "Kanada (Health Canada): mindestens 3 Monate während der Heizperiode im untersten bewohnten Geschoss messen; liegt der Wert über 200 Bq/m³, die Belastung senken; mit Radon-Sanierungsanlage alle 5 Jahre erneut messen.",
@@ -17962,6 +18741,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kanada (Health Canada): a fűtési szezonban legalább 3 hónapig mérjen a legalsó lakott szinten; 200 Bq/m³ felett csökkenteni kell a szintet; radoncsökkentő rendszer esetén 5 évente ismételje meg a mérést.",
         "ko": "캐나다(Health Canada): 난방철에 사람이 생활하는 가장 낮은 층에서 최소 3개월간 측정하세요. 200 Bq/m³를 넘으면 농도를 낮추고, 저감 시스템이 있으면 5년마다 재측정합니다.",
         "tr": "Kanada (Health Canada): ısıtma sezonunda, içinde yaşanan en alt katta en az 3 ay ölçüm yapın; 200 Bq/m³'ün üzerindeyse seviyeyi düşürün; radon azaltma sistemi varsa 5 yılda bir yeniden ölçün.",
+        "sk": "Kanada (Health Canada): merajte aspoň 3 mesiace počas vykurovacej sezóny na najnižšom obývanom podlaží; ak je úroveň nad 200 Bq/m³, znížte ju; so systémom odvetrania meranie opakujte každých 5 rokov.",
     },
     "Canada (Ontario): the Fire Code requires chimneys, flues and flue pipes to be inspected at least every 12 months and after a chimney fire; insurers often ask for a WETT inspection of wood stoves.": {
         "de": "Kanada (Ontario): Die Brandschutzverordnung schreibt vor, Schornsteine, Rauchzüge und Rauchrohre mindestens alle 12 Monate und nach einem Schornsteinbrand zu prüfen; Versicherer verlangen für Holzöfen oft eine WETT-Inspektion.",
@@ -17985,6 +18765,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kanada (Ontario): a tűzvédelmi szabályzat előírja, hogy a kéményeket, füstjáratokat és füstcsöveket legalább 12 havonta, valamint kéménytűz után ellenőrizni kell; a biztosítók fatüzelésű kályháknál gyakran WETT-ellenőrzést kérnek.",
         "ko": "캐나다(온타리오주): 소방법에 따라 굴뚝, 연도, 연통은 최소 12개월마다, 그리고 굴뚝 화재 후에 점검해야 합니다. 보험사는 장작 난로에 대해 WETT 점검을 요구하는 경우가 많습니다.",
         "tr": "Kanada (Ontario): yangın yönetmeliği bacaların, duman kanallarının ve duman borularının en az 12 ayda bir ve bir baca yangınından sonra denetlenmesini şart koşar; sigorta şirketleri odun sobaları için çoğu zaman WETT denetimi ister.",
+        "sk": "Kanada (Ontário): požiarny poriadok vyžaduje kontrolu komínov, dymovodov a dymovodných rúr aspoň každých 12 mesiacov a po požiari komína; poisťovne pri kachliach na drevo často žiadajú kontrolu WETT.",
     },
     "Canada (Ontario): with a fuel-burning appliance, a fireplace or an attached garage, CO alarms are required next to every sleeping area.": {
         "de": "Kanada (Ontario): Bei einem brennstoffbetriebenen Gerät, einem Kamin oder einer angebauten Garage sind CO-Melder neben jedem Schlafbereich Pflicht.",
@@ -18008,6 +18789,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kanada (Ontario): tüzelőanyag-égető készülék, kandalló vagy a házhoz épített garázs esetén minden hálóterület mellett kötelező a CO-érzékelő.",
         "ko": "캐나다(온타리오주): 연료 연소 기기, 벽난로 또는 부속 차고가 있으면 모든 침실 구역 옆에 CO 경보기를 설치해야 합니다.",
         "tr": "Kanada (Ontario): yakıt yakan bir cihaz, şömine veya bitişik garaj varsa her yatak odası bölümünün yanında CO dedektörü zorunludur.",
+        "sk": "Kanada (Ontário): pri spotrebiči na palivo, krbe alebo pripojenej garáži sú povinné detektory CO pri každej spálni.",
     },
     "Canada (Quebec): pump out at least every 2 years for a home lived in all year, every 4 years for a seasonal one.": {
         "de": "Kanada (Québec): mindestens alle 2 Jahre abpumpen bei ganzjährig bewohnten Häusern, alle 4 Jahre bei saisonal genutzten.",
@@ -18031,6 +18813,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kanada (Québec): egész évben lakott háznál legalább 2 évente, idényjelleggel használtnál 4 évente kell kiszivattyúzni.",
         "ko": "캐나다(퀘벡주): 연중 거주하는 주택은 최소 2년마다, 계절용 주택은 4년마다 정화조를 비우세요.",
         "tr": "Kanada (Québec): yıl boyu oturulan evlerde en az 2 yılda bir, mevsimlik evlerde 4 yılda bir boşaltılmalıdır.",
+        "sk": "Kanada (Québec): vyvážajte aspoň každé 2 roky pri celoročne obývanom dome, každé 4 roky pri sezónnom.",
     },
     "Canada: Montréal requires backwater valves in new buildings and advises checking them twice a year; Winnipeg requires them in homes built after 1979, and Toronto subsidises them.": {
         "de": "Kanada: Montreal schreibt Rückstauklappen in Neubauten vor und rät, sie zweimal im Jahr zu prüfen; Winnipeg verlangt sie in Häusern, die nach 1979 gebaut wurden, und Toronto bezuschusst sie.",
@@ -18054,6 +18837,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kanada: Montréal új épületekben előírja a visszaáramlás-gátló szelepeket, és évente kétszeri ellenőrzést javasol; Winnipeg az 1979 után épült házakban írja elő, Toronto pedig támogatja a beszerelésüket.",
         "ko": "캐나다: 몬트리올은 신축 건물에 역류 방지 밸브를 의무화하고 연 2회 점검을 권장합니다. 위니펙은 1979년 이후 지어진 주택에 의무화했고, 토론토는 설치 보조금을 지원합니다.",
         "tr": "Kanada: Montréal yeni binalarda geri akış valfini zorunlu tutar ve yılda iki kez kontrol edilmesini önerir; Winnipeg 1979'dan sonra yapılan evlerde zorunlu tutar, Toronto ise sübvanse eder.",
+        "sk": "Kanada: Montréal vyžaduje spätné klapky v nových budovách a odporúča kontrolovať ich dvakrát ročne; Winnipeg ich vyžaduje v domoch postavených po roku 1979 a Toronto na ne prispieva.",
     },
     "Canada: Newfoundland and Labrador limit the life of single-wall steel tanks to 10–25 years, Prince Edward Island stops deliveries after the expiry year on the tank tag, and in Ontario the fuel distributor inspects the tank at least every 10 years.": {
         "de": "Kanada: Neufundland und Labrador begrenzt die Lebensdauer einwandiger Stahltanks auf 10–25 Jahre, auf der Prinz-Edward-Insel wird nach dem Ablaufjahr auf dem Tankschild nicht mehr beliefert, und in Ontario prüft der Brennstofflieferant den Tank mindestens alle 10 Jahre.",
@@ -18077,6 +18861,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kanada: Új-Fundland és Labrador az egyfalú acéltartályok élettartamát 10–25 évre korlátozza, a Prince Edward-szigeten a tartály adattábláján szereplő lejárati év után leállítják a szállítást, Ontarióban pedig a tüzelőanyag-forgalmazó legalább 10 évente ellenőrzi a tartályt.",
         "ko": "캐나다: 뉴펀들랜드 래브라도주는 단일벽 강철 탱크의 사용 연한을 10–25년으로 제한하고, 프린스에드워드아일랜드주는 탱크 명판에 적힌 만료 연도가 지나면 연료 공급을 중단하며, 온타리오주에서는 연료 공급업체가 최소 10년마다 탱크를 점검합니다.",
         "tr": "Kanada: Newfoundland ve Labrador tek cidarlı çelik tankların kullanım ömrünü 10–25 yılla sınırlar, Prens Edward Adası tank etiketindeki son kullanma yılından sonra teslimatı durdurur, Ontario'da ise yakıt dağıtıcısı tankı en az 10 yılda bir denetler.",
+        "sk": "Kanada: Newfoundland a Labrador obmedzujú životnosť jednoplášťových oceľových nádrží na 10 – 25 rokov, Ostrov princa Eduarda zastaví dodávky po roku exspirácie na štítku nádrže a v Ontáriu kontroluje nádrž distribútor paliva aspoň každých 10 rokov.",
     },
     "Canada: Ontario's Fire Code requires a smoke alarm on every storey and outside sleeping areas, owner-occupied homes included; Saskatchewan and Yukon require smoke and CO alarms too, Quebec leaves it to the municipalities.": {
         "de": "Kanada: Die Brandschutzverordnung von Ontario verlangt einen Rauchmelder auf jeder Etage und vor den Schlafbereichen, auch in selbst genutztem Wohneigentum; Saskatchewan und Yukon schreiben ebenfalls Rauch- und CO-Melder vor, Québec überlässt es den Gemeinden.",
@@ -18100,6 +18885,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kanada: Ontario tűzvédelmi szabályzata minden szinten és a hálóterületek előtt füstérzékelőt ír elő, a tulajdonos által lakott otthonokban is; Saskatchewan és Yukon szintén előírja a füst- és CO-érzékelőket, Québec a településekre bízza.",
         "ko": "캐나다: 온타리오주 소방법은 자가 거주 주택을 포함해 모든 층과 침실 구역 바깥에 연기 경보기를 의무화합니다. 서스캐처원주와 유콘 준주도 연기 경보기와 CO 경보기를 의무화하고, 퀘벡주는 지방 자치 단체에 맡깁니다.",
         "tr": "Kanada: Ontario yangın yönetmeliği, ev sahibinin oturduğu konutlar dahil, her katta ve yatak odası bölümlerinin dışında duman dedektörünü zorunlu tutar; Saskatchewan ve Yukon da duman ve CO dedektörlerini zorunlu tutar, Québec ise bunu belediyelere bırakır.",
+        "sk": "Kanada: požiarny poriadok Ontária vyžaduje detektor dymu na každom podlaží a pred spálňami, aj v domoch obývaných vlastníkom; Saskatchewan a Yukon vyžadujú aj detektory dymu a CO, Québec to necháva na obce.",
     },
     "Canada: Prince Edward Island inspects every year, Nova Scotia and New Brunswick every 2 years (new vehicles first after 3 years); the other provinces inspect only on sale or import.": {
         "de": "Kanada: Die Prinz-Edward-Insel prüft jährlich, Nova Scotia und New Brunswick alle 2 Jahre (Neufahrzeuge erstmals nach 3 Jahren); die übrigen Provinzen prüfen nur bei Verkauf oder Import.",
@@ -18123,6 +18909,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kanada: a Prince Edward-sziget évente vizsgáztat, Új-Skócia és New Brunswick 2 évente (az új járműveket először 3 év után); a többi tartomány csak eladáskor vagy behozatalkor ellenőriz.",
         "ko": "캐나다: 프린스에드워드아일랜드주는 매년, 노바스코샤주와 뉴브런즈윅주는 2년마다(신차는 3년 후 첫 검사) 검사합니다. 다른 주는 매매나 수입 시에만 검사합니다.",
         "tr": "Kanada: Prens Edward Adası her yıl, Yeni İskoçya ve New Brunswick 2 yılda bir (yeni araçlar ilk kez 3 yıl sonra) muayene yapar; diğer eyaletler yalnızca satış veya ithalat sırasında muayene eder.",
+        "sk": "Kanada: Ostrov princa Eduarda kontroluje každý rok, Nové Škótsko a Nový Brunšvik každé 2 roky (nové vozidlá prvýkrát po 3 rokoch); ostatné provincie kontrolujú len pri predaji alebo dovoze.",
     },
     "Canada: Quebec requires winter tires from 1 December to 15 March; British Columbia requires winter tires (M+S or mountain snowflake, at least 3.5 mm tread) on signed routes from 1 October to 30 April.": {
         "de": "Kanada: Québec schreibt Winterreifen vom 1. Dezember bis 15. März vor; British Columbia verlangt auf ausgeschilderten Strecken vom 1. Oktober bis 30. April Winterreifen (M+S oder Alpine-Symbol, mindestens 3,5 mm Profil).",
@@ -18146,6 +18933,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kanada: Québec december 1. és március 15. között írja elő a téli gumit; Brit Columbia a kijelölt útvonalakon október 1. és április 30. között követeli meg (M+S vagy hegycsúcs-hópehely jelzés, legalább 3,5 mm mintázatmélység).",
         "ko": "캐나다: 퀘벡주는 12월 1일부터 3월 15일까지 겨울 타이어를 의무화하고, 브리티시컬럼비아주는 표지판이 있는 도로에서 10월 1일부터 4월 30일까지 겨울 타이어(M+S 또는 산 모양 눈꽃 표시, 트레드 깊이 최소 3.5 mm)를 의무화합니다.",
         "tr": "Kanada: Québec 1 Aralık–15 Mart arasında kış lastiğini zorunlu tutar; Britanya Kolumbiyası işaretli yollarda 1 Ekim–30 Nisan arasında kış lastiği (M+S veya dağ-kar tanesi sembolü, en az 3,5 mm diş derinliği) ister.",
+        "sk": "Kanada: Québec vyžaduje zimné pneumatiky od 1. decembra do 15. marca; Britská Kolumbia vyžaduje zimné pneumatiky (M+S alebo symbol horskej vločky, dezén aspoň 3,5 mm) na označených trasách od 1. októbra do 30. apríla.",
     },
     "Check Backwater Valve": {
         "de": "Rückstauklappe prüfen",
@@ -18169,6 +18957,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Visszaáramlás-gátló szelep ellenőrzése",
         "ko": "역류 방지 밸브 점검",
         "tr": "Geri Akış Valfini Kontrol Et",
+        "sk": "Skontrolovať spätnú klapku",
     },
     "Florida: a wind-mitigation inspection (valid for up to 5 years) can lower the home-insurance premium.": {
         "de": "Florida: Eine Sturmschutz-Begutachtung (wind mitigation, bis zu 5 Jahre gültig) kann die Prämie der Wohngebäudeversicherung senken.",
@@ -18192,6 +18981,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Florida: a szélállósági felmérés (wind mitigation, legfeljebb 5 évig érvényes) csökkentheti a lakásbiztosítás díját.",
         "ko": "플로리다주: 내풍 점검(wind mitigation, 최대 5년 유효)을 받으면 주택 보험료가 낮아질 수 있습니다.",
         "tr": "Florida: rüzgâr dayanımı denetimi (wind mitigation, 5 yıla kadar geçerli) konut sigortası primini düşürebilir.",
+        "sk": "Florida: kontrola odolnosti proti vetru (platná až 5 rokov) môže znížiť poistné na dom.",
     },
     "Open the clean-out cover, clear any debris and make sure the flap moves freely — a stuck valve lets sewage back into the basement.": {
         "de": "Revisionsdeckel öffnen, Ablagerungen entfernen und prüfen, ob sich die Klappe frei bewegt — eine festsitzende Klappe lässt Abwasser in den Keller zurückfließen.",
@@ -18215,6 +19005,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Nyissa ki a tisztítónyílás fedelét, távolítsa el a lerakódásokat, és győződjön meg róla, hogy a csappantyú szabadon mozog — a beragadt szelep visszaengedi a szennyvizet a pincébe.",
         "ko": "청소구 덮개를 열고 이물질을 제거한 뒤 플랩이 자유롭게 움직이는지 확인하세요 — 밸브가 걸려 있으면 오수가 지하실로 역류합니다.",
         "tr": "Temizleme kapağını açın, birikintileri temizleyin ve klapenin serbestçe hareket ettiğinden emin olun — sıkışmış bir valf atık suyun bodruma geri dolmasına yol açar.",
+        "sk": "Otvorte revízny kryt, odstráňte nečistoty a uistite sa, že sa klapka voľne pohybuje – zaseknutá klapka pustí splašky späť do pivnice.",
     },
     "US (NFPA): test smoke alarms every month and replace them after 10 years; California, New York, Maryland and Illinois require sealed 10-year batteries in battery-only alarms.": {
         "de": "USA (NFPA): Rauchmelder jeden Monat testen und nach 10 Jahren austauschen; Kalifornien, New York, Maryland und Illinois schreiben bei rein batteriebetriebenen Meldern fest verbaute 10-Jahres-Batterien vor.",
@@ -18238,6 +19029,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "USA (NFPA): a füstérzékelőket havonta tesztelje, és 10 év után cserélje; Kalifornia, New York, Maryland és Illinois a csak elemmel működő érzékelőkben beépített, 10 éves elemet ír elő.",
         "ko": "미국(NFPA): 연기 경보기는 매달 테스트하고 10년이 지나면 교체하세요. 캘리포니아, 뉴욕, 메릴랜드, 일리노이주는 배터리 전용 경보기에 밀봉형 10년 배터리를 의무화합니다.",
         "tr": "ABD (NFPA): duman dedektörlerini her ay test edin ve 10 yıl sonra değiştirin; Kaliforniya, New York, Maryland ve Illinois yalnızca pille çalışan dedektörlerde mühürlü 10 yıllık pil şartı koyar.",
+        "sk": "USA (NFPA): detektory dymu testujte každý mesiac a po 10 rokoch ich vymeňte; Kalifornia, New York, Maryland a Illinois vyžadujú v detektoroch len na batérie zapečatené 10-ročné batérie.",
     },
     "US: California requires every water heater to be strapped (Health and Safety Code 19211) and the seller to certify it; Washington requires straps on new or replaced water heaters.": {
         "de": "USA: Kalifornien schreibt vor, dass jeder Warmwasserbereiter mit Haltegurten gesichert ist (Health and Safety Code 19211) und der Verkäufer dies bescheinigt; der Bundesstaat Washington verlangt Haltegurte bei neuen oder ausgetauschten Warmwasserbereitern.",
@@ -18261,6 +19053,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "USA: Kalifornia előírja, hogy minden vízmelegítőt pántokkal rögzítsenek (Health and Safety Code 19211), és ezt az eladó igazolja; Washington állam az új vagy cserélt vízmelegítőknél írja elő a pántokat.",
         "ko": "미국: 캘리포니아주는 모든 온수기를 스트랩으로 고정하고(Health and Safety Code 19211) 매도인이 이를 증명하도록 의무화합니다. 워싱턴주는 신규 설치하거나 교체한 온수기에 스트랩을 의무화합니다.",
         "tr": "ABD: Kaliforniya her su ısıtıcısının kayışla sabitlenmesini (Health and Safety Code 19211) ve satıcının bunu belgelemesini şart koşar; Washington eyaleti yeni veya değiştirilen su ısıtıcılarında kayış ister.",
+        "sk": "USA: Kalifornia vyžaduje upevnenie každého ohrievača vody popruhmi (Health and Safety Code 19211) a potvrdenie od predávajúceho; Washington vyžaduje popruhy pri nových alebo vymenených ohrievačoch vody.",
     },
     "US: California, New York, Illinois, Minnesota, Wisconsin, Massachusetts, Alaska and DC require CO alarms in existing homes with a fuel-burning appliance or an attached garage.": {
         "de": "USA: Kalifornien, New York, Illinois, Minnesota, Wisconsin, Massachusetts, Alaska und DC schreiben CO-Melder auch in bestehenden Wohnhäusern mit einem brennstoffbetriebenen Gerät oder einer angebauten Garage vor.",
@@ -18284,6 +19077,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "USA: Kalifornia, New York, Illinois, Minnesota, Wisconsin, Massachusetts, Alaszka és DC a meglévő lakóházakban is előírja a CO-érzékelőt, ha van tüzelőanyag-égető készülék vagy a házhoz épített garázs.",
         "ko": "미국: 캘리포니아, 뉴욕, 일리노이, 미네소타, 위스콘신, 매사추세츠, 알래스카주와 DC는 연료 연소 기기나 부속 차고가 있는 기존 주택에 CO 경보기를 의무화합니다.",
         "tr": "ABD: Kaliforniya, New York, Illinois, Minnesota, Wisconsin, Massachusetts, Alaska ve DC, yakıt yakan bir cihazı veya bitişik garajı olan mevcut konutlarda CO dedektörünü zorunlu tutar.",
+        "sk": "USA: Kalifornia, New York, Illinois, Minnesota, Wisconsin, Massachusetts, Aljaška a DC vyžadujú detektory CO v existujúcich domoch so spotrebičom na palivo alebo pripojenou garážou.",
     },
     "US: Washington requires an inspection every 3 years for gravity systems and every year for all others, Wisconsin a visual inspection at least every 3 years; Massachusetts (Title 5) and Delaware inspect when the house is sold.": {
         "de": "USA: Der Bundesstaat Washington verlangt alle 3 Jahre eine Inspektion bei Schwerkraftanlagen und jährlich bei allen anderen, Wisconsin mindestens alle 3 Jahre eine Sichtprüfung; Massachusetts (Title 5) und Delaware prüfen beim Verkauf des Hauses.",
@@ -18307,6 +19101,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "USA: Washington állam a gravitációs rendszereknél 3 évente, az összes többinél évente ír elő ellenőrzést, Wisconsin legalább 3 évente szemrevételezést; Massachusetts (Title 5) és Delaware a ház eladásakor ellenőriz.",
         "ko": "미국: 워싱턴주는 중력식 시스템은 3년마다, 그 밖의 모든 시스템은 매년 점검을 요구하고, 위스콘신주는 최소 3년마다 육안 점검을 요구합니다. 매사추세츠주(Title 5)와 델라웨어주는 주택 매매 시 점검합니다.",
         "tr": "ABD: Washington eyaleti yerçekimiyle çalışan sistemler için 3 yılda bir, diğer tüm sistemler için her yıl denetim ister, Wisconsin en az 3 yılda bir gözle kontrol ister; Massachusetts (Title 5) ve Delaware ev satılırken denetler.",
+        "sk": "USA: Washington vyžaduje kontrolu každé 3 roky pri gravitačných systémoch a každý rok pri všetkých ostatných, Wisconsin vizuálnu kontrolu aspoň každé 3 roky; Massachusetts (Title 5) a Delaware kontrolujú pri predaji domu.",
     },
     "US: aerobic treatment units need a maintenance contract — Texas: a service report every 4 months (6 with remote monitoring), Florida: an inspection twice a year; Maryland: nitrogen-removal units every year.": {
         "de": "USA: Belüftete Kleinkläranlagen brauchen einen Wartungsvertrag — Texas: alle 4 Monate ein Wartungsbericht (mit Fernüberwachung alle 6), Florida: zweimal jährlich eine Inspektion; Maryland: Anlagen mit Stickstoffentfernung jährlich.",
@@ -18330,6 +19125,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "USA: az aerob szennyvíztisztító egységekhez karbantartási szerződés kell — Texas: 4 havonta szervizjelentés (távfelügyelettel 6 havonta), Florida: évente kétszer ellenőrzés; Maryland: a nitrogéneltávolító egységeknél évente.",
         "ko": "미국: 호기성 처리 장치는 유지보수 계약이 필요합니다 — 텍사스주: 4개월마다 정비 보고서(원격 모니터링 시 6개월마다), 플로리다주: 연 2회 점검, 메릴랜드주: 질소 제거 장치는 매년.",
         "tr": "ABD: aerobik arıtma üniteleri için bakım sözleşmesi gerekir — Teksas: 4 ayda bir servis raporu (uzaktan izlemeyle 6 ayda bir), Florida: yılda iki kez denetim; Maryland: azot giderme üniteleri her yıl.",
+        "sk": "USA: aeróbne čistiarne potrebujú zmluvu o údržbe – Texas: servisná správa každé 4 mesiace (6 pri vzdialenom monitorovaní), Florida: kontrola dvakrát ročne; Maryland: jednotky na odstraňovanie dusíka každý rok.",
     },
     "US: depends on the state — a yearly safety inspection in e.g. New York, Pennsylvania, Massachusetts, Virginia, North Carolina, Maine, Vermont, Hawaii and Delaware, every 2 years in West Virginia, Missouri and Rhode Island, only emissions tests in California, New Jersey, Connecticut, DC and some counties; about 20 states have no periodic test.": {
         "de": "USA: je nach Bundesstaat — eine jährliche Sicherheitsprüfung z. B. in New York, Pennsylvania, Massachusetts, Virginia, North Carolina, Maine, Vermont, Hawaii und Delaware, alle 2 Jahre in West Virginia, Missouri und Rhode Island, nur Abgastests in Kalifornien, New Jersey, Connecticut, DC und einigen Countys; rund 20 Bundesstaaten haben keine regelmäßige Prüfung.",
@@ -18353,6 +19149,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "USA: államonként eltér — évenkénti biztonsági vizsga pl. New Yorkban, Pennsylvaniában, Massachusettsben, Virginiában, Észak-Karolinában, Maine-ben, Vermontban, Hawaiin és Delaware-ben, 2 évente Nyugat-Virginiában, Missouriban és Rhode Islanden, csak emissziós vizsgálat Kaliforniában, New Jerseyben, Connecticutban, DC-ben és néhány megyében; mintegy 20 államban nincs időszakos vizsga.",
         "ko": "미국: 주마다 다릅니다 — 예를 들어 뉴욕, 펜실베이니아, 매사추세츠, 버지니아, 노스캐롤라이나, 메인, 버몬트, 하와이, 델라웨어주는 매년 안전 검사, 웨스트버지니아, 미주리, 로드아일랜드주는 2년마다, 캘리포니아, 뉴저지, 코네티컷주와 DC 및 일부 카운티는 배출가스 검사만 실시하며, 약 20개 주는 정기 검사가 없습니다.",
         "tr": "ABD: eyalete göre değişir — ör. New York, Pensilvanya, Massachusetts, Virginia, Kuzey Karolina, Maine, Vermont, Hawaii ve Delaware'de yıllık güvenlik muayenesi, Batı Virginia, Missouri ve Rhode Island'da 2 yılda bir, Kaliforniya, New Jersey, Connecticut, DC ve bazı ilçelerde yalnızca emisyon testi; yaklaşık 20 eyalette periyodik muayene yoktur.",
+        "sk": "USA: závisí od štátu – ročná bezpečnostná kontrola napr. v New Yorku, Pensylvánii, Massachusetts, Virgínii, Severnej Karolíne, Maine, Vermonte, na Havaji a v Delaware, každé 2 roky v Západnej Virgínii, Missouri a na Rhode Islande, len emisné testy v Kalifornii, New Jersey, Connecticute, DC a niektorých okresoch; asi 20 štátov nemá pravidelnú kontrolu.",
     },
     # ── Catalog round 15 task names (2.95) ─────────────────────────────────
     "Refill Fabric Softener": {
@@ -18377,6 +19174,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Öblítő utántöltése",
         "ko": "섬유유연제 보충",
         "tr": "Yumuşatıcı Doldur",
+        "sk": "Doplniť aviváž",
     },
     "Replace Cleaning Cartridge": {
         "de": "Reinigungskartusche ersetzen",
@@ -18400,6 +19198,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tisztítópatron cseréje",
         "ko": "세척 카트리지 교체",
         "tr": "Temizleme Kartuşunu Değiştir",
+        "sk": "Vymeniť čistiacu kartušu",
     },
     "Replace Odor Eliminator": {
         "de": "Geruchsentferner ersetzen",
@@ -18423,6 +19222,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szagtalanító cseréje",
         "ko": "탈취제 교체",
         "tr": "Koku Gidericiyi Değiştir",
+        "sk": "Vymeniť pohlcovač zápachu",
     },
     "Replace Cutting Disc": {
         "de": "Messerscheibe ersetzen",
@@ -18446,6 +19246,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vágótárcsa cseréje",
         "ko": "커팅 디스크 교체",
         "tr": "Kesme Diskini Değiştir",
+        "sk": "Vymeniť rezací kotúč",
     },
     "Replace Edge Trimmer Blade": {
         "de": "Kantenschneider-Messer ersetzen",
@@ -18469,6 +19270,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szegélyvágó kés cseréje",
         "ko": "가장자리 트리머 칼날 교체",
         "tr": "Kenar Kesici Bıçağını Değiştir",
+        "sk": "Vymeniť nôž zastrihávača okrajov",
     },
     "Replace Edge Trimmer Disc": {
         "de": "Kantenschneider-Scheibe ersetzen",
@@ -18492,6 +19294,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szegélyvágó tárcsa cseréje",
         "ko": "가장자리 트리머 디스크 교체",
         "tr": "Kenar Kesici Diskini Değiştir",
+        "sk": "Vymeniť kotúč zastrihávača okrajov",
     },
     "Replace Cleaning Brush": {
         "de": "Reinigungsbürste ersetzen",
@@ -18515,6 +19318,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tisztítókefe cseréje",
         "ko": "청소 브러시 교체",
         "tr": "Temizleme Fırçasını Değiştir",
+        "sk": "Vymeniť čistiacu kefu",
     },
     "Replace pH Canister": {
         "de": "pH-Kanister ersetzen",
@@ -18538,6 +19342,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "pH-kanna cseréje",
         "ko": "pH 약품통 교체",
         "tr": "pH Bidonunu Değiştir",
+        "sk": "Vymeniť nádobku pH",
     },
     "Replace Chlorine Canister": {
         "de": "Chlorkanister ersetzen",
@@ -18561,6 +19366,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Klórkanna cseréje",
         "ko": "염소 약품통 교체",
         "tr": "Klor Bidonunu Değiştir",
+        "sk": "Vymeniť nádobku chlóru",
     },
     # ── Catalog round 16 task names ─────────────────────────────────
     "Replace Ozonator": {
@@ -18585,6 +19391,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ózongenerátor cseréje",
         "ko": "오존 발생기 교체",
         "tr": "Ozon Jeneratörünü Değiştir",
+        "sk": "Vymeniť ozonizátor",
     },
     "Replace Vision Cartridge": {
         "de": "Vision-Kartusche ersetzen",
@@ -18608,6 +19415,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vision-patron cseréje",
         "ko": "Vision 카트리지 교체",
         "tr": "Vision Kartuşunu Değiştir",
+        "sk": "Vymeniť kartušu kamery",
     },
     # ── Catalog round 17 task names ─────────────────────────────────
     "Replace Squeegee": {
@@ -18632,6 +19440,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gumilehúzó cseréje",
         "ko": "스퀴지 교체",
         "tr": "Silecek Lastiğini Değiştir",
+        "sk": "Vymeniť stierku",
     },
     "Clean Dirty Water Tank": {
         "de": "Schmutzwassertank reinigen",
@@ -18655,6 +19464,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szennyvíztartály tisztítása",
         "ko": "오수 탱크 청소",
         "tr": "Kirli Su Tankını Temizle",
+        "sk": "Vyčistiť nádrž na špinavú vodu",
     },
     "Clean Dirty Water Channel": {
         "de": "Schmutzwasserkanal reinigen",
@@ -18678,6 +19488,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szennyvízcsatorna tisztítása",
         "ko": "오수 통로 청소",
         "tr": "Kirli Su Kanalını Temizle",
+        "sk": "Vyčistiť kanálik špinavej vody",
     },
     "Clean Wheels": {
         "de": "Räder reinigen",
@@ -18701,6 +19512,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kerekek tisztítása",
         "ko": "바퀴 청소",
         "tr": "Tekerlekleri Temizle",
+        "sk": "Vyčistiť kolieska",
     },
     "Replace Scale Inhibitor": {
         "de": "Kalkschutzmodul ersetzen",
@@ -18724,6 +19536,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vízkőgátló cseréje",
         "ko": "스케일 방지제 교체",
         "tr": "Kireç Önleyiciyi Değiştir",
+        "sk": "Vymeniť inhibítor vodného kameňa",
     },
     "Clean Fluffing Roller": {
         "de": "Auflockerungswalze reinigen",
@@ -18747,6 +19560,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lazítóhenger tisztítása",
         "ko": "플러핑 롤러 청소",
         "tr": "Kabartma Silindirini Temizle",
+        "sk": "Vyčistiť načechrávací valček",
     },
     "Clean Roller Mop Filter": {
         "de": "Walzenmopp-Filter reinigen",
@@ -18770,6 +19584,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Hengeres felmosó szűrőjének tisztítása",
         "ko": "롤러 걸레 필터 청소",
         "tr": "Rulo Paspas Filtresini Temizle",
+        "sk": "Vyčistiť filter valcového mopu",
     },
     "Clean Water Outlet Filter": {
         "de": "Wasserauslassfilter reinigen",
@@ -18793,6 +19608,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vízkivezető szűrő tisztítása",
         "ko": "출수구 필터 청소",
         "tr": "Su Çıkış Filtresini Temizle",
+        "sk": "Vyčistiť filter výstupu vody",
     },
     # ── Bins & Recycling template (forum request) ─────────────────────
     "Bins & Recycling": {
@@ -18817,6 +19633,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kukák és szelektív hulladék",
         "ko": "쓰레기통 및 재활용",
         "tr": "Çöp Kutuları ve Geri Dönüşüm",
+        "sk": "Smetné nádoby a triedenie odpadu",
     },
     "Put the Bins Out": {
         "de": "Mülltonnen rausstellen",
@@ -18840,6 +19657,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kukák kitétele",
         "ko": "쓰레기통 내놓기",
         "tr": "Çöp Kutularını Dışarı Çıkar",
+        "sk": "Vyložiť smetné nádoby",
     },
     "Clean the Bins": {
         "de": "Mülltonnen reinigen",
@@ -18863,6 +19681,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kukák kimosása",
         "ko": "쓰레기통 청소",
         "tr": "Çöp Kutularını Temizle",
+        "sk": "Umyť smetné nádoby",
     },
     "Pickup day: set the schedule type to “Weekdays” and tick the day you put the bins out, or to “Calendar entity” to follow a waste collection calendar (offset -1 = the evening before).": {
         "de": "Abholtag: als Planungsart „Wochentage“ wählen und den Tag ankreuzen, an dem die Tonnen rausgestellt werden, oder „Kalender-Entität“, um einem Abfallkalender zu folgen (Versatz -1 = am Vorabend).",
@@ -18886,6 +19705,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Elszállítás napja: az ütemezés típusánál válaszd a „Hét napjai” lehetőséget, és jelöld be, melyik nap teszed ki a kukákat, vagy a „Naptárentitás” lehetőséget, ha egy hulladéknaptárt követnél (eltolás -1 = előző este).",
         "ko": "수거일: 일정 유형에서 '요일'을 선택하고 쓰레기통을 내놓는 요일을 체크하거나, '캘린더 엔티티'를 선택해 쓰레기 수거 캘린더를 따르세요(오프셋 -1 = 전날 저녁).",
         "tr": "Toplama günü: zamanlama türü olarak “Haftanın günleri”ni seçip kutuları dışarı çıkardığınız günü işaretleyin ya da bir çöp toplama takvimini izlemek için “Takvim varlığı”nı seçin (kaydırma -1 = bir önceki akşam).",
+        "sk": "Deň odvozu: nastavte typ plánu na „Dni v týždni“ a zaškrtnite deň, keď nádoby vykladáte, alebo na „Entita kalendára“, aby sa riadil kalendárom odvozu odpadu (posun -1 = večer predtým).",
     },
     "Run Cleaning Program": {
         "de": "Reinigungsprogramm ausführen",
@@ -18909,6 +19729,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tisztítóprogram futtatása",
         "ko": "세척 프로그램 실행",
         "tr": "Temizlik Programını Çalıştır",
+        "sk": "Spustiť čistiaci program",
     },
     "Clean Milk System": {
         "de": "Milchsystem reinigen",
@@ -18932,6 +19753,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tejrendszer tisztítása",
         "ko": "우유 시스템 세척",
         "tr": "Süt Sistemini Temizle",
+        "sk": "Vyčistiť mliečny systém",
     },
     "Replace Fragrance Cartridge": {
         "de": "Duftkartusche ersetzen",
@@ -18955,6 +19777,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Illatpatron cseréje",
         "ko": "향 카트리지 교체",
         "tr": "Koku Kartuşunu Değiştir",
+        "sk": "Vymeniť vonnú kartušu",
     },
     "Replace Softener Resin": {
         "de": "Enthärterharz ersetzen",
@@ -18978,6 +19801,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vízlágyító gyanta cseréje",
         "ko": "연수기 수지 교체",
         "tr": "Yumuşatıcı Reçinesini Değiştir",
+        "sk": "Vymeniť živicu zmäkčovača",
     },
     # ── 2.118 (D#85): verb-first task names. The old names above stay: they are
     # the task keys (TaskTemplate.key) and what tasks made before still read. ──
@@ -19003,6 +19827,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fékek beállítása",
         "ko": "브레이크 조정",
         "tr": "Frenleri Ayarla",
+        "sk": "Nastaviť brzdy",
     },
     "Aerate Lawn": {
         "de": "Rasen aerifizieren",
@@ -19026,6 +19851,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gyep levegőztetése",
         "ko": "잔디 통기 작업(에어레이션)",
         "tr": "Çimi Havalandır",
+        "sk": "Prevzdušniť trávnik",
     },
     "Backwash Filter": {
         "de": "Filter rückspülen",
@@ -19049,6 +19875,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szűrő visszamosatása",
         "ko": "필터 역세척",
         "tr": "Filtreyi Ters Yıka",
+        "sk": "Spätne prepláchnuť filter",
     },
     "Book Annual Inspection": {
         "de": "Jahresinspektion vereinbaren",
@@ -19072,6 +19899,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Éves ellenőrzés megrendelése",
         "ko": "연간 점검 예약",
         "tr": "Yıllık Kontrol Randevusu Al",
+        "sk": "Objednať ročnú kontrolu",
     },
     "Book Annual Service": {
         "de": "Jahresservice vereinbaren",
@@ -19095,6 +19923,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Éves szerviz megrendelése",
         "ko": "연간 정비 예약",
         "tr": "Yıllık Servis Randevusu Al",
+        "sk": "Objednať ročný servis",
     },
     "Book Chimney Sweep": {
         "de": "Schornsteinfeger-Termin vereinbaren",
@@ -19118,6 +19947,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kéményseprő időpont foglalása",
         "ko": "굴뚝 청소 예약",
         "tr": "Baca Temizliği Randevusu Al",
+        "sk": "Objednať kominára",
     },
     "Book Damp and Habitation Check": {
         "de": "Feuchtigkeits- und Dichtigkeitsprüfung vereinbaren",
@@ -19141,6 +19971,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Nedvesség- és lakótér-ellenőrzés megrendelése",
         "ko": "습기 측정 및 거주 공간 점검 예약",
         "tr": "Nem ve Yaşam Alanı Kontrolü Randevusu Al",
+        "sk": "Objednať kontrolu vlhkosti obytnej časti",
     },
     "Book Electrical Installation Inspection": {
         "de": "Prüfung der Elektroinstallation beauftragen",
@@ -19164,6 +19995,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Elektromos hálózat felülvizsgálatának megrendelése",
         "ko": "전기 설비 점검 예약",
         "tr": "Elektrik Tesisatı Denetimi Randevusu Al",
+        "sk": "Objednať revíziu elektroinštalácie",
     },
     "Book Electrical Safety Inspection": {
         "de": "Elektrische Sicherheitsprüfung beauftragen",
@@ -19187,6 +20019,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Villamos biztonsági felülvizsgálat megrendelése",
         "ko": "전기 안전 점검 예약",
         "tr": "Elektrik Güvenliği Denetimi Randevusu Al",
+        "sk": "Objednať revíziu elektroinštalácie",
     },
     "Book Expert Inspection": {
         "de": "Sachverständigenprüfung beauftragen",
@@ -19210,6 +20043,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szakértői felülvizsgálat megrendelése",
         "ko": "전문가 검사 예약",
         "tr": "Uzman Denetimi Randevusu Al",
+        "sk": "Objednať odbornú kontrolu",
     },
     "Book Gas Installation Inspection": {
         "de": "Prüfung der Gasinstallation beauftragen",
@@ -19233,6 +20067,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gázberendezés felülvizsgálatának megrendelése",
         "ko": "가스 설비 점검 예약",
         "tr": "Gaz Tesisatı Denetimi Randevusu Al",
+        "sk": "Objednať revíziu plynovej inštalácie",
     },
     "Book Perimeter Pest Treatment": {
         "de": "Schädlingsbehandlung rund ums Haus beauftragen",
@@ -19256,6 +20091,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ház körüli kártevőirtás megrendelése",
         "ko": "건물 외곽 해충 방제 예약",
         "tr": "Bina Çevresi Haşere İlaçlaması Randevusu Al",
+        "sk": "Objednať ošetrenie obvodu proti škodcom",
     },
     "Book Professional Check & Adjustment": {
         "de": "Fachliche Prüfung & Anpassung vereinbaren",
@@ -19279,6 +20115,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szakszervizes ellenőrzés és beállítás megrendelése",
         "ko": "전문가 점검 및 조정 예약",
         "tr": "Profesyonel Kontrol ve Ayar Randevusu Al",
+        "sk": "Objednať odbornú kontrolu a nastavenie",
     },
     "Book Professional Service": {
         "de": "Professionelle Wartung beauftragen",
@@ -19302,6 +20139,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szakszervizes karbantartás megrendelése",
         "ko": "전문가 정비 예약",
         "tr": "Profesyonel Servis Randevusu Al",
+        "sk": "Objednať odborný servis",
     },
     "Book Roadworthiness Test": {
         "de": "Hauptuntersuchung (HU) vereinbaren",
@@ -19325,6 +20163,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Időpont foglalása műszaki vizsgára",
         "ko": "자동차 검사 예약",
         "tr": "Araç Muayenesi Randevusu Al",
+        "sk": "Objednať technickú kontrolu",
     },
     "Book Septic Inspection": {
         "de": "Klärgrubeninspektion beauftragen",
@@ -19348,6 +20187,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szeptikus rendszer ellenőrzésének megrendelése",
         "ko": "정화조 점검 예약",
         "tr": "Foseptik Denetimi Randevusu Al",
+        "sk": "Objednať kontrolu septiku",
     },
     "Book Specialist Maintenance": {
         "de": "Fachbetrieb mit Wartung beauftragen",
@@ -19371,6 +20211,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Karbantartás megrendelése szakcégtől",
         "ko": "전문 업체 정비 예약",
         "tr": "Uzman Firmadan Bakım Randevusu Al",
+        "sk": "Objednať údržbu odbornou firmou",
     },
     "Book Termite Inspection": {
         "de": "Termiteninspektion beauftragen",
@@ -19394,6 +20235,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Termeszvizsgálat megrendelése",
         "ko": "흰개미 점검 예약",
         "tr": "Termit Denetimi Randevusu Al",
+        "sk": "Objednať kontrolu termitov",
     },
     "Change Brake Fluid": {
         "de": "Bremsflüssigkeit wechseln",
@@ -19417,6 +20259,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fékfolyadék cseréje",
         "ko": "브레이크액 교환",
         "tr": "Fren Hidroliğini Değiştir",
+        "sk": "Vymeniť brzdovú kvapalinu",
     },
     "Change Oil": {
         "de": "Öl wechseln",
@@ -19440,6 +20283,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Olajcsere",
         "ko": "엔진 오일 교환",
         "tr": "Yağı Değiştir",
+        "sk": "Vymeniť olej",
     },
     "Check 12V Battery": {
         "de": "12V-Batterie prüfen",
@@ -19463,6 +20307,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "12V-os akkumulátor ellenőrzése",
         "ko": "12V 배터리 점검",
         "tr": "12V Aküyü Kontrol Et",
+        "sk": "Skontrolovať 12V batériu",
     },
     "Check Battery Charge for Storage": {
         "de": "Akku-Ladestand für die Lagerung prüfen",
@@ -19486,6 +20331,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Akkumulátor tárolási töltöttségének ellenőrzése",
         "ko": "보관용 배터리 충전량 점검",
         "tr": "Depolama İçin Batarya Şarjını Kontrol Et",
+        "sk": "Skontrolovať nabitie batérie pred uskladnením",
     },
     "Check If Repotting Is Needed": {
         "de": "Umtopfbedarf prüfen",
@@ -19509,6 +20355,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Átültetés szükségességének ellenőrzése",
         "ko": "분갈이 필요 여부 점검",
         "tr": "Saksı Değişimi İhtiyacını Kontrol Et",
+        "sk": "Skontrolovať, či treba presadiť",
     },
     "Check Pump Oil": {
         "de": "Pumpenöl prüfen",
@@ -19532,6 +20379,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szivattyúolaj ellenőrzése",
         "ko": "펌프 오일 점검",
         "tr": "Pompa Yağını Kontrol Et",
+        "sk": "Skontrolovať olej v čerpadle",
     },
     "Check Tire Pressure": {
         "de": "Reifendruck prüfen",
@@ -19555,6 +20403,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Guminyomás ellenőrzése",
         "ko": "타이어 공기압 점검",
         "tr": "Lastik Basıncını Kontrol Et",
+        "sk": "Skontrolovať tlak v pneumatikách",
     },
     "Check for Mould in the Rainy Season": {
         "de": "In der Regenzeit auf Schimmel prüfen",
@@ -19578,6 +20427,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Penész ellenőrzése az esős évszakban",
         "ko": "장마철 곰팡이 점검",
         "tr": "Yağmur Mevsiminde Küf Kontrolü Yap",
+        "sk": "Skontrolovať plesne v období dažďov",
     },
     "Check for Refrigerant Leaks": {
         "de": "Kältemittelkreislauf auf Dichtheit prüfen",
@@ -19601,6 +20451,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Hűtőközeg-szivárgás ellenőrzése",
         "ko": "냉매 누설 점검",
         "tr": "Soğutucu Akışkan Kaçağını Kontrol Et",
+        "sk": "Skontrolovať úniky chladiva",
     },
     "Claim GHG Quota (THG-Quote)": {
         "de": "THG-Quote beantragen",
@@ -19624,6 +20475,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Üvegházgáz-kvóta igénylése (THG-Quote)",
         "ko": "온실가스 쿼터 신청 (THG-Quote)",
         "tr": "Sera Gazı Kotası Talep Et (THG-Quote)",
+        "sk": "Uplatniť kvótu skleníkových plynov (THG-Quote)",
     },
     "Clean Condenser": {
         "de": "Kondensator reinigen",
@@ -19647,6 +20499,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kondenzátor tisztítása",
         "ko": "응축기 청소",
         "tr": "Kondenseri Temizle",
+        "sk": "Vyčistiť kondenzátor",
     },
     "Clean Drum": {
         "de": "Trommel reinigen",
@@ -19670,6 +20523,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Dob tisztítása",
         "ko": "드럼 세척",
         "tr": "Tamburu Temizle",
+        "sk": "Vyčistiť bubon",
     },
     "Clean Ducts": {
         "de": "Luftkanäle reinigen",
@@ -19693,6 +20547,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Légcsatornák tisztítása",
         "ko": "덕트 청소",
         "tr": "Kanalları Temizle",
+        "sk": "Vyčistiť potrubie",
     },
     "Clean Filter": {
         "de": "Filter reinigen",
@@ -19716,6 +20571,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szűrő tisztítása",
         "ko": "필터 청소",
         "tr": "Filtreyi Temizle",
+        "sk": "Vyčistiť filter",
     },
     "Clean Lint Filter": {
         "de": "Flusensieb reinigen",
@@ -19739,6 +20595,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szöszszűrő tisztítása",
         "ko": "보푸라기 필터 청소",
         "tr": "Hav Filtresini Temizle",
+        "sk": "Vyčistiť filter na vlákna",
     },
     "Clean Nozzles and Filter": {
         "de": "Düsen und Filter reinigen",
@@ -19762,6 +20619,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fúvókák és szűrő tisztítása",
         "ko": "노즐 및 필터 청소",
         "tr": "Nozulları ve Filtreyi Temizle",
+        "sk": "Vyčistiť trysky a filter",
     },
     "Clean Oven": {
         "de": "Backofen reinigen",
@@ -19785,6 +20643,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Sütő tisztítása",
         "ko": "오븐 청소",
         "tr": "Fırını Temizle",
+        "sk": "Vyčistiť rúru",
     },
     "Clean Pump Basket": {
         "de": "Pumpenkorb reinigen",
@@ -19808,6 +20667,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szivattyú szűrőkosarának tisztítása",
         "ko": "펌프 바스켓 청소",
         "tr": "Pompa Sepetini Temizle",
+        "sk": "Vyčistiť košík čerpadla",
     },
     "Clean Range Hood Filter": {
         "de": "Dunstabzugshauben-Filter reinigen",
@@ -19831,6 +20691,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Páraelszívó szűrőjének tisztítása",
         "ko": "레인지 후드 필터 청소",
         "tr": "Davlumbaz Filtresini Temizle",
+        "sk": "Vyčistiť filter digestora",
     },
     "Clean Resin": {
         "de": "Harz reinigen",
@@ -19854,6 +20715,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gyanta tisztítása",
         "ko": "레진 세척",
         "tr": "Reçineyi Temizle",
+        "sk": "Vyčistiť živicu",
     },
     "Clean Spray Arms": {
         "de": "Sprüharme reinigen",
@@ -19877,6 +20739,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szórókarok tisztítása",
         "ko": "분사 암 청소",
         "tr": "Püskürtme Kollarını Temizle",
+        "sk": "Vyčistiť ostrekovacie ramená",
     },
     "Clean and Lubricate Chain": {
         "de": "Kette reinigen und schmieren",
@@ -19900,6 +20763,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Lánc tisztítása és kenése",
         "ko": "체인 청소 및 윤활",
         "tr": "Zinciri Temizle ve Yağla",
+        "sk": "Vyčistiť a namazať reťaz",
     },
     "Descale": {
         "de": "Entkalken",
@@ -19923,6 +20787,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Vízkőtelenítés",
         "ko": "스케일 제거",
         "tr": "Kireci Çöz",
+        "sk": "Odvápniť",
     },
     "Do a Partial Water Change": {
         "de": "Teilwasserwechsel durchführen",
@@ -19946,6 +20811,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Részleges vízcsere",
         "ko": "부분 물갈이",
         "tr": "Suyun Bir Kısmını Değiştir",
+        "sk": "Čiastočne vymeniť vodu",
     },
     "Fertilize Hedge": {
         "de": "Hecke düngen",
@@ -19969,6 +20835,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Sövény trágyázása",
         "ko": "산울타리 비료 주기",
         "tr": "Çiti Gübrele",
+        "sk": "Pohnojiť živý plot",
     },
     "Fertilize Lawn": {
         "de": "Rasen düngen",
@@ -19992,6 +20859,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gyep trágyázása",
         "ko": "잔디 비료 주기",
         "tr": "Çimi Gübrele",
+        "sk": "Pohnojiť trávnik",
     },
     "Fertilize Plants": {
         "de": "Pflanzen düngen",
@@ -20015,6 +20883,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Növények tápoldatozása",
         "ko": "식물 비료 주기",
         "tr": "Bitkileri Gübrele",
+        "sk": "Pohnojiť rastliny",
     },
     "Free Up Disk Space": {
         "de": "Speicher aufräumen",
@@ -20038,6 +20907,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tárhely rendezése",
         "ko": "저장 공간 정리",
         "tr": "Depolamayı Temizle",
+        "sk": "Uvoľniť miesto na disku",
     },
     "Hone Knives": {
         "de": "Messer am Wetzstahl abziehen",
@@ -20061,6 +20931,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kések fenése",
         "ko": "칼날 세우기(호닝)",
         "tr": "Bıçaklara Masat Çek",
+        "sk": "Obtiahnuť nože",
     },
     "Inspect Anode Rod": {
         "de": "Anodenstab prüfen",
@@ -20084,6 +20955,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Anódrúd ellenőrzése",
         "ko": "애노드봉 점검",
         "tr": "Anot Çubuğunu Kontrol Et",
+        "sk": "Skontrolovať anódovú tyč",
     },
     "Inspect Brakes": {
         "de": "Bremsen prüfen",
@@ -20107,6 +20979,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fékek ellenőrzése",
         "ko": "브레이크 점검",
         "tr": "Frenleri Kontrol Et",
+        "sk": "Skontrolovať brzdy",
     },
     "Inspect Door Seal": {
         "de": "Türdichtung prüfen",
@@ -20130,6 +21003,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ajtótömítés ellenőrzése",
         "ko": "도어 패킹 점검",
         "tr": "Kapı Contasını Kontrol Et",
+        "sk": "Skontrolovať tesnenie dvierok",
     },
     "Inspect Roof": {
         "de": "Dach prüfen",
@@ -20153,6 +21027,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tető ellenőrzése",
         "ko": "지붕 점검",
         "tr": "Çatıyı Kontrol Et",
+        "sk": "Skontrolovať strechu",
     },
     "Inspect Seals": {
         "de": "Dichtungen prüfen",
@@ -20176,6 +21051,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tömítések ellenőrzése",
         "ko": "패킹 점검",
         "tr": "Contaları Kontrol Et",
+        "sk": "Skontrolovať tesnenia",
     },
     "Inspect Sprinkler Heads": {
         "de": "Sprinklerköpfe prüfen",
@@ -20199,6 +21075,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szórófejek ellenőrzése",
         "ko": "스프링클러 헤드 점검",
         "tr": "Fıskiye Başlıklarını Kontrol Et",
+        "sk": "Skontrolovať postrekovače",
     },
     "Inspect Tires": {
         "de": "Reifen prüfen",
@@ -20222,6 +21099,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gumiabroncsok ellenőrzése",
         "ko": "타이어 점검",
         "tr": "Lastikleri Kontrol Et",
+        "sk": "Skontrolovať pneumatiky",
     },
     "Inspect Vents": {
         "de": "Abluft prüfen",
@@ -20245,6 +21123,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szellőzés ellenőrzése",
         "ko": "배기구 점검",
         "tr": "Havalandırmayı Kontrol Et",
+        "sk": "Skontrolovať odvetranie",
     },
     "Mow Lawn": {
         "de": "Rasen mähen",
@@ -20268,6 +21147,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fűnyírás",
         "ko": "잔디 깎기",
         "tr": "Çimi Biç",
+        "sk": "Pokosiť trávnik",
     },
     "Mulch Hedge": {
         "de": "Hecke mulchen",
@@ -20291,6 +21171,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Sövény mulcsozása",
         "ko": "산울타리 멀칭",
         "tr": "Çiti Malçla",
+        "sk": "Namulčovať živý plot",
     },
     "Overseed Lawn": {
         "de": "Rasen nachsäen",
@@ -20314,6 +21195,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gyep felülvetése",
         "ko": "잔디 덧파종",
         "tr": "Çime Takviye Tohum Ek",
+        "sk": "Dosiať trávnik",
     },
     "Replace Air Filter": {
         "de": "Luftfilter ersetzen",
@@ -20337,6 +21219,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Levegőszűrő cseréje",
         "ko": "에어 필터 교체",
         "tr": "Hava Filtresini Değiştir",
+        "sk": "Vymeniť vzduchový filter",
     },
     "Replace Cabin Air Filter": {
         "de": "Innenraumfilter ersetzen",
@@ -20360,6 +21243,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Utastérszűrő cseréje",
         "ko": "캐빈 에어 필터 교체",
         "tr": "Polen Filtresini Değiştir",
+        "sk": "Vymeniť kabínový filter",
     },
     "Replace Carbon Pre-Filter": {
         "de": "Aktivkohle-Vorfilter ersetzen",
@@ -20383,6 +21267,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szén-előszűrő cseréje",
         "ko": "카본 전처리 필터 교체",
         "tr": "Karbon Ön Filtresini Değiştir",
+        "sk": "Vymeniť uhlíkový predfilter",
     },
     "Replace Group Gasket": {
         "de": "Brühgruppendichtung ersetzen",
@@ -20406,6 +21291,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Főzőfej-tömítés cseréje",
         "ko": "그룹 개스킷 교체",
         "tr": "Grup Contasını Değiştir",
+        "sk": "Vymeniť tesnenie hlavy",
     },
     "Replace Post-Carbon Filter": {
         "de": "Nachkohle-Filter ersetzen",
@@ -20429,6 +21315,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szén utószűrő cseréje",
         "ko": "포스트 카본 필터 교체",
         "tr": "Son Karbon Filtresini Değiştir",
+        "sk": "Vymeniť uhlíkový dofilter",
     },
     "Replace RO Membrane": {
         "de": "RO-Membran ersetzen",
@@ -20452,6 +21339,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "RO membrán cseréje",
         "ko": "RO 멤브레인 교체",
         "tr": "RO Membranını Değiştir",
+        "sk": "Vymeniť RO membránu",
     },
     "Replace Sediment Pre-Filter": {
         "de": "Sediment-Vorfilter ersetzen",
@@ -20475,6 +21363,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Üledék-előszűrő cseréje",
         "ko": "침전물 전처리 필터 교체",
         "tr": "Tortu Ön Filtresini Değiştir",
+        "sk": "Vymeniť sedimentový predfilter",
     },
     "Replace Spark Plug": {
         "de": "Zündkerze ersetzen",
@@ -20498,6 +21387,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gyújtógyertya cseréje",
         "ko": "점화 플러그 교체",
         "tr": "Bujiyi Değiştir",
+        "sk": "Vymeniť zapaľovaciu sviečku",
     },
     "Replace Wiper Blades": {
         "de": "Scheibenwischer ersetzen",
@@ -20521,6 +21411,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Ablaktörlő lapátok cseréje",
         "ko": "와이퍼 블레이드 교체",
         "tr": "Silecek Lastiklerini Değiştir",
+        "sk": "Vymeniť stierače",
     },
     "Rotate Tires": {
         "de": "Reifen rotieren",
@@ -20544,6 +21435,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Abroncsok forgatása",
         "ko": "타이어 위치 교환",
         "tr": "Lastik Rotasyonu Yap",
+        "sk": "Prehodiť pneumatiky",
     },
     "Run Mid-Season Check": {
         "de": "Kontrolle zur Saisonmitte durchführen",
@@ -20567,6 +21459,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szezon közbeni ellenőrzés",
         "ko": "시즌 중간 점검 실시",
         "tr": "Sezon Ortası Kontrolü Yap",
+        "sk": "Skontrolovať v polovici sezóny",
     },
     "Run Nozzle Check": {
         "de": "Düsentest durchführen",
@@ -20590,6 +21483,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fúvóka-ellenőrzés futtatása",
         "ko": "노즐 점검 실행",
         "tr": "Nozul Kontrolünü Çalıştır",
+        "sk": "Skontrolovať trysky",
     },
     "Run Operator Check": {
         "de": "Eigenkontrolle durchführen",
@@ -20613,6 +21507,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Üzemeltetői ellenőrzés elvégzése",
         "ko": "운영자 점검 실시",
         "tr": "İşletmeci Kontrolünü Yap",
+        "sk": "Vykonať kontrolu prevádzkovateľom",
     },
     "Scarify Lawn": {
         "de": "Rasen vertikutieren",
@@ -20636,6 +21531,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gyep vertikulálása",
         "ko": "잔디 태치 제거(스카리파잉)",
         "tr": "Çimin Keçesini Al (Skarifikasyon)",
+        "sk": "Vertikutovať trávnik",
     },
     "Service Backflow Valve": {
         "de": "Rückstauverschluss warten",
@@ -20659,6 +21555,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Visszaáramlás-gátló karbantartása",
         "ko": "역류 방지 밸브 정비",
         "tr": "Geri Akış Valfinin Bakımını Yap",
+        "sk": "Servisovať spätnú klapku",
     },
     "Service Before the Season": {
         "de": "Wartung vor der Saison durchführen",
@@ -20682,6 +21579,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szezon előtti szerviz",
         "ko": "시즌 전 정비",
         "tr": "Sezon Öncesi Bakım Yap",
+        "sk": "Servisovať pred sezónou",
     },
     "Service Brakes": {
         "de": "Bremsen warten",
@@ -20705,6 +21603,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Fékek szervizelése",
         "ko": "브레이크 정비",
         "tr": "Frenlerin Bakımını Yap",
+        "sk": "Servisovať brzdy",
     },
     "Service Fire Extinguisher": {
         "de": "Feuerlöscher warten",
@@ -20728,6 +21627,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tűzoltó készülék szervizelése",
         "ko": "소화기 정비",
         "tr": "Yangın Söndürücünün Bakımını Yap",
+        "sk": "Servisovať hasiaci prístroj",
     },
     "Service Lifting Station": {
         "de": "Hebeanlage warten",
@@ -20751,6 +21651,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Szennyvízátemelő karbantartása",
         "ko": "오수 펌프장 정비",
         "tr": "Terfi İstasyonunun Bakımını Yap",
+        "sk": "Servisovať prečerpávaciu stanicu",
     },
     "Service Pressure Reducer": {
         "de": "Druckminderer warten",
@@ -20774,6 +21675,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Nyomáscsökkentő karbantartása",
         "ko": "감압 밸브 정비",
         "tr": "Basınç Düşürücünün Bakımını Yap",
+        "sk": "Servisovať redukčný ventil",
     },
     "Service Stove": {
         "de": "Ofen warten",
@@ -20797,6 +21699,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kályha szervizelése",
         "ko": "난로 정비",
         "tr": "Sobanın Bakımını Yap",
+        "sk": "Servisovať kachle",
     },
     "Sharpen Blade": {
         "de": "Messer schärfen",
@@ -20820,6 +21723,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kés élezése",
         "ko": "칼날 연마",
         "tr": "Bıçağı Bile",
+        "sk": "Nabrúsiť nôž",
     },
     "Sharpen Knives": {
         "de": "Messer schärfen",
@@ -20843,6 +21747,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Kések élezése",
         "ko": "칼 갈기",
         "tr": "Bıçakları Bile",
+        "sk": "Nabrúsiť nože",
     },
     "Shock Pool Water": {
         "de": "Poolwasser stoßchloren",
@@ -20866,6 +21771,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Medencevíz sokk-klórozása",
         "ko": "수영장 물 쇼크 처리",
         "tr": "Havuz Suyunu Şok Klorla",
+        "sk": "Šokovo ošetriť vodu v bazéne",
     },
     "Shut Down and Drain for Fall": {
         "de": "Im Herbst stilllegen und entleeren",
@@ -20889,6 +21795,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Őszi leállítás és leürítés",
         "ko": "가을철 가동 중지 및 배수",
         "tr": "Sonbaharda Kapat ve Boşalt",
+        "sk": "Na jeseň odstaviť a vypustiť",
     },
     "Start Up for Spring": {
         "de": "Im Frühjahr in Betrieb nehmen",
@@ -20912,6 +21819,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tavaszi beüzemelés",
         "ko": "봄철 가동 시작",
         "tr": "Baharda Devreye Al",
+        "sk": "Na jar spustiť",
     },
     "Start Up for Spring and Check for Leaks": {
         "de": "Im Frühjahr in Betrieb nehmen und Dichtheit prüfen",
@@ -20935,6 +21843,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Tavaszi beüzemelés és szivárgás-ellenőrzés",
         "ko": "봄철 가동 및 누수 점검",
         "tr": "Baharda Devreye Al ve Sızıntıları Kontrol Et",
+        "sk": "Na jar spustiť a skontrolovať úniky",
     },
     "Store for Summer": {
         "de": "Für den Sommer einlagern",
@@ -20958,6 +21867,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Felkészítés a nyári tárolásra",
         "ko": "여름 보관",
         "tr": "Yazlık Depoya Kaldır",
+        "sk": "Uskladniť na leto",
     },
     "Store for Winter": {
         "de": "Für den Winter einlagern",
@@ -20981,6 +21891,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Felkészítés a téli tárolásra",
         "ko": "겨울 보관",
         "tr": "Kışlık Depoya Kaldır",
+        "sk": "Uskladniť na zimu",
     },
     "Test LPG System": {
         "de": "Gasprüfung durchführen",
@@ -21004,6 +21915,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "PB-gázrendszer ellenőrzése",
         "ko": "LPG 설비 검사",
         "tr": "LPG Sistemini Test Et",
+        "sk": "Otestovať plynové zariadenie",
     },
     "Test Pressure Relief Valve": {
         "de": "Sicherheitsventil testen",
@@ -21027,6 +21939,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Biztonsági szelep tesztelése",
         "ko": "압력 릴리프 밸브 테스트",
         "tr": "Basınç Tahliye Valfini Test Et",
+        "sk": "Otestovať poistný ventil",
     },
     "Test Water": {
         "de": "Wasser testen",
@@ -21050,6 +21963,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Víz tesztelése",
         "ko": "수질 검사",
         "tr": "Suyu Test Et",
+        "sk": "Otestovať vodu",
     },
     "Test for Radon": {
         "de": "Radon messen",
@@ -21073,6 +21987,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Radonszint mérése",
         "ko": "라돈 측정",
         "tr": "Radon Testi Yap",
+        "sk": "Zmerať radón",
     },
     "Trim Hedge": {
         "de": "Hecke schneiden",
@@ -21096,6 +22011,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Sövény nyírása",
         "ko": "산울타리 다듬기",
         "tr": "Çiti Buda",
+        "sk": "Zastrihnúť živý plot",
     },
     "Visually Inspect Panels": {
         "de": "Sichtprüfung der Module durchführen",
@@ -21119,6 +22035,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Panelek szemrevételezése",
         "ko": "패널 육안 점검",
         "tr": "Panelleri Gözle Kontrol Et",
+        "sk": "Vizuálne skontrolovať panely",
     },
     "Water Hedge": {
         "de": "Hecke gießen",
@@ -21142,6 +22059,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Sövény öntözése",
         "ko": "산울타리 물 주기",
         "tr": "Çiti Sula",
+        "sk": "Poliať živý plot",
     },
     "Water Lawn": {
         "de": "Rasen gießen",
@@ -21165,6 +22083,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gyep öntözése",
         "ko": "잔디 물 주기",
         "tr": "Çimi Sula",
+        "sk": "Poliať trávnik",
     },
     "Water Plants": {
         "de": "Pflanzen gießen",
@@ -21188,6 +22107,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Növények öntözése",
         "ko": "식물 물 주기",
         "tr": "Bitkileri Sula",
+        "sk": "Poliať kvety",
     },
     "Weed Lawn": {
         "de": "Unkraut im Rasen jäten",
@@ -21211,6 +22131,7 @@ _T: dict[str, dict[str, str]] = {
         "hu": "Gyep gyomlálása",
         "ko": "잔디 잡초 제거",
         "tr": "Çimdeki Yabani Otları Temizle",
+        "sk": "Vyplieť trávnik",
     },
 }
 

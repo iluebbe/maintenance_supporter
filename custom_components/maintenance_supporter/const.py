@@ -343,6 +343,7 @@ NOTIFICATION_LANGUAGE_NAMES: Final[dict[str, str]] = {
     "pt": "Português",
     "pt-br": "Português (Brasil)",
     "ru": "Русский",
+    "sk": "Slovenčina",
     "sv": "Svenska",
     "tr": "Türkçe",
     "uk": "Українська",
@@ -453,6 +454,7 @@ PANEL_TITLES: dict[str, str] = {
     "es": "Mantenimiento", "pt": "Manutenção", "pt-br": "Manutenção", "ru": "Обслуживание", "uk": "Обслуговування",
     "pl": "Konserwacja", "cs": "Údržba", "sv": "Underhåll", "zh": "维护", "da": "Vedligeholdelse", "fi": "Huolto",
     "nb": "Vedlikehold", "ja": "メンテナンス", "hi": "रखरखाव", "hu": "Karbantartás", "ko": "유지보수", "tr": "Bakım",
+    "sk": "Údržba",
 }  # fmt: skip
 PANEL_ICON: Final = "mdi:wrench-clock"
 PANEL_URL: Final = "/maintenance_supporter_panel"

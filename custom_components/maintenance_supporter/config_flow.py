@@ -75,6 +75,7 @@ _TEMPLATE_STRINGS: dict[str, dict[str, str]] = {
     "en": {"set_up": "already set up"},
     "de": {"set_up": "bereits eingerichtet"},
     "cs": {"set_up": "již nastaveno"},
+    "sk": {"set_up": "už nastavené"},
     "da": {"set_up": "allerede oprettet"},
     "es": {"set_up": "ya configurado"},
     "fi": {"set_up": "jo käytössä"},

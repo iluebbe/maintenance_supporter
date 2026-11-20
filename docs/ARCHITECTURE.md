@@ -643,7 +643,7 @@ custom_components/maintenance_supporter/
 ├── triggers.yaml / conditions.yaml          Purpose-specific automation building blocks
 ├── strings.json                             Localization keys
 ├── icons.json                               State-based icon mappings
-└── translations/{en,de,nl,fr,it,es,pt,pt-BR,ru,uk,pl,cs,sv,da,fi,nb,ja,hi,hu,ko,tr,zh-Hans}.json  22 languages (HA config flow + Repairs UI), all fully translated. Panel/card UI strings live in frontend-src/locales/<lang>.json (same 22 languages; keyed 2-letter, Chinese as `zh`, Brazilian Portuguese as `pt-br`) — only en.json is bundled into the JS, the others are served from frontend/locales/ and fetched at runtime in the user's language.
+└── translations/{en,de,nl,fr,it,es,pt,pt-BR,ru,uk,pl,cs,sk,sv,da,fi,nb,ja,hi,hu,ko,tr,zh-Hans}.json  23 languages (HA config flow + Repairs UI), all fully translated. Panel/card UI strings live in frontend-src/locales/<lang>.json (same 23 languages; keyed 2-letter, Chinese as `zh`, Brazilian Portuguese as `pt-br`) — only en.json is bundled into the JS, the others are served from frontend/locales/ and fetched at runtime in the user's language.
 ```
 
 ---
