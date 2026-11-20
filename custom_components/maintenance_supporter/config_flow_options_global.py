@@ -285,6 +285,14 @@ _TEST_NOTIFICATION_RESULTS: dict[str, dict[str, str]] = {
         "push_message": "🔧 Testovací oznámení — vaše nastavení oznámení funguje!",
         "user_no_device": "ℹ️ Tento uživatel nemá přiřazené žádné Companion zařízení — jeho připomínky půjdou na službu domácnosti.",
     },
+    "sk": {
+        "success": "✅ Testovacie upozornenie odoslané – vaša služba funguje. Ak konkrétne zariadenie nič nedostane, skontrolujte ho vo svojej skupine notify (a protokoly Home Assistanta).",
+        "no_service": "⚠️ Nie je nastavená služba upozornení. Najprv ju nastavte vo Všeobecných nastaveniach.",
+        "invalid_service": "❌ Formát služby upozornení je neplatný. Použite 'notify.nazov_sluzby'.",
+        "failed": "❌ Testovacie upozornenie sa nepodarilo odoslať. Skontrolujte nastavenie služby.",
+        "push_message": "🔧 Testovacie upozornenie – vaše upozornenia fungujú!",
+        "user_no_device": "ℹ️ K tomuto používateľovi nie je priradené žiadne zariadenie Companion – jeho pripomienky idú do služby domácnosti.",
+    },
     "da": {
         "success": "✅ Testnotifikation sendt — din tjeneste virker. Hvis en bestemt enhed intet modtager, så tjek den enhed i din notify-gruppe (og HA-loggen).",
         "no_service": "⚠️ Ingen notifikationstjeneste konfigureret. Opsæt først en tjeneste under Generelle indstillinger.",
@@ -373,7 +381,16 @@ _SETTINGS_STRINGS: dict[str, dict[str, str]] = {
         "scope_all": "Všechny úkoly",
         "region_auto": "Automaticky ({region})",
         "region_none": "nenalezeno",
-        "language_auto": "Jazyk Home Assistantu ({language})",
+        "language_auto": "Jazyk Home Assistanta ({language})",
+    },
+    "sk": {
+        "dwelling_house": "dom",
+        "dwelling_apartment": "byt",
+        "dwelling_unknown": "zatiaľ neisté",
+        "scope_all": "Všetky úlohy",
+        "region_auto": "Automaticky ({region})",
+        "region_none": "nenájdené",
+        "language_auto": "Jazyk Home Assistanta ({language})",
     },
     "da": {
         "dwelling_house": "hus",

@@ -82,7 +82,7 @@ export function seedEnglish(en: Record<string, string>): void {
 /** Languages available as runtime-loaded JSON. Keep in sync with locales/. */
 const SUPPORTED_LANGS = new Set<string>([
   "de", "nl", "fr", "it", "es", "pt", "pt-br", "ru", "uk", "pl", "cs", "sv", "zh",
-  "da", "fi", "nb", "ja", "hi", "hu", "ko", "tr",
+  "da", "fi", "nb", "ja", "hi", "hu", "ko", "tr", "sk",
 ]);
 
 /** Served base for the runtime locale files (mirrors LOCALES_URL in const.py). */

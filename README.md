@@ -146,7 +146,7 @@ for you — always previewing before it writes.
 | **Spare parts** | Parts inventory: identifiers (MPN, GTIN/EAN), storage location, stock + reorder threshold, auto “buy” tasks with shopping links, restock on completion, *Use* for what goes outside a task, stock sensors, buy reminders mirrored into the HA shopping list you pick in Settings (check one off at the store, the part is restocked). Several objects can share one stock, so identical appliances draw on one real pile | [Features → Task Management](docs/FEATURES.md#task-management) |
 | **Quick actions** | QR codes (view / complete / one-tap quick-complete), NFC tags — optionally as **proof of presence** (a task only a scan at the thing itself may complete), on-complete service calls back to the device (quick-complete defaults and your own service calls need *Completion actions* in Advanced Features) | [Features → Completion Actions](docs/FEATURES.md#completion-actions-130-advanced) |
 | **Dashboards** | Sidebar panel (Today view, global search across objects, tasks, parts, document contents and notes, bulk actions, saved filter views), Lovelace card, calendar card, battery-fleet card, the whole panel as a card for a dashboard subview (2.84+), auto-generated dashboard strategies | [Examples → Dashboards](docs/EXAMPLES.md#lovelace-card) |
-| **Localization** | Full UI in 22 languages across panel, config flow, and notifications; dates, times and numbers follow your HA profile formats | [Features → Frontend](docs/FEATURES.md#frontend) |
+| **Localization** | Full UI in 23 languages across panel, config flow, and notifications; dates, times and numbers follow your HA profile formats | [Features → Frontend](docs/FEATURES.md#frontend) |
 
 ## Entities & automation hooks
 

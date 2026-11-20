@@ -2,6 +2,25 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### ✨ Added
+
+- **Slovak (`sk`).** Config flow, panel and cards, notifications, logbook, calendar, the buy-task name, the
+  template catalog (templates, tasks, notes and categories), region names and the Assist responses speak
+  Slovak — the 23rd language (#285).
+
+### 🔧 Developer notes
+
+- `translations/sk.json`, `frontend-src/locales/sk.json`; `sk` in `SUPPORTED_LANGS`, `langToLocale` (`sk-SK`),
+  `NOTIFICATION_LANGUAGE_NAMES` / `NOTIFICATION_LANGUAGES`, `PANEL_TITLES`, `DECIMAL_COMMA_LANGUAGES`,
+  `_BUY_NAME_TEMPLATES` and the six in-python string tables.
+- `sk` in `templates_i18n.py` (all 921 entries), `TEMPLATE_CATEGORIES` (`name_sk`), `data/regions/names_i18n.json`
+  and a new `assist_sentences/responses/sk.json`.
+- `tests/test_i18n.py`: `sk` in `_EXPECTED_LANGUAGES`; the Slovak cognates *Model*, *Interval* and *Trend*
+  allowlisted like Czech. `tests/test_i18n_audit_2026_09_27.py`: `sk` in the region-name `LANGUAGES`.
+- Docs: the language count says 23 (README, FEATURES, ARCHITECTURE, CONTRIBUTING, `data/regions/README.md`).
+
 ## [2.124.1] - 2026-11-17
 
 Sensor cleaning on Roborock and Xiaomi robots.

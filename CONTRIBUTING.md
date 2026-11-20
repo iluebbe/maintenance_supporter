@@ -124,11 +124,11 @@ yourself: CI fails when the tree misses a module or its figures drifted.
 
 ## Translations
 
-Panel strings live in `custom_components/maintenance_supporter/frontend-src/locales/<lang>.json` (22 languages; runtime-loaded, only `en.json` is bundled). Config-flow strings live in `custom_components/maintenance_supporter/translations/<lang>.json`.
+Panel strings live in `custom_components/maintenance_supporter/frontend-src/locales/<lang>.json` (23 languages; runtime-loaded, only `en.json` is bundled). Config-flow strings live in `custom_components/maintenance_supporter/translations/<lang>.json`.
 
 When adding a key:
 
-1. Add it to **all 22 languages** — this is enforced, not aspirational. CI
+1. Add it to **all 23 languages** — this is enforced, not aspirational. CI
    checks both key parity *and* that the value was actually translated
    (an English string copied into every file fails the gate).
 2. Use the helper rather than editing 22 files by hand; it refuses to run
