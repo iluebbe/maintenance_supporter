@@ -112,8 +112,22 @@ _NATIVE_RETENTION = timedelta(hours=48)
 # about a battery — some Zigbee2MQTT/ESPHome devices ship battery levels
 # without the device class. Deliberately strict: the exclusion words keep out
 # charging electronics and home-storage state-of-charge sensors (a Powerwall
-# is not a battery you replace).
-_HEURISTIC_EXCLUDE = ("charging", "current", "power", "voltage", "energy", "load", "soc", "state_of_charge", "storage", "temp")
+# is not a battery you replace). #286: Garmin Connect's "Body Battery" family
+# (most recent, highest, charged, drained, sleep change, yesterday's …) is a
+# %-reading named after a battery that measures a person's energy.
+_HEURISTIC_EXCLUDE = (
+    "charging",
+    "current",
+    "power",
+    "voltage",
+    "energy",
+    "load",
+    "soc",
+    "state_of_charge",
+    "storage",
+    "temp",
+    "body_battery",
+)
 
 
 def _is_native_battery_sensor(state: Any) -> bool:

@@ -21,6 +21,7 @@ from ..const import (
     CONF_OBJECT_DOCUMENTATION_URL,
     CONF_OBJECT_INSTALLATION_DATE,
     CONF_OBJECT_MANUFACTURER,
+    CONF_OBJECT_MIRROR_TODO,
     CONF_OBJECT_MODEL,
     CONF_OBJECT_NAME,
     CONF_OBJECT_NOTES,
@@ -39,6 +40,7 @@ from ..const import (
     MAX_URL_LENGTH,
 )
 from ..helpers import template_updates as tu
+from ..helpers import todo_mirror
 from ..helpers.aggregate import (
     get_coordinator_data,
     get_object_entries,
@@ -59,7 +61,7 @@ from ..helpers.object_names import name_changed_onto_taken, name_taken, unique_o
 from ..helpers.parts import PART_REF_FIELD, map_part_links
 from ..helpers.pause import build_resumed_entry_data, reanchor_recurring_task, wants_fresh_cycle
 from ..helpers.permissions import require_write
-from ..helpers.sanitize import cap_object_fields, strip_object_reference, strip_task_runtime_state
+from ..helpers.sanitize import cap_object_fields, sanitize_mirror_todo_entities, strip_object_reference, strip_task_runtime_state
 from ..helpers.shared_parts import async_relink_history, borrowed_part_ids, pool_handover, relink_borrowers
 from ..helpers.task_origin import ORIGIN_KEY, task_origin
 from ..helpers.template_usage import OBJECT_TEMPLATE_ID
@@ -97,6 +99,17 @@ _OBJECT_STR_FIELD_SCHEMA: dict[Any, Any] = {
     vol.Optional("ha_device_id"): vol.Any(ID_FIELD, None),
     vol.Optional("parent_entry_id"): vol.Any(ID_FIELD, None),
 }
+
+
+def _object_mirror_lists(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: Mapping[str, Any]) -> list[str] | None:
+    """#273: the object's to-do lists from ``msg``, cleaned like a task's
+    (todo.* ids, deduped, capped); None after refusing one of our own lists."""
+    mirrors = sanitize_mirror_todo_entities(msg.get("mirror_todo_entities"))
+    error = todo_mirror.mirror_todo_error(hass, mirrors)
+    if error:
+        connection.send_error(msg["id"], "invalid_mirror_todo", error)
+        return None
+    return mirrors
 
 
 def _carry_template_since(source: Mapping[str, Any], new_obj: dict[str, Any]) -> None:
@@ -289,6 +302,8 @@ async def ws_get_object(
         vol.Required("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
         **_OBJECT_STR_FIELD_SCHEMA,
         vol.Optional("remind_on_site"): bool,
+        # #273: the to-do lists the object's tasks go to.
+        vol.Optional("mirror_todo_entities"): vol.Any([str], None),
         vol.Optional("dry_run", default=False): bool,
     }
 )
@@ -335,6 +350,10 @@ async def ws_create_object(
     if not _validate_device_link(hass, connection, msg, self_entry_id=None):
         return
 
+    mirrors = _object_mirror_lists(hass, connection, msg)
+    if mirrors is None:
+        return
+
     # Dry-run mode: validate only, do not persist
     if msg.get("dry_run"):
         connection.send_result(msg["id"], {"valid": True, "entry_id": None})
@@ -356,6 +375,7 @@ async def ws_create_object(
             parent_entry_id=msg.get("parent_entry_id"),
             place=msg.get("place"),
             remind_on_site=msg.get("remind_on_site") is True,
+            mirror_todo_entities=mirrors,
         )
     except ValueError as err:
         connection.send_error(msg["id"], "create_failed", str(err))
@@ -370,6 +390,7 @@ async def ws_create_object(
         vol.Optional("name"): vol.All(str, vol.Length(min=1, max=MAX_NAME_LENGTH)),
         **_OBJECT_STR_FIELD_SCHEMA,
         vol.Optional("remind_on_site"): bool,
+        vol.Optional("mirror_todo_entities"): vol.Any([str], None),
     }
 )
 @require_write
@@ -445,6 +466,16 @@ async def ws_update_object(
         obj[CONF_OBJECT_PLACE] = msg["place"]
     if "remind_on_site" in msg:
         obj[CONF_OBJECT_REMIND_ON_SITE] = msg["remind_on_site"]
+    mirror_changed = False
+    if "mirror_todo_entities" in msg:
+        mirrors = _object_mirror_lists(hass, connection, msg)
+        if mirrors is None:
+            return
+        mirror_changed = mirrors != (obj.get(CONF_OBJECT_MIRROR_TODO) or [])
+        if mirrors:
+            obj[CONF_OBJECT_MIRROR_TODO] = mirrors
+        else:
+            obj.pop(CONF_OBJECT_MIRROR_TODO, None)
     if "manufacturer" in msg:
         obj[CONF_OBJECT_MANUFACTURER] = msg["manufacturer"]
     if "model" in msg:
@@ -492,6 +523,10 @@ async def ws_update_object(
         rd = get_runtime_data(hass, entry.entry_id)
         if rd is not None and rd.coordinator is not None:
             rd.coordinator.async_update_listeners()
+    if mirror_changed:
+        # #273: the tasks' rows move to the object's new lists on the next pass.
+        todo_mirror.schedule_rearm(hass)
+        todo_mirror.schedule_check(hass)
 
     result: dict[str, Any] = {"success": True}
     if swap_report is not None:

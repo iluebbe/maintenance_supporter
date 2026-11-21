@@ -10,6 +10,7 @@ from .base_trigger import BaseTrigger
 from .compound import CompoundTrigger
 from .counter import CounterTrigger
 from .due_date import DueDateTrigger
+from .idle import IDLE_SINCE_KEY, IdleTrigger
 from .runtime import RuntimeTrigger
 from .state_change import StateChangeTrigger
 from .threshold import ThresholdTrigger
@@ -163,6 +164,10 @@ def _inject_per_entity_state(config: dict[str, Any], entity_state: dict[str, Any
         tes = entity_state.get("threshold_exceeded_since")
         if tes:
             config["trigger_threshold_exceeded_since"] = tes
+    elif trigger_type == TriggerType.IDLE:
+        # D#275: when the quiet began, across restarts.
+        if entity_state.get(IDLE_SINCE_KEY):
+            config["trigger_idle_since"] = entity_state[IDLE_SINCE_KEY]
 
 
 def create_trigger(
@@ -183,6 +188,8 @@ def create_trigger(
         return RuntimeTrigger(hass, entity, trigger_config)
     if trigger_type == TriggerType.DUE_DATE:
         return DueDateTrigger(hass, entity, trigger_config)
+    if trigger_type == TriggerType.IDLE:
+        return IdleTrigger(hass, entity, trigger_config)
     if trigger_type == TriggerType.COMPOUND:
         return CompoundTrigger(hass, entity, trigger_config)
 
@@ -239,6 +246,7 @@ __all__ = [
     "CompoundTrigger",
     "CounterTrigger",
     "DueDateTrigger",
+    "IdleTrigger",
     "RuntimeTrigger",
     "StateChangeTrigger",
     "ThresholdTrigger",

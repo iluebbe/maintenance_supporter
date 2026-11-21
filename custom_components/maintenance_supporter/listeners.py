@@ -32,6 +32,7 @@ from .const import (
     CONF_OBJECT,
     CONF_SHOPPING_LIST_ENTITY,
     CONF_TASKS,
+    CONF_TODO_PERSON_LISTS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     NOTIFICATION_MANAGER_KEY,
@@ -305,6 +306,10 @@ async def _on_entity_registry_update(
         defaults = settings.get(CONF_MIRROR_TODO_DEFAULT_ENTITIES)
         if isinstance(defaults, list) and old_eid in defaults:
             renamed[CONF_MIRROR_TODO_DEFAULT_ENTITIES] = [new_eid if e == old_eid else e for e in defaults]
+        # #273: a person's own list.
+        people = settings.get(CONF_TODO_PERSON_LISTS)
+        if isinstance(people, dict) and old_eid in people.values():
+            renamed[CONF_TODO_PERSON_LISTS] = {uid: new_eid if e == old_eid else e for uid, e in people.items()}
         if renamed:
             hass.config_entries.async_update_entry(gentry, options={**settings, **renamed})
         if CONF_SHOPPING_LIST_ENTITY in renamed:

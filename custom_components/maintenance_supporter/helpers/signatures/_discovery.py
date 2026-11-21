@@ -14,7 +14,7 @@ from ...entity.triggers import normalize_entity_ids
 from ..adopt_match import candidate_object, covering_task
 from ..aggregate import get_object_entries
 from ..device_link import device_owner_ids
-from ..i18n import normalize_language
+from ..i18n import request_language
 from ..problem_sensors import _object_by_device
 from ..reset_wiring import pressable_reset_buttons
 from ..task_origin import origin_is_duty, task_origin
@@ -186,7 +186,9 @@ def annotate_for_target(
     return keep, already
 
 
-def discover_integration_setups(hass: HomeAssistant, *, targets: dict[str, str] | None = None) -> list[dict[str, Any]]:
+def discover_integration_setups(
+    hass: HomeAssistant, *, targets: dict[str, str] | None = None, language: str | None = None
+) -> list[dict[str, Any]]:
     """Devices of catalogued integrations with their matchable task wiring.
 
     Groups matched entities per device; carries the maintenance object already
@@ -203,10 +205,14 @@ def discover_integration_setups(hass: HomeAssistant, *, targets: dict[str, str] 
     becomes the default target, and every proposal is annotated against the
     target (:func:`annotate_for_target`). ``targets`` overrides the target
     per device for the dialog's preview (``""`` = a new object).
+
+    ``language`` is the asking user's (the panel sends its own): the
+    suggested task names come in it, like the template gallery's, and in
+    Home Assistant's language without one.
     """
     from ...templates import localize_template_text
 
-    lang = normalize_language(hass)
+    lang = request_language(hass, language)
     ent_reg = er.async_get(hass)
     dev_reg = dr.async_get(hass)
     area_reg = ar.async_get(hass)

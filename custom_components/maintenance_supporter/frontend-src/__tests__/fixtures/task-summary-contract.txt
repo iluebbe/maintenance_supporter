@@ -219,5 +219,56 @@
   "trigger_entity_state": "available",
   "type": "service",
   "upcoming_dates": [],
-  "warning_days": 9
+  "upcoming_turns": [
+    {
+      "date": "2026-09-01",
+      "user_id": "user-uuid-1"
+    },
+    {
+      "date": "2026-12-01",
+      "user_id": "user-uuid-2"
+    },
+    {
+      "date": "2027-03-01",
+      "user_id": "user-uuid-1"
+    },
+    {
+      "date": "2027-06-01",
+      "user_id": "user-uuid-2"
+    },
+    {
+      "date": "2027-09-01",
+      "user_id": "user-uuid-1"
+    },
+    {
+      "date": "2027-12-01",
+      "user_id": "user-uuid-2"
+    },
+    {
+      "date": "2028-03-01",
+      "user_id": "user-uuid-1"
+    },
+    {
+      "date": "2028-06-01",
+      "user_id": "user-uuid-2"
+    },
+    {
+      "date": "2028-09-01",
+      "user_id": "user-uuid-1"
+    },
+    {
+      "date": "2028-12-01",
+      "user_id": "user-uuid-2"
+    }
+  ],
+  "warning_days": 9,
+  "weekday_assignees": [
+    "user-uuid-1",
+    null,
+    "user-uuid-2",
+    null,
+    null,
+    null,
+    null
+  ]
 }

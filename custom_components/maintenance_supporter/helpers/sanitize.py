@@ -22,6 +22,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+from collections.abc import Mapping
 from typing import Any
 
 from homeassistant.core import valid_entity_id
@@ -52,6 +53,7 @@ from ..const import (
     MAX_READING_UNIT_LENGTH,
     MAX_SCHEDULE_TIME_LENGTH,
     MAX_TEXT_LENGTH,
+    MAX_TODO_PERSON_LISTS,
     MAX_TYPE_LENGTH,
     MAX_URL_LENGTH,
     MIN_COST,
@@ -64,6 +66,7 @@ from ..models.shapes import CompleteWhen, NotificationText, NotificationTexts
 from .completion_requirements import sanitize_required_completion_fields
 from .places import normalize_place
 from .reading_slots import sanitize_reading_slots
+from .rotation_turns import BY_WEEKDAY, pool_of, sanitize_weekday_assignees
 from .task_fields import EARLIEST_COMPLETION_RANGE, TASK_PRIORITIES
 from .url_safety import is_safe_url
 
@@ -386,6 +389,24 @@ def sanitize_mirror_todo_entities(value: object) -> list[str]:
     return out[:MAX_MIRROR_TODO_LISTS]
 
 
+def sanitize_todo_person_lists(value: object) -> dict[str, str]:
+    """Clean the people's own to-do lists (#273): HA user id → one ``todo.*``
+    id, both trimmed; a person without a list (empty id) is left out, at most
+    ``MAX_TODO_PERSON_LISTS`` people."""
+    if not isinstance(value, Mapping):
+        return {}
+    out: dict[str, str] = {}
+    for user_id, entity in value.items():
+        if not isinstance(user_id, str) or not isinstance(entity, str):
+            continue
+        uid, eid = user_id.strip(), entity.strip()
+        if uid and len(uid) <= 64 and is_todo_entity_id(eid):
+            out[uid] = eid
+        if len(out) >= MAX_TODO_PERSON_LISTS:
+            break
+    return out
+
+
 def sanitize_complete_when(value: object) -> CompleteWhen | None:
     """Clean a ``complete_when`` rule (D#229): ``{"entity_id", "to_state"}``
     with a valid entity id and a non-empty state of at most
@@ -454,6 +475,8 @@ def seed_rotation_assignee(task_data: dict[str, Any]) -> None:
     pool = [u for u in raw_pool if isinstance(u, str) and u] if isinstance(raw_pool, list) else []
     if not pool or not task_data.get("rotation_strategy"):
         return
+    if task_data.get("rotation_strategy") == BY_WEEKDAY:
+        return  # D#284: the due date's weekday decides (helpers/rotation_turns)
     current = task_data.get("responsible_user_id")
     # A pool of one is an inert rotation — never seed a MISSING assignee for
     # it. But a STALE one must still be corrected: the old blanket
@@ -505,6 +528,15 @@ def normalize_people(task_data: dict[str, Any]) -> None:
     seed_rotation_assignee(task_data)
     if len(task_data.get("assignee_pool") or []) < 2:
         task_data.pop("rotation_strategy", None)
+    # D#284: the days belong to a rotation and only name people it is shared
+    # with; kept under another rotation, so switching back finds them.
+    days = sanitize_weekday_assignees(task_data.get("weekday_assignees"), pool_of(task_data)) if task_data.get("rotation_strategy") else None
+    if days is not None:
+        task_data["weekday_assignees"] = days
+    elif task_data.get("rotation_strategy") == BY_WEEKDAY:
+        task_data["weekday_assignees"] = [None] * 7
+    else:
+        task_data.pop("weekday_assignees", None)
 
 
 def sanitize_assignee_pool(value: object) -> list[str]:

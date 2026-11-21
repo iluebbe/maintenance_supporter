@@ -18,7 +18,7 @@ export type ScheduleType = "time_based" | "sensor_based" | "one_time" | "manual"
 /** TaskSchedule.kind — the flat kinds plus the calendar kinds. */
 export type ScheduleKind = "interval" | "one_time" | "manual" | CalendarKind;
 /** const.TriggerType */
-export type TriggerType = "threshold" | "counter" | "state_change" | "runtime" | "due_date" | "compound";
+export type TriggerType = "threshold" | "counter" | "state_change" | "runtime" | "due_date" | "idle" | "compound";
 export type IntervalUnit = "days" | "weeks" | "months" | "years";
 export type DocumentKind = "file" | "weblink";
 export type Confidence = "low" | "medium" | "high";
@@ -50,6 +50,8 @@ export interface MaintenanceObject {
   place_name?: string | null;
   place_missing?: boolean;
   remind_on_site?: boolean;
+  /** #273: the to-do lists the object's tasks go to (between a task's own and the default lists). */
+  mirror_todo_entities?: string[];
   /** v1.4.0 (#43): optional link to PDF manual / vendor page for the object */
   documentation_url?: string | null;
   /** v1.4.10 (#46): free-form notes — part numbers, procedures, etc. */
@@ -85,8 +87,9 @@ export interface ManualDocRef {
   url?: string | null;
 }
 
-/** #252: the kinds of notification a task can word itself. */
-export type NotificationTextKind = "due_soon" | "overdue" | "triggered" | "completed";
+/** #252: the kinds of notification a task can word itself; due_today (#280,
+ *  D#283) is the due-soon reminder on the due date itself. */
+export type NotificationTextKind = "due_soon" | "due_today" | "overdue" | "triggered" | "completed";
 
 /** #252: a task's own title and/or message for one kind; one left out takes the standard text. */
 export interface NotificationText {
@@ -130,6 +133,9 @@ export interface TriggerConfig {
   trigger_hold_until_done?: boolean;
   trigger_runtime_hours?: number;
   /** due_date: fire this many days before the date the entity reports. */
+  /** D#275: quiet for this many days; what counts as quiet. */
+  trigger_idle_days?: number;
+  trigger_idle_mode?: "no_change" | "unavailable";
   trigger_days_before?: number;
   /** #149: a single session books at most this many seconds. */
   trigger_runtime_max_session_seconds?: number;
@@ -321,6 +327,10 @@ export interface MaintenanceTask {
   complete_when?: CompleteWhen | null;
   assignee_pool?: string[];
   rotation_strategy?: string | null;
+  /** D#284: by_weekday's person per weekday (0 = Monday; null = anyone). */
+  weekday_assignees?: Array<string | null> | null;
+  /** D#284: whose turn the coming dates are (empty without a rotation). */
+  upcoming_turns?: Array<{ date: string; user_id: string | null }>;
   /** Details this task demands on completion (v2.44): notes/cost/duration/photo/user. */
   required_completion_fields?: string[];
   earliest_completion_days?: number | null;

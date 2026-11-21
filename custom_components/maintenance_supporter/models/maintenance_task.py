@@ -22,6 +22,7 @@ from ..const import (
 from ..helpers.dates import parse_iso_date, stamp_instant
 from ..helpers.history import completed_entries, finite_amount, latest_anchor_stamp, signed_amount, trim_history
 from ..helpers.phases import clamp_phase_cursor, current_phase
+from ..helpers.rotation_turns import BY_WEEKDAY, pool_of, sanitize_weekday_assignees, weekday_turn
 from ..helpers.schedule import KIND_ONE_TIME, Schedule, read_legacy_fields
 from ..helpers.status import compute_status, effective_warning_days, is_past_schedule_time, needs_both_legs
 from .shapes import (
@@ -138,7 +139,9 @@ class MaintenanceTask:
     # --- User Assignment ---
     responsible_user_id: str | None = None  # HA user UUID (current pointer)
     assignee_pool: list[str] = field(default_factory=list)  # HA user UUIDs
-    rotation_strategy: str | None = None  # round_robin | least_completed | random
+    rotation_strategy: str | None = None  # round_robin | least_completed | random | by_weekday
+    # D#284: by_weekday's person per weekday (0 = Monday; None = anyone).
+    weekday_assignees: list[str | None] = field(default_factory=list)
 
     # --- Checklist ---
     checklist: list[str] = field(default_factory=list)
@@ -533,6 +536,18 @@ class MaintenanceTask:
         elif self.rotation_strategy == "random":
             others = [u for u in pool if u != current] or pool
             self.responsible_user_id = random.choice(others)
+        elif self.rotation_strategy == BY_WEEKDAY:
+            self.apply_weekday_turn()
+
+    def apply_weekday_turn(self) -> None:
+        """D#284: under the by-weekday rotation the person on duty is the one
+        whose weekday the due date falls on (nobody's day: everyone it is
+        shared with). It follows the due date, so every read derives it."""
+        if self.rotation_strategy == BY_WEEKDAY and len([u for u in self.assignee_pool if u]) >= 2:
+            self.responsible_user_id = weekday_turn(
+                {"rotation_strategy": BY_WEEKDAY, "assignee_pool": self.assignee_pool, "weekday_assignees": self.weekday_assignees},
+                self.next_due,
+            )
 
     def reset(self, reset_date: date | None = None) -> None:
         """Reset last performed to a specific date."""
@@ -740,6 +755,8 @@ class MaintenanceTask:
             data["assignee_pool"] = self.assignee_pool
         if self.rotation_strategy:
             data["rotation_strategy"] = self.rotation_strategy
+        if self.weekday_assignees:
+            data["weekday_assignees"] = list(self.weekday_assignees)
         if self.checklist:
             data["checklist"] = self.checklist
         if self.adaptive_config is not None:
@@ -766,7 +783,7 @@ class MaintenanceTask:
         raw_phases = data.get("phases")
         raw_seq = data.get("phase_sequence")
         raw_cursor = data.get("phase_cursor", 0)
-        return cls(
+        task = cls(
             id=data.get("id", uuid4().hex),
             object_id=data.get("object_id", ""),
             name=data.get("name", ""),
@@ -806,6 +823,7 @@ class MaintenanceTask:
             responsible_user_id=data.get("responsible_user_id"),
             assignee_pool=data.get("assignee_pool", []),
             rotation_strategy=data.get("rotation_strategy"),
+            weekday_assignees=sanitize_weekday_assignees(data.get("weekday_assignees"), pool_of(data)) or [],
             checklist=data.get("checklist", []),
             adaptive_config=data.get("adaptive_config"),
             history=data.get("history", []),
@@ -813,3 +831,5 @@ class MaintenanceTask:
             phase_sequence=list(raw_seq) if isinstance(raw_seq, list) else [],
             phase_cursor=raw_cursor if isinstance(raw_cursor, int) else 0,
         )
+        task.apply_weekday_turn()
+        return task

@@ -59,6 +59,8 @@ export const COMPLETE_WHEN_FOR_MINUTES_RANGE: readonly [number, number] = [1, 14
 export const TRIGGER_TARGET_CHANGES_RANGE: readonly [number, number] = [1, 10000];
 /** Due-date trigger lead time in days — const.TRIGGER_FIELD_RANGES. */
 export const TRIGGER_DAYS_BEFORE_RANGE: readonly [number, number] = [0, 365];
+/** D#275: idle-trigger quiet days — const.TRIGGER_FIELD_RANGES. */
+export const TRIGGER_IDLE_DAYS_RANGE: readonly [number, number] = [1, 3650];
 /** ±N-day shift of a calendar-kind occurrence (#83) — const.SCHEDULE_OFFSET_MAX_DAYS. */
 export const SCHEDULE_OFFSET_MAX_DAYS = 15;
 /** Adaptive smoothing factor — const.ADAPTIVE_EWA_ALPHA_RANGE. */

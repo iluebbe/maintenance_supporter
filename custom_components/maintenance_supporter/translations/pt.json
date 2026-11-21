@@ -348,6 +348,29 @@
           "go_back": "Regressar à seleção do tipo de acionamento sem guardar."
         }
       },
+      "trigger_idle": {
+        "title": "Configuração de inatividade",
+        "description": "Observa {entity_id} (agora: {current_state}). A tarefa fica pendente quando nada aconteceu durante o número de dias escolhido.",
+        "data": {
+          "trigger_idle_days": "Dias de inatividade",
+          "trigger_idle_mode": "O que conta como inatividade",
+          "interval_days": "Intervalo de segurança",
+          "interval_unit": "Unidade de intervalo",
+          "trigger_combinator": "Combinar acionador e intervalo",
+          "warning_days": "Dias de aviso antes do vencimento",
+          "go_back": "Voltar",
+          "auto_complete_on_recovery": "Concluir automaticamente quando o sensor recuperar"
+        },
+        "data_description": {
+          "trigger_idle_days": "A contagem recomeça com a próxima alteração e quando a tarefa é concluída.",
+          "trigger_idle_mode": "Sem alteração: o valor mantém-se (indisponível entretanto não conta). Indisponível: a entidade está indisponível ou desconhecida.",
+          "interval_days": "Intervalo de segurança baseado no tempo opcional, em adição ao acionamento por sensor.",
+          "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
+          "trigger_combinator": "O primeiro (predefinição): o acionador ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o acionador disparou e o intervalo decorreu.",
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso.",
+          "go_back": "Regressar à seleção do tipo de acionamento sem guardar."
+        }
+      },
       "compound_logic": {
         "title": "Acionamento Composto",
         "description": "Escolha como múltiplas condições devem ser combinadas.",
@@ -670,6 +693,10 @@
           "quiet_hours_enabled": "Ativar horário silencioso",
           "quiet_hours_start": "Início do horário silencioso",
           "quiet_hours_end": "Fim do horário silencioso",
+          "quiet_hours_weekend_enabled": "Outras horas de silêncio em alguns dias",
+          "quiet_hours_weekend_days": "Dias com horas de silêncio próprias",
+          "quiet_hours_weekend_start": "Início das suas horas de silêncio",
+          "quiet_hours_weekend_end": "Fim das suas horas de silêncio",
           "max_notifications_per_day": "Máximo de notificações por dia",
           "notification_bundling_enabled": "Agrupar notificações",
           "notification_bundle_threshold": "Limiar de agrupamento",
@@ -690,6 +717,8 @@
           "notify_overdue_interval_hours": "Com que frequência repetir o lembrete de atraso. Defina como 0 para uma única notificação.",
           "notify_triggered_interval_hours": "Com que frequência repetir a notificação de acionamento. Defina como 0 para uma única notificação.",
           "quiet_hours_enabled": "Suprimir notificações durante o horário silencioso.",
+          "quiet_hours_weekend_enabled": "Nos dias escolhidos, as horas de silêncio terminam de manhã e começam à noite a horas próprias.",
+          "quiet_hours_weekend_end": "Com o sábado escolhido, a noite de sexta dura até esta hora de sábado.",
           "max_notifications_per_day": "Número máximo de notificações por dia. Defina como 0 para ilimitado.",
           "notification_bundling_enabled": "Enviar uma única notificação resumida quando múltiplas tarefas necessitam de atenção.",
           "notification_bundle_threshold": "Número mínimo de tarefas para acionar uma notificação agrupada.",
@@ -1266,6 +1295,28 @@
           "warning_days": "Número de dias antes do vencimento para mostrar um aviso."
         }
       },
+      "opt_trigger_idle": {
+        "title": "Configuração de inatividade",
+        "description": "Observa {entity_id} (agora: {current_state}). A tarefa fica pendente quando nada aconteceu durante o número de dias escolhido.",
+        "data": {
+          "trigger_idle_days": "Dias de inatividade",
+          "trigger_idle_mode": "O que conta como inatividade",
+          "interval_days": "Intervalo de segurança",
+          "interval_unit": "Unidade de intervalo",
+          "trigger_combinator": "Combinar acionador e intervalo",
+          "warning_days": "Dias de aviso antes do vencimento",
+          "go_back": "Voltar",
+          "auto_complete_on_recovery": "Concluir automaticamente quando o sensor recuperar"
+        },
+        "data_description": {
+          "trigger_idle_days": "A contagem recomeça com a próxima alteração e quando a tarefa é concluída.",
+          "trigger_idle_mode": "Sem alteração: o valor mantém-se (indisponível entretanto não conta). Indisponível: a entidade está indisponível ou desconhecida.",
+          "interval_days": "Intervalo de segurança baseado no tempo opcional, em adição ao acionamento por sensor.",
+          "interval_unit": "Unidade do intervalo: dias, semanas, meses ou anos. Meses e anos seguem o calendário.",
+          "trigger_combinator": "O primeiro (predefinição): o acionador ou o intervalo decorrido torna a tarefa devida. Ambos exigidos: a tarefa só fica devida quando o acionador disparou e o intervalo decorreu.",
+          "warning_days": "Número de dias antes do vencimento para mostrar um aviso."
+        }
+      },
       "object_settings": {
         "title": "Definições do Objeto",
         "description": "Edite os detalhes do objeto.",
@@ -1339,7 +1390,11 @@
         "description": "{member}: deixe as iniciais vazias e a cor em Automático para usar a predefinição ({initials}).",
         "data": {
           "initials": "Iniciais",
-          "color": "Cor"
+          "color": "Cor",
+          "todo_list": "Lista de tarefas pessoal"
+        },
+        "data_description": {
+          "todo_list": "As suas tarefas aparecem também nesta lista, e marcá-las aí conclui-as em nome da pessoa."
         }
       },
       "battery_lifetimes": {
@@ -1738,6 +1793,7 @@
         "state_change": "Mudança de Estado",
         "runtime": "Tempo de Execução",
         "due_date": "Data de vencimento (indicada por um sensor)",
+        "idle": "Inatividade (nada há dias)",
         "compound": "Composto (Múltiplas Condições)"
       }
     },
@@ -1843,7 +1899,8 @@
         "none": "Sem rotação",
         "round_robin": "Por turnos",
         "least_completed": "Menos concluídas",
-        "random": "Aleatória"
+        "random": "Aleatória",
+        "by_weekday": "Por dia da semana (os dias escolhem-se no painel)"
       }
     },
     "task_priority": {
@@ -1851,6 +1908,12 @@
         "low": "Baixa",
         "normal": "Normal",
         "high": "Alta"
+      }
+    },
+    "trigger_idle_mode": {
+      "options": {
+        "no_change": "Sem alteração",
+        "unavailable": "Indisponível"
       }
     }
   },

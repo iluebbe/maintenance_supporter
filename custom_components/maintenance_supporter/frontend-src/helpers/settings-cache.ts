@@ -52,6 +52,8 @@ export interface SettingsCache {
   partsCostMode: PartsCostMode;
   /** #231: the to-do lists every task without its own is mirrored into. */
   mirrorTodoDefault: string[];
+  /** #273: user id → that person's own to-do list. */
+  todoPersonLists: Record<string, string>;
 }
 
 /** The row-action styles the settings view offers (#145). */
@@ -86,7 +88,14 @@ export function parseSettings(r: SettingsWire | null | undefined): SettingsCache
     mirrorTodoDefault: Array.isArray(r?.general?.mirror_todo_default_entities)
       ? r!.general!.mirror_todo_default_entities!.filter((x) => typeof x === "string" && x !== "")
       : [],
+    todoPersonLists: personListsOf(r?.general?.todo_person_lists),
   };
+}
+
+/** #273: the people's own lists as the server sends them, strings only. */
+function personListsOf(raw: unknown): Record<string, string> {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  return Object.fromEntries(Object.entries(raw as Record<string, unknown>).filter((e): e is [string, string] => typeof e[1] === "string" && !!e[1]));
 }
 
 /** How task rows show Complete / Skip: the household's choice; while nobody
@@ -107,6 +116,7 @@ export interface SettingsWire {
     row_action_notice_pending?: boolean;
     ref_numbers_in_lists?: boolean;
     mirror_todo_default_entities?: string[];
+    todo_person_lists?: Record<string, string>;
   };
   operator_write_enabled?: boolean;
   admin_panel_user_ids?: string[];
@@ -132,6 +142,7 @@ export const FALLBACK_SETTINGS: SettingsCache = {
   objectsTableColumns: undefined,
   partsCostMode: "purchase",
   mirrorTodoDefault: [],
+  todoPersonLists: {},
 };
 
 /** What a surface works with when the settings could not be read: the

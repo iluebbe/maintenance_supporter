@@ -100,6 +100,10 @@ PANEL_ONLY = {
     # class): the panel's entity multi-picker is the editor, enforcement
     # (helpers/todo_mirror.py) is surface-independent.
     "mirror_todo_entities",
+    # D#284: the person per weekday of a rotation by weekday — a grid of
+    # weekday chips per person in the panel; the options flow offers the
+    # rotation itself and keeps the days of a task it edits.
+    "weekday_assignees",
     # #231: the opt-out of the default to-do lists — the same class; the panel
     # dialog's choice is the editor, an options-flow task edit keeps it.
     "mirror_todo_use_default",

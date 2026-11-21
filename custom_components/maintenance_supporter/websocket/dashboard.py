@@ -84,6 +84,10 @@ from ..const import (
     CONF_QUIET_HOURS_ENABLED,
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
+    CONF_QUIET_HOURS_WEEKEND_DAYS,
+    CONF_QUIET_HOURS_WEEKEND_ENABLED,
+    CONF_QUIET_HOURS_WEEKEND_END,
+    CONF_QUIET_HOURS_WEEKEND_START,
     CONF_REF_NUMBERS_IN_LISTS,
     CONF_REMINDER_LEAD_DAYS,
     CONF_ROW_ACTION_NOTICE,
@@ -91,6 +95,7 @@ from ..const import (
     CONF_SHARED_DEVICE_USER_IDS,
     CONF_SHOPPING_LIST_ENTITY,
     CONF_SNOOZE_DURATION_HOURS,
+    CONF_TODO_PERSON_LISTS,
     CONF_WARRANTY_REMINDER_DAYS,
     CONF_WARRANTY_REMINDER_ENABLED,
     CONF_WEEKLY_DIGEST_ENABLED,
@@ -240,6 +245,8 @@ def _build_full_settings(
             "shopping_list_entity": _opt(options, CONF_SHOPPING_LIST_ENTITY),
             # #231: the to-do mirror's default lists ([] = off).
             "mirror_todo_default_entities": list(_opt(options, CONF_MIRROR_TODO_DEFAULT_ENTITIES) or []),
+            # #273: user id → that person's own to-do list.
+            "todo_person_lists": dict(_opt(options, CONF_TODO_PERSON_LISTS) or {}),
             # Shared pickable-target list so the panel picker can't drift from
             # the options-flow dropdown (both go through build_notify_targets).
             "notify_targets": notify_targets or [],
@@ -272,6 +279,11 @@ def _build_full_settings(
             "quiet_hours_enabled": _opt(options, CONF_QUIET_HOURS_ENABLED),
             "quiet_hours_start": _opt(options, CONF_QUIET_HOURS_START),
             "quiet_hours_end": _opt(options, CONF_QUIET_HOURS_END),
+            # D#277: the weekend's own quiet hours.
+            "quiet_hours_weekend_enabled": _opt(options, CONF_QUIET_HOURS_WEEKEND_ENABLED),
+            "quiet_hours_weekend_start": _opt(options, CONF_QUIET_HOURS_WEEKEND_START),
+            "quiet_hours_weekend_end": _opt(options, CONF_QUIET_HOURS_WEEKEND_END),
+            "quiet_hours_weekend_days": _opt(options, CONF_QUIET_HOURS_WEEKEND_DAYS),
             "max_per_day": _opt(options, CONF_MAX_NOTIFICATIONS_PER_DAY),
             "bundling_enabled": _opt(options, CONF_NOTIFICATION_BUNDLING_ENABLED),
             "bundle_threshold": _opt(options, CONF_NOTIFICATION_BUNDLE_THRESHOLD),

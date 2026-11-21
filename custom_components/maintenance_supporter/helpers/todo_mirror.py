@@ -62,19 +62,23 @@ from homeassistant.helpers.event import async_track_state_change_event
 from ..const import (
     COMPLETION_PROVENANCE_NOTES,
     CONF_MIRROR_TODO_DEFAULT_ENTITIES,
+    CONF_OBJECT,
+    CONF_OBJECT_MIRROR_TODO,
     CONF_SHOPPING_LIST_ENTITY,
     CONF_TASKS,
+    CONF_TODO_PERSON_LISTS,
     DOMAIN,
     GLOBAL_UNIQUE_ID,
     NOTIFIABLE_STATUSES,
     UNAVAILABLE_STATES,
 )
+from .assignees import task_user_ids
 from .coordinator_data import task_results
 from .global_options import global_option
 from .managed_timer import ManagedTimer
 from .parts import PART_REF_FIELD
 from .phases import task_label
-from .sanitize import sanitize_mirror_todo_entities
+from .sanitize import sanitize_mirror_todo_entities, sanitize_todo_person_lists
 
 if TYPE_CHECKING:
     from ..coordinator import MaintenanceCoordinator
@@ -191,26 +195,72 @@ def default_lists(hass: HomeAssistant) -> list[str]:
     return sanitize_mirror_todo_entities(global_option(hass, CONF_MIRROR_TODO_DEFAULT_ENTITIES))
 
 
-def mirror_lists(task: Mapping[str, Any], defaults: Sequence[str] = ()) -> list[str]:
+def object_lists(entry_data: Mapping[str, Any] | None) -> list[str]:
+    """#273: the lists an object's tasks go to, from its entry data."""
+    obj = (entry_data or {}).get(CONF_OBJECT)
+    return sanitize_mirror_todo_entities(obj.get(CONF_OBJECT_MIRROR_TODO)) if isinstance(obj, Mapping) else []
+
+
+def person_lists(hass: HomeAssistant) -> dict[str, str]:
+    """#273: user id → that person's own to-do list."""
+    return sanitize_todo_person_lists(global_option(hass, CONF_TODO_PERSON_LISTS))
+
+
+def list_person(people: Mapping[str, str], list_entity: str) -> str | None:
+    """The person whose own list ``list_entity`` is; None for a shared list
+    (or one two people named, where a tick says nothing about who)."""
+    owners = [uid for uid, eid in people.items() if eid == list_entity]
+    return owners[0] if len(owners) == 1 else None
+
+
+def mirror_lists(
+    task: Mapping[str, Any],
+    defaults: Sequence[str] = (),
+    object_defaults: Sequence[str] = (),
+    people: Mapping[str, str] | None = None,
+) -> list[str]:
     """The lists the task is mirrored into: its own (validated shape
-    assumed), else the default lists unless it opted out (#231)."""
+    assumed), else its object's (#273), else the default lists, unless it
+    opted out (#231). On top, the own lists of the people it is meant for
+    (#273): the responsible person, else everyone it is shared with. A task
+    on no list at all stays off those too."""
     raw = task.get(MIRROR_FIELD)
     own = [e for e in raw if isinstance(e, str) and e] if isinstance(raw, list) else []
-    if own:
-        return own
-    return [] if task.get(MIRROR_USE_DEFAULT_FIELD) is False else list(defaults)
+    if not own and task.get(MIRROR_USE_DEFAULT_FIELD) is False:
+        return []
+    lists = own or list(object_defaults) or list(defaults)
+    if people:
+        lists.extend(entity for user_id in task_user_ids(task) if (entity := people.get(user_id)))
+    return list(dict.fromkeys(lists))
 
 
-def lists_for(task: Mapping[str, Any], defaults: Sequence[str], shopping_list: str | None) -> list[str]:
+def lists_for(
+    task: Mapping[str, Any],
+    defaults: Sequence[str],
+    shopping_list: str | None,
+    object_defaults: Sequence[str] = (),
+    people: Mapping[str, str] | None = None,
+) -> list[str]:
     """:func:`mirror_lists` as the mirror fills them: a buy reminder stays
     off the shopping list, where the shopping sync keeps its row. With one
     family list for both, every buy reminder stood there twice with the
     same text, and each of the two could claim the other's new row (bug
     audit 2026-11-08, N8-5)."""
-    lists = mirror_lists(task, defaults)
+    lists = mirror_lists(task, defaults, object_defaults, people)
     if shopping_list and task.get(PART_REF_FIELD):
         lists = [entity for entity in lists if entity != shopping_list]
     return lists
+
+
+def _with_current_people(stored: Any, computed: Mapping[str, Any]) -> Mapping[str, Any]:
+    """The stored task with the person it is meant for NOW: a rotation by
+    weekday (D#284) hands it on with its due date, which the stored config
+    learns only at the next completion."""
+    if not isinstance(stored, Mapping):
+        return computed
+    if "responsible_user_id" not in computed:
+        return stored
+    return {**stored, "responsible_user_id": computed.get("responsible_user_id")}
 
 
 def task_due_date(task_result: TaskResult | None) -> date | None:
@@ -279,12 +329,12 @@ class TodoMirror:
         self._checking = False
         self._recheck = False
         self._debounce = ManagedTimer(hass, f"{DOMAIN}_todo_mirror")
-        self._defaults_seen: tuple[str, ...] = ()
+        self._defaults_seen: tuple[tuple[str, ...], tuple[tuple[str, str], ...]] = ((), ())
 
     async def async_setup(self) -> None:
         """Arm the list listeners for every task that names a list (the
         entries' data is readable before they are loaded)."""
-        self._defaults_seen = tuple(default_lists(self._hass))
+        self._defaults_seen = self._inherited_lists()
         self._arm_listeners(self._configured_lists())
 
     @callback
@@ -292,7 +342,7 @@ class TodoMirror:
         """Re-arm and re-check once the default lists differ from the last
         ones seen: the check's closing pass moves every inheriting task's
         rows (off the old lists, onto the new ones)."""
-        now = tuple(default_lists(self._hass))
+        now = self._inherited_lists()
         if now == self._defaults_seen:
             return
         self._defaults_seen = now
@@ -311,6 +361,11 @@ class TodoMirror:
     def _object_entries(self) -> list[ConfigEntry]:
         return [ce for ce in self._hass.config_entries.async_entries(DOMAIN) if ce.unique_id != GLOBAL_UNIQUE_ID]
 
+    def _inherited_lists(self) -> tuple[tuple[str, ...], tuple[tuple[str, str], ...]]:
+        """The settings' lists a task can inherit: the default lists and the
+        people's own (#273); a change to either moves rows."""
+        return tuple(default_lists(self._hass)), tuple(sorted(person_lists(self._hass).items()))
+
     def _shopping_list(self) -> str | None:
         entity = global_option(self._hass, CONF_SHOPPING_LIST_ENTITY)
         return entity if isinstance(entity, str) and entity else None
@@ -318,11 +373,16 @@ class TodoMirror:
     def _configured_lists(self) -> set[str]:
         defaults = default_lists(self._hass)
         shopping = self._shopping_list()
+        people = person_lists(self._hass)
         lists: set[str] = set()
         for ce in self._object_entries():
+            from_object = object_lists(ce.data)
             for td in (ce.data.get(CONF_TASKS) or {}).values():
                 if isinstance(td, dict):
-                    lists.update(lists_for(td, defaults, shopping))
+                    lists.update(lists_for(td, defaults, shopping, from_object, people))
+        # A rotation hands a task to another person between refreshes: every
+        # person's list is listened to, not only today's.
+        lists.update(people.values())
         return lists
 
     @callback
@@ -375,8 +435,10 @@ class TodoMirror:
         # twice on a shared list (audit 2026-11-14, R9-1).
         entry = self._hass.config_entries.async_get_entry(entry_id)
         stored: Mapping[str, Any] = (entry.data.get(CONF_TASKS) or {}) if entry is not None else {}
+        from_object = object_lists(entry.data if entry is not None else None)
+        people = person_lists(self._hass)
         wanted = {
-            tid: lists_for(stored[tid] if isinstance(stored.get(tid), dict) else tr.task, defaults, shopping)
+            tid: lists_for(_with_current_people(stored.get(tid), tr.task), defaults, shopping, from_object, people)
             for tid, tr in task_results.items()
         }
         has_config = any(wanted.values())
@@ -548,6 +610,8 @@ class TodoMirror:
             await coordinator.complete_maintenance(
                 task_id=task_id,
                 notes=COMPLETION_PROVENANCE_NOTES["todo_mirror"],
+                # #273: a tick on a person's own list is theirs.
+                completed_by=list_person(person_lists(self._hass), list_entity),
                 unattended=True,
                 source="todo_mirror",
             )

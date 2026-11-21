@@ -348,6 +348,29 @@
           "go_back": "Zurück zur Trigger-Typ-Auswahl ohne zu speichern."
         }
       },
+      "trigger_idle": {
+        "title": "Ruhe-Konfiguration",
+        "description": "Beobachtet {entity_id} (jetzt: {current_state}). Die Aufgabe wird fällig, wenn so viele Tage nichts passiert ist.",
+        "data": {
+          "trigger_idle_days": "Tage Ruhe",
+          "trigger_idle_mode": "Was als Ruhe zählt",
+          "interval_days": "Sicherheitsintervall",
+          "interval_unit": "Intervalleinheit",
+          "trigger_combinator": "Trigger und Intervall kombinieren",
+          "warning_days": "Warntage vor Fälligkeit",
+          "go_back": "Zurück",
+          "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen"
+        },
+        "data_description": {
+          "trigger_idle_days": "Die Zählung beginnt mit der nächsten Änderung neu, und wenn die Aufgabe erledigt wird.",
+          "trigger_idle_mode": "Keine Änderung: der Wert bleibt gleich (zwischendurch nicht verfügbar zählt nicht). Nicht verfügbar: die Entität ist nicht verfügbar oder unbekannt.",
+          "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Sensor-Trigger.",
+          "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
+          "trigger_combinator": "Zuerst erfüllt (Standard): Trigger oder abgelaufenes Intervall macht die Aufgabe fällig. Beides erforderlich: Die Aufgabe wird erst fällig, wenn der Trigger ausgelöst hat und das Intervall abgelaufen ist.",
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum, ab der eine Warnung angezeigt wird.",
+          "go_back": "Zurück zur Trigger-Typ-Auswahl ohne zu speichern."
+        }
+      },
       "compound_logic": {
         "title": "Kombinierter Trigger",
         "description": "Wählen Sie, wie mehrere Bedingungen kombiniert werden sollen.",
@@ -670,6 +693,10 @@
           "quiet_hours_enabled": "Ruhezeit aktivieren",
           "quiet_hours_start": "Ruhezeit Beginn",
           "quiet_hours_end": "Ruhezeit Ende",
+          "quiet_hours_weekend_enabled": "Andere Ruhezeiten an manchen Tagen",
+          "quiet_hours_weekend_days": "Tage mit eigenen Ruhezeiten",
+          "quiet_hours_weekend_start": "Beginn ihrer Ruhezeiten",
+          "quiet_hours_weekend_end": "Ende ihrer Ruhezeiten",
           "max_notifications_per_day": "Max. Benachrichtigungen pro Tag",
           "notification_bundling_enabled": "Benachrichtigungen bündeln",
           "notification_bundle_threshold": "Bündelungsschwelle",
@@ -690,6 +717,8 @@
           "notify_overdue_interval_hours": "Wie oft die Überfällig-Erinnerung wiederholt werden soll. 0 = einmalige Benachrichtigung.",
           "notify_triggered_interval_hours": "Wie oft die Trigger-Benachrichtigung wiederholt werden soll. 0 = einmalige Benachrichtigung.",
           "quiet_hours_enabled": "Benachrichtigungen während der Ruhezeit unterdrücken.",
+          "quiet_hours_weekend_enabled": "An den gewählten Tagen enden die Ruhezeiten morgens und beginnen abends zu eigenen Zeiten.",
+          "quiet_hours_weekend_end": "Ist Samstag gewählt, dauert die Nacht auf Samstag bis zu dieser Zeit.",
           "max_notifications_per_day": "Maximale Anzahl Benachrichtigungen pro Tag. 0 = unbegrenzt.",
           "notification_bundling_enabled": "Eine zusammengefasste Benachrichtigung senden, wenn mehrere Aufgaben Aufmerksamkeit erfordern.",
           "notification_bundle_threshold": "Mindestanzahl an Aufgaben, um eine gebündelte Benachrichtigung auszulösen.",
@@ -1158,6 +1187,28 @@
           "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung."
         }
       },
+      "opt_trigger_idle": {
+        "title": "Ruhe-Konfiguration",
+        "description": "Beobachtet {entity_id} (jetzt: {current_state}). Die Aufgabe wird fällig, wenn so viele Tage nichts passiert ist.",
+        "data": {
+          "trigger_idle_days": "Tage Ruhe",
+          "trigger_idle_mode": "Was als Ruhe zählt",
+          "interval_days": "Sicherheitsintervall",
+          "interval_unit": "Intervalleinheit",
+          "trigger_combinator": "Trigger und Intervall kombinieren",
+          "warning_days": "Warntage vor Fälligkeit",
+          "go_back": "Zurück",
+          "auto_complete_on_recovery": "Bei Sensor-Erholung automatisch abschließen"
+        },
+        "data_description": {
+          "trigger_idle_days": "Die Zählung beginnt mit der nächsten Änderung neu, und wenn die Aufgabe erledigt wird.",
+          "trigger_idle_mode": "Keine Änderung: der Wert bleibt gleich (zwischendurch nicht verfügbar zählt nicht). Nicht verfügbar: die Entität ist nicht verfügbar oder unbekannt.",
+          "interval_days": "Optionales zeitbasiertes Sicherheitsintervall zusätzlich zum Sensor-Auslöser.",
+          "interval_unit": "Einheit für das Intervall: Tage, Wochen, Monate oder Jahre. Monate und Jahre folgen dem Kalender.",
+          "trigger_combinator": "Zuerst erfüllt (Standard): Trigger oder abgelaufenes Intervall macht die Aufgabe fällig. Beides erforderlich: Die Aufgabe wird erst fällig, wenn der Trigger ausgelöst hat und das Intervall abgelaufen ist.",
+          "warning_days": "Anzahl der Tage vor dem Fälligkeitsdatum für eine Warnung."
+        }
+      },
       "compound_logic": {
         "title": "Kombinierter Trigger",
         "description": "Wählen Sie, wie mehrere Bedingungen kombiniert werden sollen.",
@@ -1339,7 +1390,11 @@
         "description": "{member}: Initialen leer lassen und Farbe auf Automatisch stellen, um die Vorgabe zu nutzen ({initials}).",
         "data": {
           "initials": "Initialen",
-          "color": "Farbe"
+          "color": "Farbe",
+          "todo_list": "Eigene To-do-Liste"
+        },
+        "data_description": {
+          "todo_list": "Die Aufgaben dieser Person erscheinen auch auf dieser Liste, und ein Haken dort erledigt die Aufgabe in ihrem Namen."
         }
       },
       "battery_lifetimes": {
@@ -1738,6 +1793,7 @@
         "state_change": "Zustandswechsel",
         "runtime": "Laufzeit",
         "due_date": "Fälligkeitsdatum (von einem Sensor gemeldet)",
+        "idle": "Ruhe (tagelang nichts passiert)",
         "compound": "Kombiniert (Mehrere Bedingungen)"
       }
     },
@@ -1843,7 +1899,8 @@
         "none": "Keine Rotation",
         "round_robin": "Reihum",
         "least_completed": "Am wenigsten erledigt",
-        "random": "Zufällig"
+        "random": "Zufällig",
+        "by_weekday": "Nach Wochentag (die Tage werden im Panel festgelegt)"
       }
     },
     "task_priority": {
@@ -1851,6 +1908,12 @@
         "low": "Niedrig",
         "normal": "Normal",
         "high": "Hoch"
+      }
+    },
+    "trigger_idle_mode": {
+      "options": {
+        "no_change": "Keine Änderung",
+        "unavailable": "Nicht verfügbar"
       }
     }
   },

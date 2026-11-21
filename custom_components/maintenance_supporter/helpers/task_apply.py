@@ -62,6 +62,7 @@ LIVE_FIELDS = frozenset(
         "responsible_user_id",
         "assignee_pool",
         "rotation_strategy",
+        "weekday_assignees",
         # How it is completed and who hears about it.
         "allow_skip",
         "notify_enabled",

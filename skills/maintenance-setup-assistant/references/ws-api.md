@@ -93,6 +93,7 @@ manual-column fallback when `documentation_url` is empty).
   "parent_entry_id": "<entry_id>",     // optional; nest under another object
   "place": "zone.allotment",           // optional | null; an HA zone, null/"zone.home" = home (2026-10)
   "remind_on_site": true,              // optional; with a place: reminders wait until somebody is there
+  "mirror_todo_entities": ["todo.garden"], // optional (#273): the to-do lists of its tasks without own lists; our own list = invalid_mirror_todo
   "dry_run": true }                    // optional; true = validate only
 ```
 Result: `{"entry_id": "<config_entry_id>"}`. Dry-run: `{"valid": true, "entry_id": null}`.
@@ -438,7 +439,8 @@ object, `limit_reached` past 200 tasks (archived ones do not count).
   "documentation_url": "https://…",    // http/https
   "responsible_user_id": "<ha_user_id>",
   "assignee_pool": ["<user_id>", "…"], // ≤25 HA user ids; with rotation_strategy the duty rotates on each completion
-  "rotation_strategy": "round_robin",  // round_robin|least_completed|random | null (needs ≥2 in the pool)
+  "rotation_strategy": "round_robin",  // round_robin|least_completed|random|by_weekday | null (needs ≥2 in the pool)
+  "weekday_assignees": ["<user_id>", null, null, null, null, null, null], // D#284: by_weekday's person per weekday, Monday first (null = anyone of the pool)
   "required_completion_fields": ["notes"], // subset of notes|cost|duration|photo|user — no-prompt surfaces (buttons, NFC, voice) then refuse
   "priority": "normal",                // low|normal|high (named first within the same due day; filterable)
   "labels": ["garden"],                // ≤25 × ≤40 chars, free tags (filters, notification scope)
@@ -449,7 +451,7 @@ object, `limit_reached` past 200 tasks (archived ones do not count).
   "allow_skip": true,                  // #150: false = skip lock (server refuses task/skip + voice SkipTask)
   "notify_enabled": true,              // #173: false = no reminders for this task (status, repeats, lead-time, bundles); stored only when false
   "notify_icon": "mdi:air-filter",     // #185: push-notification icon override (mdi:…, ≤64); null/"" = the maintenance type's default; malformed = invalid_icon
-  "notification_texts": {"due_soon": {"title": "Bins tonight", "message": "{task}: {days} day(s)"}}, // #252: own texts per kind (due_soon/overdue/triggered/completed; title ≤120, message ≤500); {task} {object} {days} {due} {detail} {reason} {person}; null = the standard texts
+  "notification_texts": {"due_soon": {"title": "Bins tonight", "message": "{task}: {days} day(s)"}}, // #252: own texts per kind (due_soon/due_today/overdue/triggered/completed; title ≤120, message ≤500); {task} {object} {days} {due} {days_since} {detail} {reason} {person}; null = the standard texts
   "checklist": ["Turn off power", "…"],// ≤100 items, each ≤500
   "reading_unit": "kWh",               // reading tasks — see "Meter readings" (also `readings` slots)
   "consumes_parts": [{"part_id": "p1", "quantity": 1}], // see "Spare parts"
@@ -715,6 +717,15 @@ the date. Fires by timer when the date comes within the lead time; clears when
 the device reports a later date (its own "done" button — make that the
 `on_complete_action`).
 
+### `idle` (2.125, D#275)
+`{"type":"idle","entity_ids":["binary_sensor.shed_latch"],"trigger_idle_days":7}`
+Nothing happened for N days. `trigger_idle_days` **required**, whole 1..3650.
+`trigger_idle_mode`: `"no_change"` (default, stored as absence; the value or
+`attribute` stayed the same, unavailable in between does not count) or
+`"unavailable"` (the entity was `unavailable`/`unknown` that long). The count
+starts again with the next change or the entity coming back, and with a
+completion; when the quiet began survives a restart (trigger runtime).
+
 ### `compound`
 `{"type":"compound","compound_logic":"OR","conditions":[ {…}, {…} ]}`
 `compound_logic`: `"AND"`|`"OR"` (default AND). `conditions`: ≥2 non-compound
@@ -857,7 +868,16 @@ values dropped. Keys relevant to setup:
 - `mirror_todo_default_entities` (list of `todo.*` ids, ≤5, `[]` = off; 2.110,
   #231) — the to-do lists every task without its own `mirror_todo_entities` is
   mirrored into while due (unless `mirror_todo_use_default` is false); our own
-  `todo.maintenance` = `invalid_mirror_todo`
+  `todo.maintenance` = `invalid_mirror_todo`. An object's own
+  `mirror_todo_entities` (#273) come first for its tasks
+- `todo_person_lists` (`{user id: todo.* id}`, ≤50; 2.125, #273) — each
+  person's own to-do list: their tasks appear on it too, and a tick there
+  completes the task as them (`completed_by`); our own list =
+  `invalid_mirror_todo`
+- `quiet_hours_weekend_enabled` (bool), `quiet_hours_weekend_start` /
+  `quiet_hours_weekend_end` (`HH:MM`), `quiet_hours_weekend_days` (0–6, Monday
+  = 0; default `[5, 6]`) — 2.125, D#277: other quiet hours on those days; such
+  a day's morning ends and its evening starts at these times
 - `weekly_digest_enabled` (bool) — opt-in Monday summary
 - `notification_language` (`auto` | `en` … `pt-br` | `zh`; 2.121, #251) — the
   language of every notification (titles, messages, buttons); `auto` = Home
@@ -1106,10 +1126,15 @@ chosen. You get better wiring than any state heuristic can infer, and adoption
 never trusts client-supplied thresholds.
 
 ### `integration_setups/discover` — read
-`{}` → `{setups:[{device_id, device_name, area_name, integration,
+`{language?}` → `{setups:[{device_id, device_name, area_name, integration,
 integration_name, suggested_entry_id, suggested_object_name,
 tasks:[{task_name, catalog_task_name, entity_label, task_name_localized,
 entity_ids, threshold, direction}]}]}`.
+
+`language` is the asking user's (`sk`, `pt-BR`, …): `task_name_localized` comes
+in it, as the template gallery's names do; without it in the server's language.
+`preview` and `adopt` take it the same way, and `adopt` names the tasks it
+creates in it.
 
 `suggested_entry_id` is the maintenance object already bound to that device
 (adopt extends it instead of creating a duplicate); it is `null` when the device
@@ -1140,14 +1165,14 @@ makes it the task's completion action (`button.press`, not run when the task
 completes itself), and enables it when the integration shipped it disabled.
 
 ### `integration_setups/preview` — read (2.94)
-`{device_id, entry_id?: id|null}` → the same device object as in `discover`,
+`{device_id, entry_id?: id|null, language?}` → the same device object as in `discover`,
 judged against `entry_id` (`null`/omitted = a new object): `covered_by`,
 `already` and `target_task_count` follow the chosen target. `not_found` when
 `entry_id` is no maintenance object or the device has no suggestion.
 
 ### `integration_setups/adopt` — `@require_write`
 `{selections:[{device_id (req), entry_id?, object_name?, task_names?,
-baselines? {task_name: number}}]}` (1..50 selections) →
+baselines? {task_name: number}}], language?}` (1..50 selections) →
 `{tasks_created, objects_created, total, errors?}`.
 
 Discovery is re-run server-side on adopt, so the entities and thresholds always

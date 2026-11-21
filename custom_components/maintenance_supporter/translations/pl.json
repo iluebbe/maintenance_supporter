@@ -348,6 +348,29 @@
           "go_back": "Wróć do wyboru typu wyzwalacza bez zapisywania."
         }
       },
+      "trigger_idle": {
+        "title": "Konfiguracja bezczynności",
+        "description": "Obserwuje {entity_id} (teraz: {current_state}). Zadanie staje się wymagane, gdy przez wybraną liczbę dni nic się nie wydarzyło.",
+        "data": {
+          "trigger_idle_days": "Dni bezczynności",
+          "trigger_idle_mode": "Co liczy się jako bezczynność",
+          "interval_days": "Interwał bezpieczeństwa",
+          "interval_unit": "Jednostka interwału",
+          "trigger_combinator": "Połącz wyzwalacz i interwał",
+          "warning_days": "Dni ostrzeżenia przed terminem",
+          "go_back": "Wróć",
+          "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy"
+        },
+        "data_description": {
+          "trigger_idle_days": "Liczenie zaczyna się od nowa przy następnej zmianie i po wykonaniu zadania.",
+          "trigger_idle_mode": "Brak zmiany: wartość się nie zmienia (chwilowa niedostępność się nie liczy). Niedostępne: encja jest niedostępna lub nieznana.",
+          "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza czujnika.",
+          "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
+          "trigger_combinator": "Co pierwsze (domyślnie): wyzwalacz lub upłynięty interwał czyni zadanie wymagalnym. Oba wymagane: zadanie staje się wymagalne dopiero, gdy wyzwalacz zadziałał i interwał upłynął.",
+          "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie.",
+          "go_back": "Wróć do wyboru typu wyzwalacza bez zapisywania."
+        }
+      },
       "compound_logic": {
         "title": "Wyzwalacz złożony",
         "description": "Wybierz, w jaki sposób wiele warunków ma być łączonych.",
@@ -670,6 +693,10 @@
           "quiet_hours_enabled": "Włącz godziny ciszy",
           "quiet_hours_start": "Początek godzin ciszy",
           "quiet_hours_end": "Koniec godzin ciszy",
+          "quiet_hours_weekend_enabled": "Inne godziny ciszy w niektóre dni",
+          "quiet_hours_weekend_days": "Dni z własnymi godzinami ciszy",
+          "quiet_hours_weekend_start": "Początek ich godzin ciszy",
+          "quiet_hours_weekend_end": "Koniec ich godzin ciszy",
           "max_notifications_per_day": "Maks. powiadomień dziennie",
           "notification_bundling_enabled": "Łącz powiadomienia",
           "notification_bundle_threshold": "Próg łączenia",
@@ -690,6 +717,8 @@
           "notify_overdue_interval_hours": "Jak często powtarzać przypomnienie „przeterminowane”. Ustaw 0 dla pojedynczego powiadomienia.",
           "notify_triggered_interval_hours": "Jak często powtarzać powiadomienie „wyzwolone”. Ustaw 0 dla pojedynczego powiadomienia.",
           "quiet_hours_enabled": "Wstrzymuj powiadomienia w godzinach ciszy.",
+          "quiet_hours_weekend_enabled": "W wybrane dni godziny ciszy kończą się rano i zaczynają wieczorem o własnych porach.",
+          "quiet_hours_weekend_end": "Gdy wybrana jest sobota, noc z piątku trwa do tej godziny w sobotę.",
           "max_notifications_per_day": "Maksymalna liczba powiadomień dziennie. Ustaw 0 dla nieograniczonej liczby.",
           "notification_bundling_enabled": "Wyślij jedno zbiorcze powiadomienie, gdy wiele zadań wymaga uwagi.",
           "notification_bundle_threshold": "Minimalna liczba zadań do wyzwolenia łączonego powiadomienia.",
@@ -1266,6 +1295,28 @@
           "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie."
         }
       },
+      "opt_trigger_idle": {
+        "title": "Konfiguracja bezczynności",
+        "description": "Obserwuje {entity_id} (teraz: {current_state}). Zadanie staje się wymagane, gdy przez wybraną liczbę dni nic się nie wydarzyło.",
+        "data": {
+          "trigger_idle_days": "Dni bezczynności",
+          "trigger_idle_mode": "Co liczy się jako bezczynność",
+          "interval_days": "Interwał bezpieczeństwa",
+          "interval_unit": "Jednostka interwału",
+          "trigger_combinator": "Połącz wyzwalacz i interwał",
+          "warning_days": "Dni ostrzeżenia przed terminem",
+          "go_back": "Wróć",
+          "auto_complete_on_recovery": "Zakończ automatycznie, gdy czujnik wróci do normy"
+        },
+        "data_description": {
+          "trigger_idle_days": "Liczenie zaczyna się od nowa przy następnej zmianie i po wykonaniu zadania.",
+          "trigger_idle_mode": "Brak zmiany: wartość się nie zmienia (chwilowa niedostępność się nie liczy). Niedostępne: encja jest niedostępna lub nieznana.",
+          "interval_days": "Opcjonalny interwał bezpieczeństwa oparty na czasie, oprócz wyzwalacza czujnika.",
+          "interval_unit": "Jednostka interwału: dni, tygodnie, miesiące lub lata. Miesiące i lata podążają za kalendarzem.",
+          "trigger_combinator": "Co pierwsze (domyślnie): wyzwalacz lub upłynięty interwał czyni zadanie wymagalnym. Oba wymagane: zadanie staje się wymagalne dopiero, gdy wyzwalacz zadziałał i interwał upłynął.",
+          "warning_days": "Liczba dni przed terminem, w której wyświetlane jest ostrzeżenie."
+        }
+      },
       "object_settings": {
         "title": "Ustawienia obiektu",
         "description": "Edytuj szczegóły obiektu.",
@@ -1339,7 +1390,11 @@
         "description": "{member}: zostaw inicjały puste i kolor na Automatycznie, aby użyć domyślnych ({initials}).",
         "data": {
           "initials": "Inicjały",
-          "color": "Kolor"
+          "color": "Kolor",
+          "todo_list": "Własna lista zadań"
+        },
+        "data_description": {
+          "todo_list": "Zadania tej osoby pojawiają się też na tej liście, a odhaczenie tam wykonuje zadanie w jej imieniu."
         }
       },
       "battery_lifetimes": {
@@ -1738,6 +1793,7 @@
         "state_change": "Zmiana stanu",
         "runtime": "Czas pracy",
         "due_date": "Termin (podawany przez czujnik)",
+        "idle": "Bezczynność (od dni nic się nie dzieje)",
         "compound": "Złożony (wiele warunków)"
       }
     },
@@ -1843,7 +1899,8 @@
         "none": "Bez rotacji",
         "round_robin": "Po kolei",
         "least_completed": "Najmniej ukończeń",
-        "random": "Losowa"
+        "random": "Losowa",
+        "by_weekday": "Według dnia tygodnia (dni ustawia się w panelu)"
       }
     },
     "task_priority": {
@@ -1851,6 +1908,12 @@
         "low": "Niski",
         "normal": "Normalny",
         "high": "Wysoki"
+      }
+    },
+    "trigger_idle_mode": {
+      "options": {
+        "no_change": "Brak zmiany",
+        "unavailable": "Niedostępne"
       }
     }
   },

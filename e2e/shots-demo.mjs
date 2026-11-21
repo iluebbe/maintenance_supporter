@@ -1413,7 +1413,9 @@ await step("entity-attributes.png", async () => {
         for (const k of (el.children || [])) st.push(k); } return o; };
     const hass = document.querySelector("home-assistant").hass;
     const id = Object.keys(hass.states).find((k) => k.startsWith("sensor.") && k.includes("oil_change"));
-    const devState = deep((el) => el.tagName === "DEVELOPER-TOOLS-STATE")[0];
+    // HA 2026.10.4 calls the States page "tools-state" (it was
+    // "developer-tools-state").
+    const devState = deep((el) => el.tagName === "TOOLS-STATE" || el.tagName === "DEVELOPER-TOOLS-STATE")[0];
     devState._entityIdChanged({ detail: { value: id } });
   });
   await p.waitForTimeout(2500);

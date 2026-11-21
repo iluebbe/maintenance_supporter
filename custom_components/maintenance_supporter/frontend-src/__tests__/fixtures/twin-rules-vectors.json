@@ -91,6 +91,115 @@
         "todo.house",
         "todo.b"
       ]
+    },
+    {
+      "task": {},
+      "defaults": [
+        "todo.house"
+      ],
+      "object_lists": [
+        "todo.garden"
+      ],
+      "lists": [
+        "todo.garden"
+      ]
+    },
+    {
+      "task": {
+        "mirror_todo_entities": [
+          "todo.shop"
+        ]
+      },
+      "defaults": [
+        "todo.house"
+      ],
+      "object_lists": [
+        "todo.garden"
+      ],
+      "lists": [
+        "todo.shop"
+      ]
+    },
+    {
+      "task": {
+        "mirror_todo_use_default": false,
+        "responsible_user_id": "jane"
+      },
+      "defaults": [
+        "todo.house"
+      ],
+      "object_lists": [
+        "todo.garden"
+      ],
+      "people": {
+        "jane": "todo.jane",
+        "john": "todo.john"
+      },
+      "lists": []
+    },
+    {
+      "task": {
+        "responsible_user_id": "jane"
+      },
+      "defaults": [
+        "todo.house"
+      ],
+      "people": {
+        "jane": "todo.jane",
+        "john": "todo.john"
+      },
+      "lists": [
+        "todo.house",
+        "todo.jane"
+      ]
+    },
+    {
+      "task": {
+        "assignee_pool": [
+          "jane",
+          "john"
+        ]
+      },
+      "defaults": [],
+      "people": {
+        "jane": "todo.jane",
+        "john": "todo.john"
+      },
+      "lists": [
+        "todo.jane",
+        "todo.john"
+      ]
+    },
+    {
+      "task": {
+        "responsible_user_id": "jane",
+        "mirror_todo_entities": [
+          "todo.jane"
+        ]
+      },
+      "defaults": [],
+      "people": {
+        "jane": "todo.jane",
+        "john": "todo.john"
+      },
+      "lists": [
+        "todo.jane"
+      ]
+    },
+    {
+      "task": {
+        "responsible_user_id": "amy"
+      },
+      "defaults": [
+        "todo.house"
+      ],
+      "people": {
+        "jane": "todo.jane",
+        "john": "todo.john"
+      },
+      "lists": [
+        "todo.house"
+      ]
     }
   ],
   "task_user_ids": [

@@ -183,6 +183,7 @@ def due_tasks_at(hass: HomeAssistant, zone_id: str) -> list[dict[str, Any]]:
                     "task_name": task_label(result.task, result.next_event_titles),
                     "object_name": coordinator.maintenance_object.name,
                     "status": status,
+                    "days_until_due": result.days_until_due,
                     "task_data": {**(configs.get(task_id) or {}), **result.task},
                 }
             )

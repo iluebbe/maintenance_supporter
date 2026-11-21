@@ -348,6 +348,29 @@
           "go_back": "返回触发类型选择且不保存。"
         }
       },
+      "trigger_idle": {
+        "title": "闲置配置",
+        "description": "监视 {entity_id}（当前：{current_state}）。在所选天数内没有任何变化时，任务到期。",
+        "data": {
+          "trigger_idle_days": "闲置天数",
+          "trigger_idle_mode": "什么算作闲置",
+          "interval_days": "安全间隔数值",
+          "interval_unit": "安全间隔单位",
+          "trigger_combinator": "组合触发器与间隔",
+          "warning_days": "提前预警天数",
+          "go_back": "返回",
+          "auto_complete_on_recovery": "传感器恢复时自动完成"
+        },
+        "data_description": {
+          "trigger_idle_days": "下次变化时以及任务完成时重新计数。",
+          "trigger_idle_mode": "无变化：值保持不变（期间不可用不算）。不可用：实体不可用或未知。",
+          "interval_days": "除了传感器触发外，可选的基于时间的维护安全间隔。",
+          "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
+          "trigger_combinator": "先到者（默认）：触发器或已过间隔使任务到期。两者皆需：仅当触发器已触发且间隔已过时任务才到期。",
+          "warning_days": "到期日期前多少天显示预警。",
+          "go_back": "返回触发类型选择且不保存。"
+        }
+      },
       "compound_logic": {
         "title": "组合触发器",
         "description": "选择如何组合多个条件。",
@@ -670,6 +693,10 @@
           "quiet_hours_enabled": "启用免打扰时段",
           "quiet_hours_start": "免打扰开始时间",
           "quiet_hours_end": "免打扰结束时间",
+          "quiet_hours_weekend_enabled": "部分日子使用其他免打扰时段",
+          "quiet_hours_weekend_days": "使用自己免打扰时段的日子",
+          "quiet_hours_weekend_start": "这些日子的免打扰开始",
+          "quiet_hours_weekend_end": "这些日子的免打扰结束",
           "max_notifications_per_day": "每日最高通知次数",
           "notification_bundling_enabled": "合并通知",
           "notification_bundle_threshold": "合并阈值",
@@ -690,6 +717,8 @@
           "notify_overdue_interval_hours": "超期提醒的重复频率。设置为 0 则仅通知一次。",
           "notify_triggered_interval_hours": "被触发提醒的重复频率。设置为 0 则仅通知一次。",
           "quiet_hours_enabled": "在免打扰时段内抑制通知。",
+          "quiet_hours_weekend_enabled": "在所选的日子，免打扰时段按各自的时间在早上结束、晚上开始。",
+          "quiet_hours_weekend_end": "选了星期六，星期五夜里就持续到星期六的这个时间。",
           "max_notifications_per_day": "每天允许发送的最大通知数量。设置为 0 表示不限制。",
           "notification_bundling_enabled": "当多项任务需要处理时，发送一条汇总通知。",
           "notification_bundle_threshold": "触发合并通知所需的最少任务数量。",
@@ -1266,6 +1295,28 @@
           "warning_days": "到期日期前多少天显示预警。"
         }
       },
+      "opt_trigger_idle": {
+        "title": "闲置配置",
+        "description": "监视 {entity_id}（当前：{current_state}）。在所选天数内没有任何变化时，任务到期。",
+        "data": {
+          "trigger_idle_days": "闲置天数",
+          "trigger_idle_mode": "什么算作闲置",
+          "interval_days": "安全间隔数值",
+          "interval_unit": "安全间隔单位",
+          "trigger_combinator": "组合触发器与间隔",
+          "warning_days": "提前预警天数",
+          "go_back": "返回",
+          "auto_complete_on_recovery": "传感器恢复时自动完成"
+        },
+        "data_description": {
+          "trigger_idle_days": "下次变化时以及任务完成时重新计数。",
+          "trigger_idle_mode": "无变化：值保持不变（期间不可用不算）。不可用：实体不可用或未知。",
+          "interval_days": "除了传感器触发外，可选的基于时间的维护安全间隔。",
+          "interval_unit": "间隔单位：天、周、月或年。月和年遵循历法。",
+          "trigger_combinator": "先到者（默认）：触发器或已过间隔使任务到期。两者皆需：仅当触发器已触发且间隔已过时任务才到期。",
+          "warning_days": "到期日期前多少天显示预警。"
+        }
+      },
       "object_settings": {
         "title": "维护项设置",
         "description": "编辑维护项详情。",
@@ -1339,7 +1390,11 @@
         "description": "{member}：将缩写留空并把颜色设为自动，即使用默认值（{initials}）。",
         "data": {
           "initials": "首字母",
-          "color": "颜色"
+          "color": "颜色",
+          "todo_list": "个人待办清单"
+        },
+        "data_description": {
+          "todo_list": "此人的任务也会出现在这个清单上，在那里勾选即以其名义完成任务。"
         }
       },
       "battery_lifetimes": {
@@ -1738,6 +1793,7 @@
         "state_change": "状态变化",
         "runtime": "运行时间",
         "due_date": "到期日期（由传感器报告）",
+        "idle": "闲置（数天无变化）",
         "compound": "组合触发器 (多条件)"
       }
     },
@@ -1843,7 +1899,8 @@
         "none": "不轮换",
         "round_robin": "轮流",
         "least_completed": "完成最少者",
-        "random": "随机"
+        "random": "随机",
+        "by_weekday": "按星期几（在面板中设置日期）"
       }
     },
     "task_priority": {
@@ -1851,6 +1908,12 @@
         "low": "低",
         "normal": "普通",
         "high": "高"
+      }
+    },
+    "trigger_idle_mode": {
+      "options": {
+        "no_change": "无变化",
+        "unavailable": "不可用"
       }
     }
   },

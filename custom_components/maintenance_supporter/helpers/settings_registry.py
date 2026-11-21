@@ -94,6 +94,10 @@ from ..const import (
     CONF_QUIET_HOURS_ENABLED,
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
+    CONF_QUIET_HOURS_WEEKEND_DAYS,
+    CONF_QUIET_HOURS_WEEKEND_ENABLED,
+    CONF_QUIET_HOURS_WEEKEND_END,
+    CONF_QUIET_HOURS_WEEKEND_START,
     CONF_REF_NUMBERS_IN_LISTS,
     CONF_REMINDER_LEAD_DAYS,
     CONF_ROW_ACTION_NOTICE,
@@ -101,6 +105,7 @@ from ..const import (
     CONF_SHARED_DEVICE_USER_IDS,
     CONF_SHOPPING_LIST_ENTITY,
     CONF_SNOOZE_DURATION_HOURS,
+    CONF_TODO_PERSON_LISTS,
     CONF_WARRANTY_REMINDER_DAYS,
     CONF_WARRANTY_REMINDER_ENABLED,
     CONF_WEEKLY_DIGEST_ENABLED,
@@ -115,6 +120,7 @@ from ..const import (
     DEFAULT_MAX_NOTIFICATIONS_PER_DAY,
     DEFAULT_OBJECTS_TABLE_COLUMNS,
     DEFAULT_PANEL_ENABLED,
+    DEFAULT_QUIET_HOURS_WEEKEND_DAYS,
     DEFAULT_ROW_ACTION_STYLE,
     DEFAULT_SNOOZE_DURATION_HOURS,
     DEFAULT_WARNING_DAYS,
@@ -170,6 +176,8 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     # #231: the to-do mirror's default lists ([] = off); shape-sanitised and
     # our own to-do platform refused by bespoke rules in dashboard.py.
     SettingSpec(CONF_MIRROR_TODO_DEFAULT_ENTITIES, list, []),
+    # #273: user id → that person's own to-do list (bespoke dict sanitiser).
+    SettingSpec(CONF_TODO_PERSON_LISTS, dict, {}),
     # #145: enum-validated by a bespoke rule (ROW_ACTION_STYLES); the notice
     # flag is only ever cleared by the panel banner.
     SettingSpec(CONF_ROW_ACTION_STYLE, str, DEFAULT_ROW_ACTION_STYLE, max_len=32),
@@ -219,6 +227,11 @@ SETTING_SPECS: tuple[SettingSpec, ...] = (
     SettingSpec(CONF_QUIET_HOURS_ENABLED, bool, True),
     SettingSpec(CONF_QUIET_HOURS_START, str, "22:00", max_len=5),
     SettingSpec(CONF_QUIET_HOURS_END, str, "08:00", max_len=5),
+    # D#277: the weekend's own quiet hours (days: bespoke int-list sanitiser).
+    SettingSpec(CONF_QUIET_HOURS_WEEKEND_ENABLED, bool, False),
+    SettingSpec(CONF_QUIET_HOURS_WEEKEND_START, str, "23:00", max_len=5),
+    SettingSpec(CONF_QUIET_HOURS_WEEKEND_END, str, "10:00", max_len=5),
+    SettingSpec(CONF_QUIET_HOURS_WEEKEND_DAYS, list, list(DEFAULT_QUIET_HOURS_WEEKEND_DAYS)),
     # Limits + bundling
     SettingSpec(CONF_MAX_NOTIFICATIONS_PER_DAY, int, DEFAULT_MAX_NOTIFICATIONS_PER_DAY, int_range=(0, 1000)),
     SettingSpec(CONF_NOTIFICATION_BUNDLING_ENABLED, bool, False),

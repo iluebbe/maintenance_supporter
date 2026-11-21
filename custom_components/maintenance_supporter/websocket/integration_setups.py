@@ -22,7 +22,7 @@ from homeassistant.core import HomeAssistant
 
 from ..const import CONF_OBJECT, CONF_TASKS, DOMAIN, MAX_NAME_LENGTH
 from ..helpers.aggregate import is_object_entry
-from ..helpers.i18n import normalize_language
+from ..helpers.i18n import request_language
 from ..helpers.integration_signatures import (
     SIGNATURES,
     build_setup_trigger,
@@ -35,7 +35,14 @@ from . import ID_FIELD
 from .adopt_batch import AdoptBatch
 
 
-@websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/integration_setups/discover"})
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/integration_setups/discover",
+        # The asking user's language for the suggested task names (falls
+        # back to the server language).
+        vol.Optional("language"): vol.All(str, vol.Length(max=10)),
+    }
+)
 @websocket_api.async_response
 async def ws_discover_integration_setups(
     hass: HomeAssistant,
@@ -43,7 +50,7 @@ async def ws_discover_integration_setups(
     msg: dict[str, Any],
 ) -> None:
     """List suggested maintenance setups for catalogued integrations."""
-    connection.send_result(msg["id"], {"setups": discover_integration_setups(hass)})
+    connection.send_result(msg["id"], {"setups": discover_integration_setups(hass, language=msg.get("language"))})
 
 
 @websocket_api.websocket_command(
@@ -52,6 +59,9 @@ async def ws_discover_integration_setups(
         vol.Required("device_id"): ID_FIELD,
         # An existing object as the target; omitted / null = a new object.
         vol.Optional("entry_id"): vol.Any(ID_FIELD, None),
+        # The asking user's language for the suggested task names (falls
+        # back to the server language).
+        vol.Optional("language"): vol.All(str, vol.Length(max=10)),
     }
 )
 @websocket_api.async_response
@@ -69,7 +79,11 @@ async def ws_preview_integration_setup(
         connection.send_error(msg["id"], "not_found", "Target object not found")
         return
     setup = next(
-        (s for s in discover_integration_setups(hass, targets={msg["device_id"]: entry_id}) if s["device_id"] == msg["device_id"]),
+        (
+            s
+            for s in discover_integration_setups(hass, targets={msg["device_id"]: entry_id}, language=msg.get("language"))
+            if s["device_id"] == msg["device_id"]
+        ),
         None,
     )
     if setup is None:
@@ -105,6 +119,9 @@ _SELECTION_SCHEMA = vol.Schema(
     {
         vol.Required("type"): f"{DOMAIN}/integration_setups/adopt",
         vol.Required("selections"): vol.All([_SELECTION_SCHEMA], vol.Length(min=1, max=50)),
+        # The asking user's language for the suggested task names (falls
+        # back to the server language).
+        vol.Optional("language"): vol.All(str, vol.Length(max=10)),
     }
 )
 @require_write
@@ -117,10 +134,12 @@ async def ws_adopt_integration_setups(
     """Create sensor-wired maintenance tasks for the selected suggestions."""
     from ..templates import localize_template_text
 
-    lang = normalize_language(hass)
+    # The names the dialog showed: the asking user's language, as for an
+    # object made from a template.
+    lang = request_language(hass, msg.get("language"))
     # Re-run discovery server-side: the wiring (entities, thresholds) comes
     # from the verified catalog, never from the client.
-    setups = {s["device_id"]: s for s in discover_integration_setups(hass)}
+    setups = {s["device_id"]: s for s in discover_integration_setups(hass, language=lang)}
 
     batch = AdoptBatch(hass)
 

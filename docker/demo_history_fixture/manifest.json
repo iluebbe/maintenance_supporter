@@ -1,0 +1,11 @@
+{
+  "domain": "demo_history",
+  "name": "Demo history (docs)",
+  "after_dependencies": ["roborock", "template"],
+  "codeowners": [],
+  "dependencies": ["input_boolean", "recorder"],
+  "documentation": "https://example.invalid/demo-history",
+  "iot_class": "calculated",
+  "requirements": [],
+  "version": "0.0.1"
+}

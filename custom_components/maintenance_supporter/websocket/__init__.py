@@ -44,6 +44,7 @@ from ..helpers.i18n import normalize_language
 from ..helpers.parts import MAX_CONSUME_QUANTITY, is_mailto_url, is_part_low, order_lines, resolve_shopping_url
 from ..helpers.phases import current_phase_summary
 from ..helpers.places import object_place, zone_name
+from ..helpers.rotation_turns import TURNS_PER_PERSON, current_assignee, rotates_by_weekday, upcoming_turns
 from ..helpers.schedule import KIND_CALENDAR, Schedule, read_legacy_fields, upcoming_occurrences
 from ..helpers.task_fields import COMPACT_KEEPS_EMPTY
 from ..helpers.trigger_detail import trigger_detail
@@ -268,10 +269,17 @@ def _build_task_summary(
         "paused": task_data.get("paused_at") is not None,
         "paused_at": task_data.get("paused_at"),
         "paused_until": task_data.get("paused_until"),
-        "responsible_user_id": task_data.get("responsible_user_id"),
+        # D#284: under the by-weekday rotation the due date's weekday decides.
+        "responsible_user_id": current_assignee(task_data, ct.next_due) if rotates_by_weekday(task_data) else task_data.get("responsible_user_id"),
         "assignee_pool": task_data.get("assignee_pool", []),
         "required_completion_fields": task_data.get("required_completion_fields", []),
         "rotation_strategy": task_data.get("rotation_strategy"),
+        "weekday_assignees": task_data.get("weekday_assignees"),
+        # D#284: whose turn the coming dates are (empty without a rotation),
+        # far enough for the calendar to show each person their own dates.
+        "upcoming_turns": upcoming_turns(
+            task_data, today=dt_util.now().date(), times_performed=ct.times_performed or 0, per_person=TURNS_PER_PERSON
+        ),
         "earliest_completion_days": task_data.get("earliest_completion_days"),
         "entity_slug": task_data.get("entity_slug"),
         # Auto-derived entity_ids for this task's sensor + binary_sensor.
@@ -479,6 +487,8 @@ def _build_object_response(
             # zone is gone (the object then behaves as at home), and whether
             # its reminders wait for somebody on site.
             **_place_fields(hass, obj_data),
+            # #273: the to-do lists the object's tasks go to ([] = none).
+            "mirror_todo_entities": list(obj_data.get("mirror_todo_entities") or []),
             # v1.4.0 (#43): expose to the frontend so the manual link
             # renders in the object detail header AND, since v1.4.1, on
             # every task detail page belonging to this object.

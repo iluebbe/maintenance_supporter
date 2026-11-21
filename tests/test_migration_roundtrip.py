@@ -119,7 +119,9 @@ async def _seed(hass: HomeAssistant, global_entry: MockConfigEntry) -> dict[str,
     task["planned_day"] = 31  # the 28th stands for the 31st (a monthly series)
     task["responsible_user_id"] = alice.id
     task["assignee_pool"] = [alice.id, bob.id]
-    task["rotation_strategy"] = "round_robin"
+    # D#284: a rotation by weekday, so the move compares the days too.
+    task["rotation_strategy"] = "by_weekday"
+    task["weekday_assignees"] = [alice.id, bob.id, alice.id, bob.id, None, None, alice.id]
     task["history"] = [
         {**FULL_TASK["history"][0], "completed_by": alice.id, "feedback": "needed", "phase_id": "flip"},
         {"timestamp": "2026-04-01T09:00:00+00:00", "type": "skipped", "notes": "away"},
@@ -497,6 +499,8 @@ async def _snapshot(hass: HomeAssistant) -> tuple[dict[str, Any], set[str]]:
                 return sorted(task_name.get(x, f"?{x}") for x in value)
             if key == "assignee_pool":
                 return [users.get(x, f"?{x}") for x in value]
+            if key == "weekday_assignees":  # D#284: a person (or nobody) per weekday
+                return [users.get(x, f"?{x}") if isinstance(x, str) else x for x in value]
             if key == "photo_doc_ids":
                 return [doc_name.get(x, f"?{x}") for x in value]
             if key == "part_ids":
@@ -695,7 +699,7 @@ def test_the_seed_carries_every_task_field_the_panel_can_write() -> None:
 
     writable = _ws_schema_keys(tasks_crud.ws_create_task) | _ws_schema_keys(tasks_crud.ws_update_task)
     seeded = set(FULL_TASK) | set(ONE_TIME_TASK) | set(CALENDAR_TASK) | {
-        "trigger_config", "responsible_user_id", "assignee_pool", "rotation_strategy", "name", "type", "enabled", "warning_days",
+        "trigger_config", "responsible_user_id", "assignee_pool", "rotation_strategy", "weekday_assignees", "name", "type", "enabled", "warning_days",
     }
     aliases = {"task_type"}
     missing = sorted(writable - seeded - aliases)

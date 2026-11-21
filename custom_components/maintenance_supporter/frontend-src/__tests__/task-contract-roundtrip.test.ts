@@ -56,6 +56,8 @@ const EDITABLE: Record<string, string> = {
   responsible_user_id: "responsible_user_id",
   assignee_pool: "assignee_pool",
   rotation_strategy: "rotation_strategy",
+  // D#284: the person per weekday (kept under any rotation).
+  weekday_assignees: "weekday_assignees",
   required_completion_fields: "required_completion_fields",
   trigger_config: "trigger_config",
   // #139: cycle phases — the dialog round-trips defs + sequence (null clears).
@@ -93,6 +95,8 @@ const READONLY = new Set([
   "schedule", // canonical nested recurrence — rebuilt server-side from flat
   // #274: one cycle of a calendar kind, for its due bar — computed.
   "cycle_days",
+  // D#284: whose turn the coming dates are — derived server-side.
+  "upcoming_turns",
   "adaptive_config",
   "archived",
   "archived_at",

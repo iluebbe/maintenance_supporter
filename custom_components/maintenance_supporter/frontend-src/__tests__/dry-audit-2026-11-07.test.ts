@@ -270,13 +270,13 @@ describe("FE7-B1 / FE7-B5 in the editor", () => {
     expect(root.querySelector('.rule-row[data-row="trigger"] .rule-sentence')?.textContent?.trim()).to.equal("below 60%");
   });
 
-  it("the notifications row names the lists the save sends", async () => {
+  it("the to-do row names the lists the save sends", async () => {
     const { el, root, sent } = await editTask(
       { schedule_type: "time_based", interval_days: 30, mirror_todo_entities: ["todo.maintenance", "todo.house"] },
       { "todo.house": { state: "0", attributes: { friendly_name: "Household" } } },
       { "todo.maintenance": { platform: "maintenance_supporter" }, "todo.house": { platform: "local_todo" } },
     );
-    const chips = [...root.querySelectorAll('.rule-row[data-row="notifications"] .rule-chip')].map((c) => c.textContent?.trim());
+    const chips = [...root.querySelectorAll('.rule-row[data-row="todo"] .rule-chip')].map((c) => c.textContent?.trim());
     expect(chips).to.deep.equal(["Household"]);
     await (el as unknown as { _save(): Promise<void> })._save();
     const save = [...sent].reverse().find((m) => m.type === "maintenance_supporter/task/update") as Record<string, unknown> | undefined;

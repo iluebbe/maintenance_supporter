@@ -348,6 +348,29 @@
           "go_back": "저장하지 않고 트리거 유형 선택으로 돌아갑니다."
         }
       },
+      "trigger_idle": {
+        "title": "무변화 구성",
+        "description": "{entity_id}을(를) 지켜봅니다(현재: {current_state}). 고른 일수 동안 아무 일도 없으면 작업 기한이 됩니다.",
+        "data": {
+          "trigger_idle_days": "무변화 일수",
+          "trigger_idle_mode": "무엇을 무변화로 볼지",
+          "interval_days": "안전 주기",
+          "interval_unit": "주기 단위",
+          "trigger_combinator": "트리거와 간격 결합",
+          "warning_days": "기한 전 경고 일수",
+          "go_back": "뒤로 가기",
+          "auto_complete_on_recovery": "센서가 정상으로 돌아오면 자동 완료"
+        },
+        "data_description": {
+          "trigger_idle_days": "다음 변화가 있을 때와 작업을 완료할 때 다시 셉니다.",
+          "trigger_idle_mode": "변화 없음: 값이 그대로(중간의 사용 불가는 세지 않음). 사용 불가: 엔티티를 사용할 수 없거나 알 수 없음.",
+          "interval_days": "센서 트리거에 더해 사용하는 시간 기반 안전 주기입니다(선택 사항).",
+          "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
+          "trigger_combinator": "먼저 충족(기본값): 트리거 또는 경과한 간격이 작업을 기한 도래로 만듭니다. 둘 다 필요: 트리거가 발동하고 간격이 경과해야 기한이 됩니다.",
+          "warning_days": "기한 전에 경고를 표시할 일수입니다.",
+          "go_back": "저장하지 않고 트리거 유형 선택으로 돌아갑니다."
+        }
+      },
       "compound_logic": {
         "title": "복합 트리거",
         "description": "여러 조건을 결합하는 방식을 선택하세요.",
@@ -670,6 +693,10 @@
           "quiet_hours_enabled": "방해 금지 시간 사용",
           "quiet_hours_start": "방해 금지 시작",
           "quiet_hours_end": "방해 금지 종료",
+          "quiet_hours_weekend_enabled": "일부 요일은 다른 방해 금지 시간",
+          "quiet_hours_weekend_days": "별도 방해 금지 시간을 쓰는 요일",
+          "quiet_hours_weekend_start": "해당 요일 방해 금지 시작",
+          "quiet_hours_weekend_end": "해당 요일 방해 금지 종료",
           "max_notifications_per_day": "하루 최대 알림 수",
           "notification_bundling_enabled": "알림 묶어 보내기",
           "notification_bundle_threshold": "묶음 기준 수",
@@ -690,6 +717,8 @@
           "notify_overdue_interval_hours": "기한 초과 알림을 반복하는 간격입니다. 0으로 설정하면 한 번만 알립니다.",
           "notify_triggered_interval_hours": "트리거 알림을 반복하는 간격입니다. 0으로 설정하면 한 번만 알립니다.",
           "quiet_hours_enabled": "방해 금지 시간 동안 알림을 보내지 않습니다.",
+          "quiet_hours_weekend_enabled": "고른 요일에는 방해 금지 시간이 각자의 시각에 아침에 끝나고 저녁에 시작됩니다.",
+          "quiet_hours_weekend_end": "토요일을 고르면 금요일 밤이 토요일의 이 시각까지 이어집니다.",
           "max_notifications_per_day": "하루에 보낼 최대 알림 수입니다. 0으로 설정하면 무제한입니다.",
           "notification_bundling_enabled": "여러 작업이 주의가 필요할 때 하나의 요약 알림으로 보냅니다.",
           "notification_bundle_threshold": "묶음 알림을 보내기 위한 최소 작업 수입니다.",
@@ -1266,6 +1295,28 @@
           "warning_days": "기한 전에 경고를 표시할 일수입니다."
         }
       },
+      "opt_trigger_idle": {
+        "title": "무변화 구성",
+        "description": "{entity_id}을(를) 지켜봅니다(현재: {current_state}). 고른 일수 동안 아무 일도 없으면 작업 기한이 됩니다.",
+        "data": {
+          "trigger_idle_days": "무변화 일수",
+          "trigger_idle_mode": "무엇을 무변화로 볼지",
+          "interval_days": "안전 주기",
+          "interval_unit": "주기 단위",
+          "trigger_combinator": "트리거와 간격 결합",
+          "warning_days": "기한 전 경고 일수",
+          "go_back": "뒤로 가기",
+          "auto_complete_on_recovery": "센서가 정상으로 돌아오면 자동 완료"
+        },
+        "data_description": {
+          "trigger_idle_days": "다음 변화가 있을 때와 작업을 완료할 때 다시 셉니다.",
+          "trigger_idle_mode": "변화 없음: 값이 그대로(중간의 사용 불가는 세지 않음). 사용 불가: 엔티티를 사용할 수 없거나 알 수 없음.",
+          "interval_days": "센서 트리거에 더해 사용하는 시간 기반 안전 주기입니다(선택 사항).",
+          "interval_unit": "주기의 단위: 일, 주, 개월 또는 년. 개월과 년은 달력을 따릅니다.",
+          "trigger_combinator": "먼저 충족(기본값): 트리거 또는 경과한 간격이 작업을 기한 도래로 만듭니다. 둘 다 필요: 트리거가 발동하고 간격이 경과해야 기한이 됩니다.",
+          "warning_days": "기한 전에 경고를 표시할 일수입니다."
+        }
+      },
       "object_settings": {
         "title": "대상 설정",
         "description": "대상 정보를 편집합니다.",
@@ -1339,7 +1390,11 @@
         "description": "{member}: 기본값({initials})을 쓰려면 이니셜을 비우고 색상을 자동으로 두세요.",
         "data": {
           "initials": "이니셜",
-          "color": "색상"
+          "color": "색상",
+          "todo_list": "개인 할 일 목록"
+        },
+        "data_description": {
+          "todo_list": "그 사람의 작업이 이 목록에도 나타나며, 거기서 체크하면 그 사람 이름으로 작업이 완료됩니다."
         }
       },
       "battery_lifetimes": {
@@ -1738,6 +1793,7 @@
         "state_change": "상태 변경",
         "runtime": "가동 시간",
         "due_date": "만기일(센서가 보고)",
+        "idle": "무변화 (며칠째 아무 일 없음)",
         "compound": "복합(여러 조건)"
       }
     },
@@ -1843,7 +1899,8 @@
         "none": "교대 없음",
         "round_robin": "순서대로",
         "least_completed": "완료 횟수가 적은 사람",
-        "random": "무작위"
+        "random": "무작위",
+        "by_weekday": "요일별 (요일은 패널에서 설정)"
       }
     },
     "task_priority": {
@@ -1851,6 +1908,12 @@
         "low": "낮음",
         "normal": "보통",
         "high": "높음"
+      }
+    },
+    "trigger_idle_mode": {
+      "options": {
+        "no_change": "변화 없음",
+        "unavailable": "사용 불가"
       }
     }
   },

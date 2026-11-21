@@ -221,6 +221,7 @@ function applyTaskDialogSettings(dlg: MaintenanceTaskDialog, settings: SettingsC
   dlg.environmentalFeature = settings.features.environmental;
   dlg.defaultWarningDays = settings.defaultWarningDays;
   dlg.mirrorTodoDefault = settings.mirrorTodoDefault;
+  dlg.todoPersonLists = settings.todoPersonLists;
   dlg.betaEditor = settings.features.beta_editor;
 }
 

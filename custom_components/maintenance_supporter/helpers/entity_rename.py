@@ -21,7 +21,13 @@ from typing import Any
 
 from homeassistant.helpers import entity_registry as er
 
-from ..const import BATTERY_FLEET_EXCLUDED, BATTERY_FLEET_INCLUDED, CONF_OBJECT_PLACE, slugify_object_name
+from ..const import (
+    BATTERY_FLEET_EXCLUDED,
+    BATTERY_FLEET_INCLUDED,
+    CONF_OBJECT_MIRROR_TODO,
+    CONF_OBJECT_PLACE,
+    slugify_object_name,
+)
 from .action_listener import map_action_entity_ids
 from .battery_fleet import LOW_LATCH_KEY
 from .battery_fleet_setup import INSTALLED_CELLS_KEY, RECORDED_REPLACEMENTS_KEY
@@ -166,6 +172,11 @@ def rewrite_object(obj: dict[str, Any], old_id: str, new_id: str) -> tuple[dict[
         if isinstance(ids, list) and old_id in ids:
             new_obj[key] = sorted({new_id if e == old_id else e for e in ids})
             changed = True
+    # #273: the object's to-do lists keep their order (the first is shown first).
+    lists = new_obj.get(CONF_OBJECT_MIRROR_TODO)
+    if isinstance(lists, list) and old_id in lists:
+        new_obj[CONF_OBJECT_MIRROR_TODO] = [new_id if e == old_id else e for e in lists]
+        changed = True
     return new_obj, changed
 
 

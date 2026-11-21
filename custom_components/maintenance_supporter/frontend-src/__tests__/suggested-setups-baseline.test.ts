@@ -110,3 +110,47 @@ describe("suggested-setups dialog: counting start value (#102)", () => {
     expect(byId["vac1"].baselines).to.equal(undefined);
   });
 });
+
+describe("suggested-setups dialog: the viewer's language (PR #287)", () => {
+  // A Slovak profile on an English server got the template gallery in Slovak
+  // and the suggested setups in English: these three requests named nobody's
+  // language, so the server used its own.
+  it("asks for the suggestions, the preview and the adoption in the viewer's language", async () => {
+    const { hass, sent } = createMockHass({
+      language: "sk",
+      handlers: {
+        "maintenance_supporter/integration_setups/discover": () => ({ setups: SETUPS }),
+        "maintenance_supporter/objects": () => ({
+          objects: [{ entry_id: "obj_existing", object: { name: "My Vacuum" } }],
+        }),
+        "maintenance_supporter/integration_setups/preview": () => SETUPS[0],
+        "maintenance_supporter/integration_setups/adopt": () => ({
+          tasks_created: 3, objects_created: 2, total: 2,
+        }),
+      },
+    });
+    const el = await fixture<MaintenanceSuggestedSetupsDialog>(html`
+      <maintenance-suggested-setups-dialog .hass=${hass}></maintenance-suggested-setups-dialog>
+    `);
+    await el.open();
+    await el.updateComplete;
+
+    const select = el.shadowRoot!.querySelector<HTMLSelectElement>(".target-select")!;
+    select.value = "obj_existing";
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+    await new Promise((r) => setTimeout(r, 0));
+    await el.updateComplete;
+
+    el.shadowRoot!.querySelectorAll<HTMLElement>("ha-button")[1].click();
+    await el.updateComplete;
+    await new Promise((r) => setTimeout(r, 0));
+
+    for (const kind of ["discover", "preview", "adopt"]) {
+      const msg = sent.find((m) => m.type === `maintenance_supporter/integration_setups/${kind}`) as
+        | { language?: string }
+        | undefined;
+      expect(msg !== undefined, `${kind} was sent`).to.be.true;
+      expect(msg!.language, kind).to.equal("sk");
+    }
+  });
+});

@@ -9,6 +9,8 @@ and the full discover -> adopt WS cycle against registry-seeded entities.
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
@@ -44,7 +46,7 @@ def test_every_signature_task_name_is_fully_translated() -> None:
     catalog entry without its 21 non-English translations fails here."""
     from custom_components.maintenance_supporter.templates_i18n import _T
 
-    langs = ("de", "es", "fr", "it", "nl", "pt", "pt-br", "ru", "uk", "pl", "cs", "sv", "da", "nb", "fi", "ja", "hi", "zh", "hu", "ko", "tr")
+    langs = ("de", "es", "fr", "it", "nl", "pt", "pt-br", "ru", "uk", "pl", "cs", "sk", "sv", "da", "nb", "fi", "ja", "hi", "zh", "hu", "ko", "tr")
     missing = []
     for domain, cat in SIGNATURES.items():
         for sig in cat.tasks:
@@ -184,6 +186,63 @@ async def test_adopt_creates_object_with_prewired_triggers(
     conn2 = make_ws_connection()
     await call_ws_handler(ws_discover_integration_setups, hass, conn2, {"id": 2, "type": "x"})
     assert conn2.send_result.call_args[0][1]["setups"] == []
+
+
+async def test_suggested_names_follow_the_asking_users_language(
+    hass: HomeAssistant, global_entry: MockConfigEntry
+) -> None:
+    """PR #287's observation: a Slovak profile on an English server got the
+    template gallery in Slovak and the suggested setups in English. Discovery,
+    the preview and adoption take the request's language like the gallery;
+    without one it stays the server's."""
+    from custom_components.maintenance_supporter.templates import localize_template_text
+    from custom_components.maintenance_supporter.websocket.integration_setups import (
+        ws_adopt_integration_setups,
+        ws_discover_integration_setups,
+        ws_preview_integration_setup,
+    )
+
+    await setup_integration(hass, global_entry)
+    device_id = await _seed_roborock(hass)
+    assert hass.config.language == "en"
+    slovak = {name: localize_template_text(name, "sk") for name in ("Replace Main Brush", "Replace Filter")}
+    assert all(text and text != name for name, text in slovak.items())
+
+    def names(setup: dict[str, Any]) -> dict[str, str]:
+        return {t["task_name"]: t["task_name_localized"] for t in setup["tasks"]}
+
+    async def ask(handler: Any, **msg: Any) -> Any:
+        conn = make_ws_connection()
+        await call_ws_handler(handler, hass, conn, {"id": 1, "type": "x", **msg})
+        assert not conn.send_error.called, conn.send_error.call_args
+        return conn.send_result.call_args[0][1]
+
+    # Nobody says: the server's language, as before.
+    assert names((await ask(ws_discover_integration_setups))["setups"][0]) == {n: n for n in slovak}
+    # The panel says whose language it is, in Home Assistant's spelling too.
+    assert names((await ask(ws_discover_integration_setups, language="sk"))["setups"][0]) == slovak
+    brazilian = names((await ask(ws_discover_integration_setups, language="pt-BR"))["setups"][0])
+    assert brazilian["Replace Filter"] == localize_template_text("Replace Filter", "pt-br")
+    assert names(await ask(ws_preview_integration_setup, device_id=device_id, language="sk")) == slovak
+
+    # The three commands accept the field (call_ws_handler skips the schema).
+    for handler, extra in (
+        (ws_discover_integration_setups, {}),
+        (ws_preview_integration_setup, {"device_id": device_id}),
+        (ws_adopt_integration_setups, {"selections": [{"device_id": device_id}]}),
+    ):
+        command = handler._ws_command  # type: ignore[attr-defined]
+        handler._ws_schema({"id": 1, "type": command, "language": "sk", **extra})  # type: ignore[attr-defined]
+
+    # Adoption stores the names the dialog showed.
+    res = await ask(ws_adopt_integration_setups, selections=[{"device_id": device_id}], language="sk")
+    assert res["tasks_created"] == 2
+    obj = next(
+        e
+        for e in hass.config_entries.async_entries(DOMAIN)
+        if e.unique_id != GLOBAL_UNIQUE_ID and e.data.get(CONF_OBJECT, {}).get("ha_device_id") == device_id
+    )
+    assert {t["name"] for t in obj.data[CONF_TASKS].values()} == set(slovak.values())
 
 
 async def test_adopt_subset_and_seconds_unit_scaling(

@@ -171,7 +171,7 @@ def test_every_category_name_fully_localized() -> None:
     languages)."""
     from custom_components.maintenance_supporter.templates import TEMPLATE_CATEGORIES
 
-    langs = ("en", "de", "es", "fr", "it", "nl", "pt", "pt-br", "ru", "uk", "pl", "cs", "sv", "da", "nb", "fi", "ja", "hi", "zh", "hu", "ko", "tr")
+    langs = ("en", "de", "es", "fr", "it", "nl", "pt", "pt-br", "ru", "uk", "pl", "cs", "sk", "sv", "da", "nb", "fi", "ja", "hi", "zh", "hu", "ko", "tr")
     for cat, spec in TEMPLATE_CATEGORIES.items():
         gaps = [lg for lg in langs if not spec.get(f"name_{lg}")]
         assert not gaps, f"category {cat} missing {gaps}"

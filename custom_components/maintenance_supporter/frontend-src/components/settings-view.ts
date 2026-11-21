@@ -33,6 +33,7 @@ import { selectField, selectIsHa } from "../helpers/select-field";
 import { NOTIFICATION_LANGUAGE_AUTO, NOTIFICATION_LANGUAGES, notificationLanguageName } from "../helpers/notification-languages";
 import { normLang } from "../helpers/locale-core";
 import { checkField } from "../helpers/check-field";
+import { toggleWeekday, weekdayChipStyles, weekdayChips } from "../helpers/weekday-chips";
 import { onActivationKey } from "../helpers/keyboard";
 
 /** One household member and the notify services they actually resolve to.
@@ -71,6 +72,8 @@ interface SettingsResponse {
     shopping_list_entity?: string;
     /** #231: the to-do lists every task without its own is mirrored into. */
     mirror_todo_default_entities?: string[];
+    /** #273: user id → that person's own to-do list. */
+    todo_person_lists?: Record<string, string>;
     panel_enabled: boolean;
     panel_title: string;
     /** 2.94: the sidebar title an empty field means (server language). */
@@ -123,6 +126,11 @@ interface SettingsResponse {
     quiet_hours_enabled: boolean;
     quiet_hours_start: string;
     quiet_hours_end: string;
+    /** D#277: other quiet hours on the days picked as the weekend (0 = Monday). */
+    quiet_hours_weekend_enabled?: boolean;
+    quiet_hours_weekend_start?: string;
+    quiet_hours_weekend_end?: string;
+    quiet_hours_weekend_days?: number[];
     max_per_day: number;
     bundling_enabled: boolean;
     bundle_threshold: number;
@@ -1184,7 +1192,39 @@ export class MaintenanceSettingsView extends LitElement {
           `)}
         </label>
         ${this._renderMirrorTodoDefault(L, g.mirror_todo_default_entities ?? [])}
+        ${this._renderPersonLists(L, g.todo_person_lists ?? {})}
       </div>
+    `;
+  }
+
+  /** #273: each person's own to-do list. Their tasks appear on it too, and
+   *  a tick there completes the task as them. */
+  private _renderPersonLists(L: string, picked: Readonly<Record<string, string>>) {
+    const people = this._users;
+    if (!people.length) return nothing;
+    const lists = this._todoEntities("").filter((id) => !isOwnTodoList(this.hass, id));
+    for (const id of Object.values(picked)) if (!lists.includes(id)) lists.unshift(id);
+    const set = (userId: string, entity: string): void => {
+      const next: Record<string, string> = { ...picked };
+      if (entity) next[userId] = entity;
+      else delete next[userId];
+      void this._updateSetting("todo_person_lists", next);
+    };
+    return html`
+        <div class="setting-row todo-person-lists">
+          <span>
+            <span class="setting-label">${t("settings_todo_person_lists", L)}</span>
+            <span class="setting-desc">${t("settings_todo_person_lists_help", L)}</span>
+          </span>
+        </div>
+        ${people.map((u) => html`
+          <label class="setting-row sub-row todo-person-list" data-user=${u.id}>
+            <span class="setting-label">${u.name}</span>
+            ${selectField({ value: picked[u.id] ?? "", live: true, onChange: (e: Event) => set(u.id, (e.target as HTMLSelectElement).value) }, html`
+              <option value="" ?selected=${!picked[u.id]}>${t("settings_todo_person_none", L)}</option>
+              ${lists.map((id) => html`<option value=${id} ?selected=${picked[u.id] === id}>${entityName(this.hass, id)}</option>`)}
+            `)}
+          </label>`)}
     `;
   }
 
@@ -1226,6 +1266,36 @@ export class MaintenanceSettingsView extends LitElement {
   }
 
   // --- Section: Notifications ---
+
+  /** D#277: other quiet hours on the days picked as the weekend. On such a
+   *  day its morning ends and its evening starts at these times, so the
+   *  night into Saturday ends at the weekend's end. */
+  private _renderWeekendQuietHours(n: SettingsResponse["notifications"], L: string) {
+    const on = !!n.quiet_hours_weekend_enabled;
+    const days = n.quiet_hours_weekend_days ?? [5, 6];
+    return html`
+      ${checkField({ cls: "setting-row sub-row quiet-weekend-toggle", checked: on, onChange: (e: Event) => this._updateSetting("quiet_hours_weekend_enabled", (e.target as HTMLInputElement).checked), boxAfter: true }, html`<span class="setting-desc">${t("settings_quiet_weekend", L)}</span>`)}
+      ${on ? html`
+        <div class="setting-row sub-row quiet-weekend-row quiet-weekend">
+          ${weekdayChips({ lang: L, selected: days, label: t("settings_quiet_weekend_days", L), cls: "quiet-weekend-days", onToggle: (day) => void this._updateSetting("quiet_hours_weekend_days", toggleWeekday(days, day)) })}
+        </div>
+        <div class="setting-row sub-row quiet-weekend-row">
+          <span class="setting-desc">${t("settings_quiet_start", L)}</span>
+          <ms-date-field kind="time" required .hass=${this.hass} .lang=${L} class="quiet-weekend-start"
+            .value=${n.quiet_hours_weekend_start ?? "23:00"}
+            @value-changed=${(e: CustomEvent) => { const v = e.detail.value as string; if (v) this._updateSetting("quiet_hours_weekend_start", v); }}
+          ></ms-date-field>
+        </div>
+        <div class="setting-row sub-row quiet-weekend-row">
+          <span class="setting-desc">${t("settings_quiet_end", L)}</span>
+          <ms-date-field kind="time" required .hass=${this.hass} .lang=${L} class="quiet-weekend-end"
+            .value=${n.quiet_hours_weekend_end ?? "10:00"}
+            @value-changed=${(e: CustomEvent) => { const v = e.detail.value as string; if (v) this._updateSetting("quiet_hours_weekend_end", v); }}
+          ></ms-date-field>
+        </div>
+        <div class="setting-hint sub-hint quiet-weekend-hint">${t("settings_quiet_weekend_hint", L)}</div>
+      ` : nothing}`;
+  }
 
   private _renderNotifications(L: string) {
     const n = this._settings!.notifications;
@@ -1288,6 +1358,7 @@ export class MaintenanceSettingsView extends LitElement {
               @value-changed=${(e: CustomEvent) => { const v = e.detail.value as string; if (v) this._updateSetting("quiet_hours_end", v); }}
             ></ms-date-field>
           </div>
+          ${this._renderWeekendQuietHours(n, L)}
         ` : nothing}
 
         <label class="setting-row">
@@ -2274,7 +2345,7 @@ export class MaintenanceSettingsView extends LitElement {
 
   // --- Styles ---
 
-  static styles = [personStyles, css`
+  static styles = [personStyles, weekdayChipStyles, css`
     .import-notice {
       margin-top: 8px; padding: 8px 12px; border-radius: 8px;
       background: rgba(255, 152, 0, 0.1);
@@ -2401,6 +2472,9 @@ export class MaintenanceSettingsView extends LitElement {
     .setting-row.sub-row {
       padding-left: 16px;
     }
+    /* D#277: the weekend's quiet hours sit one step further in. */
+    .setting-row.sub-row.quiet-weekend-row,
+    .setting-hint.sub-hint { padding-left: 32px; }
 
     .setting-label { font-size: 14px; display: block; }
     .setting-desc { font-size: 12px; color: var(--secondary-text-color); display: block; }

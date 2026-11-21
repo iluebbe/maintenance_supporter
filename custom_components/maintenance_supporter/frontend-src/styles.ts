@@ -497,6 +497,16 @@ export function formatMonth(d: Date, lang?: string, style: "long" | "short" = "l
   return monthName(d.getMonth(), lang, style);
 }
 
+/** A day as weekday and short date ("Fri, Nov 20" / "Fr., 20. Nov.") for
+ *  lists of coming days, where the weekday matters (D#284's next turns). A
+ *  date-only value keeps its day whatever the zones say. */
+export function formatDayShort(iso: string, lang?: string): string {
+  const day = DATE_ONLY.exec(iso);
+  if (!day) return formatDate(iso, lang);
+  const d = new Date(Date.UTC(+day[1], +day[2] - 1, +day[3]));
+  return dateFormat(resolveLocale(lang), { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" }).format(d);
+}
+
 /** Short day+month of an instant ("Jul 3" / "3. Juli") in the profile's
  *  time zone, with a 2-digit year when the caller's range needs
  *  disambiguating — chart axis ticks and tooltips. */

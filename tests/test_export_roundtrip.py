@@ -197,6 +197,9 @@ def _full_trigger_config() -> dict:
         "trigger_to_state": "clean",
         "trigger_target_changes": 30,
         "trigger_days_before": 7,
+        # D#275: the idle rule.
+        "trigger_idle_days": 14,
+        "trigger_idle_mode": "unavailable",
         "compound_logic": "AND",
         "conditions": [{"type": "threshold", "entity_id": "sensor.sub", "trigger_above": 1}],
         "auto_complete_on_recovery": True,
@@ -468,7 +471,7 @@ _TASK_EXPORT_EXEMPT = {
     # The user cluster IS in the import mirror, but non-existent HA users are
     # deliberately pruned by the orphan sweep at setup (same reason the
     # settings roundtrip skips them) — unprobeable in a test hass:
-    "responsible_user_id", "assignee_pool", "rotation_strategy",
+    "responsible_user_id", "assignee_pool", "rotation_strategy", "weekday_assignees",
     "checklist_progress",  # Store-side; asserted separately in the roundtrip
     "part_ref",  # auto-buy marker; covered by the parts/buy-task tests
     "trigger_config",  # key-set-compared separately (import normalises values)
@@ -514,7 +517,7 @@ _CSV_TASK_EXCLUDED = {
     "last_planned_due", "planned_day", "due_override",  # per-occurrence schedule state
     "adaptive_config", "checklist_progress", "history",  # structured state
     "on_complete_action", "quick_complete_defaults",  # nested service configs
-    "assignee_pool", "rotation_strategy",  # multi-user config (JSON backup)
+    "assignee_pool", "rotation_strategy", "weekday_assignees",  # multi-user config (JSON backup)
     "required_completion_fields", "earliest_completion_days",  # niche gates
     "ref_no",  # #170 reference number — assigned, never typed into a sheet
     "next_history_ref",  # the completion-number high-water mark (JSON backup carries it)

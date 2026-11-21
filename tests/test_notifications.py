@@ -1096,6 +1096,8 @@ def test_clear_task_state() -> None:
     }
     nm._on_phones = {"e1_t1": "status", "e2_t2": "lead"}
     nm._group_pushes = {}
+    today = dt_util.now().date().isoformat()
+    nm._due_today_sent = {"e1_t1": today, "e2_t2": today}
 
     nm.clear_task_state("e1", "t1")
 
@@ -1109,6 +1111,8 @@ def test_clear_task_state() -> None:
     assert nm._starved == set()
     # ...and its push is no longer on the phones (DRY audit 2026-10-30).
     assert nm._on_phones == {"e2_t2": "lead"}
+    # ...and its next due date gets its due-today reminder (#280, D#283).
+    assert nm._due_today_sent == {"e2_t2": today}
 
     # Other task keys should remain
     assert "e2_t2_due_soon" in nm._last_notified

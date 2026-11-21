@@ -1417,6 +1417,29 @@ export const panelStyles = css`
      each gets its own line, or the date itself is cut off. */
   :host([narrow]) .area-filters ms-date-field { flex: 1 1 100%; }
 
+  /* D#284: whose turn the coming dates are. */
+  .upcoming-turns {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin: 8px 0 4px;
+    font-size: 13px;
+  }
+  .upcoming-turns-label {
+    color: var(--secondary-text-color);
+    font-weight: 500;
+  }
+  .upcoming-turn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: var(--secondary-background-color, rgba(127, 127, 127, 0.12));
+  }
+  .upcoming-turn-date { color: var(--secondary-text-color); }
+  .upcoming-turn.anyone .upcoming-turn-name { font-style: italic; }
   .user-badge {
     display: inline-flex;
     align-items: center;

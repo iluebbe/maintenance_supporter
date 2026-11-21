@@ -41,11 +41,18 @@ VALUES: dict[tuple[str, str], float] = {(r, c): left for r, (_, cons) in ROBOTS.
 # the values stay put.
 WEAR = os.environ.get("ROBOROCK_DEMO_WEAR") == "1"
 RESET_AT: dict[tuple[str, str], datetime] = {}
+# With DEMO_HISTORY_END as well (the docs demo's history, e2e/demo-history.mjs)
+# a countdown that was not reset reaches the value above exactly at that
+# moment: the docs demo that starts afterwards, without wear, continues the
+# same line.
+HISTORY_END = dt_util.parse_datetime(os.environ.get("DEMO_HISTORY_END", ""))
 
 
 def hours_left(key: tuple[str, str]) -> float:
     if not WEAR:
         return VALUES[key]
+    if HISTORY_END is not None and key not in RESET_AT:
+        return max(0.0, round(VALUES[key] + (HISTORY_END - dt_util.utcnow()).total_seconds() / 86400, 1))
     anchor = RESET_AT.setdefault(key, dt_util.utcnow())
     return max(0.0, round(VALUES[key] - (dt_util.utcnow() - anchor).total_seconds() / 86400, 1))
 

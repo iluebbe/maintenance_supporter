@@ -47,6 +47,8 @@ _HA_PAGES = frozenset(
         "apps",
         "add-ons",
         "tags",
+        # "Developer tools" until 2026.8.
+        "tools",
     }
 )
 _ANCHOR = re.compile(r"(?<![\w-])(Settings|Add ▾|⋮|Configure(?: dialog)?)[*\"]*\s→\s")
@@ -213,6 +215,8 @@ def test_menu_paths_in_the_docs_exist() -> None:
         # Written right, in the styles the docs use.
         ("*Settings → Devices & services → Add integration → Local Calendar*", None),
         ("HA Settings → Devices & services → Maintenance Supporter → Configure → **Panel Access**.", None),
+        ("so copy the real id from *Settings → Tools → States* before pasting the card.", None),
+        ("(*Settings → Tools → States* shows the value each condition compares against)", None),
         ("Settings → General, next to the low floor |", None),
         ("pick a list in *Settings → General → Shopping list (buy tasks)* and", None),
         ('Settings → Notifications → *"Notify only for view"*).', None),

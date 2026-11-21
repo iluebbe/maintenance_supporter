@@ -23,6 +23,8 @@ const TASK_LIST_KEYS = [
   "next_event_titles",
   // #266: coming dates of a calendar-kind schedule (empty = none to draw).
   "upcoming_dates",
+  // D#284: whose turn the coming dates are (empty = no rotation).
+  "upcoming_turns",
   "history",
   // #161 phase 2: reading slots (empty = single-value task).
   "readings",

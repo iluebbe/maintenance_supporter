@@ -15,6 +15,7 @@ from ..const import (
     CONF_OBJECT_DOCUMENTATION_URL,
     CONF_OBJECT_INSTALLATION_DATE,
     CONF_OBJECT_MANUFACTURER,
+    CONF_OBJECT_MIRROR_TODO,
     CONF_OBJECT_MODEL,
     CONF_OBJECT_NAME,
     CONF_OBJECT_NOTES,
@@ -44,6 +45,7 @@ async def async_create_object(
     parent_entry_id: str | None = None,
     place: str | None = None,
     remind_on_site: bool = False,
+    mirror_todo_entities: list[str] | None = None,
 ) -> str:
     """Create a maintenance object (config entry) and return its entry_id.
 
@@ -84,6 +86,8 @@ async def async_create_object(
             # Normalized by cap_object_fields (helpers/sanitize._normalize_place).
             **({CONF_OBJECT_PLACE: place} if place else {}),
             **({CONF_OBJECT_REMIND_ON_SITE: True} if remind_on_site else {}),
+            # #273: the to-do lists its tasks go to (validated by the caller).
+            **({CONF_OBJECT_MIRROR_TODO: list(mirror_todo_entities)} if mirror_todo_entities else {}),
             "task_ids": [],
         },
         CONF_TASKS: {},

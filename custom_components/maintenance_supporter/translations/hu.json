@@ -348,6 +348,29 @@
           "go_back": "Visszatérés a kiváltótípus-választáshoz mentés nélkül."
         }
       },
+      "trigger_idle": {
+        "title": "Tétlenség beállítása",
+        "description": "Figyeli ezt: {entity_id} (most: {current_state}). A feladat esedékes lesz, ha a választott napig semmi sem történt.",
+        "data": {
+          "trigger_idle_days": "Csendes napok",
+          "trigger_idle_mode": "Mi számít csendnek",
+          "interval_days": "Biztonsági intervallum",
+          "interval_unit": "Intervallum egysége",
+          "trigger_combinator": "Trigger és időköz kombinálása",
+          "warning_days": "Figyelmeztetési napok az esedékesség előtt",
+          "go_back": "Vissza",
+          "auto_complete_on_recovery": "Automatikus elvégzés, ha az érzékelő helyreáll"
+        },
+        "data_description": {
+          "trigger_idle_days": "A számlálás a következő változáskor és a feladat elvégzésekor újraindul.",
+          "trigger_idle_mode": "Nincs változás: az érték ugyanaz marad (közben elérhetetlen nem számít). Nem elérhető: az entitás nem elérhető vagy ismeretlen.",
+          "interval_days": "Opcionális időalapú biztonsági intervallum az érzékelős kiváltó mellett.",
+          "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
+          "trigger_combinator": "Amelyik előbb (alapértelmezett): a trigger vagy a letelt időköz esedékessé teszi a feladatot. Mindkettő szükséges: a feladat csak akkor esedékes, ha a trigger kioldott és az időköz letelt.",
+          "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés.",
+          "go_back": "Visszatérés a kiváltótípus-választáshoz mentés nélkül."
+        }
+      },
       "compound_logic": {
         "title": "Összetett kiváltó",
         "description": "Válassza ki, hogyan legyenek a feltételek kombinálva.",
@@ -670,6 +693,10 @@
           "quiet_hours_enabled": "Csendes órák engedélyezése",
           "quiet_hours_start": "Csendes órák kezdete",
           "quiet_hours_end": "Csendes órák vége",
+          "quiet_hours_weekend_enabled": "Más csendes órák egyes napokon",
+          "quiet_hours_weekend_days": "Saját csendes órákkal rendelkező napok",
+          "quiet_hours_weekend_start": "Csendes óráik kezdete",
+          "quiet_hours_weekend_end": "Csendes óráik vége",
           "max_notifications_per_day": "Max. értesítés naponta",
           "notification_bundling_enabled": "Értesítések összevonása",
           "notification_bundle_threshold": "Összevonási küszöb",
@@ -690,6 +717,8 @@
           "notify_overdue_interval_hours": "Milyen gyakran ismétlődjön a lejárt emlékeztető. 0 = csak egyetlen értesítés.",
           "notify_triggered_interval_hours": "Milyen gyakran ismétlődjön a kiváltási értesítés. 0 = csak egyetlen értesítés.",
           "quiet_hours_enabled": "Értesítések elnémítása a csendes órák alatt.",
+          "quiet_hours_weekend_enabled": "A kiválasztott napokon a csendes órák reggel és este a saját időpontjukban érnek véget, illetve kezdődnek.",
+          "quiet_hours_weekend_end": "Ha a szombat ki van választva, a péntek éjszaka szombaton eddig tart.",
           "max_notifications_per_day": "Az értesítések napi maximális száma. 0 = korlátlan.",
           "notification_bundling_enabled": "Egyetlen összefoglaló értesítés küldése, ha több feladat igényel figyelmet.",
           "notification_bundle_threshold": "Az összevont értesítéshez szükséges minimális feladatszám.",
@@ -1266,6 +1295,28 @@
           "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés."
         }
       },
+      "opt_trigger_idle": {
+        "title": "Tétlenség beállítása",
+        "description": "Figyeli ezt: {entity_id} (most: {current_state}). A feladat esedékes lesz, ha a választott napig semmi sem történt.",
+        "data": {
+          "trigger_idle_days": "Csendes napok",
+          "trigger_idle_mode": "Mi számít csendnek",
+          "interval_days": "Biztonsági intervallum",
+          "interval_unit": "Intervallum egysége",
+          "trigger_combinator": "Trigger és időköz kombinálása",
+          "warning_days": "Figyelmeztetési napok az esedékesség előtt",
+          "go_back": "Vissza",
+          "auto_complete_on_recovery": "Automatikus elvégzés, ha az érzékelő helyreáll"
+        },
+        "data_description": {
+          "trigger_idle_days": "A számlálás a következő változáskor és a feladat elvégzésekor újraindul.",
+          "trigger_idle_mode": "Nincs változás: az érték ugyanaz marad (közben elérhetetlen nem számít). Nem elérhető: az entitás nem elérhető vagy ismeretlen.",
+          "interval_days": "Opcionális időalapú biztonsági intervallum az érzékelős kiváltó mellett.",
+          "interval_unit": "Az intervallum egysége: nap, hét, hónap vagy év. A hónapok és évek a naptárt követik.",
+          "trigger_combinator": "Amelyik előbb (alapértelmezett): a trigger vagy a letelt időköz esedékessé teszi a feladatot. Mindkettő szükséges: a feladat csak akkor esedékes, ha a trigger kioldott és az időköz letelt.",
+          "warning_days": "Hány nappal az esedékesség előtt jelenjen meg figyelmeztetés."
+        }
+      },
       "object_settings": {
         "title": "Objektumbeállítások",
         "description": "Az objektum adatainak szerkesztése.",
@@ -1339,7 +1390,11 @@
         "description": "{member}: hagyja üresen a monogramot és a színt Automatikuson az alapértelmezéshez ({initials}).",
         "data": {
           "initials": "Monogram",
-          "color": "Szín"
+          "color": "Szín",
+          "todo_list": "Saját teendőlista"
+        },
+        "data_description": {
+          "todo_list": "A személy feladatai ezen a listán is megjelennek, és az ottani pipa az ő nevében végzi el a feladatot."
         }
       },
       "battery_lifetimes": {
@@ -1738,6 +1793,7 @@
         "state_change": "Állapotváltozás",
         "runtime": "Üzemidő",
         "due_date": "Esedékesség dátuma (érzékelő jelzi)",
+        "idle": "Tétlenség (napok óta semmi)",
         "compound": "Összetett (több feltétel)"
       }
     },
@@ -1843,7 +1899,8 @@
         "none": "Nincs rotáció",
         "round_robin": "Körforgás",
         "least_completed": "Legkevesebbet végezte",
-        "random": "Véletlenszerű"
+        "random": "Véletlenszerű",
+        "by_weekday": "A hét napja szerint (a napokat a panelen kell megadni)"
       }
     },
     "task_priority": {
@@ -1851,6 +1908,12 @@
         "low": "Alacsony",
         "normal": "Normál",
         "high": "Magas"
+      }
+    },
+    "trigger_idle_mode": {
+      "options": {
+        "no_change": "Nincs változás",
+        "unavailable": "Nem elérhető"
       }
     }
   },

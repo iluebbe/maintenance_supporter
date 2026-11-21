@@ -337,6 +337,8 @@ export class MaintenanceSupporterPanel extends LitElement {
   @state() private _defaultWarningDays = 7;
   /** #231: the to-do mirror's default lists (task dialog + task page). */
   @state() private _mirrorTodoDefault: string[] = [];
+  /** #273: user id → that person's own to-do list. */
+  @state() private _todoPersonLists: Record<string, string> = {};
   /** #145: global "Task row actions" style (buttons_compact | buttons | icons). */
   @state() private _rowActionStyle = "buttons_compact";
   /** #170: reference numbers in front of names in the lists (global setting). */
@@ -1187,6 +1189,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       this._operatorWriteEnabled = s.access.operatorWriteEnabled;
       this._defaultWarningDays = s.defaultWarningDays;
       this._mirrorTodoDefault = s.mirrorTodoDefault;
+      this._todoPersonLists = s.todoPersonLists;
       this._rowActionStyle = s.rowActionStyle;
       this._rowActionNotice = s.rowActionNoticePending;
       this._refsInLists = s.refsInLists;
@@ -3860,6 +3863,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         .environmentalFeature=${this._features.environmental}
         .defaultWarningDays=${this._defaultWarningDays}
         .mirrorTodoDefault=${this._mirrorTodoDefault}
+        .todoPersonLists=${this._todoPersonLists}
         .betaEditor=${this._features.beta_editor}
         @task-saved=${this._onDialogEvent}
       ></maintenance-task-dialog>
@@ -6376,6 +6380,8 @@ export class MaintenanceSupporterPanel extends LitElement {
       activeTab: this._activeTab,
       features: this._features,
       mirrorTodoDefault: this._mirrorTodoDefault,
+      todoPersonLists: this._todoPersonLists,
+      objectMirrorLists: obj?.object.mirror_todo_entities ?? [],
       currencySymbol: this._currencySymbol,
       collapsedSections: this._collapsedSections,
       costDurationToggle: this._costDurationToggle,

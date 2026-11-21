@@ -106,9 +106,9 @@ describe("beta editor: sensor rule sentences", () => {
 
 describe("beta editor: rows", () => {
   it("one row per question; the sensor rule only for a sensor task", () => {
-    expect(buildRuleRows(draft(), ctx).map((r) => r.id)).to.deep.equal(["task", "schedule", "completion", "people", "notifications"]);
+    expect(buildRuleRows(draft(), ctx).map((r) => r.id)).to.deep.equal(["task", "schedule", "completion", "people", "notifications", "todo"]);
     expect(buildRuleRows(draft({ scheduleType: "sensor_based", triggerEntityIds: ["sensor.washes"] }), ctx).map((r) => r.id))
-      .to.deep.equal(["task", "schedule", "trigger", "completion", "people", "notifications"]);
+      .to.deep.equal(["task", "schedule", "trigger", "completion", "people", "notifications", "todo"]);
   });
 
   it("names the entities as chips and says what a row adds", () => {
@@ -126,7 +126,9 @@ describe("beta editor: rows", () => {
     expect(by.completion.badges.length).to.equal(6);
     expect(by.people.text).to.equal("Responsible User: Mirko");
     expect(by.people.badges).to.deep.equal(["Round-robin"]);
-    expect(by.notifications.chips).to.deep.equal(["Household"]);
+    // #273: the to-do lists are a row of their own.
+    expect(by.notifications.chips).to.deep.equal([]);
+    expect(by.todo.chips).to.deep.equal(["Household"]);
   });
 
   it("only the schedule and the sensor rule can be removed, and only while there is something to remove", () => {

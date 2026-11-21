@@ -64,7 +64,7 @@ describe("task dialog: own notification texts (#252)", () => {
     const { el, sent } = await mountDialog();
     await el.openEdit("e1", baseTask as never);
     await el.updateComplete;
-    expect(kinds(el)).to.deep.equal(["due_soon", "overdue", "completed"]);
+    expect(kinds(el)).to.deep.equal(["due_soon", "due_today", "overdue", "completed"]);
     expect(el.shadowRoot!.querySelector(".notify-texts")!.textContent).to.contain("{task} {object} {days} {due}");
     await (el as unknown as Priv)._save();
     expect(update(sent).notification_texts).to.equal(null);
@@ -96,7 +96,7 @@ describe("task dialog: own notification texts (#252)", () => {
       trigger_config: { type: "threshold", entity_id: "sensor.tank", trigger_below: 10 },
     } as never);
     await el.updateComplete;
-    expect(kinds(el)).to.deep.equal(["due_soon", "overdue", "triggered", "completed"]);
+    expect(kinds(el)).to.deep.equal(["due_soon", "due_today", "overdue", "triggered", "completed"]);
     expect(el.shadowRoot!.querySelector('.notify-text[data-kind="triggered"]')!.textContent).to.contain("{detail}");
   });
 });

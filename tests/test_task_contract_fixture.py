@@ -77,6 +77,8 @@ _MAXIMAL_TASK = {
     "assignee_pool": ["user-uuid-1", "user-uuid-2"],
     "allow_skip": False,
     "rotation_strategy": "round_robin",
+    # D#284: the days of a rotation by weekday (kept, unused under round-robin).
+    "weekday_assignees": ["user-uuid-1", None, "user-uuid-2", None, None, None, None],
     "required_completion_fields": ["notes", "cost"],
     "entity_slug": "contract_fixture_task",
     "custom_icon": "mdi:test-tube",

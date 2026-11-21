@@ -551,7 +551,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
                 status = task_result_n.status
                 self._previous_statuses[task_id_n] = status
                 if seeding and status in notify_statuses:
-                    nm.seed_startup_state(self.entry.entry_id, task_id_n, status)
+                    nm.seed_startup_state(self.entry.entry_id, task_id_n, status, task_result_n.days_until_due)
                 elif dismiss and status not in notify_statuses:
                     # Paused or archived (both reload the object), or done
                     # with while Home Assistant was down (BR6-A1).
@@ -1175,7 +1175,7 @@ class MaintenanceCoordinator(DataUpdateCoordinator[CoordinatorData]):
         # reminders due NOW: tasks reminded an hour ago met the threshold,
         # and the "bundle" carried the one new task to the household —
         # without its person's routing and buttons (bug audit 2026-10-16, N7).
-        due_now = [item for item in notifiable if nm.reminder_due(self.entry.entry_id, item[0], item[2])]
+        due_now = [item for item in notifiable if nm.reminder_due(self.entry.entry_id, item[0], item[2], item[1].days_until_due)]
         if bundling_enabled and nm.can_bundle and len(due_now) >= bundle_threshold:
             await nm.async_send_bundled(
                 entry_id=self.entry.entry_id,

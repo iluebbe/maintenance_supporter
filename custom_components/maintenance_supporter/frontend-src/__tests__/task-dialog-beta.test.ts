@@ -71,7 +71,7 @@ describe("beta task editor: rows and sidebar", () => {
 
   it("one row per question, the sidebar empty until a row is picked", async () => {
     const { el, root } = await edit({ schedule_type: "time_based", interval_days: 30 });
-    expect(rowIds(root())).to.deep.equal(["task", "schedule", "completion", "people", "notifications"]);
+    expect(rowIds(root())).to.deep.equal(["task", "schedule", "completion", "people", "notifications", "todo"]);
     expect(rowText(root(), "schedule")).to.equal("Every 30 days");
     expect(root().querySelector(".rules-sidebar.open")).to.equal(null);
     expect(root().querySelector(".sidebar-hint")).to.exist;

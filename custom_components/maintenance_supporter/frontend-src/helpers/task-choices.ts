@@ -15,4 +15,5 @@ export const TASK_PRIORITIES = ["low", "normal", "high"] as const;
 export const TASK_PRIORITIES_HIGH_FIRST = [...TASK_PRIORITIES].reverse();
 
 /** Rotation strategies of a shared task's household pool. */
-export const ROTATION_STRATEGIES = ["round_robin", "least_completed", "random"] as const;
+// D#284: "by_weekday" names a person per weekday (weekday_assignees).
+export const ROTATION_STRATEGIES = ["round_robin", "least_completed", "random", "by_weekday"] as const;

@@ -257,6 +257,7 @@ TASK_UPDATE_FIELD_MAP = {
     "assignee_pool": "assignee_pool",
     "required_completion_fields": "required_completion_fields",
     "rotation_strategy": "rotation_strategy",
+    "weekday_assignees": "weekday_assignees",
     "entity_slug": "entity_slug",
     "custom_icon": "custom_icon",
     "nfc_tag_id": "nfc_tag_id",
@@ -320,6 +321,8 @@ _TASK_FIELDS: dict[str, Any] = {
     "assignee_pool": vol.Any(vol.All([vol.All(str, vol.Length(max=MAX_META_LENGTH))], vol.Length(max=MAX_ASSIGNEE_POOL)), None),
     "required_completion_fields": vol.Any([vol.In(REQUIRABLE_COMPLETION_FIELDS)], None),
     "rotation_strategy": vol.Any(vol.In(ROTATION_STRATEGY_VALUES), None),
+    # D#284: a person (or null = anyone) per weekday, Monday first.
+    "weekday_assignees": vol.Any(vol.All([vol.Any(str, None)], vol.Length(max=7)), None),
     "entity_slug": vol.Any(vol.All(str, vol.Length(max=MAX_ENTITY_SLUG_LENGTH)), None),
     "custom_icon": vol.Any(vol.All(str, vol.Length(max=MAX_ICON_LENGTH)), None),
     "nfc_tag_id": vol.Any(vol.All(str, vol.Length(max=MAX_NFC_TAG_LENGTH)), None),
@@ -540,6 +543,8 @@ async def ws_create_task(
         task_data["assignee_pool"] = msg["assignee_pool"]
     if msg.get("rotation_strategy"):
         task_data["rotation_strategy"] = msg["rotation_strategy"]
+    if isinstance(msg.get("weekday_assignees"), list):
+        task_data["weekday_assignees"] = msg["weekday_assignees"]
     if msg.get("required_completion_fields"):
         task_data["required_completion_fields"] = sanitize_required_completion_fields(
             msg["required_completion_fields"]

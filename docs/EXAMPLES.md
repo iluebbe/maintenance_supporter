@@ -713,7 +713,7 @@ max_items: 10
 > string, so their suffix is localized (on a German install the binary sensor
 > ends in `_uberfallig`). An object created **in an area** carries the area in
 > front of all its task ids (`sensor.<area>_<object>_<task>`). Look the exact
-> id up under *Developer Tools → States* or on the object's device page — see
+> id up under *Settings → Tools → States* (*Developer tools* before Home Assistant 2026.8) or on the object's device page — see
 > [Entity naming](#entity-naming).
 
 ### The whole panel as a card (2.84+, #174)
@@ -781,7 +781,7 @@ segments:
 The countdown's id ends in `_days_until_due` in every language, after the
 same prefix as the task's status sensor. That prefix carries the area when the
 object was created in one (`sensor.garage_family_car_oil_change_days_until_due`),
-so copy the real id from *Developer Tools → States* before pasting the card.
+so copy the real id from *Settings → Tools → States* before pasting the card.
 
 On older versions (or for one-off needs) the same number is available
 without the sensor via a template:
@@ -885,7 +885,7 @@ Alongside that status sensor each task also registers **companion entities** on 
 | `binary_sensor.<object>_<task>_overdue` | `device_class: problem`, ON when overdue or triggered |
 | `button.<object>_<task>_complete` / `_skip` / `_reset` | One-press actions (see [Action buttons](#action-buttons)) |
 
-> **Most companion suffixes are localized.** The status sensor (its name *is* the task name), the `_days_until_due` countdown and the global `sensor.maintenance_supporter_*` sensors carry the same id in every language. The other companions take their name from a translated string, so on a German install the binary sensor ends in `_uberfallig` and the next-due sensor in `_nachste_falligkeit`. An object created in an area has the area in front of every task id (`sensor.<area>_<object>_<task>…`). Read the real ids off *Developer Tools → States*, or from the object's page under *Settings → Devices & Services → Devices*.
+> **Most companion suffixes are localized.** The status sensor (its name *is* the task name), the `_days_until_due` countdown and the global `sensor.maintenance_supporter_*` sensors carry the same id in every language. The other companions take their name from a translated string, so on a German install the binary sensor ends in `_uberfallig` and the next-due sensor in `_nachste_falligkeit`. An object created in an area has the area in front of every task id (`sensor.<area>_<object>_<task>…`). Read the real ids off *Settings → Tools → States*, or from the object's page under *Settings → Devices & Services → Devices*.
 
 Because the names vary per setup, **don't filter by entity-id prefix** in templates — filter by integration instead, using `integration_entities('maintenance_supporter')`. Each status sensor's state is one of `ok`, `due_soon`, `overdue`, `triggered`, `archived`, `paused`.
 
@@ -919,7 +919,7 @@ Each task also exposes **action buttons** on its object device, so you can act o
 | `button.<object>_<task>_skip` | Skip the current cycle |
 | `button.<object>_<task>_reset` | Reset the task's schedule |
 
-(Entity IDs follow the same per-task naming as the sensors, e.g. `button.family_car_oil_change_complete` — but the `_complete` / `_skip` / `_reset` suffix is **translated** on a non-English install, so copy the real id from *Developer Tools → States*; see [Entity naming](#entity-naming).) Buttons for disabled (paused) tasks are unavailable, and every press runs through the same logic as the `maintenance_supporter.complete` / `skip` / `reset` services — so a dashboard tap behaves exactly like the panel.
+(Entity IDs follow the same per-task naming as the sensors, e.g. `button.family_car_oil_change_complete` — but the `_complete` / `_skip` / `_reset` suffix is **translated** on a non-English install, so copy the real id from *Settings → Tools → States*; see [Entity naming](#entity-naming).) Buttons for disabled (paused) tasks are unavailable, and every press runs through the same logic as the `maintenance_supporter.complete` / `skip` / `reset` services — so a dashboard tap behaves exactly like the panel.
 
 To export your data, use the **`maintenance_supporter.export_data`** action (service) — it writes a JSON/YAML file to your Home Assistant config folder. (Export isn't a button entity: a button runs on the server and can't trigger a browser download.)
 

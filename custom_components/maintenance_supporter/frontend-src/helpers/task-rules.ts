@@ -9,7 +9,7 @@ import { calendarSuffix, formatDate, formatHold, formatNumber, formatUnit, t, we
 import { configFromTypeFields, type TriggerTypeFields } from "./trigger-fields";
 
 /** The rows the beta editor shows; each opens one section in the sidebar. */
-export type RuleRowId = "task" | "schedule" | "trigger" | "completion" | "people" | "notifications";
+export type RuleRowId = "task" | "schedule" | "trigger" | "completion" | "people" | "notifications" | "todo";
 
 export interface RuleRow {
   id: RuleRowId;
@@ -87,7 +87,7 @@ export const CALENDAR_SCHEDULE_KINDS = ["weekdays", "nth_weekday", "day_of_month
 /** The schedule kinds the add picker offers, in this order. */
 export const ADD_SCHEDULE_KINDS = ["time_based", ...CALENDAR_SCHEDULE_KINDS, "one_time"];
 /** The sensor rule types the add picker offers, in this order. */
-export const ADD_TRIGGER_TYPES: TriggerType[] = ["threshold", "counter", "state_change", "runtime", "due_date", "compound"];
+export const ADD_TRIGGER_TYPES: TriggerType[] = ["threshold", "counter", "state_change", "runtime", "due_date", "idle", "compound"];
 
 const SCHEDULE_ICONS: Record<string, string> = {
   time_based: "mdi:calendar-sync",
@@ -106,6 +106,7 @@ export const TRIGGER_ICONS: Record<string, string> = {
   state_change: "mdi:state-machine",
   runtime: "mdi:timer-outline",
   due_date: "mdi:calendar-alert",
+  idle: "mdi:sleep",
   compound: "mdi:set-center",
 };
 
@@ -233,6 +234,12 @@ export function conditionText(tc: TriggerConfig, unit: string | null | undefined
         ? fill(t("beta_rules_date_before", L), { interval: formatUnit(tc.trigger_days_before, "day", L) })
         : t("beta_rules_date_on", L));
       break;
+    case "idle":
+      // D#275: "no change for 7 days" / "unavailable for 7 days".
+      parts.push(fill(t(tc.trigger_idle_mode === "unavailable" ? "beta_rules_idle_unavailable" : "beta_rules_idle_no_change", L), {
+        interval: formatUnit(tc.trigger_idle_days ?? 7, "day", L),
+      }));
+      break;
   }
   if ((type === "threshold" || type === "state_change") && tc.trigger_for_minutes && tc.trigger_for_minutes > 0) {
     parts.push(fill(t("beta_rules_for", L), { duration: formatHold(tc.trigger_for_minutes, L) }));
@@ -313,8 +320,18 @@ export function buildRuleRows(d: RuleDraft, ctx: RuleContext): RuleRow[] {
     id: "notifications",
     icon: d.notifyEnabled ? "mdi:bell-ring-outline" : "mdi:bell-off-outline",
     text: d.notifyEnabled ? t("beta_rules_reminders_on", L) : t("no_notifications", L),
-    chips: d.mirrorLists.map((id) => ctx.entityName(id)),
+    chips: [],
     badges: d.notifyEnabled && d.ownTexts ? [t("notify_texts_badge", L)] : [],
+    removable: false,
+  });
+  // #273: the to-do lists are a row of their own; under the notifications
+  // nobody found them.
+  rows.push({
+    id: "todo",
+    icon: d.mirrorLists.length ? "mdi:clipboard-list-outline" : "mdi:clipboard-off-outline",
+    text: d.mirrorLists.length ? t("beta_rules_todo_on", L) : t("beta_rules_todo_none", L),
+    chips: d.mirrorLists.map((id) => ctx.entityName(id)),
+    badges: [],
     removable: false,
   });
   return rows;

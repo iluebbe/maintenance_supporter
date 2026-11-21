@@ -718,6 +718,8 @@ _SETTING_SAMPLES: dict[str, Any] = {
     # qualified form round-trips unchanged.
     "shopping_list_entity": "todo.shopping_list",
     "mirror_todo_default_entities": ["todo.family", "todo.kids"],
+    # #273: a person's own to-do list.
+    "todo_person_lists": {"user-jane": "todo.jane"},
     "shared_device_user_ids": ["kitchen-tablet-user"],
     "panel_enabled": True,
     # Already trimmed + under the 50-char cap, so it round-trips unchanged.
@@ -745,6 +747,11 @@ _SETTING_SAMPLES: dict[str, Any] = {
     "quiet_hours_enabled": False,
     "quiet_hours_start": "23:30",
     "quiet_hours_end": "07:15",
+    # D#277: the weekend's own quiet hours.
+    "quiet_hours_weekend_enabled": True,
+    "quiet_hours_weekend_start": "23:45",
+    "quiet_hours_weekend_end": "10:30",
+    "quiet_hours_weekend_days": [4, 5],
     "max_notifications_per_day": 12,
     "notification_bundling_enabled": True,
     "notification_bundle_threshold": 4,
@@ -832,6 +839,7 @@ async def test_every_allowlisted_setting_round_trips(hass: HomeAssistant, global
         "notify_service": settings["general"]["notify_service"],
         "shopping_list_entity": settings["general"]["shopping_list_entity"],
         "mirror_todo_default_entities": settings["general"]["mirror_todo_default_entities"],
+        "todo_person_lists": settings["general"]["todo_person_lists"],
         "shared_device_user_ids": settings["shared_device_user_ids"],
         "panel_enabled": settings["general"]["panel_enabled"],
         "panel_title": settings["general"]["panel_title"],
@@ -856,6 +864,10 @@ async def test_every_allowlisted_setting_round_trips(hass: HomeAssistant, global
         "quiet_hours_enabled": settings["notifications"]["quiet_hours_enabled"],
         "quiet_hours_start": settings["notifications"]["quiet_hours_start"],
         "quiet_hours_end": settings["notifications"]["quiet_hours_end"],
+        "quiet_hours_weekend_enabled": settings["notifications"]["quiet_hours_weekend_enabled"],
+        "quiet_hours_weekend_start": settings["notifications"]["quiet_hours_weekend_start"],
+        "quiet_hours_weekend_end": settings["notifications"]["quiet_hours_weekend_end"],
+        "quiet_hours_weekend_days": settings["notifications"]["quiet_hours_weekend_days"],
         "max_notifications_per_day": settings["notifications"]["max_per_day"],
         "notification_bundling_enabled": settings["notifications"]["bundling_enabled"],
         "notification_bundle_threshold": settings["notifications"]["bundle_threshold"],

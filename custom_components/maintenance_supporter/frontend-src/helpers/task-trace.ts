@@ -307,6 +307,8 @@ export const FIELD_LABELS: Record<string, string> = {
   earliest_completion_days: "earliest_completion_days",
   schedule_time: "schedule_time_toggle",
   trigger_config: "beta_sensor_rule",
+  // D#284: who has which weekday.
+  weekday_assignees: "rotation_by_weekday",
   complete_when: "complete_when",
   notes: "notes_label",
   documentation_url: "documentation_url_label",

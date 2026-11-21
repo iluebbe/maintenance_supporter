@@ -27,6 +27,9 @@ export interface TriggerTypeFields {
   runtimeHours: string;
   onStates: string;
   daysBefore: string;
+  /** D#275: quiet for this many days; no change (default) or unavailable. */
+  idleDays: string;
+  idleMode: "no_change" | "unavailable";
 }
 
 /** The fields of a new, empty rule. */
@@ -36,6 +39,7 @@ export function emptyTypeFields(): TriggerTypeFields {
     equals: "", notEquals: "", forMinutes: "0",
     targetValue: "", deltaMode: false, fromState: "", toState: "",
     targetChanges: "", runtimeHours: "", onStates: "", daysBefore: "0",
+    idleDays: "7", idleMode: "no_change",
   };
 }
 
@@ -57,6 +61,8 @@ export function typeFieldsFromConfig(c: TriggerConfig): TriggerTypeFields {
     runtimeHours: c.trigger_runtime_hours?.toString() ?? "",
     onStates: (c.trigger_on_states || []).join(", "),
     daysBefore: c.trigger_days_before?.toString() ?? "0",
+    idleDays: c.trigger_idle_days?.toString() ?? "7",
+    idleMode: c.trigger_idle_mode === "unavailable" ? "unavailable" : "no_change",
   };
 }
 
@@ -87,6 +93,10 @@ export function applyTypeFields(c: TriggerConfig, d: TriggerTypeFields): void {
   } else if (d.type === "due_date") {
     const days = parseInt(d.daysBefore, 10);
     c.trigger_days_before = isNaN(days) ? 0 : days;
+  } else if (d.type === "idle") {
+    const days = parseInt(d.idleDays, 10);
+    c.trigger_idle_days = isNaN(days) || days < 1 ? 7 : days;
+    if (d.idleMode === "unavailable") c.trigger_idle_mode = "unavailable";
   }
 }
 

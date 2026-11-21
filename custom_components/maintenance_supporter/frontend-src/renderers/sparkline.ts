@@ -232,7 +232,7 @@ export function renderTriggerSection(task: MaintenanceTask, ctx: SparklineContex
         ${triggerType === "compound" ? html`
           <span class="trigger-limit-item"><span class="dot warn" aria-hidden="true"></span> ${t("compound_logic", L)}: ${compoundLogic(tc)}</span>
           ${(tc.conditions || []).map((cond: any, i: number) => html`
-            <span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${i + 1}. ${t(cond.type === "due_date" ? "trigger_type_due_date" : cond.type || "unknown", L)}: ${triggerEntityIds(cond).map((eid, j) => html`${j > 0 ? ", " : ""}<span class="entity-link" @click=${(ev: Event) => fireMoreInfo(ev, eid)}>${eid}</span>`)}</span>
+            <span class="trigger-limit-item"><span class="dot range" aria-hidden="true"></span> ${i + 1}. ${t(cond.type === "due_date" ? "trigger_type_due_date" : cond.type === "idle" ? "trigger_type_idle" : cond.type || "unknown", L)}: ${triggerEntityIds(cond).map((eid, j) => html`${j > 0 ? ", " : ""}<span class="entity-link" @click=${(ev: Event) => fireMoreInfo(ev, eid)}>${eid}</span>`)}</span>
           `)}
         ` : nothing}
       </div>

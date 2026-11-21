@@ -710,6 +710,7 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
             runtime_step=self.async_step_trigger_runtime,
             due_date_step=self.async_step_trigger_due_date,
             compound_step=self.async_step_compound_logic,
+            idle_step=self.async_step_trigger_idle,
         )
 
     async def async_step_trigger_threshold(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
@@ -754,6 +755,15 @@ class MaintenanceSupporterConfigFlow(ScheduleStepsMixin, TriggerConfigMixin, Con
         return await self._trigger_due_date_config(
             user_input,
             step_id="trigger_due_date",
+            on_complete=self._save_task_and_return,
+        )
+
+    async def async_step_trigger_idle(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Configure idle trigger (D#275)."""
+        self._on_cancel = lambda: self.async_step_trigger_type()
+        return await self._trigger_idle_config(
+            user_input,
+            step_id="trigger_idle",
             on_complete=self._save_task_and_return,
         )
 

@@ -165,6 +165,10 @@ async def test_options_flow_form_defaults_equal_the_registry(hass: HomeAssistant
             # The row style shows what the rows show while nobody chose one:
             # icons with the new look (BI7-A1), not the bare registry default.
             expected = shown_row_action_style(entry.options) if key == CONF_ROW_ACTION_STYLE else setting_default(key)
+            # D#277: HA's select takes its options as strings, so the
+            # weekend's days show as "5", "6" (stored as numbers).
+            if key == "quiet_hours_weekend_days":
+                expected = [str(d) for d in expected]
             if marker.default() != expected:
                 drifted.append(f"{step}/{key}: form {marker.default()!r} vs registry {expected!r}")
     assert not drifted, "options-flow defaults drifted from the registry:\n  " + "\n  ".join(drifted)

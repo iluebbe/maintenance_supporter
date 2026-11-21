@@ -56,6 +56,11 @@ def _task_user_ids(task: dict[str, Any]) -> Iterable[str]:
     for uid in task.get("assignee_pool") or []:
         if isinstance(uid, str):
             yield uid
+    # D#284: the people of a rotation by weekday.
+    days = task.get("weekday_assignees")
+    for uid in days if isinstance(days, list) else []:
+        if isinstance(uid, str):
+            yield uid
     for entry in task.get("history") or []:
         if isinstance(entry, dict):
             for key in ("completed_by", "completed_via"):
@@ -146,6 +151,9 @@ def remap_task_users(task: dict[str, Any], mapping: dict[str, str]) -> None:
             if new not in seen:
                 seen.append(new)
         task["assignee_pool"] = seen
+    days = task.get("weekday_assignees")
+    if isinstance(days, list):
+        task["weekday_assignees"] = [mapping.get(uid, uid) if isinstance(uid, str) else uid for uid in days]
     for entry in task.get("history") or []:
         if not isinstance(entry, dict):
             continue

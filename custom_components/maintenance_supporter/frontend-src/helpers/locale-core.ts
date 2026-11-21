@@ -127,7 +127,7 @@ export function t(key: string, lang?: string, fallback?: string): string {
  *  An unsupported language used to count as NOT loaded while ensureLocale()
  *  resolved at once for it, so surfaces that re-render "once the locale
  *  arrives" re-rendered in an endless microtask loop and froze the browser
- *  tab for every HA language outside our 22 (Greek, Hebrew, Slovak, …). */
+ *  tab for every HA language outside ours (Greek, Hebrew, …). */
 export function isLocaleLoaded(lang?: string): boolean {
   const l = normLang(lang);
   return l === DEFAULT_LANG || l in OWN || !SUPPORTED_LANGS.has(l);

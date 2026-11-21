@@ -801,6 +801,7 @@ _ATTR_EXEMPT = {
     "checklist": "structured list — recorder bloat; served via WS",
     "labels": "list; candidate for exposure if automations need it (#134 follow-up)",
     "mirror_todo_entities": "D#183 mirror-target entity ids — plumbing config, not routable state; served via WS",
+    "weekday_assignees": "D#284 the person per weekday — the responsible person it yields is the attribute; the map is served via WS",
     "mirror_todo_use_default": "#231 opt-out of the default to-do lists — plumbing config, not routable state; served via WS",
     "complete_when": "D#229 completion entity + state — plumbing config, not routable state; served via WS",
     "schedule_time": "sub-day refinement of due_date; panel/WS surface it",

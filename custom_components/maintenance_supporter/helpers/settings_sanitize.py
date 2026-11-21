@@ -32,10 +32,14 @@ from ..const import (
     CONF_PARTS_COST_MODE,
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
+    CONF_QUIET_HOURS_WEEKEND_DAYS,
+    CONF_QUIET_HOURS_WEEKEND_END,
+    CONF_QUIET_HOURS_WEEKEND_START,
     CONF_REMINDER_LEAD_DAYS,
     CONF_ROW_ACTION_STYLE,
     CONF_SHARED_DEVICE_USER_IDS,
     CONF_SHOPPING_LIST_ENTITY,
+    CONF_TODO_PERSON_LISTS,
     DEFAULT_OBJECTS_TABLE_COLUMNS,
     HOME_TYPES,
     KNOWN_OBJECT_TABLE_COLUMNS,
@@ -56,7 +60,7 @@ from .member_display import sanitize_member_display
 from .notify_targets import validate_notify_service
 from .parts import valid_search_template
 from .region import is_region_setting
-from .sanitize import is_todo_entity_id, sanitize_mirror_todo_entities
+from .sanitize import is_todo_entity_id, sanitize_mirror_todo_entities, sanitize_todo_person_lists
 from .settings_registry import (
     ALLOWED_SETTING_KEYS,
     FLOAT_RANGES,
@@ -93,12 +97,15 @@ def settings_write_refusal(hass: HomeAssistant, settings_input: dict[str, Any]) 
     if error:
         return filtered, (settings_error_field(error), error)
     defaults = filtered.get(CONF_MIRROR_TODO_DEFAULT_ENTITIES)
-    if defaults:
+    people = filtered.get(CONF_TODO_PERSON_LISTS)
+    if defaults or people:
         # The to-do mirror reaches the coordinator; imported when asked.
         from .todo_mirror import mirror_todo_error
 
-        if mirror_todo_error(hass, defaults):
+        if defaults and mirror_todo_error(hass, defaults):
             return filtered, (CONF_MIRROR_TODO_DEFAULT_ENTITIES, "invalid_mirror_todo")
+        if people and mirror_todo_error(hass, list(people.values())):
+            return filtered, (CONF_TODO_PERSON_LISTS, "invalid_mirror_todo")
     return filtered, None
 
 
@@ -211,7 +218,7 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
     # even when the user is here to change something else and quiet_hours is
     # disabled. By dropping invalid values here, the form falls back to the
     # 22:00 / 08:00 defaults next render.
-    for time_key in (CONF_QUIET_HOURS_START, CONF_QUIET_HOURS_END):
+    for time_key in (CONF_QUIET_HOURS_START, CONF_QUIET_HOURS_END, CONF_QUIET_HOURS_WEEKEND_START, CONF_QUIET_HOURS_WEEKEND_END):
         if time_key in filtered:
             v = filtered[time_key]
             if not isinstance(v, str) or not TIME_HHMMSS_PATTERN.match(v):
@@ -252,6 +259,13 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
             if 0 <= v <= 365 and v not in leads:
                 leads.append(v)
         filtered[CONF_REMINDER_LEAD_DAYS] = sorted(leads, reverse=True)[:MAX_REMINDER_LEADS]
+
+    # D#277: the weekend's days, 0 = Monday … 6 = Sunday, each once, in week
+    # order. None left is valid: the weekend's own hours then apply nowhere.
+    if CONF_QUIET_HOURS_WEEKEND_DAYS in filtered:
+        filtered[CONF_QUIET_HOURS_WEEKEND_DAYS] = sorted(
+            {v for v in filtered[CONF_QUIET_HOURS_WEEKEND_DAYS] if isinstance(v, int) and not isinstance(v, bool) and 0 <= v <= 6}
+        )
 
     # (#67): objects_table_columns — keep only known column keys, preserve the
     # caller's order, dedupe. An empty/invalid result falls back to the default
@@ -307,6 +321,11 @@ def sanitize_settings_input(settings_input: dict[str, Any]) -> tuple[dict[str, A
         filtered[CONF_MIRROR_TODO_DEFAULT_ENTITIES] = sanitize_mirror_todo_entities(
             filtered[CONF_MIRROR_TODO_DEFAULT_ENTITIES]
         )
+
+    # #273: a person's own list — user id → one todo.* id; an empty id
+    # takes the person's list away. Our own platform is refused with hass.
+    if CONF_TODO_PERSON_LISTS in filtered:
+        filtered[CONF_TODO_PERSON_LISTS] = sanitize_todo_person_lists(filtered[CONF_TODO_PERSON_LISTS])
 
     # D#182: the shopping-search template — "" clears (automatic by country /
     # language); anything else must be an http(s) URL WITH the {q} placeholder,

@@ -285,6 +285,8 @@ async def test_get_settings_exposes_every_writable_setting_key(
     # Specific overrides for str-typed keys with format requirements
     options["quiet_hours_start"] = "23:30"
     options["quiet_hours_end"] = "07:15"
+    options["quiet_hours_weekend_start"] = "23:45"
+    options["quiet_hours_weekend_end"] = "10:30"
     options["budget_currency"] = "EUR"
     options["notification_title_style"] = "default"
     options["notify_service"] = "notify.persistent_notification"

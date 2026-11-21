@@ -348,6 +348,29 @@
           "go_back": "保存せずにトリガーの種類の選択に戻ります。"
         }
       },
+      "trigger_idle": {
+        "title": "無変化の設定",
+        "description": "{entity_id} を監視します（現在：{current_state}）。選んだ日数のあいだ何も起きなかったときにタスクが期限になります。",
+        "data": {
+          "trigger_idle_days": "無変化の日数",
+          "trigger_idle_mode": "何を無変化とみなすか",
+          "interval_days": "安全間隔",
+          "interval_unit": "間隔の単位",
+          "trigger_combinator": "トリガーと間隔の組み合わせ",
+          "warning_days": "期限前の警告日数",
+          "go_back": "戻る",
+          "auto_complete_on_recovery": "センサー回復時に自動完了"
+        },
+        "data_description": {
+          "trigger_idle_days": "次の変化があったとき、およびタスクを完了したときに数え直します。",
+          "trigger_idle_mode": "変化なし：値が変わらない（途中の利用不可は数えない）。利用不可：エンティティが利用不可または不明。",
+          "interval_days": "センサートリガーに加えて使用する任意の時間ベースの安全間隔です。",
+          "interval_unit": "間隔の単位です: 日、週、月、年。月と年はカレンダーに従います。",
+          "trigger_combinator": "先に満たした方（既定）：トリガーまたは経過した間隔でタスクが期限になります。両方必須：トリガーが発動し、かつ間隔が経過して初めて期限になります。",
+          "warning_days": "期限の何日前から警告を表示するかの日数です。",
+          "go_back": "保存せずにトリガーの種類の選択に戻ります。"
+        }
+      },
       "compound_logic": {
         "title": "複合トリガー",
         "description": "複数の条件をどのように組み合わせるかを選択してください。",
@@ -670,6 +693,10 @@
           "quiet_hours_enabled": "サイレント時間を有効にする",
           "quiet_hours_start": "サイレント時間の開始",
           "quiet_hours_end": "サイレント時間の終了",
+          "quiet_hours_weekend_enabled": "一部の曜日は別のおやすみ時間",
+          "quiet_hours_weekend_days": "独自のおやすみ時間を使う曜日",
+          "quiet_hours_weekend_start": "その曜日のおやすみ開始",
+          "quiet_hours_weekend_end": "その曜日のおやすみ終了",
           "max_notifications_per_day": "1 日あたりの最大通知数",
           "notification_bundling_enabled": "通知をまとめる",
           "notification_bundle_threshold": "まとめるしきい値",
@@ -690,6 +717,8 @@
           "notify_overdue_interval_hours": "期限切れのリマインダーを繰り返す頻度です。1 回のみの通知にするには 0 に設定します。",
           "notify_triggered_interval_hours": "トリガー通知を繰り返す頻度です。1 回のみの通知にするには 0 に設定します。",
           "quiet_hours_enabled": "サイレント時間中は通知を抑制します。",
+          "quiet_hours_weekend_enabled": "選んだ曜日は、おやすみ時間がそれぞれの時刻に朝終わり、夜始まります。",
+          "quiet_hours_weekend_end": "土曜日を選ぶと、金曜の夜は土曜日のこの時刻まで続きます。",
           "max_notifications_per_day": "1 日あたりの最大通知数です。無制限にするには 0 に設定します。",
           "notification_bundling_enabled": "複数のタスクが注意を必要とするときに、1 件のまとめ通知を送信します。",
           "notification_bundle_threshold": "まとめ通知をトリガーするタスクの最小数です。",
@@ -1266,6 +1295,28 @@
           "warning_days": "期限の何日前から警告を表示するかの日数です。"
         }
       },
+      "opt_trigger_idle": {
+        "title": "無変化の設定",
+        "description": "{entity_id} を監視します（現在：{current_state}）。選んだ日数のあいだ何も起きなかったときにタスクが期限になります。",
+        "data": {
+          "trigger_idle_days": "無変化の日数",
+          "trigger_idle_mode": "何を無変化とみなすか",
+          "interval_days": "安全間隔",
+          "interval_unit": "間隔の単位",
+          "trigger_combinator": "トリガーと間隔の組み合わせ",
+          "warning_days": "期限前の警告日数",
+          "go_back": "戻る",
+          "auto_complete_on_recovery": "センサー回復時に自動完了"
+        },
+        "data_description": {
+          "trigger_idle_days": "次の変化があったとき、およびタスクを完了したときに数え直します。",
+          "trigger_idle_mode": "変化なし：値が変わらない（途中の利用不可は数えない）。利用不可：エンティティが利用不可または不明。",
+          "interval_days": "センサートリガーに加えて使用する任意の時間ベースの安全間隔です。",
+          "interval_unit": "間隔の単位です: 日、週、月、年。月と年はカレンダーに従います。",
+          "trigger_combinator": "先に満たした方（既定）：トリガーまたは経過した間隔でタスクが期限になります。両方必須：トリガーが発動し、かつ間隔が経過して初めて期限になります。",
+          "warning_days": "期限の何日前から警告を表示するかの日数です。"
+        }
+      },
       "object_settings": {
         "title": "対象の設定",
         "description": "対象の詳細を編集します。",
@@ -1339,7 +1390,11 @@
         "description": "{member}：既定（{initials}）を使うには、イニシャルを空欄にし、色を自動にしてください。",
         "data": {
           "initials": "頭文字",
-          "color": "色"
+          "color": "色",
+          "todo_list": "個人のToDoリスト"
+        },
+        "data_description": {
+          "todo_list": "その人のタスクはこのリストにも表示され、そこでチェックするとその人の名前でタスクが完了します。"
         }
       },
       "battery_lifetimes": {
@@ -1738,6 +1793,7 @@
         "state_change": "状態変化",
         "runtime": "稼働時間",
         "due_date": "期日（センサーが報告）",
+        "idle": "無変化（数日間なにも起きない）",
         "compound": "複合 (複数条件)"
       }
     },
@@ -1843,7 +1899,8 @@
         "none": "ローテーションなし",
         "round_robin": "順番",
         "least_completed": "完了数が最少",
-        "random": "ランダム"
+        "random": "ランダム",
+        "by_weekday": "曜日ごと（曜日はパネルで設定）"
       }
     },
     "task_priority": {
@@ -1851,6 +1908,12 @@
         "low": "低",
         "normal": "標準",
         "high": "高"
+      }
+    },
+    "trigger_idle_mode": {
+      "options": {
+        "no_change": "変化なし",
+        "unavailable": "利用不可"
       }
     }
   },

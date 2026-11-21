@@ -348,6 +348,29 @@
           "go_back": "Tornare alla selezione del tipo di trigger senza salvare."
         }
       },
+      "trigger_idle": {
+        "title": "Configurazione inattività",
+        "description": "Osserva {entity_id} (ora: {current_state}). L'attività scade quando non è successo nulla per il numero di giorni scelto.",
+        "data": {
+          "trigger_idle_days": "Giorni di inattività",
+          "trigger_idle_mode": "Cosa conta come inattività",
+          "interval_days": "Intervallo di sicurezza",
+          "interval_unit": "Unità di intervallo",
+          "trigger_combinator": "Combina trigger e intervallo",
+          "warning_days": "Giorni di avviso prima della scadenza",
+          "go_back": "Indietro",
+          "auto_complete_on_recovery": "Completa automaticamente quando il sensore si ripristina"
+        },
+        "data_description": {
+          "trigger_idle_days": "Il conteggio riparte al cambiamento successivo e quando l'attività viene completata.",
+          "trigger_idle_mode": "Nessun cambiamento: il valore resta uguale (una non disponibilità nel frattempo non conta). Non disponibile: l'entità è non disponibile o sconosciuta.",
+          "interval_days": "Intervallo di sicurezza temporale opzionale in aggiunta al trigger sensore.",
+          "interval_unit": "Unità dell'intervallo: giorni, settimane, mesi o anni. Mesi e anni seguono il calendario.",
+          "trigger_combinator": "Il primo (predefinito): il trigger o l'intervallo trascorso rende l'attività in scadenza. Entrambi richiesti: l'attività scade solo quando il trigger è scattato e l'intervallo è trascorso.",
+          "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso.",
+          "go_back": "Tornare alla selezione del tipo di trigger senza salvare."
+        }
+      },
       "compound_logic": {
         "title": "Trigger composto",
         "description": "Scegli come combinare più condizioni.",
@@ -670,6 +693,10 @@
           "quiet_hours_enabled": "Abilita ore silenziose",
           "quiet_hours_start": "Inizio ore silenziose",
           "quiet_hours_end": "Fine ore silenziose",
+          "quiet_hours_weekend_enabled": "Altre ore di silenzio in alcuni giorni",
+          "quiet_hours_weekend_days": "Giorni con ore di silenzio proprie",
+          "quiet_hours_weekend_start": "Inizio delle loro ore di silenzio",
+          "quiet_hours_weekend_end": "Fine delle loro ore di silenzio",
           "max_notifications_per_day": "Notifiche max al giorno",
           "notification_bundling_enabled": "Raggruppa notifiche",
           "notification_bundle_threshold": "Soglia di raggruppamento",
@@ -690,6 +717,8 @@
           "notify_overdue_interval_hours": "Frequenza di ripetizione del promemoria in ritardo. Impostare a 0 per una singola notifica.",
           "notify_triggered_interval_hours": "Frequenza di ripetizione della notifica attivata. Impostare a 0 per una singola notifica.",
           "quiet_hours_enabled": "Sopprimere le notifiche durante le ore silenziose.",
+          "quiet_hours_weekend_enabled": "Nei giorni scelti le ore di silenzio finiscono al mattino e iniziano la sera a orari propri.",
+          "quiet_hours_weekend_end": "Con il sabato scelto, la notte del venerdì dura fino a quest'ora di sabato.",
           "max_notifications_per_day": "Numero massimo di notifiche al giorno. Impostare a 0 per illimitato.",
           "notification_bundling_enabled": "Inviare una notifica riepilogativa quando più attività richiedono attenzione.",
           "notification_bundle_threshold": "Numero minimo di attività per attivare una notifica raggruppata.",
@@ -1266,6 +1295,28 @@
           "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso."
         }
       },
+      "opt_trigger_idle": {
+        "title": "Configurazione inattività",
+        "description": "Osserva {entity_id} (ora: {current_state}). L'attività scade quando non è successo nulla per il numero di giorni scelto.",
+        "data": {
+          "trigger_idle_days": "Giorni di inattività",
+          "trigger_idle_mode": "Cosa conta come inattività",
+          "interval_days": "Intervallo di sicurezza",
+          "interval_unit": "Unità di intervallo",
+          "trigger_combinator": "Combina trigger e intervallo",
+          "warning_days": "Giorni di avviso prima della scadenza",
+          "go_back": "Indietro",
+          "auto_complete_on_recovery": "Completa automaticamente quando il sensore si ripristina"
+        },
+        "data_description": {
+          "trigger_idle_days": "Il conteggio riparte al cambiamento successivo e quando l'attività viene completata.",
+          "trigger_idle_mode": "Nessun cambiamento: il valore resta uguale (una non disponibilità nel frattempo non conta). Non disponibile: l'entità è non disponibile o sconosciuta.",
+          "interval_days": "Intervallo di sicurezza basato sul tempo opzionale in aggiunta al trigger del sensore.",
+          "interval_unit": "Unità dell'intervallo: giorni, settimane, mesi o anni. Mesi e anni seguono il calendario.",
+          "trigger_combinator": "Il primo (predefinito): il trigger o l'intervallo trascorso rende l'attività in scadenza. Entrambi richiesti: l'attività scade solo quando il trigger è scattato e l'intervallo è trascorso.",
+          "warning_days": "Numero di giorni prima della scadenza per mostrare un avviso."
+        }
+      },
       "object_settings": {
         "title": "Impostazioni oggetto",
         "description": "Modifica dettagli dell'oggetto.",
@@ -1339,7 +1390,11 @@
         "description": "{member}: lascia vuote le iniziali e il colore su Automatico per usare il valore predefinito ({initials}).",
         "data": {
           "initials": "Iniziali",
-          "color": "Colore"
+          "color": "Colore",
+          "todo_list": "Lista personale"
+        },
+        "data_description": {
+          "todo_list": "Le sue attività compaiono anche in questa lista, e spuntarle lì le completa a suo nome."
         }
       },
       "battery_lifetimes": {
@@ -1738,6 +1793,7 @@
         "state_change": "Cambio stato",
         "runtime": "Tempo di funzionamento",
         "due_date": "Data di scadenza (indicata da un sensore)",
+        "idle": "Inattività (nulla da giorni)",
         "compound": "Composto (Condizioni Multiple)"
       }
     },
@@ -1843,7 +1899,8 @@
         "none": "Nessuna rotazione",
         "round_robin": "A turno",
         "least_completed": "Meno completamenti",
-        "random": "Casuale"
+        "random": "Casuale",
+        "by_weekday": "Per giorno della settimana (i giorni si scelgono nel pannello)"
       }
     },
     "task_priority": {
@@ -1851,6 +1908,12 @@
         "low": "Bassa",
         "normal": "Normale",
         "high": "Alta"
+      }
+    },
+    "trigger_idle_mode": {
+      "options": {
+        "no_change": "Nessun cambiamento",
+        "unavailable": "Non disponibile"
       }
     }
   },

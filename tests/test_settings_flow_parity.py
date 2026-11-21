@@ -37,6 +37,7 @@ from custom_components.maintenance_supporter.const import (
     CONF_ROW_ACTION_STYLE,
     CONF_SAVED_FILTER_VIEWS,
     CONF_TASKS,
+    CONF_TODO_PERSON_LISTS,
     CONF_WARRANTY_REMINDER_DAYS,
     CONF_WARRANTY_REMINDER_ENABLED,
     CONF_WEEKLY_DIGEST_ENABLED,
@@ -71,6 +72,7 @@ from .conftest import (
 _EDITED_BY_STEP = {
     CONF_MEMBER_DISPLAY: "member_avatar",  # initials + colour per member
     CONF_BATTERY_LIFETIME_MONTHS: "battery_lifetimes",  # one field per battery type
+    CONF_TODO_PERSON_LISTS: "member_avatar",  # #273: each member's own to-do list, next to their avatar
 }
 # Not a preference: the one-time "new look" banner flag (#145), cleared by the
 # panel banner itself.

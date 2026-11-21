@@ -96,7 +96,7 @@ from ..helpers.qr_generator import (
     generate_qr_svg_data_uri,
 )
 from ..helpers.reading_slots import history_reading_values
-from ..helpers.sanitize import ACTION_OWNER_KEY, sanitize_group, seed_rotation_assignee
+from ..helpers.sanitize import ACTION_OWNER_KEY, sanitize_group, sanitize_mirror_todo_entities, seed_rotation_assignee
 from ..helpers.saved_views import sanitize_view
 from ..helpers.settings_registry import ALLOWED_SETTING_KEYS
 from ..helpers.settings_sanitize import settings_write_refusal
@@ -141,6 +141,7 @@ def _iso_marker(value: Any) -> str | None:
 _TASK_FIELD_TYPES: dict[str, type | tuple[type, ...]] = {
     "responsible_user_id": str,
     "assignee_pool": list,
+    "weekday_assignees": list,
     "adaptive_config": dict,
     "schedule": dict,
     "on_complete_action": dict,
@@ -568,6 +569,15 @@ def _keep_fleet_part_id(is_fleet: bool, old_id: str) -> bool:
     """
     return is_fleet and old_id.startswith("batt_") and len(old_id) <= MAX_ID_LENGTH
 
+
+
+def _imported_object_lists(hass: HomeAssistant, raw: Any) -> dict[str, list[str]]:
+    """#273: an imported object's to-do lists, cleaned like a task's; our own
+    lists stay behind (an empty result stores nothing)."""
+    lists = sanitize_mirror_todo_entities(raw)
+    own = set(own_lists(hass, lists))
+    kept = [entity for entity in lists if entity not in own]
+    return {"mirror_todo_entities": kept} if kept else {}
 
 @websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/version"})
 @websocket_api.async_response
@@ -1127,6 +1137,8 @@ async def ws_import_json(
                 # 2026-10 places: normalized (zone id or nothing) by cap_object_fields.
                 "place": obj_data.get("place") if isinstance(obj_data.get("place"), str) else None,
                 "remind_on_site": obj_data.get("remind_on_site") is True,
+                # #273: cleaned like a task's lists; our own lists stay behind.
+                **_imported_object_lists(hass, obj_data.get("mirror_todo_entities")),
                 "installation_date": import_day(obj_data.get("installation_date"), f"{obj_name}: installation date", date_warnings),
                 "warranty_expiry": import_day(obj_data.get("warranty_expiry"), f"{obj_name}: warranty expiry", date_warnings),
                 # Imported counterparts of the export fields above; length-capped by
@@ -1307,6 +1319,7 @@ async def ws_import_json(
                     "assignee_pool",
                     "required_completion_fields",
                     "rotation_strategy",
+                    "weekday_assignees",
                     "reading_unit",
                     "readings",
                     # spare parts (ids remapped below)

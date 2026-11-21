@@ -383,6 +383,7 @@ class TriggerStepsMixin(TriggerConfigMixin):
             runtime_step=self.async_step_opt_trigger_runtime,
             due_date_step=self.async_step_opt_trigger_due_date,
             compound_step=self.async_step_opt_compound_logic,
+            idle_step=self.async_step_opt_trigger_idle,
         )
 
     async def async_step_opt_trigger_threshold(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
@@ -422,6 +423,14 @@ class TriggerStepsMixin(TriggerConfigMixin):
         return await self._trigger_due_date_config(
             user_input,
             step_id="opt_trigger_due_date",
+            on_complete=self._trigger_on_complete,
+        )
+
+    async def async_step_opt_trigger_idle(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Configure idle trigger (D#275)."""
+        return await self._trigger_idle_config(
+            user_input,
+            step_id="opt_trigger_idle",
             on_complete=self._trigger_on_complete,
         )
 

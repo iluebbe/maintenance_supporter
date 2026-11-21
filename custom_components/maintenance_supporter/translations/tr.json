@@ -348,6 +348,29 @@
           "go_back": "Kaydetmeden tetikleyici türü seçimine dönün."
         }
       },
+      "trigger_idle": {
+        "title": "Hareketsizlik yapılandırması",
+        "description": "{entity_id} izlenir (şu an: {current_state}). Seçilen gün sayısı boyunca hiçbir şey olmazsa görevin zamanı gelir.",
+        "data": {
+          "trigger_idle_days": "Sessiz gün",
+          "trigger_idle_mode": "Neyin sessizlik sayılacağı",
+          "interval_days": "Güvenlik aralığı",
+          "interval_unit": "Aralık birimi",
+          "trigger_combinator": "Tetikleyici ve aralığı birleştir",
+          "warning_days": "Vadeden önce uyarı günleri",
+          "go_back": "Geri dön",
+          "auto_complete_on_recovery": "Sensör düzelince otomatik tamamla"
+        },
+        "data_description": {
+          "trigger_idle_days": "Sayım bir sonraki değişiklikte ve görev tamamlanınca yeniden başlar.",
+          "trigger_idle_mode": "Değişiklik yok: değer aynı kalır (aradaki kullanılamazlık sayılmaz). Kullanılamaz: varlık kullanılamaz veya bilinmiyor.",
+          "interval_days": "Sensör tetikleyicisine ek olarak isteğe bağlı zamana dayalı güvenlik aralığı.",
+          "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
+          "trigger_combinator": "İlk gerçekleşen (varsayılan): tetikleyici veya dolan aralık görevi vadesi gelmiş yapar. Her ikisi gerekli: görev ancak tetikleyici ateşlendiğinde ve aralık dolduğunda vadesi gelir.",
+          "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği.",
+          "go_back": "Kaydetmeden tetikleyici türü seçimine dönün."
+        }
+      },
       "compound_logic": {
         "title": "Bileşik Tetikleyici",
         "description": "Birden çok koşulun nasıl birleştirileceğini seçin.",
@@ -670,6 +693,10 @@
           "quiet_hours_enabled": "Sessiz saatleri etkinleştir",
           "quiet_hours_start": "Sessiz saatler başlangıcı",
           "quiet_hours_end": "Sessiz saatler bitişi",
+          "quiet_hours_weekend_enabled": "Bazı günlerde başka sessiz saatler",
+          "quiet_hours_weekend_days": "Kendi sessiz saatleri olan günler",
+          "quiet_hours_weekend_start": "O günlerin sessiz saat başlangıcı",
+          "quiet_hours_weekend_end": "O günlerin sessiz saat bitişi",
           "max_notifications_per_day": "Günlük en fazla bildirim",
           "notification_bundling_enabled": "Bildirimleri grupla",
           "notification_bundle_threshold": "Gruplama eşiği",
@@ -690,6 +717,8 @@
           "notify_overdue_interval_hours": "Gecikme hatırlatmasının ne sıklıkta tekrarlanacağı. Tek bildirim için 0 yapın.",
           "notify_triggered_interval_hours": "Tetiklenme bildiriminin ne sıklıkta tekrarlanacağı. Tek bildirim için 0 yapın.",
           "quiet_hours_enabled": "Sessiz saatler sırasında bildirimleri bastır.",
+          "quiet_hours_weekend_enabled": "Seçilen günlerde sessiz saatler sabah kendi saatinde biter, akşam kendi saatinde başlar.",
+          "quiet_hours_weekend_end": "Cumartesi seçiliyse cuma gecesi cumartesi bu saate kadar sürer.",
           "max_notifications_per_day": "Günlük en fazla bildirim sayısı. Sınırsız için 0 yapın.",
           "notification_bundling_enabled": "Birden çok görev ilgi gerektirdiğinde tek bir özet bildirimi gönder.",
           "notification_bundle_threshold": "Gruplanmış bildirimi tetiklemek için gereken en az görev sayısı.",
@@ -1266,6 +1295,28 @@
           "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği."
         }
       },
+      "opt_trigger_idle": {
+        "title": "Hareketsizlik yapılandırması",
+        "description": "{entity_id} izlenir (şu an: {current_state}). Seçilen gün sayısı boyunca hiçbir şey olmazsa görevin zamanı gelir.",
+        "data": {
+          "trigger_idle_days": "Sessiz gün",
+          "trigger_idle_mode": "Neyin sessizlik sayılacağı",
+          "interval_days": "Güvenlik aralığı",
+          "interval_unit": "Aralık birimi",
+          "trigger_combinator": "Tetikleyici ve aralığı birleştir",
+          "warning_days": "Vadeden önce uyarı günleri",
+          "go_back": "Geri dön",
+          "auto_complete_on_recovery": "Sensör düzelince otomatik tamamla"
+        },
+        "data_description": {
+          "trigger_idle_days": "Sayım bir sonraki değişiklikte ve görev tamamlanınca yeniden başlar.",
+          "trigger_idle_mode": "Değişiklik yok: değer aynı kalır (aradaki kullanılamazlık sayılmaz). Kullanılamaz: varlık kullanılamaz veya bilinmiyor.",
+          "interval_days": "Sensör tetikleyicisine ek olarak isteğe bağlı zamana dayalı güvenlik aralığı.",
+          "interval_unit": "Aralık birimi: gün, hafta, ay veya yıl. Ay ve yıl takvimi izler.",
+          "trigger_combinator": "İlk gerçekleşen (varsayılan): tetikleyici veya dolan aralık görevi vadesi gelmiş yapar. Her ikisi gerekli: görev ancak tetikleyici ateşlendiğinde ve aralık dolduğunda vadesi gelir.",
+          "warning_days": "Vade tarihinden kaç gün önce uyarı gösterileceği."
+        }
+      },
       "object_settings": {
         "title": "Nesne Ayarları",
         "description": "Nesne ayrıntılarını düzenleyin.",
@@ -1339,7 +1390,11 @@
         "description": "{member}: varsayılanı ({initials}) kullanmak için baş harfleri boş, rengi Otomatik bırakın.",
         "data": {
           "initials": "Baş harfler",
-          "color": "Renk"
+          "color": "Renk",
+          "todo_list": "Kendi yapılacaklar listesi"
+        },
+        "data_description": {
+          "todo_list": "Bu kişinin görevleri bu listede de görünür ve oradaki işaret görevi onun adına tamamlar."
         }
       },
       "battery_lifetimes": {
@@ -1738,6 +1793,7 @@
         "state_change": "Durum Değişikliği",
         "runtime": "Çalışma Süresi",
         "due_date": "Son tarih (bir sensör bildirir)",
+        "idle": "Hareketsizlik (günlerdir bir şey yok)",
         "compound": "Bileşik (Birden Çok Koşul)"
       }
     },
@@ -1843,7 +1899,8 @@
         "none": "Rotasyon yok",
         "round_robin": "Sırayla",
         "least_completed": "En az tamamlayan",
-        "random": "Rastgele"
+        "random": "Rastgele",
+        "by_weekday": "Haftanın gününe göre (günler panelde seçilir)"
       }
     },
     "task_priority": {
@@ -1851,6 +1908,12 @@
         "low": "Düşük",
         "normal": "Normal",
         "high": "Yüksek"
+      }
+    },
+    "trigger_idle_mode": {
+      "options": {
+        "no_change": "Değişiklik yok",
+        "unavailable": "Kullanılamaz"
       }
     }
   },

@@ -348,6 +348,29 @@
           "go_back": "Gå tilbake til valg av utløsertype uten å lagre."
         }
       },
+      "trigger_idle": {
+        "title": "Inaktivitetskonfigurasjon",
+        "description": "Følger {entity_id} (nå: {current_state}). Oppgaven forfaller når ingenting har skjedd i det valgte antallet dager.",
+        "data": {
+          "trigger_idle_days": "Dager uten aktivitet",
+          "trigger_idle_mode": "Hva teller som inaktivitet",
+          "interval_days": "Sikkerhetsintervall",
+          "interval_unit": "Intervallenhet",
+          "trigger_combinator": "Kombiner utløser og intervall",
+          "warning_days": "Varseldager før forfall",
+          "go_back": "Gå tilbake",
+          "auto_complete_on_recovery": "Fullfør automatisk når sensoren normaliseres"
+        },
+        "data_description": {
+          "trigger_idle_days": "Tellingen starter på nytt ved neste endring og når oppgaven fullføres.",
+          "trigger_idle_mode": "Ingen endring: verdien forblir den samme (utilgjengelig innimellom teller ikke). Utilgjengelig: entiteten er utilgjengelig eller ukjent.",
+          "interval_days": "Valgfritt tidsbasert sikkerhetsintervall i tillegg til sensorutløseren.",
+          "interval_unit": "Enhet for intervallet: dager, uker, måneder eller år. Måneder og år følger kalenderen.",
+          "trigger_combinator": "Først oppfylt (standard): utløseren eller utløpt intervall gjør oppgaven forfalt. Begge kreves: oppgaven forfaller først når utløseren har utløst og intervallet er utløpt.",
+          "warning_days": "Antall dager før forfallsdato for å vise et varsel.",
+          "go_back": "Gå tilbake til valg av utløsertype uten å lagre."
+        }
+      },
       "compound_logic": {
         "title": "Sammensatt utløser",
         "description": "Velg hvordan flere betingelser skal kombineres.",
@@ -670,6 +693,10 @@
           "quiet_hours_enabled": "Aktiver stilletimer",
           "quiet_hours_start": "Start på stilletimer",
           "quiet_hours_end": "Slutt på stilletimer",
+          "quiet_hours_weekend_enabled": "Andre stille timer noen dager",
+          "quiet_hours_weekend_days": "Dager med egne stille timer",
+          "quiet_hours_weekend_start": "Deres stille timer starter",
+          "quiet_hours_weekend_end": "Deres stille timer slutter",
           "max_notifications_per_day": "Maks antall varsler per dag",
           "notification_bundling_enabled": "Samle varsler",
           "notification_bundle_threshold": "Terskel for samling",
@@ -690,6 +717,8 @@
           "notify_overdue_interval_hours": "Hvor ofte påminnelsen om forfalt skal gjentas. Sett til 0 for ett enkelt varsel.",
           "notify_triggered_interval_hours": "Hvor ofte varselet om utløst skal gjentas. Sett til 0 for ett enkelt varsel.",
           "quiet_hours_enabled": "Undertrykk varsler i stilletimene.",
+          "quiet_hours_weekend_enabled": "På de valgte dagene slutter de stille timene om morgenen og begynner om kvelden på egne tider.",
+          "quiet_hours_weekend_end": "Med lørdag valgt varer natten til lørdag til dette tidspunktet lørdag.",
           "max_notifications_per_day": "Maksimalt antall varsler per dag. Sett til 0 for ubegrenset.",
           "notification_bundling_enabled": "Send ett enkelt oppsummeringsvarsel når flere oppgaver trenger oppmerksomhet.",
           "notification_bundle_threshold": "Minste antall oppgaver for å utløse et samlet varsel.",
@@ -1266,6 +1295,28 @@
           "warning_days": "Antall dager før forfallsdato for å vise et varsel."
         }
       },
+      "opt_trigger_idle": {
+        "title": "Inaktivitetskonfigurasjon",
+        "description": "Følger {entity_id} (nå: {current_state}). Oppgaven forfaller når ingenting har skjedd i det valgte antallet dager.",
+        "data": {
+          "trigger_idle_days": "Dager uten aktivitet",
+          "trigger_idle_mode": "Hva teller som inaktivitet",
+          "interval_days": "Sikkerhetsintervall",
+          "interval_unit": "Intervallenhet",
+          "trigger_combinator": "Kombiner utløser og intervall",
+          "warning_days": "Varseldager før forfall",
+          "go_back": "Gå tilbake",
+          "auto_complete_on_recovery": "Fullfør automatisk når sensoren normaliseres"
+        },
+        "data_description": {
+          "trigger_idle_days": "Tellingen starter på nytt ved neste endring og når oppgaven fullføres.",
+          "trigger_idle_mode": "Ingen endring: verdien forblir den samme (utilgjengelig innimellom teller ikke). Utilgjengelig: entiteten er utilgjengelig eller ukjent.",
+          "interval_days": "Valgfritt tidsbasert sikkerhetsintervall i tillegg til sensorutløseren.",
+          "interval_unit": "Enhet for intervallet: dager, uker, måneder eller år. Måneder og år følger kalenderen.",
+          "trigger_combinator": "Først oppfylt (standard): utløseren eller utløpt intervall gjør oppgaven forfalt. Begge kreves: oppgaven forfaller først når utløseren har utløst og intervallet er utløpt.",
+          "warning_days": "Antall dager før forfallsdato for å vise et varsel."
+        }
+      },
       "object_settings": {
         "title": "Objektinnstillinger",
         "description": "Rediger objektdetaljer.",
@@ -1339,7 +1390,11 @@
         "description": "{member}: la initialene stå tomme og fargen på Automatisk for å bruke standarden ({initials}).",
         "data": {
           "initials": "Initialer",
-          "color": "Farge"
+          "color": "Farge",
+          "todo_list": "Egen gjøremålsliste"
+        },
+        "data_description": {
+          "todo_list": "Personens oppgaver vises også på denne listen, og en hake der fullfører oppgaven i personens navn."
         }
       },
       "battery_lifetimes": {
@@ -1738,6 +1793,7 @@
         "state_change": "Tilstandsendring",
         "runtime": "Driftstid",
         "due_date": "Forfallsdato (rapportert av en sensor)",
+        "idle": "Inaktivitet (ingenting skjedd på dager)",
         "compound": "Sammensatt (flere betingelser)"
       }
     },
@@ -1843,7 +1899,8 @@
         "none": "Ingen rotasjon",
         "round_robin": "På omgang",
         "least_completed": "Færrest fullførte",
-        "random": "Tilfeldig"
+        "random": "Tilfeldig",
+        "by_weekday": "Etter ukedag (dagene velges i panelet)"
       }
     },
     "task_priority": {
@@ -1851,6 +1908,12 @@
         "low": "Lav",
         "normal": "Normal",
         "high": "Høy"
+      }
+    },
+    "trigger_idle_mode": {
+      "options": {
+        "no_change": "Ingen endring",
+        "unavailable": "Utilgjengelig"
       }
     }
   },

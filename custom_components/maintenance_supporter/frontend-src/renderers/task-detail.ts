@@ -15,6 +15,7 @@ import { menuIsHa, renderHaMenu, renderPopupMenu, type MenuEntry } from "../help
 import { renderNotesMarkdown } from "../helpers/notes-markdown";
 import { renderPeopleAvatars, type PersonDisplay } from "../helpers/person";
 import { taskUserIds } from "../helpers/assignees";
+import { renderUpcomingTurns } from "../helpers/rotation-turns";
 import { quickCompleteOn } from "../helpers/quick-complete";
 import { isInertTask } from "../status-constants";
 import { entityName } from "../helpers/trigger-entities";
@@ -66,6 +67,9 @@ export interface TaskDetailContext {
   features: AdvancedFeatures;
   /** #231: the to-do mirror's default lists — a task without its own shows them. */
   mirrorTodoDefault?: string[];
+  /** #273: the people's own lists and the object's lists. */
+  todoPersonLists?: Record<string, string>;
+  objectMirrorLists?: string[];
   currencySymbol: string;
   collapsedSections: Set<string>;
   costDurationToggle: "cost" | "duration" | "both";
@@ -529,6 +533,7 @@ export function renderOverviewTab(task: MaintenanceTask, ctx: TaskDetailContext)
         ? html`<maintenance-battery-fleet-section .hass=${ctx.hass}></maintenance-battery-fleet-section>`
         : nothing}
       ${renderKPIBar(task, ctx)}
+      ${renderUpcomingTurns(task.upcoming_turns, ctx.lang, ctx.getPerson, ctx.getUserName)}
       ${renderTaskMeta(task, ctx)}
       ${task.battery_fleet_task
         ? nothing
@@ -608,11 +613,12 @@ function renderTabContent(task: MaintenanceTask, ctx: TaskDetailContext) {
 /** The complete task-detail view. Renders into the PANEL's shadow root (this
  *  is a render function, not a component) so the panel's dialogs and styles
  *  keep working unchanged. */
-/** D#183 / #231: the lists the task goes onto while due — its own, else the
- *  default lists (named as such) unless it opted out. */
+/** D#183 / #231 / #273: the lists the task goes onto while due — its own,
+ *  else its object's or the default lists (named as such) unless it opted
+ *  out, and the own lists of the people it is for. */
 function renderMirrorBadge(task: MaintenanceTask, ctx: TaskDetailContext, L: string) {
   const own = task.mirror_todo_entities ?? [];
-  const lists = mirrorListsOf(task, ctx.mirrorTodoDefault);
+  const lists = mirrorListsOf(task, ctx.mirrorTodoDefault, ctx.objectMirrorLists, ctx.todoPersonLists);
   if (!lists.length) return nothing;
   const names = lists.map((eid) => entityName(ctx.hass, eid)).join(", ");
   const title = own.length ? `${t("task_mirror_todo", L)}: ${names}` : t("task_mirror_todo_default", L).replace("{lists}", names);

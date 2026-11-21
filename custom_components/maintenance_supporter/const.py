@@ -122,6 +122,11 @@ CONF_SHOPPING_LIST_ENTITY: Final = "shopping_list_entity"
 # #231: the to-do lists every task without its own mirror lists is mirrored
 # into (helpers/todo_mirror). Empty = off. Instance-bound like the shopping list.
 CONF_MIRROR_TODO_DEFAULT_ENTITIES: Final = "mirror_todo_default_entities"
+# #273: a person's own to-do list (HA user id → todo.*): the tasks meant for
+# them appear on it too, and a tick there completes the task as them.
+# Instance-bound like the default lists.
+CONF_TODO_PERSON_LISTS: Final = "todo_person_lists"
+MAX_TODO_PERSON_LISTS: Final = 50
 CONF_PANEL_ENABLED: Final = "panel_enabled"
 # v2.10.4 (#69 follow-up): the sidebar panel is the integration's hub — the
 # auto-dashboard's "Open Maintenance panel" button, QR codes, and notifications
@@ -294,6 +299,14 @@ CONF_NOTIFY_TRIGGERED_INTERVAL: Final = "notify_triggered_interval_hours"
 CONF_QUIET_HOURS_ENABLED: Final = "quiet_hours_enabled"
 CONF_QUIET_HOURS_START: Final = "quiet_hours_start"
 CONF_QUIET_HOURS_END: Final = "quiet_hours_end"
+# D#277: other quiet hours on the days picked as the weekend (0 = Monday …
+# 6 = Sunday): on such a day its morning ends and its evening starts at
+# these times (the night into Saturday ends at the weekend's end).
+CONF_QUIET_HOURS_WEEKEND_ENABLED: Final = "quiet_hours_weekend_enabled"
+CONF_QUIET_HOURS_WEEKEND_START: Final = "quiet_hours_weekend_start"
+CONF_QUIET_HOURS_WEEKEND_END: Final = "quiet_hours_weekend_end"
+CONF_QUIET_HOURS_WEEKEND_DAYS: Final = "quiet_hours_weekend_days"
+DEFAULT_QUIET_HOURS_WEEKEND_DAYS: Final = (5, 6)
 
 # Shared HH:MM or HH:MM:SS time pattern (0–23 h, 0–59 m/s) — the single source
 # for validating quiet-hours times in BOTH the options flow and the WS handler.
@@ -507,6 +520,9 @@ CONF_OBJECT_AREA: Final = "area_id"
 # whether its reminders wait until somebody is there (helpers/places.py).
 CONF_OBJECT_PLACE: Final = "place"
 CONF_OBJECT_REMIND_ON_SITE: Final = "remind_on_site"
+# #273: the to-do lists the object's tasks go to (between a task's own lists
+# and the default lists of Settings → General).
+CONF_OBJECT_MIRROR_TODO: Final = "mirror_todo_entities"
 CONF_OBJECT_MANUFACTURER: Final = "manufacturer"
 CONF_OBJECT_MODEL: Final = "model"
 CONF_OBJECT_SERIAL_NUMBER: Final = "serial_number"
@@ -593,10 +609,13 @@ MAX_NOTIFICATION_TEXT_TITLE_LENGTH: Final = 120
 MAX_NOTIFICATION_TEXT_MESSAGE_LENGTH: Final = 500
 #: The placeholders each kind fills; anything else in a text stays as written
 #: (frontend-src/helpers/notification-texts.ts keeps the same table).
+#: ``due_today`` (#280, D#283) is the due-soon reminder on the due date itself;
+#: ``days_since`` (D#282) counts the days since the task was last done.
 NOTIFICATION_TEXT_PLACEHOLDERS: Final[dict[str, tuple[str, ...]]] = {
-    "due_soon": ("task", "object", "days", "due"),
-    "overdue": ("task", "object", "days", "due"),
-    "triggered": ("task", "object", "detail"),
+    "due_soon": ("task", "object", "days", "due", "days_since"),
+    "due_today": ("task", "object", "due", "days_since"),
+    "overdue": ("task", "object", "days", "due", "days_since"),
+    "triggered": ("task", "object", "detail", "days_since"),
     "completed": ("task", "object", "reason", "person"),
 }
 NOTIFICATION_TEXT_KINDS: Final = tuple(NOTIFICATION_TEXT_PLACEHOLDERS)
@@ -619,7 +638,8 @@ CONF_TASK_ROTATION_STRATEGY: Final = "rotation_strategy"
 
 # Rotation strategies for shared tasks: advance the "currently responsible"
 # pointer on each completion. None/"" = no rotation (single-assignee behaviour).
-ROTATION_STRATEGIES = ("round_robin", "least_completed", "random")
+# D#284: "by_weekday" names a person per weekday (weekday_assignees).
+ROTATION_STRATEGIES = ("round_robin", "least_completed", "random", "by_weekday")
 # The add_task / update_task value for "no rotation" (#232): a select
 # cannot offer an empty option.
 ROTATION_NONE: Final = "none"
@@ -665,6 +685,12 @@ CONF_TRIGGER_HOLD_UNTIL_DONE: Final = "trigger_hold_until_done"
 CONF_TRIGGER_RUNTIME_HOURS: Final = "trigger_runtime_hours"
 CONF_TRIGGER_ON_STATES: Final = "trigger_on_states"
 CONF_TRIGGER_DAYS_BEFORE: Final = "trigger_days_before"
+# D#275: the idle trigger — quiet for this many days; what counts as quiet.
+CONF_TRIGGER_IDLE_DAYS: Final = "trigger_idle_days"
+CONF_TRIGGER_IDLE_MODE: Final = "trigger_idle_mode"
+IDLE_NO_CHANGE: Final = "no_change"
+IDLE_UNAVAILABLE: Final = "unavailable"
+IDLE_MODES: Final = (IDLE_NO_CHANGE, IDLE_UNAVAILABLE)
 
 # --- Config Keys: Adaptive Scheduling ---
 CONF_ADAPTIVE_CONFIG: Final = "adaptive_config"
@@ -898,6 +924,8 @@ class TriggerType(StrEnum):
     # A sensor that REPORTS the date the maintenance is due (a purifier's
     # "filter change due" timestamp): fires N days before that date.
     DUE_DATE = "due_date"
+    # D#275: nothing happened for N days (no change, or unavailable).
+    IDLE = "idle"
     COMPOUND = "compound"
 
 
@@ -1080,6 +1108,8 @@ TRIGGER_FIELD_RANGES: dict[str, tuple[int, int]] = {
     "trigger_target_changes": (1, 10_000),
     # due_date: fire this many days before the date the sensor reports.
     "trigger_days_before": (0, 365),
+    # D#275: quiet for this many days (ten years at most).
+    "trigger_idle_days": (1, 3650),
 }
 # Done-when hold time (D#240), minutes. A day at most: this wait lives in
 # memory and a restart starts it over, so it stays short (unlike a rule's

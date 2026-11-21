@@ -190,6 +190,9 @@ class TriggerConfig(TypedDict, total=False):
     trigger_hold_until_done: bool
     trigger_runtime_hours: float
     trigger_days_before: int
+    # D#275: the idle rule — quiet for N days; no_change (absent) or unavailable.
+    trigger_idle_days: int
+    trigger_idle_mode: str
     trigger_runtime_max_session_seconds: int
     trigger_on_states: list[str]
     compound_logic: str
@@ -264,6 +267,8 @@ class StoredTask(TypedDict, total=False):
     responsible_user_id: str | None
     assignee_pool: list[str]
     rotation_strategy: str | None
+    # D#284: by_weekday's person per weekday (0 = Monday; None = anyone).
+    weekday_assignees: list[str | None]
     # Completing it
     nfc_tag_id: str | None
     require_tag_scan: bool

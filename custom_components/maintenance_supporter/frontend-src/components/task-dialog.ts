@@ -18,6 +18,7 @@ import {
   PART_QTY_RANGE,
   SCHEDULE_OFFSET_MAX_DAYS,
   TRIGGER_DAYS_BEFORE_RANGE,
+  TRIGGER_IDLE_DAYS_RANGE,
   COMPLETE_WHEN_FOR_MINUTES_RANGE,
   TRIGGER_FOR_MINUTES_RANGE,
   TRIGGER_TARGET_CHANGES_RANGE,
@@ -30,7 +31,9 @@ import type { TriggerType } from "../types";
 import { REQUIRED_COMPLETION_KEYS, REQUIRED_COMPLETION_LABELS } from "./required-completion-labels";
 import "./ms-textfield";
 import { defaultNotifyIcon } from "../helpers/notify-icons";
-import { NOTIFICATION_TEXT_KINDS, NOTIFICATION_TEXT_PLACEHOLDERS, cleanNotificationTexts, ownTextKinds } from "../helpers/notification-texts";
+import { NOTIFICATION_TEXT_KINDS, NOTIFICATION_TEXT_PLACEHOLDERS, NOTIFY_TEXT_KIND_HINTS, cleanNotificationTexts, ownTextKinds } from "../helpers/notification-texts";
+import { BY_WEEKDAY, cleanWeekdays, restLine, toggleWeekdayOwner, type WeekdayAssignees } from "../helpers/rotation-turns";
+import { weekdayChips } from "../helpers/weekday-chips";
 import { compoundLogic, entityName, primaryTriggerEntity, triggerEntityIds, triggerUnit } from "../helpers/trigger-entities";
 import { applyTypeFields, emptyTypeFields, typeFieldsFromConfig, type TriggerTypeFields } from "../helpers/trigger-fields";
 import { ROTATION_STRATEGIES, TASK_PRIORITIES } from "../helpers/task-choices";
@@ -77,10 +80,10 @@ const CALENDAR_KINDS = ["weekdays", "nth_weekday", "day_of_month", "calendar"];
 // #168: kinds that produce a due DATE and therefore take a time of day
 // (mirrors SCHEDULE_TIME_KINDS in config_flow_helpers.py).
 const SCHEDULE_TIME_KINDS = ["time_based", "one_time", ...CALENDAR_KINDS];
-const TRIGGER_TYPE_KEYS = ["threshold", "counter", "state_change", "runtime", "due_date"];
+const TRIGGER_TYPE_KEYS = ["threshold", "counter", "state_change", "runtime", "due_date", "idle"];
 // "due_date" alone is the one-time task's date field — the trigger type
 // carries its own label.
-const triggerTypeLabel = (key: string, L: string): string => t(key === "due_date" ? "trigger_type_due_date" : key, L);
+const triggerTypeLabel = (key: string, L: string): string => t(key === "due_date" ? "trigger_type_due_date" : key === "idle" ? "trigger_type_idle" : key, L);
 // The type selector additionally offers "compound" (a group of conditions
 // joined by AND/OR); its per-condition sub-type is limited to the flat kinds.
 const TRIGGER_TYPE_KEYS_WITH_COMPOUND = [...TRIGGER_TYPE_KEYS, "compound"];
@@ -120,6 +123,8 @@ const MANAGED_CONDITION_KEYS = new Set([
   "trigger_from_state", "trigger_to_state", "trigger_target_changes",
   "trigger_runtime_hours", "trigger_on_states",
   "trigger_days_before",
+  // D#275: the idle rule's quiet days and what counts as quiet.
+  "trigger_idle_days", "trigger_idle_mode",
 ]);
 
 // The shared per-type fields live in helpers/trigger-fields (the beta
@@ -171,7 +176,7 @@ function attributePreview(value: unknown): string {
 /** What the dialog reads of an object: its name and its spare parts. */
 interface PartsOwner {
   entry_id: string;
-  object?: { name?: string };
+  object?: { name?: string; mirror_todo_entities?: string[] };
   parts?: Array<{ id: string; name: string; unit?: string }>;
 }
 
@@ -191,6 +196,8 @@ export class MaintenanceTaskDialog extends LitElement {
   /** #231: the household's default to-do lists (Settings → General): with
    *  some set, the mirror field asks default / other lists / none. */
   @property({ attribute: false }) public mirrorTodoDefault: string[] = [];
+  /** #273: user id → that person's own to-do list (Settings → General). */
+  @property({ attribute: false }) public todoPersonLists: Record<string, string> = {};
   /** 2026-10 beta (advanced_beta_editor_visible): the dialog as rule rows
    *  with a sidebar, like the HA 2026.11 automation editor, and a start
    *  screen for a new task. The sections, state and save are the same. */
@@ -206,6 +213,8 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _copyChoices: Array<{ entryId: string; objectName: string; task: MaintenanceTask }> | null = null;
   /** Beta: the object's device (or area) whose entities suggest rules. */
   @state() private _objectDevice: { entryId: string; deviceId: string | null; areaId: string | null } | null = null;
+  /** #273: the object's to-do lists for its tasks, read with its parts. */
+  @state() private _objectMirror: { entryId: string; lists: string[] } | null = null;
   /** The object's spare parts — offered as "consumes parts" checkboxes. */
   @state() private parts: Array<{ id: string; name: string; unit?: string }> = [];
   /** #111: OTHER objects that own spare parts, so a task can draw on a shared
@@ -338,6 +347,9 @@ export class MaintenanceTaskDialog extends LitElement {
   @state() private _triggerTargetChanges = "";
   @state() private _triggerRuntimeHours = "";
   @state() private _triggerDaysBefore = "0";
+  /** D#275: the idle rule's quiet days and what counts as quiet. */
+  @state() private _triggerIdleDays = "7";
+  @state() private _triggerIdleMode: "no_change" | "unavailable" = "no_change";
   @state() private _triggerRuntimeMaxSession = "";
   // Comma-separated "running" states for the runtime trigger (#103) —
   // empty = the backend default ["on"]. Must roundtrip on edit: adopted
@@ -391,6 +403,8 @@ export class MaintenanceTaskDialog extends LitElement {
   private _loadedResponsibleUserId: string | null = null;
   @state() private _assigneePool: string[] = [];
   @state() private _rotationStrategy = "";
+  /** D#284: by_weekday's person per weekday (0 = Monday; null = anyone). */
+  @state() private _weekdayAssignees: WeekdayAssignees = [null, null, null, null, null, null, null];
   @state() private _availableUsers: HAUser[] = [];
 
   // Checklist (newline-separated steps, one per line)
@@ -643,6 +657,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._loadedResponsibleUserId = this._responsibleUserId;
     this._assigneePool = [...(task.assignee_pool || [])];
     this._rotationStrategy = task.rotation_strategy || "";
+    this._weekdayAssignees = cleanWeekdays(task.weekday_assignees, this._assigneePool);
 
     this._checklistText = (task.checklist || []).join("\n");
     this._phaseDefs = Object.entries(task.phases || {}).map(([id, def]) => {
@@ -819,6 +834,7 @@ export class MaintenanceTaskDialog extends LitElement {
     this._responsibleUserId = null;
     this._assigneePool = [];
     this._rotationStrategy = "";
+    this._weekdayAssignees = [null, null, null, null, null, null, null];
     this._checklistText = "";
     this._phaseDefs = [];
     this._phasesOpen = false;
@@ -880,6 +896,8 @@ export class MaintenanceTaskDialog extends LitElement {
       runtimeHours: this._triggerRuntimeHours,
       onStates: this._triggerOnStates,
       daysBefore: this._triggerDaysBefore,
+      idleDays: this._triggerIdleDays,
+      idleMode: this._triggerIdleMode,
     };
   }
 
@@ -899,6 +917,8 @@ export class MaintenanceTaskDialog extends LitElement {
     this._triggerRuntimeHours = f.runtimeHours;
     this._triggerOnStates = f.onStates;
     this._triggerDaysBefore = f.daysBefore;
+    this._triggerIdleDays = f.idleDays;
+    this._triggerIdleMode = f.idleMode;
   }
 
   private _resetTriggerFields(): void {
@@ -1260,16 +1280,19 @@ export class MaintenanceTaskDialog extends LitElement {
     if (known) {
       this.parts = known.parts || [];
       this._partsLoadFailed = false;
+      this._objectMirror = { entryId, lists: known.object?.mirror_todo_entities ?? [] };
       return;
     }
     try {
       const result = (await this.hass.connection.sendMessagePromise({
         type: "maintenance_supporter/object",
         entry_id: entryId,
-      })) as { parts?: Array<{ id: string; name: string; unit?: string }> };
+      })) as { parts?: Array<{ id: string; name: string; unit?: string }>; object?: { mirror_todo_entities?: string[] } };
       if (entryId !== this._entryId) return;
       this.parts = result.parts || [];
       this._partsLoadFailed = false;
+      // #273: the object's to-do lists come with it.
+      this._objectMirror = { entryId, lists: result.object?.mirror_todo_entities ?? [] };
     } catch {
       if (entryId !== this._entryId) return;
       // Surface the failure: an empty-but-failed load must not just hide the
@@ -1932,6 +1955,9 @@ export class MaintenanceTaskDialog extends LitElement {
       this._assigneePool.length >= 2 && this._rotationStrategy
         ? this._rotationStrategy
         : null;
+    // D#284: the days of a by-weekday rotation, for the people it is shared
+    // with; kept under another rotation, so switching back finds them.
+    data.weekday_assignees = data.rotation_strategy ? cleanWeekdays(this._weekdayAssignees, this._assigneePool) : null;
 
     if (this._scheduleType === "sensor_based" && this._triggerType === "compound") {
       // Compound: a group of conditions joined by AND/OR. Each condition
@@ -2640,7 +2666,34 @@ export class MaintenanceTaskDialog extends LitElement {
           @input=${(e: Event) => this._patchCondition(i, { daysBefore: (e.target as HTMLInputElement).value })}></ms-textfield>
       `;
     }
+    if (c.type === "idle") {
+      return this._renderIdleFields(L, c.idleDays, c.idleMode, (patch) => this._patchCondition(i, patch));
+    }
     return nothing;
+  }
+
+  /** D#275: how many quiet days, and whether quiet means no change or the
+   *  entity being unavailable (kept apart: an offline device is not an
+   *  idle one). */
+  private _renderIdleFields(
+    L: string,
+    days: string,
+    mode: "no_change" | "unavailable",
+    onChange: (patch: { idleDays?: string; idleMode?: "no_change" | "unavailable" }) => void,
+  ) {
+    return html`
+      <div class="select-row idle-mode">
+        ${selectIsHa() ? nothing : html`<label>${t("idle_mode", L)}</label>`}
+        ${selectField({ label: t("idle_mode", L), value: mode, onChange: (e: Event) => onChange({ idleMode: (e.target as HTMLSelectElement).value === "unavailable" ? "unavailable" : "no_change" }) }, html`
+          <option value="no_change" ?selected=${mode === "no_change"}>${t("idle_mode_no_change", L)}</option>
+          <option value="unavailable" ?selected=${mode === "unavailable"}>${t("idle_mode_unavailable", L)}</option>
+        `)}
+      </div>
+      <ms-textfield class="idle-days" label="${t("idle_days", L)}" type="number" step="1"
+        min=${TRIGGER_IDLE_DAYS_RANGE[0]} max=${TRIGGER_IDLE_DAYS_RANGE[1]} .value=${days}
+        @input=${(e: Event) => onChange({ idleDays: (e.target as HTMLInputElement).value })}></ms-textfield>
+      <div class="field-help">${t(mode === "unavailable" ? "idle_help_unavailable" : "idle_help_no_change", L)}</div>
+    `;
   }
 
   /** Shared interval-unit dropdown (DRY: time-based interval + sensor safety
@@ -3299,6 +3352,12 @@ export class MaintenanceTaskDialog extends LitElement {
         <div class="field-help">${t("runtime_on_states_help", L)}</div>
       `;
     }
+    if (this._triggerType === "idle") {
+      return this._renderIdleFields(L, this._triggerIdleDays, this._triggerIdleMode, (p) => {
+        if (p.idleDays !== undefined) this._triggerIdleDays = p.idleDays;
+        if (p.idleMode !== undefined) this._triggerIdleMode = p.idleMode;
+      });
+    }
     if (this._triggerType === "due_date") {
       return html`
         <ms-textfield
@@ -3633,8 +3692,9 @@ export class MaintenanceTaskDialog extends LitElement {
   }
 
   private _renderPeopleSection(L: string) {
+    const byWeekday = this._assigneePool.length >= 2 && this._rotationStrategy === BY_WEEKDAY;
     return this._section("people-section", t("task_section_people", L), html`
-          <div class="select-row">
+          ${byWeekday ? html`<div class="field-help weekday-responsible">${t("rotation_weekday_responsible", L)}</div>` : html`<div class="select-row">
             ${selectIsHa() ? nothing : html`<label>${t("responsible_user", L)}</label>`}
             ${selectField({ label: t("responsible_user", L), value: this._responsibleUserId || "", onChange: (e: Event) => {
                 const val = (e.target as HTMLSelectElement).value;
@@ -3645,7 +3705,7 @@ export class MaintenanceTaskDialog extends LitElement {
                 (user) => html`<option value=${user.id} ?selected=${user.id === this._responsibleUserId}>${user.name}</option>`
               )}
             `)}
-          </div>
+          </div>`}
           ${this._availableUsers.length >= 2 ? html`
             <div class="field">
               <label>${t("task_shared_with", L)}</label>
@@ -3667,9 +3727,38 @@ export class MaintenanceTaskDialog extends LitElement {
                     (key) => html`<option value=${key} ?selected=${key === this._rotationStrategy}>${t("rotation_" + key, L)}</option>`
                   )}
                 `)}
-              </div>` : nothing}
+              </div>
+              ${byWeekday ? this._renderWeekdayRotation(L) : nothing}` : nothing}
           ` : nothing}
     `);
+  }
+
+  /** D#284: each person's weekdays, one row of chips per person. A day
+   *  belongs to one person (a click moves it); a day nobody has goes to
+   *  everyone the task is shared with. Days the schedule never falls on
+   *  cannot be picked. */
+  private _renderWeekdayRotation(L: string) {
+    const days = cleanWeekdays(this._weekdayAssignees, this._assigneePool);
+    const never = this._scheduleType === "weekdays" && this._weekdays.length
+      ? [0, 1, 2, 3, 4, 5, 6].filter((d) => !this._weekdays.includes(d))
+      : [];
+    const rest = restLine(days.map((owner, i) => (never.includes(i) ? "-" : owner)), L);
+    return html`
+      <div class="field weekday-rotation">
+        <div class="field-help">${t("rotation_weekday_hint", L)}</div>
+        ${this._assigneePool.map((userId) => html`
+          <div class="weekday-rotation-row" data-user=${userId}>
+            <span class="weekday-rotation-name">${this._userName(userId)}</span>
+            ${weekdayChips({
+              lang: L,
+              selected: days.flatMap((owner, i) => (owner === userId ? [i] : [])),
+              disabled: never,
+              label: this._userName(userId),
+              onToggle: (day) => (this._weekdayAssignees = toggleWeekdayOwner(days, day, userId)),
+            })}
+          </div>`)}
+        ${rest ? html`<div class="field-help weekday-rotation-rest">${rest}</div>` : nothing}
+      </div>`;
   }
 
   /** #216 follow-up: notifications are their own section — next to the
@@ -3691,8 +3780,13 @@ export class MaintenanceTaskDialog extends LitElement {
             ${t("notify_icon_hint", L).replace("{default}", defaultNotifyIcon(this._type))}
           </div>
           ${this._renderNotifyTexts(L)}
-          ${this._renderMirrorTodo(L)}
     `);
+  }
+
+  /** #273: the to-do lists, a section of their own (they sat at the end of
+   *  the notifications, where nobody looked for them). */
+  private _renderTodoSection(L: string) {
+    return this._section("todo-section", t("task_section_todo", L), html`${this._renderMirrorTodo(L)}`);
   }
 
   /** #252: the task's own notification texts, a title and a message per
@@ -3709,7 +3803,7 @@ export class MaintenanceTaskDialog extends LitElement {
             @input=${(e: Event) => this._setNotifyText(kind, "title", (e.target as HTMLInputElement).value)}></ms-textfield>
           <ms-textfield class="notify-text-message" label=${t("notify_texts_message", L)} multiline .rows=${2} .value=${this._notifyTexts[kind]?.message ?? ""}
             @input=${(e: Event) => this._setNotifyText(kind, "message", (e.target as HTMLInputElement).value)}></ms-textfield>
-          <div class="field-help">${t("notify_texts_placeholders", L).replace("{list}", NOTIFICATION_TEXT_PLACEHOLDERS[kind].map((p) => `{${p}}`).join(" "))}${kind === "triggered" ? ` ${t("notify_texts_detail_hint", L)}` : kind === "completed" ? ` ${t("notify_texts_completed_hint", L)}` : ""}</div>
+          <div class="field-help">${t("notify_texts_placeholders", L).replace("{list}", NOTIFICATION_TEXT_PLACEHOLDERS[kind].map((p) => `{${p}}`).join(" "))}${NOTIFY_TEXT_KIND_HINTS[kind] ? ` ${t(NOTIFY_TEXT_KIND_HINTS[kind], L)}` : ""}${NOTIFICATION_TEXT_PLACEHOLDERS[kind].includes("days_since") ? ` ${t("notify_texts_days_since_hint", L)}` : ""}</div>
         </div>`)}
     `);
   }
@@ -3722,17 +3816,20 @@ export class MaintenanceTaskDialog extends LitElement {
    *  default lists set the field asks first (default / other lists / none)
    *  and shows the picker for "other lists" only. */
   private _renderMirrorTodo(L: string) {
-    const defaults = this.mirrorTodoDefault;
+    const fromObject = this._objectMirrorLists;
+    const defaults = fromObject.length ? fromObject : this.mirrorTodoDefault;
+    const people = this._renderMirrorTodoPeople(L);
     if (!defaults.length) {
       return html`
           <div class="field mirror-todo-field">
             ${this._renderMirrorTodoPicker(L)}
             <div class="field-help">${t("task_mirror_todo_hint", L)}</div>
+            ${people}
           </div>`;
     }
     const names = defaults.map((eid) => entityName(this.hass, eid)).join(", ");
     const labels = {
-      default: t("task_mirror_todo_default", L).replace("{lists}", names),
+      default: t(fromObject.length ? "task_mirror_todo_object" : "task_mirror_todo_default", L).replace("{lists}", names),
       own: t("task_mirror_todo_own", L),
       none: t("task_mirror_todo_none", L),
     } as const;
@@ -3750,7 +3847,19 @@ export class MaintenanceTaskDialog extends LitElement {
             </div>
             ${this._mirrorTodoMode === "own" ? this._renderMirrorTodoPicker(L) : nothing}
             ${this._mirrorTodoMode !== "none" ? html`<div class="field-help">${t("task_mirror_todo_hint", L)}</div>` : nothing}
+            ${this._mirrorTodoMode !== "none" ? people : nothing}
           </div>`;
+  }
+
+  /** #273: the people's own lists the task lands on as well. */
+  private _renderMirrorTodoPeople(L: string) {
+    const lists = [this._responsibleUserId ? [this._responsibleUserId] : this._assigneePool]
+      .flat()
+      .map((userId) => this.todoPersonLists[userId])
+      .filter((id): id is string => !!id);
+    if (!lists.length) return nothing;
+    const names = [...new Set(lists)].map((eid) => entityName(this.hass, eid)).join(", ");
+    return html`<div class="field-help mirror-todo-people">${t("task_mirror_todo_people", L).replace("{lists}", names)}</div>`;
   }
 
   private _renderMirrorTodoPicker(L: string) {
@@ -3836,7 +3945,15 @@ export class MaintenanceTaskDialog extends LitElement {
   /** What the save sends for the to-do lists, and the lists the task then
    *  goes onto while due (the notifications row's chips). */
   private _mirrorChoice() {
-    return mirrorChoice(this.hass, this._mirrorTodoMode, this.mirrorTodoDefault, this._mirrorTodoEntities);
+    return mirrorChoice(this.hass, this._mirrorTodoMode, this.mirrorTodoDefault, this._mirrorTodoEntities, this._objectMirrorLists, this.todoPersonLists, {
+      responsible_user_id: this._responsibleUserId,
+      assignee_pool: this._assigneePool,
+    });
+  }
+
+  /** #273: the object's lists, once they are known for this dialog's object. */
+  private get _objectMirrorLists(): string[] {
+    return this._objectMirror && this._objectMirror.entryId === this._entryId ? this._objectMirror.lists : [];
   }
 
   private _userName(userId: string): string {
@@ -3851,6 +3968,7 @@ export class MaintenanceTaskDialog extends LitElement {
       case "completion": return t("task_section_completion", L);
       case "people": return t("task_section_people", L);
       case "notifications": return t("task_section_notifications", L);
+      case "todo": return t("task_section_todo", L);
       default: return t("beta_rules_add_rule", L);
     }
   }
@@ -4131,6 +4249,7 @@ export class MaintenanceTaskDialog extends LitElement {
       case "completion": return this._renderCompletionSection(L);
       case "people": return this._renderPeopleSection(L);
       case "notifications": return this._renderNotificationsSection(L);
+      case "todo": return this._renderTodoSection(L);
       default: return this._renderAddPicker(L);
     }
   }
@@ -4151,6 +4270,7 @@ export class MaintenanceTaskDialog extends LitElement {
       { title: t("task_section_completion", L), ids: ["completion"] },
       { title: t("task_section_people", L), ids: ["people"] },
       { title: t("task_section_notifications", L), ids: ["notifications"] },
+      { title: t("task_section_todo", L), ids: ["todo"] },
     ];
     let order = 0;
     let sidebarOrder = 1;
@@ -4365,6 +4485,7 @@ export class MaintenanceTaskDialog extends LitElement {
           ${this._renderCompletionSection(L)}
           ${this._renderPeopleSection(L)}
           ${this._renderNotificationsSection(L)}
+          ${this._renderTodoSection(L)}
         </div>
         <div class="dialog-actions">
           <ha-button appearance="plain" @click=${this._close}>${t("cancel", L)}</ha-button>
@@ -4766,6 +4887,25 @@ export class MaintenanceTaskDialog extends LitElement {
       color: var(--text-primary-color, #fff);
       border-color: var(--primary-color, #03a9f4);
     }
+    .weekday-chip:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+    /* D#284: per person the name, below it the week on one line (the
+       rule panel is narrow: beside the name the chips wrapped). */
+    .weekday-rotation-row {
+      display: grid;
+      gap: 4px;
+      margin: 8px 0;
+    }
+    .weekday-rotation-name {
+      font-size: 14px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .weekday-rotation-row .weekday-chips { gap: 4px; }
+    .weekday-rotation-row .weekday-chip { padding: 6px 8px; min-width: 42px; }
     .season-chip {
       padding: 6px 10px;
       border: 1px solid var(--divider-color);

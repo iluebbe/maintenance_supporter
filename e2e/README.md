@@ -135,6 +135,7 @@ token auth. The ones worth knowing:
 | `live-tag-scan-check.mjs` | Proof of presence (2.67): WS complete refused, QR quick-complete and the NFC `tag_scanned` event pass, the complete dialog shows the notice. |
 | `live-md-notes-check.mjs` | Markdown notes (2.67) render through `<ha-markdown>` on task and object detail. |
 | `live-shopping-sync-check.mjs` | Shopping-list sync (2.67) against a real Local To-do list: low part → row, check-off → complete + restock, foreign rows untouched. |
+| `demo-history.mjs` | Five weeks of real sensor states for the screenshot demo, written under a fast fake clock in a throwaway container before `shots-demo.mjs` seeds. |
 | `shots-*.mjs` | The committed documentation screenshots (`shots-demo.mjs` is the canonical one). |
 | `gifs-demo.mjs` | The README/FEATURES animations (needs `ffmpeg-static`). |
 

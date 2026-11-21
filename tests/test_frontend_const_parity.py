@@ -687,6 +687,7 @@ def test_ts_field_ranges_match_backend() -> None:
     assert _ts_range(src, "COMPLETE_WHEN_FOR_MINUTES_RANGE") == COMPLETE_WHEN_FOR_MINUTES_RANGE
     assert _ts_range(src, "TRIGGER_TARGET_CHANGES_RANGE") == TRIGGER_FIELD_RANGES["trigger_target_changes"]
     assert _ts_range(src, "TRIGGER_DAYS_BEFORE_RANGE") == TRIGGER_FIELD_RANGES["trigger_days_before"]
+    assert _ts_range(src, "TRIGGER_IDLE_DAYS_RANGE") == TRIGGER_FIELD_RANGES["trigger_idle_days"]
     m = re.search(r"export const SCHEDULE_OFFSET_MAX_DAYS = (\d+);", src)
     assert m and int(m.group(1)) == SCHEDULE_OFFSET_MAX_DAYS, "SCHEDULE_OFFSET_MAX_DAYS drifted from const.py"
     assert _ts_range(src, "EWA_ALPHA_RANGE") == ADAPTIVE_EWA_ALPHA_RANGE
@@ -1059,7 +1060,7 @@ def test_twin_rules_read_as_the_panel_reads_them() -> None:
 
     vectors = json.loads((_FRONTEND / "__tests__" / "fixtures" / "twin-rules-vectors.json").read_text(encoding="utf-8"))
     for c in vectors["mirror_lists"]:
-        assert mirror_lists(c["task"], c["defaults"]) == c["lists"], c
+        assert mirror_lists(c["task"], c["defaults"], c.get("object_lists", []), c.get("people")) == c["lists"], c
     for c in vectors["task_user_ids"]:
         assert task_user_ids(c["task"]) == c["ids"], c
     for c in vectors["quick_complete_on"]:

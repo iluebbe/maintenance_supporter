@@ -99,6 +99,13 @@ async def async_prune_task_user_orphans(hass: HomeAssistant) -> None:
                     new_td["responsible_user_id"] = pruned_pool[0]
                 else:
                     new_td.pop("responsible_user_id", None)
+            # D#284: a deleted person's weekdays go to anyone it is shared with.
+            days = new_td.get("weekday_assignees")
+            if isinstance(days, list):
+                if new_td.get("rotation_strategy"):
+                    new_td["weekday_assignees"] = [u if u in pruned_pool else None for u in days]
+                else:
+                    new_td.pop("weekday_assignees", None)
             new_tasks[tid] = new_td
         if changed:
             write_tasks(hass, entry, new_tasks)

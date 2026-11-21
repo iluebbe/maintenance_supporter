@@ -13,7 +13,8 @@ import fixture from "./fixtures/twin-rules-vectors.json";
 describe("twin rules, the shared vectors", () => {
   it("which lists a task is mirrored into", () => {
     for (const c of fixture.mirror_lists) {
-      expect(mirrorListsOf(c.task as never, c.defaults), JSON.stringify(c.task)).to.deep.equal(c.lists);
+      const v = c as { object_lists?: string[]; people?: Record<string, string> };
+      expect(mirrorListsOf(c.task as never, c.defaults, v.object_lists ?? [], v.people ?? null), JSON.stringify(c)).to.deep.equal(c.lists);
     }
   });
 

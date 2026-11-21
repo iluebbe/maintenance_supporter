@@ -47,6 +47,8 @@ _EXPECTED_STR_MAX_LENGTHS = {
     "shopping_list_entity": 255,
     "quiet_hours_start": 5,
     "quiet_hours_end": 5,
+    "quiet_hours_weekend_start": 5,
+    "quiet_hours_weekend_end": 5,
     "budget_currency": 5,
     "notify_scope_view_id": 64,
     "notify_extra_data": 2000,  # #165 extra-data template
@@ -81,12 +83,13 @@ def test_allowed_keys_count_and_types() -> None:
     # advanced_predictions_visible; 2026-10 advanced_places_visible; #219
     # battery_low_delay_minutes; #231 mirror_todo_default_entities; #233
     # follow-up shared_device_user_ids; 2026-10 advanced_beta_editor_visible;
-    # D#248 notification_title_prefix; #251 notification_language).
-    assert len(ALLOWED_SETTING_KEYS) == 72
+    # D#248 notification_title_prefix; #251 notification_language; D#277 the
+    # weekend's four quiet-hours settings; #273 todo_person_lists).
+    assert len(ALLOWED_SETTING_KEYS) == 77
     assert all(isinstance(t, type) for t in ALLOWED_SETTING_KEYS.values())
     # No duplicate keys crept into the spec tuple.
     keys = [s.key for s in SETTING_SPECS]
-    assert len(keys) == len(set(keys)) == 72
+    assert len(keys) == len(set(keys)) == 77
 
 
 def test_every_ranged_key_is_declared_with_matching_type() -> None:

@@ -10,13 +10,21 @@
 import type { NotificationText, NotificationTextKind, NotificationTexts } from "../types";
 
 export const NOTIFICATION_TEXT_PLACEHOLDERS: Readonly<Record<NotificationTextKind, readonly string[]>> = {
-  due_soon: ["task", "object", "days", "due"],
-  overdue: ["task", "object", "days", "due"],
-  triggered: ["task", "object", "detail"],
+  due_soon: ["task", "object", "days", "due", "days_since"],
+  due_today: ["task", "object", "due", "days_since"],
+  overdue: ["task", "object", "days", "due", "days_since"],
+  triggered: ["task", "object", "detail", "days_since"],
   completed: ["task", "object", "reason", "person"],
 };
 
 export const NOTIFICATION_TEXT_KINDS = Object.keys(NOTIFICATION_TEXT_PLACEHOLDERS) as NotificationTextKind[];
+
+/** The locale key of the line that says when a kind goes out, where it needs one. */
+export const NOTIFY_TEXT_KIND_HINTS: Readonly<Partial<Record<NotificationTextKind, string>>> = {
+  due_today: "notify_texts_due_today_hint",
+  triggered: "notify_texts_detail_hint",
+  completed: "notify_texts_completed_hint",
+};
 
 export const MAX_NOTIFICATION_TEXT_TITLE_LENGTH = 120;
 export const MAX_NOTIFICATION_TEXT_MESSAGE_LENGTH = 500;

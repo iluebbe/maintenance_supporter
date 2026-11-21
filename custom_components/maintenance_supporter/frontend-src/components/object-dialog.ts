@@ -19,6 +19,7 @@ import "./ms-textfield";
 import "./ms-date-field";
 import { headerTitle, titleLine } from "../helpers/beta-ui";
 import { notice } from "../helpers/notice";
+import { mirrorTargets, ownTodoLists } from "../helpers/mirror-lists";
 
 export class MaintenanceObjectDialog extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -47,6 +48,8 @@ export class MaintenanceObjectDialog extends LitElement {
   // 2026-10 places: an HA zone ("" = home) and "remind only on site".
   @state() private _place = "";
   @state() private _remindOnSite = false;
+  // #273: the to-do lists the object's tasks go to.
+  @state() private _mirrorTodo: string[] = [];
   @state() private _entryId: string | null = null; // null = create, string = update
   // Replace (journey N1): the successor's device. The old unit's device is
   // what the object links to now; a new unit usually is a new device.
@@ -74,6 +77,7 @@ export class MaintenanceObjectDialog extends LitElement {
     this._parentEntryId = parentEntryId;
     this._place = "";
     this._remindOnSite = false;
+    this._mirrorTodo = [];
     this._replacing = false;
     this._error = "";
     this._open = true;
@@ -109,6 +113,7 @@ export class MaintenanceObjectDialog extends LitElement {
     this._parentEntryId = obj.parent_entry_id || "";
     this._place = obj.place || "";
     this._remindOnSite = !!obj.remind_on_site;
+    this._mirrorTodo = [...(obj.mirror_todo_entities ?? [])];
     this._replacing = false;
     this._error = "";
     this._open = true;
@@ -236,6 +241,24 @@ export class MaintenanceObjectDialog extends LitElement {
     `;
   }
 
+  /** #273: the to-do lists the object's tasks go to, instead of the default
+   *  lists of Settings → General (a task's own lists still come first). */
+  private _renderMirrorTodo(L: string) {
+    return html`
+      <ha-form
+        class="object-mirror-todo"
+        .hass=${this.hass}
+        .data=${{ mirror_todo_entities: this._mirrorTodo }}
+        .schema=${[{ name: "mirror_todo_entities", selector: { entity: { multiple: true, domain: ["todo"], exclude_entities: ownTodoLists(this.hass) } } }]}
+        .computeLabel=${() => t("object_mirror_todo", L)}
+        @value-changed=${(e: CustomEvent) => {
+          this._mirrorTodo = mirrorTargets(this.hass, (e.detail.value as { mirror_todo_entities?: string[] })?.mirror_todo_entities || []);
+        }}
+      ></ha-form>
+      <div class="place-hint object-mirror-todo-hint">${t("object_mirror_todo_hint", L)}</div>
+    `;
+  }
+
   private async _save(): Promise<void> {
     if (this._loading) return;  // synchronous re-entry guard (double-click)
     if (!this._name.trim()) return;
@@ -255,6 +278,7 @@ export class MaintenanceObjectDialog extends LitElement {
       parent_entry_id: this._parentEntryId || null,
       // Only with the feature on: switched off, a stored place is kept as is.
       ...(this.placesEnabled ? { place: this._place || null, remind_on_site: !!this._place && this._remindOnSite } : {}),
+      mirror_todo_entities: this._mirrorTodo,
     };
     const res = await runWs<{ device_swap?: DeviceSwap }>(
       this,
@@ -335,6 +359,7 @@ export class MaintenanceObjectDialog extends LitElement {
               (this._areaId = (e.detail.value as string) || "")}
           ></ha-area-picker>
           ${this.placesEnabled ? this._renderPlace(L) : nothing}
+          ${this._renderMirrorTodo(L)}
           <ms-date-field
             kind="date"
             clearable

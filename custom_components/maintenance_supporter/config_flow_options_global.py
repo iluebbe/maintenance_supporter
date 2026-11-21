@@ -7,6 +7,7 @@ Split from config_flow_options.py for better maintainability.
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 from uuid import uuid4
 
@@ -81,12 +82,17 @@ from .const import (
     CONF_QUIET_HOURS_ENABLED,
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
+    CONF_QUIET_HOURS_WEEKEND_DAYS,
+    CONF_QUIET_HOURS_WEEKEND_ENABLED,
+    CONF_QUIET_HOURS_WEEKEND_END,
+    CONF_QUIET_HOURS_WEEKEND_START,
     CONF_REF_NUMBERS_IN_LISTS,
     CONF_REMINDER_LEAD_DAYS,
     CONF_ROW_ACTION_STYLE,
     CONF_SHARED_DEVICE_USER_IDS,
     CONF_SHOPPING_LIST_ENTITY,
     CONF_SNOOZE_DURATION_HOURS,
+    CONF_TODO_PERSON_LISTS,
     CONF_WARRANTY_REMINDER_DAYS,
     CONF_WARRANTY_REMINDER_ENABLED,
     CONF_WEEKLY_DIGEST_ENABLED,
@@ -658,6 +664,25 @@ async def _send_test_to(
         return "failed"
 
 
+async def _weekday_options(hass: HomeAssistant) -> list[selector.SelectOptionDict]:
+    """D#277: Monday … Sunday in Home Assistant's language (babel reads its
+    locale data from disk, so off the event loop)."""
+    lang = (hass.config.language or "en").replace("-", "_")
+
+    def _names() -> list[str]:
+        try:
+            from babel.dates import get_day_names
+
+            names = get_day_names("wide", locale=lang)
+            return [str(names[i]) for i in range(7)]
+        except Exception:  # noqa: BLE001 — an unknown locale reads English
+            return ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
+    names = await hass.async_add_executor_job(_names)
+    return [selector.SelectOptionDict(value=str(i), label=name) for i, name in enumerate(names)]
+
+
+
 class GlobalOptionsFlow(OptionsFlow):
     """Handle global options with menu-based navigation."""
 
@@ -689,7 +714,7 @@ class GlobalOptionsFlow(OptionsFlow):
         # hours at 5 chars, so an 8-char value was dropped on a settings
         # export/import. Store the canonical "HH:MM" (an unparseable value
         # keeps the previous setting — the form's default coerces it anyway).
-        for key in (CONF_QUIET_HOURS_START, CONF_QUIET_HOURS_END):
+        for key in (CONF_QUIET_HOURS_START, CONF_QUIET_HOURS_END, CONF_QUIET_HOURS_WEEKEND_START, CONF_QUIET_HOURS_WEEKEND_END):
             if key in user_input:
                 normalized = normalize_hhmm(user_input[key])
                 if normalized is None:
@@ -1161,6 +1186,10 @@ class GlobalOptionsFlow(OptionsFlow):
             # "" = every task; a saved view narrows the reminders to its tasks.
             if user_input.get(CONF_NOTIFY_SCOPE_VIEW_ID) == _SCOPE_ALL:
                 user_input[CONF_NOTIFY_SCOPE_VIEW_ID] = ""
+            # D#277: the select hands back the weekdays as strings.
+            if CONF_QUIET_HOURS_WEEKEND_DAYS in user_input:
+                raw_days = user_input[CONF_QUIET_HOURS_WEEKEND_DAYS] or []
+                user_input[CONF_QUIET_HOURS_WEEKEND_DAYS] = sorted({int(d) for d in raw_days if str(d).isdigit() and 0 <= int(d) <= 6})
             if not errors:
                 return self._save_and_return(user_input)
 
@@ -1176,6 +1205,7 @@ class GlobalOptionsFlow(OptionsFlow):
         scope = self._opt(CONF_NOTIFY_SCOPE_VIEW_ID) or _SCOPE_ALL
         if scope not in {o["value"] for o in scope_options}:
             scope = _SCOPE_ALL  # the view was deleted — the setting falls back to all tasks
+        weekday_options = await _weekday_options(self.hass)
 
         return self.async_show_form(
             step_id="notification_settings",
@@ -1239,6 +1269,25 @@ class GlobalOptionsFlow(OptionsFlow):
                     vol.Optional(
                         CONF_QUIET_HOURS_END,
                         default=_safe_time(current.get(CONF_QUIET_HOURS_END), setting_default(CONF_QUIET_HOURS_END)),
+                    ): selector.TimeSelector(),
+                    # D#277: other quiet hours on the days picked.
+                    vol.Optional(
+                        CONF_QUIET_HOURS_WEEKEND_ENABLED,
+                        default=self._opt(CONF_QUIET_HOURS_WEEKEND_ENABLED),
+                    ): selector.BooleanSelector(),
+                    vol.Optional(
+                        CONF_QUIET_HOURS_WEEKEND_DAYS,
+                        default=[str(d) for d in self._opt(CONF_QUIET_HOURS_WEEKEND_DAYS) or []],
+                    ): selector.SelectSelector(
+                        selector.SelectSelectorConfig(options=weekday_options, multiple=True, mode=selector.SelectSelectorMode.LIST)
+                    ),
+                    vol.Optional(
+                        CONF_QUIET_HOURS_WEEKEND_START,
+                        default=_safe_time(current.get(CONF_QUIET_HOURS_WEEKEND_START), setting_default(CONF_QUIET_HOURS_WEEKEND_START)),
+                    ): selector.TimeSelector(),
+                    vol.Optional(
+                        CONF_QUIET_HOURS_WEEKEND_END,
+                        default=_safe_time(current.get(CONF_QUIET_HOURS_WEEKEND_END), setting_default(CONF_QUIET_HOURS_WEEKEND_END)),
                     ): selector.TimeSelector(),
                     # --- Daily Limit ---
                     vol.Optional(
@@ -1571,7 +1620,20 @@ class GlobalOptionsFlow(OptionsFlow):
                 overrides[user_id] = entry
             else:
                 overrides.pop(user_id, None)
-            return self._save_and_return({CONF_MEMBER_DISPLAY: overrides})
+            # #273: the member's own to-do list.
+            lists = dict(self._opt(CONF_TODO_PERSON_LISTS) or {})
+            own = user_input.get("todo_list")
+            if isinstance(own, str) and own.startswith("todo."):
+                from .helpers.todo_mirror import mirror_todo_error
+
+                if mirror_todo_error(self.hass, [own]):
+                    return self.async_show_form(
+                        step_id="member_avatar", data_schema=self._member_schema(user_id, user_input), errors={"todo_list": "invalid_mirror_todo"}
+                    )
+                lists[user_id] = own
+            else:
+                lists.pop(user_id, None)
+            return self._save_and_return({CONF_MEMBER_DISPLAY: overrides, CONF_TODO_PERSON_LISTS: lists})
 
         members = {u.id: u for u in await self._members()}
         user = members.get(user_id)
@@ -1584,21 +1646,30 @@ class GlobalOptionsFlow(OptionsFlow):
         default = member_display({}, user_id, user.name)
         return self.async_show_form(
             step_id="member_avatar",
-            data_schema=vol.Schema(
-                {
-                    vol.Optional("initials", description={"suggested_value": current.get("initials", "")}): selector.TextSelector(
-                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
-                    ),
-                    vol.Optional("color", default=color_name): selector.SelectSelector(
-                        selector.SelectSelectorConfig(
-                            options=["auto", *AVATAR_COLOR_NAMES],
-                            mode=selector.SelectSelectorMode.DROPDOWN,
-                            translation_key="avatar_color",
-                        )
-                    ),
-                }
-            ),
+            data_schema=self._member_schema(user_id, {"initials": current.get("initials", ""), "color": color_name}),
             description_placeholders={"member": user.name or user_id[:8], "initials": default.get("initials", "")},
+        )
+
+    def _member_schema(self, user_id: str, values: Mapping[str, Any]) -> vol.Schema:
+        """The member step's fields: initials, colour, their own to-do list (#273)."""
+        own = (self._opt(CONF_TODO_PERSON_LISTS) or {}).get(user_id)
+        todo_value = values.get("todo_list", own)
+        return vol.Schema(
+            {
+                vol.Optional("initials", description={"suggested_value": values.get("initials", "")}): selector.TextSelector(
+                    selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
+                ),
+                vol.Optional("color", default=values.get("color") or "auto"): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=["auto", *AVATAR_COLOR_NAMES],
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                        translation_key="avatar_color",
+                    )
+                ),
+                vol.Optional("todo_list", description={"suggested_value": todo_value} if todo_value else None): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain="todo")
+                ),
+            }
         )
 
     # --- Battery lifetimes (2.94) ---

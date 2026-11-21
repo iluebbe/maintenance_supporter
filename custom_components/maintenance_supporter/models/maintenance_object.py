@@ -53,6 +53,8 @@ class MaintenanceObject:
     # holds its reminders until somebody is in that zone.
     place: str | None = None
     remind_on_site: bool = False
+    # #273: the to-do lists the object's tasks go to (todo.* ids).
+    mirror_todo_entities: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary for config entry storage."""
@@ -79,6 +81,7 @@ class MaintenanceObject:
             # Only when set: an object at home stores nothing new.
             **({"place": self.place} if self.place else {}),
             **({"remind_on_site": True} if self.remind_on_site else {}),
+            **({"mirror_todo_entities": list(self.mirror_todo_entities)} if self.mirror_todo_entities else {}),
         }
 
     @classmethod
@@ -106,6 +109,7 @@ class MaintenanceObject:
             next_task_ref=data.get("next_task_ref"),
             place=data.get("place") or None,
             remind_on_site=data.get("remind_on_site") is True,
+            mirror_todo_entities=[e for e in data.get("mirror_todo_entities") or [] if isinstance(e, str)],
         )
 
     @property

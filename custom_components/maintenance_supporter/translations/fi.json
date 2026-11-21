@@ -348,6 +348,29 @@
           "go_back": "Palaa laukaisutyypin valintaan tallentamatta."
         }
       },
+      "trigger_idle": {
+        "title": "Toimettomuuden määritys",
+        "description": "Seuraa entiteettiä {entity_id} (nyt: {current_state}). Tehtävä erääntyy, kun valittuun päivämäärään mennessä ei ole tapahtunut mitään.",
+        "data": {
+          "trigger_idle_days": "Hiljaiset päivät",
+          "trigger_idle_mode": "Mikä lasketaan hiljaiseksi",
+          "interval_days": "Turva-aikaväli",
+          "interval_unit": "Aikavälin yksikkö",
+          "trigger_combinator": "Yhdistä laukaisin ja väli",
+          "warning_days": "Varoituspäivät ennen eräpäivää",
+          "go_back": "Palaa takaisin",
+          "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu"
+        },
+        "data_description": {
+          "trigger_idle_days": "Laskenta alkaa alusta seuraavasta muutoksesta ja kun tehtävä suoritetaan.",
+          "trigger_idle_mode": "Ei muutosta: arvo pysyy samana (välillä ei käytettävissä ei lasketa). Ei käytettävissä: entiteetti ei ole käytettävissä tai on tuntematon.",
+          "interval_days": "Valinnainen aikaperusteinen turva-aikaväli anturilaukaisun lisäksi.",
+          "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
+          "trigger_combinator": "Ensin täyttyvä (oletus): laukaisin tai kulunut väli erääntyy tehtävän. Molemmat vaaditaan: tehtävä erääntyy vasta, kun laukaisin on lauennut ja väli kulunut.",
+          "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään.",
+          "go_back": "Palaa laukaisutyypin valintaan tallentamatta."
+        }
+      },
       "compound_logic": {
         "title": "Yhdistelmälaukaisin",
         "description": "Valitse, miten useat ehdot yhdistetään.",
@@ -670,6 +693,10 @@
           "quiet_hours_enabled": "Ota hiljaiset tunnit käyttöön",
           "quiet_hours_start": "Hiljaisten tuntien alku",
           "quiet_hours_end": "Hiljaisten tuntien loppu",
+          "quiet_hours_weekend_enabled": "Eri hiljaiset tunnit joinakin päivinä",
+          "quiet_hours_weekend_days": "Päivät, joilla on omat hiljaiset tunnit",
+          "quiet_hours_weekend_start": "Niiden hiljaisten tuntien alku",
+          "quiet_hours_weekend_end": "Niiden hiljaisten tuntien loppu",
           "max_notifications_per_day": "Enimmäismäärä ilmoituksia päivässä",
           "notification_bundling_enabled": "Niputa ilmoitukset",
           "notification_bundle_threshold": "Niputuksen kynnysarvo",
@@ -690,6 +717,8 @@
           "notify_overdue_interval_hours": "Kuinka usein myöhässä-muistutus toistetaan. Aseta arvoon 0 yhtä ilmoitusta varten.",
           "notify_triggered_interval_hours": "Kuinka usein lauennut-ilmoitus toistetaan. Aseta arvoon 0 yhtä ilmoitusta varten.",
           "quiet_hours_enabled": "Estä ilmoitukset hiljaisten tuntien aikana.",
+          "quiet_hours_weekend_enabled": "Valittuina päivinä hiljaiset tunnit päättyvät aamulla ja alkavat illalla omiin aikoihinsa.",
+          "quiet_hours_weekend_end": "Kun lauantai on valittu, perjantain yö kestää tähän aikaan lauantaina.",
           "max_notifications_per_day": "Ilmoitusten enimmäismäärä päivässä. Aseta arvoon 0 rajoittamattomille.",
           "notification_bundling_enabled": "Lähetä yksi yhteenvetoilmoitus, kun useat tehtävät vaativat huomiota.",
           "notification_bundle_threshold": "Tehtävien vähimmäismäärä, joka laukaisee niputetun ilmoituksen.",
@@ -1266,6 +1295,28 @@
           "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään."
         }
       },
+      "opt_trigger_idle": {
+        "title": "Toimettomuuden määritys",
+        "description": "Seuraa entiteettiä {entity_id} (nyt: {current_state}). Tehtävä erääntyy, kun valittuun päivämäärään mennessä ei ole tapahtunut mitään.",
+        "data": {
+          "trigger_idle_days": "Hiljaiset päivät",
+          "trigger_idle_mode": "Mikä lasketaan hiljaiseksi",
+          "interval_days": "Turva-aikaväli",
+          "interval_unit": "Aikavälin yksikkö",
+          "trigger_combinator": "Yhdistä laukaisin ja väli",
+          "warning_days": "Varoituspäivät ennen eräpäivää",
+          "go_back": "Palaa takaisin",
+          "auto_complete_on_recovery": "Suorita automaattisesti, kun anturi palautuu"
+        },
+        "data_description": {
+          "trigger_idle_days": "Laskenta alkaa alusta seuraavasta muutoksesta ja kun tehtävä suoritetaan.",
+          "trigger_idle_mode": "Ei muutosta: arvo pysyy samana (välillä ei käytettävissä ei lasketa). Ei käytettävissä: entiteetti ei ole käytettävissä tai on tuntematon.",
+          "interval_days": "Valinnainen aikaperusteinen turva-aikaväli anturilaukaisun lisäksi.",
+          "interval_unit": "Aikavälin yksikkö: päivät, viikot, kuukaudet tai vuodet. Kuukaudet ja vuodet noudattavat kalenteria.",
+          "trigger_combinator": "Ensin täyttyvä (oletus): laukaisin tai kulunut väli erääntyy tehtävän. Molemmat vaaditaan: tehtävä erääntyy vasta, kun laukaisin on lauennut ja väli kulunut.",
+          "warning_days": "Montako päivää ennen eräpäivää varoitus näytetään."
+        }
+      },
       "object_settings": {
         "title": "Kohteen asetukset",
         "description": "Muokkaa kohteen tietoja.",
@@ -1339,7 +1390,11 @@
         "description": "{member}: jätä nimikirjaimet tyhjiksi ja väri Automaattiseksi, niin oletus on käytössä ({initials}).",
         "data": {
           "initials": "Nimikirjaimet",
-          "color": "Väri"
+          "color": "Väri",
+          "todo_list": "Oma tehtävälista"
+        },
+        "data_description": {
+          "todo_list": "Henkilön tehtävät näkyvät myös tällä listalla, ja rasti siellä merkitsee tehtävän hänen tekemäkseen."
         }
       },
       "battery_lifetimes": {
@@ -1738,6 +1793,7 @@
         "state_change": "Tilanmuutos",
         "runtime": "Käyntiaika",
         "due_date": "Eräpäivä (anturin ilmoittama)",
+        "idle": "Toimettomuus (päiviä ilman tapahtumia)",
         "compound": "Yhdistelmä (useita ehtoja)"
       }
     },
@@ -1843,7 +1899,8 @@
         "none": "Ei kiertoa",
         "round_robin": "Vuorotellen",
         "least_completed": "Vähiten suorittanut",
-        "random": "Satunnainen"
+        "random": "Satunnainen",
+        "by_weekday": "Viikonpäivän mukaan (päivät valitaan paneelissa)"
       }
     },
     "task_priority": {
@@ -1851,6 +1908,12 @@
         "low": "Matala",
         "normal": "Normaali",
         "high": "Korkea"
+      }
+    },
+    "trigger_idle_mode": {
+      "options": {
+        "no_change": "Ei muutosta",
+        "unavailable": "Ei käytettävissä"
       }
     }
   },

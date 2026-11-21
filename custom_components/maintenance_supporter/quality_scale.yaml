@@ -130,7 +130,7 @@ rules:
     comment: The per-task next-due timestamp and days-until-due sensors are registry-disabled by default.
   entity-translations:
     status: done
-    comment: translation_key everywhere; 22 languages with enforced key, placeholder and value parity.
+    comment: translation_key everywhere; 23 languages with enforced key, placeholder and value parity.
   exception-translations:
     status: done
     comment: >

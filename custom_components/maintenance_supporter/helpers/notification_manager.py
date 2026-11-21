@@ -35,6 +35,10 @@ from ..const import (
     CONF_QUIET_HOURS_ENABLED,
     CONF_QUIET_HOURS_END,
     CONF_QUIET_HOURS_START,
+    CONF_QUIET_HOURS_WEEKEND_DAYS,
+    CONF_QUIET_HOURS_WEEKEND_ENABLED,
+    CONF_QUIET_HOURS_WEEKEND_END,
+    CONF_QUIET_HOURS_WEEKEND_START,
     CONF_SNOOZE_DURATION_HOURS,
     CONF_TASK_NOTIFICATION_TEXTS,
     CONF_TASK_PRIORITY,
@@ -136,6 +140,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "open_task_link": "Aufgabe öffnen",
         "due_soon_title": "Wartung bald fällig",
         "due_soon_message": "{task} für {object} ist in {days} Tag(en) fällig (Fällig: {due}).",
+        "due_today_title": "Wartung heute fällig",
+        "due_today_message": "{task} für {object} ist heute fällig.",
         "overdue_title": "Wartung überfällig!",
         "overdue_message": "{task} für {object} ist {days} Tag(e) überfällig!",
         "triggered_title": "Wartung ausgelöst",
@@ -170,6 +176,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "reason_unknown": 'erledigt',
         "bundled_overdue": "{task} (überfällig)",
         "bundled_due_soon": "{task} (bald fällig)",
+        "bundled_due_today": "{task} (heute fällig)",
         "bundled_triggered": "{task} (ausgelöst)",
         "budget_alert_title": "Wartungsbudget-Warnung",
         "budget_alert_monthly": "Monatsbudget zu {pct}% ausgeschöpft ({spent} von {budget})",
@@ -179,6 +186,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "open_task_link": "Taak openen",
         "due_soon_title": "Onderhoud binnenkort",
         "due_soon_message": "{task} voor {object} is over {days} dag(en) te doen (Vervaldatum: {due}).",
+        "due_today_title": "Onderhoud vandaag",
+        "due_today_message": "{task} voor {object} moet vandaag gebeuren.",
         "overdue_title": "Onderhoud achterstallig!",
         "overdue_message": "{task} voor {object} is {days} dag(en) achterstallig!",
         "triggered_title": "Onderhoud geactiveerd",
@@ -213,6 +222,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "reason_unknown": 'voltooid',
         "bundled_overdue": "{task} (achterstallig)",
         "bundled_due_soon": "{task} (binnenkort)",
+        "bundled_due_today": "{task} (vandaag)",
         "bundled_triggered": "{task} (geactiveerd)",
         "budget_alert_title": "Onderhoudsbudget waarschuwing",
         "budget_alert_monthly": "Maandbudget op {pct}% ({spent} van {budget})",
@@ -222,6 +232,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "open_task_link": "Ouvrir la tâche",
         "due_soon_title": "Maintenance bientôt due",
         "due_soon_message": "{task} pour {object} est dû dans {days} jour(s) (Échéance : {due}).",
+        "due_today_title": "Maintenance due aujourd'hui",
+        "due_today_message": "{task} pour {object} est dû aujourd'hui.",
         "overdue_title": "Maintenance en retard !",
         "overdue_message": "{task} pour {object} est en retard de {days} jour(s) !",
         "triggered_title": "Maintenance déclenchée",
@@ -256,6 +268,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "reason_unknown": 'terminée',
         "bundled_overdue": "{task} (en retard)",
         "bundled_due_soon": "{task} (bientôt dû)",
+        "bundled_due_today": "{task} (aujourd'hui)",
         "bundled_triggered": "{task} (déclenché)",
         "budget_alert_title": "Alerte budget maintenance",
         "budget_alert_monthly": "Budget mensuel à {pct}% ({spent} sur {budget})",
@@ -265,6 +278,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "open_task_link": "Apri l'attività",
         "due_soon_title": "Manutenzione in scadenza",
         "due_soon_message": "{task} per {object} è in scadenza tra {days} giorno/i (Scadenza: {due}).",
+        "due_today_title": "Manutenzione in scadenza oggi",
+        "due_today_message": "{task} per {object} scade oggi.",
         "overdue_title": "Manutenzione scaduta!",
         "overdue_message": "{task} per {object} è scaduta da {days} giorno/i!",
         "triggered_title": "Manutenzione attivata",
@@ -299,6 +314,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "reason_unknown": 'completata',
         "bundled_overdue": "{task} (scaduta)",
         "bundled_due_soon": "{task} (in scadenza)",
+        "bundled_due_today": "{task} (oggi)",
         "bundled_triggered": "{task} (attivata)",
         "budget_alert_title": "Avviso budget manutenzione",
         "budget_alert_monthly": "Budget mensile al {pct}% ({spent} di {budget})",
@@ -308,6 +324,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "open_task_link": "Abrir la tarea",
         "due_soon_title": "Mantenimiento próximo",
         "due_soon_message": "{task} para {object} vence en {days} día(s) (Vencimiento: {due}).",
+        "due_today_title": "Mantenimiento para hoy",
+        "due_today_message": "{task} para {object} vence hoy.",
         "overdue_title": "¡Mantenimiento vencido!",
         "overdue_message": "¡{task} para {object} está vencido por {days} día(s)!",
         "triggered_title": "Mantenimiento activado",
@@ -342,6 +360,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "reason_unknown": 'completada',
         "bundled_overdue": "{task} (vencido)",
         "bundled_due_soon": "{task} (próximo)",
+        "bundled_due_today": "{task} (hoy)",
         "bundled_triggered": "{task} (activado)",
         "budget_alert_title": "Alerta de presupuesto de mantenimiento",
         "budget_alert_monthly": "Presupuesto mensual al {pct}% ({spent} de {budget})",
@@ -351,6 +370,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "open_task_link": "Open task",
         "due_soon_title": "Maintenance Due Soon",
         "due_soon_message": "{task} for {object} is due in {days} day(s) (Due: {due}).",
+        "due_today_title": "Maintenance Due Today",
+        "due_today_message": "{task} for {object} is due today.",
         "overdue_title": "Maintenance Overdue!",
         "overdue_message": "{task} for {object} is {days} day(s) overdue!",
         "triggered_title": "Maintenance Triggered",
@@ -385,6 +406,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "reason_unknown": 'completed',
         "bundled_overdue": "{task} (overdue)",
         "bundled_due_soon": "{task} (due soon)",
+        "bundled_due_today": "{task} (due today)",
         "bundled_triggered": "{task} (triggered)",
         "budget_alert_title": "Maintenance Budget Warning",
         "budget_alert_monthly": "Monthly budget at {pct}% ({spent} of {budget})",
@@ -394,6 +416,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "open_task_link": "Åbn opgaven",
         "due_soon_title": "Vedligeholdelse snart forfalden",
         "due_soon_message": "{task} for {object} forfalder om {days} dag(e) (Forfalder: {due}).",
+        "due_today_title": "Vedligeholdelse forfalder i dag",
+        "due_today_message": "{task} for {object} forfalder i dag.",
         "overdue_title": "Vedligeholdelse forfalden!",
         "overdue_message": "{task} for {object} er {days} dag(e) forsinket!",
         "triggered_title": "Vedligeholdelse udløst",
@@ -428,6 +452,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "reason_unknown": 'fuldført',
         "bundled_overdue": "{task} (forfalden)",
         "bundled_due_soon": "{task} (snart forfalden)",
+        "bundled_due_today": "{task} (i dag)",
         "bundled_triggered": "{task} (udløst)",
         "budget_alert_title": "Advarsel om vedligeholdelsesbudget",
         "budget_alert_monthly": "Månedsbudget på {pct}% ({spent} af {budget})",
@@ -437,6 +462,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "open_task_link": "Avaa tehtävä",
         "due_soon_title": "Huolto erääntyy pian",
         "due_soon_message": "{task} kohteelle {object} erääntyy {days} päivän kuluttua (Eräpäivä: {due}).",
+        "due_today_title": "Huolto erääntyy tänään",
+        "due_today_message": "{task} kohteelle {object} erääntyy tänään.",
         "overdue_title": "Huolto myöhässä!",
         "overdue_message": "{task} kohteelle {object} on {days} päivää myöhässä!",
         "triggered_title": "Huolto käynnistetty",
@@ -471,6 +498,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "reason_unknown": 'suoritettu',
         "bundled_overdue": "{task} (myöhässä)",
         "bundled_due_soon": "{task} (pian)",
+        "bundled_due_today": "{task} (tänään)",
         "bundled_triggered": "{task} (käynnistetty)",
         "budget_alert_title": "Huoltobudjetin varoitus",
         "budget_alert_monthly": "Kuukausibudjetti {pct}% ({spent} / {budget})",
@@ -480,6 +508,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "open_task_link": "Åpne oppgaven",
         "due_soon_title": "Vedlikehold forfaller snart",
         "due_soon_message": "{task} for {object} forfaller om {days} dag(er) (Forfaller: {due}).",
+        "due_today_title": "Vedlikehold forfaller i dag",
+        "due_today_message": "{task} for {object} forfaller i dag.",
         "overdue_title": "Vedlikehold forfalt!",
         "overdue_message": "{task} for {object} er {days} dag(er) forsinket!",
         "triggered_title": "Vedlikehold utløst",
@@ -514,6 +544,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "reason_unknown": 'fullført',
         "bundled_overdue": "{task} (forfalt)",
         "bundled_due_soon": "{task} (snart)",
+        "bundled_due_today": "{task} (i dag)",
         "bundled_triggered": "{task} (utløst)",
         "budget_alert_title": "Varsel om vedlikeholdsbudsjett",
         "budget_alert_monthly": "Månedsbudsjett på {pct}% ({spent} av {budget})",
@@ -523,6 +554,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "open_task_link": "タスクを開く",
         "due_soon_title": "メンテナンス期限間近",
         "due_soon_message": "{object} の {task} はあと {days} 日で期限です（期限: {due}）。",
+        "due_today_title": "メンテナンス本日期限",
+        "due_today_message": "{object} の {task} は本日が期限です。",
         "overdue_title": "メンテナンス期限超過！",
         "overdue_message": "{object} の {task} は {days} 日超過しています！",
         "triggered_title": "メンテナンス起動",
@@ -557,6 +590,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "reason_unknown": '完了',
         "bundled_overdue": "{task}（超過）",
         "bundled_due_soon": "{task}（間近）",
+        "bundled_due_today": "{task}（本日）",
         "bundled_triggered": "{task}（起動）",
         "budget_alert_title": "メンテナンス予算の警告",
         "budget_alert_monthly": "月間予算が {pct}%（{budget} 中 {spent}）",
@@ -566,6 +600,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "open_task_link": "कार्य खोलें",
         "due_soon_title": "रखरखाव जल्द देय",
         "due_soon_message": "{object} के लिए {task} {days} दिन में देय है (देय: {due})।",
+        "due_today_title": "रखरखाव आज देय",
+        "due_today_message": "{object} के लिए {task} आज देय है।",
         "overdue_title": "रखरखाव अतिदेय!",
         "overdue_message": "{object} के लिए {task} {days} दिन अतिदेय है!",
         "triggered_title": "रखरखाव ट्रिगर हुआ",
@@ -600,6 +636,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "reason_unknown": 'पूरा किया',
         "bundled_overdue": "{task} (अतिदेय)",
         "bundled_due_soon": "{task} (जल्द देय)",
+        "bundled_due_today": "{task} (आज देय)",
         "bundled_triggered": "{task} (ट्रिगर)",
         "budget_alert_title": "रखरखाव बजट चेतावनी",
         "budget_alert_monthly": "मासिक बजट {pct}% पर ({budget} में से {spent})",
@@ -609,6 +646,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "open_task_link": "打开任务",
         "due_soon_title": "维护即将到期",
         "due_soon_message": "{object} 的 {task} 将在 {days} 天后到期（到期日期：{due}）。",
+        "due_today_title": "维护今天到期",
+        "due_today_message": "{object} 的 {task} 今天到期。",
         "overdue_title": "维护已超期！",
         "overdue_message": "{object} 的 {task} 已超期 {days} 天！",
         "triggered_title": "维护已触发",
@@ -643,6 +682,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "reason_unknown": '已完成',
         "bundled_overdue": "{task}（超期）",
         "bundled_due_soon": "{task}（即将到期）",
+        "bundled_due_today": "{task}（今天到期）",
         "bundled_triggered": "{task}（已触发）",
         "budget_alert_title": "维护预算警报",
         "budget_alert_monthly": "月度预算已达 {pct}%（已支出 {spent} / 总预算 {budget}）",
@@ -652,6 +692,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "open_task_link": "Открыть задачу",
         "due_soon_title": "Обслуживание скоро требуется",
         "due_soon_message": "{task} для {object} требуется через {days} дн. (Срок: {due}).",
+        "due_today_title": "Обслуживание сегодня",
+        "due_today_message": "{task} для {object} требуется сегодня.",
         "overdue_title": "Обслуживание просрочено!",
         "overdue_message": "{task} для {object} просрочено на {days} дн.!",
         "triggered_title": "Обслуживание сработало",
@@ -686,6 +728,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "reason_unknown": 'выполнено',
         "bundled_overdue": "{task} (просрочено)",
         "bundled_due_soon": "{task} (скоро)",
+        "bundled_due_today": "{task} (сегодня)",
         "bundled_triggered": "{task} (сработало)",
         "budget_alert_title": "Предупреждение о бюджете обслуживания",
         "budget_alert_monthly": "Месячный бюджет: {pct}% ({spent} из {budget})",
@@ -695,6 +738,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "open_task_link": "Відкрити завдання",
         "due_soon_title": "Незабаром термін обслуговування",
         "due_soon_message": "{task} для {object} через {days} день(днів) (Термін: {due}).",
+        "due_today_title": "Обслуговування сьогодні",
+        "due_today_message": "{task} для {object} потрібно сьогодні.",
         "overdue_title": "Обслуговування прострочено!",
         "overdue_message": "{task} для {object} прострочено на {days} день(днів)!",
         "triggered_title": "Обслуговування спрацювало",
@@ -729,6 +774,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "reason_unknown": 'виконано',
         "bundled_overdue": "{task} (прострочено)",
         "bundled_due_soon": "{task} (незабаром)",
+        "bundled_due_today": "{task} (сьогодні)",
         "bundled_triggered": "{task} (спрацювало)",
         "budget_alert_title": "Попередження про бюджет обслуговування",
         "budget_alert_monthly": "Щомісячний бюджет використано на {pct}% ({spent} з {budget})",
@@ -738,6 +784,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "open_task_link": "Abrir a tarefa",
         "due_soon_title": "Manutenção em breve",
         "due_soon_message": "{task} para {object} é necessário em {days} dia(s) (Prazo: {due}).",
+        "due_today_title": "Manutenção para hoje",
+        "due_today_message": "{task} para {object} é necessário hoje.",
         "overdue_title": "Manutenção atrasada!",
         "overdue_message": "{task} para {object} está atrasado em {days} dia(s)!",
         "triggered_title": "Manutenção acionada",
@@ -772,6 +820,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "reason_unknown": 'concluída',
         "bundled_overdue": "{task} (atrasado)",
         "bundled_due_soon": "{task} (em breve)",
+        "bundled_due_today": "{task} (hoje)",
         "bundled_triggered": "{task} (acionado)",
         "budget_alert_title": "Alerta de orçamento de manutenção",
         "budget_alert_monthly": "Orçamento mensal em {pct}% ({spent} de {budget})",
@@ -783,6 +832,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "open_task_link": "Otwórz zadanie",
         "due_soon_title": "Wkrótce wymagana konserwacja",
         "due_soon_message": "{task} dla {object} wymagane za {days} dni (Termin: {due}).",
+        "due_today_title": "Konserwacja na dziś",
+        "due_today_message": "{task} dla {object} wymagane dzisiaj.",
         "overdue_title": "Konserwacja przeterminowana!",
         "overdue_message": "{task} dla {object} jest przeterminowane o {days} dni!",
         "triggered_title": "Konserwacja wyzwolona",
@@ -817,6 +868,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "reason_unknown": 'ukończone',
         "bundled_overdue": "{task} (przeterminowane)",
         "bundled_due_soon": "{task} (wkrótce)",
+        "bundled_due_today": "{task} (dzisiaj)",
         "bundled_triggered": "{task} (wyzwolone)",
         "budget_alert_title": "Ostrzeżenie o budżecie konserwacji",
         "budget_alert_monthly": "Budżet miesięczny na poziomie {pct}% ({spent} z {budget})",
@@ -828,6 +880,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "open_task_link": "Otevřít úkol",
         "due_soon_title": "Údržba se blíží",
         "due_soon_message": "{task} pro {object} je třeba za {days} dní (Termín: {due}).",
+        "due_today_title": "Údržba dnes",
+        "due_today_message": "{task} pro {object} je třeba dnes.",
         "overdue_title": "Údržba po termínu!",
         "overdue_message": "{task} pro {object} je {days} dní po termínu!",
         "triggered_title": "Údržba spuštěna",
@@ -862,6 +916,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "reason_unknown": 'dokončeno',
         "bundled_overdue": "{task} (po termínu)",
         "bundled_due_soon": "{task} (brzy)",
+        "bundled_due_today": "{task} (dnes)",
         "bundled_triggered": "{task} (spuštěno)",
         "budget_alert_title": "Upozornění na rozpočet údržby",
         "budget_alert_monthly": "Měsíční rozpočet na {pct}% ({spent} z {budget})",
@@ -871,6 +926,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "open_task_link": "Otvoriť úlohu",
         "due_soon_title": "Blíži sa termín údržby",
         "due_soon_message": "{task} pre {object}: termín o {days} dní (termín: {due}).",
+        "due_today_title": "Údržba dnes",
+        "due_today_message": "{task} pre {object}: termín je dnes.",
         "overdue_title": "Údržba po termíne!",
         "overdue_message": "{task} pre {object} je {days} dní po termíne!",
         "triggered_title": "Údržba spustená",
@@ -905,6 +962,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "reason_unknown": "dokončené",
         "bundled_overdue": "{task} (po termíne)",
         "bundled_due_soon": "{task} (čoskoro)",
+        "bundled_due_today": "{task} (dnes)",
         "bundled_triggered": "{task} (spustené)",
         "budget_alert_title": "Výstraha rozpočtu údržby",
         "budget_alert_monthly": "Mesačný rozpočet na {pct} % ({spent} z {budget})",
@@ -915,6 +973,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "open_task_link": "Öppna uppgiften",
         "due_soon_title": "Underhåll snart",
         "due_soon_message": "{task} för {object} förfaller om {days} dag(ar) (Förfaller: {due}).",
+        "due_today_title": "Underhåll i dag",
+        "due_today_message": "{task} för {object} förfaller i dag.",
         "overdue_title": "Underhåll försenat!",
         "overdue_message": "{task} för {object} är {days} dag(ar) försenat!",
         "triggered_title": "Underhåll utlöst",
@@ -949,6 +1009,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "reason_unknown": 'slutförd',
         "bundled_overdue": "{task} (försenat)",
         "bundled_due_soon": "{task} (snart)",
+        "bundled_due_today": "{task} (i dag)",
         "bundled_triggered": "{task} (utlöst)",
         "budget_alert_title": "Varning för underhållsbudget",
         "budget_alert_monthly": "Månadsbudget på {pct}% ({spent} av {budget})",
@@ -958,6 +1019,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "open_task_link": "Abrir a tarefa",
         "due_soon_title": "Manutenção em breve",
         "due_soon_message": "{task} de {object} vence em {days} dia(s) (vencimento: {due}).",
+        "due_today_title": "Manutenção para hoje",
+        "due_today_message": "{task} de {object} vence hoje.",
         "overdue_title": "Manutenção atrasada!",
         "overdue_message": "{task} de {object} está {days} dia(s) atrasada!",
         "triggered_title": "Manutenção acionada",
@@ -992,6 +1055,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "reason_unknown": 'concluída',
         "bundled_overdue": "{task} (atrasada)",
         "bundled_due_soon": "{task} (em breve)",
+        "bundled_due_today": "{task} (hoje)",
         "bundled_triggered": "{task} (acionada)",
         "budget_alert_title": "Alerta de orçamento de manutenção",
         "budget_alert_monthly": "Orçamento mensal em {pct}% ({spent} de {budget})",
@@ -1001,6 +1065,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "open_task_link": "Feladat megnyitása",
         "due_soon_title": "Karbantartás hamarosan esedékes",
         "due_soon_message": "{object} – {task} {days} nap múlva esedékes (határidő: {due}).",
+        "due_today_title": "Karbantartás ma esedékes",
+        "due_today_message": "{object} – {task} ma esedékes.",
         "overdue_title": "Karbantartás lejárt!",
         "overdue_message": "{object} – {task} {days} napja esedékes!",
         "triggered_title": "Karbantartás aktiválódott",
@@ -1035,6 +1101,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "reason_unknown": 'elvégezve',
         "bundled_overdue": "{task} (lejárt)",
         "bundled_due_soon": "{task} (hamarosan)",
+        "bundled_due_today": "{task} (ma)",
         "bundled_triggered": "{task} (aktiválva)",
         "budget_alert_title": "Karbantartási keret figyelmeztetés",
         "budget_alert_monthly": "Havi keret {pct}%-on ({spent} / {budget})",
@@ -1044,6 +1111,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "open_task_link": "작업 열기",
         "due_soon_title": "곧 예정된 유지보수",
         "due_soon_message": "{object}의 {task}이(가) {days}일 후 예정입니다 (기한: {due}).",
+        "due_today_title": "오늘 예정된 유지보수",
+        "due_today_message": "{object}의 {task}이(가) 오늘 예정입니다.",
         "overdue_title": "유지보수 기한 초과!",
         "overdue_message": "{object}의 {task}이(가) {days}일 지났습니다!",
         "triggered_title": "유지보수 트리거됨",
@@ -1078,6 +1147,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "reason_unknown": '완료',
         "bundled_overdue": "{task} (기한 초과)",
         "bundled_due_soon": "{task} (곧 예정)",
+        "bundled_due_today": "{task} (오늘)",
         "bundled_triggered": "{task} (트리거됨)",
         "budget_alert_title": "유지보수 예산 경고",
         "budget_alert_monthly": "월 예산 {pct}% 사용 ({budget} 중 {spent})",
@@ -1087,6 +1157,8 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "open_task_link": "Görevi aç",
         "due_soon_title": "Bakım zamanı yaklaşıyor",
         "due_soon_message": "{object} için {task}, {days} gün içinde yapılmalı (Tarih: {due}).",
+        "due_today_title": "Bakım bugün",
+        "due_today_message": "{object} için {task} bugün yapılmalı.",
         "overdue_title": "Bakım gecikti!",
         "overdue_message": "{object} için {task}, {days} gün gecikti!",
         "triggered_title": "Bakım tetiklendi",
@@ -1121,6 +1193,7 @@ _NOTIFICATION_STRINGS: dict[str, dict[str, str]] = {
         "reason_unknown": 'tamamlandı',
         "bundled_overdue": "{task} (gecikmiş)",
         "bundled_due_soon": "{task} (yaklaşıyor)",
+        "bundled_due_today": "{task} (bugün)",
         "bundled_triggered": "{task} (tetiklendi)",
         "budget_alert_title": "Bakım bütçesi uyarısı",
         "budget_alert_monthly": "Aylık bütçe %{pct} ({spent} / {budget})",
@@ -1139,11 +1212,39 @@ _BUNDLED_LINE_KEYS: dict[str, str] = {
 }
 
 
-def _bundled_line(status: Any, lang: str, task_name: str, detail: str | None = None) -> str:
+#: #280 / D#283: the due-soon reminder on the due date itself. It speaks of
+#: today ("due in 0 day(s)" before), has a text of its own, and goes out
+#: once on the due day whatever the due-soon repeat interval is. Not a
+#: status: the task stays due soon until it is overdue.
+DUE_TODAY = "due_today"
+
+
+def reminder_kind(status: Any, days_until_due: int | None) -> str:
+    """The kind of text a reminder about ``status`` speaks: ``due_today``
+    for a task due soon on its due date, else the status itself."""
+    status = str(status or "")
+    return DUE_TODAY if status == MaintenanceStatus.DUE_SOON and days_until_due == 0 else status
+
+
+def _bundled_line(status: Any, lang: str, task_name: str, detail: str | None = None, days_until_due: int | None = None) -> str:
     """One task's line in a bundle / quiet-hours summary; a triggered task's
     detail (#228) follows it."""
-    line = _notif_t(_BUNDLED_LINE_KEYS.get(str(status or ""), "bundled_due_soon"), lang, task=task_name)
+    if reminder_kind(status, days_until_due) == DUE_TODAY:
+        line = _notif_t("bundled_due_today", lang, task=task_name)
+    else:
+        line = _notif_t(_BUNDLED_LINE_KEYS.get(str(status or ""), "bundled_due_soon"), lang, task=task_name)
     return f"{line} · {detail}" if detail else line
+
+
+def days_since_done(task: Mapping[str, Any] | None) -> str:
+    """D#282: the whole days since the task was last done, for ``{days_since}``;
+    "?" when it never was (or the date cannot be read)."""
+    last = (task or {}).get("last_performed")
+    try:
+        done = date.fromisoformat(str(last)[:10])
+    except (TypeError, ValueError):
+        return "?"
+    return str(max((dt_util.now().date() - done).days, 0))
 
 
 def task_key_of(entry_id: str, task_id: str) -> str:
@@ -1466,6 +1567,10 @@ class NotificationManager:
         # noon retry (for quiet windows ending after 08:00) - this is the
         # per-day dedup the retry relies on: (entry, task, lead) -> ISO day.
         self._lead_sent: dict[str, str] = {}
+        # #280 / D#283: the tasks reminded on their due date (task key → ISO
+        # day): the due-today reminder goes out once per due day, by the
+        # status path, a bundle, the quiet-hours summary or a lead of 0 days.
+        self._due_today_sent: dict[str, str] = {}
         # Entries whose startup seed already ran this process. The manager
         # outlives every object-entry reload (each task edit reloads its
         # entry and hands the coordinator an empty _previous_statuses), and
@@ -1486,10 +1591,28 @@ class NotificationManager:
         """Get global options from the global config entry."""
         return get_global_options(self.hass)
 
-    def reminder_due(self, entry_id: str, task_id: str, status: str) -> bool:
+    def reminder_due(self, entry_id: str, task_id: str, status: str, days_until_due: int | None = None) -> bool:
         """Whether the task's ``status`` reminder would go out now (never
-        sent, or its repeat interval elapsed) — for counting a bundle."""
-        return self._status_due(notification_key(entry_id, task_id, status), self._get_interval_hours(status))
+        sent, or its repeat interval elapsed, or it is due today and was not
+        reminded today) — for counting a bundle."""
+        return self._status_due(notification_key(entry_id, task_id, status), self._get_interval_hours(status)) or self._due_today_pending(
+            entry_id, task_id, status, days_until_due
+        )
+
+    def _due_today_pending(self, entry_id: str, task_id: str, status: Any, days_until_due: int | None) -> bool:
+        """#280 / D#283: the task is due soon on its due date and nothing
+        reminded of it today — the due-today reminder goes out whatever the
+        due-soon repeat interval says (with "notify once", or every three
+        days, the due date itself passed without a word)."""
+        return reminder_kind(status, days_until_due) == DUE_TODAY and self._due_today_sent.get(task_key_of(entry_id, task_id)) != dt_util.now().date().isoformat()
+
+    def _note_due_today(self, entry_id: str, task_id: str) -> None:
+        """The task was reminded on its due date (see ``_due_today_sent``)."""
+        today = dt_util.now().date().isoformat()
+        # Only today's marks count; yesterday's are dead weight.
+        self._due_today_sent = {k: d for k, d in self._due_today_sent.items() if d == today}
+        self._due_today_sent[task_key_of(entry_id, task_id)] = today
+        self._dirty()
 
     def _status_due(self, key: str, interval_hours: int) -> bool:
         """Whether a status notification for ``key`` is due now: never sent,
@@ -1792,22 +1915,36 @@ class NotificationManager:
         key = _STATUS_INTERVAL_KEYS.get(status, CONF_NOTIFY_DUE_SOON_INTERVAL)
         return int(self._opt(key))
 
+    def _quiet_window(self, day: date) -> tuple[time, time] | None:
+        """The quiet hours of ``day``: when its evening starts and when its
+        morning ends (an overnight window), or the one stretch of a
+        same-day window. D#277: the days picked as the weekend have their
+        own, so Friday night ends on Saturday at the weekend's end. None
+        when the times cannot be read."""
+        start_key, end_key = self._quiet_keys(day)
+        try:
+            return time.fromisoformat(self._opt(start_key)), time.fromisoformat(self._opt(end_key))
+        except (ValueError, TypeError):
+            return None
+
+    def _quiet_keys(self, day: date) -> tuple[str, str]:
+        """The settings holding ``day``'s quiet start and end (D#277)."""
+        weekend = bool(self._opt(CONF_QUIET_HOURS_WEEKEND_ENABLED)) and day.weekday() in (self._opt(CONF_QUIET_HOURS_WEEKEND_DAYS) or ())
+        if weekend:
+            return CONF_QUIET_HOURS_WEEKEND_START, CONF_QUIET_HOURS_WEEKEND_END
+        return CONF_QUIET_HOURS_START, CONF_QUIET_HOURS_END
+
     def _is_quiet_hours(self) -> bool:
         """Check if current time is in quiet hours."""
         # Quiet hours default: enabled (matches config flow)
         if not self._opt(CONF_QUIET_HOURS_ENABLED):
             return False
-
-        start_str = self._opt(CONF_QUIET_HOURS_START)
-        end_str = self._opt(CONF_QUIET_HOURS_END)
-
-        try:
-            start = time.fromisoformat(start_str)
-            end = time.fromisoformat(end_str)
-        except (ValueError, TypeError):
+        current = dt_util.now()
+        window = self._quiet_window(current.date())
+        if window is None:
             return False
-
-        now = dt_util.now().time()
+        start, end = window
+        now = current.time()
 
         if start <= end:
             return start <= now <= end
@@ -1872,6 +2009,9 @@ class NotificationManager:
         lead = raw.get("lead_sent")
         if isinstance(lead, dict):
             self._lead_sent = {str(k): str(v) for k, v in lead.items()}
+        due_today = raw.get("due_today_sent")
+        if isinstance(due_today, dict):
+            self._due_today_sent = {str(k): str(v) for k, v in due_today.items()}
         try:
             self._daily_count = max(0, int(raw.get("daily_count") or 0))
         except (TypeError, ValueError):
@@ -1896,6 +2036,7 @@ class NotificationManager:
             "on_phones": dict(self._on_phones),
             "group_pushes": {tag: {part: list(items) for part, items in push.items()} for tag, push in self._group_pushes.items()},
             "lead_sent": dict(self._lead_sent),
+            "due_today_sent": dict(self._due_today_sent),
             "daily_count": self._daily_count,
             "daily_reset_date": self._daily_reset_date.isoformat() if self._daily_reset_date else None,
             "served_today": sorted(self._served_today),
@@ -1913,15 +2054,20 @@ class NotificationManager:
 
     def _quiet_period_id(self) -> str:
         """Identifies the current quiet period (the day it started + start
-        time) — the unit the skip is logged per."""
-        start = str(self._opt(CONF_QUIET_HOURS_START))
+        time) — the unit the skip is logged per. A morning belongs to the
+        period that started the evening before, at that day's start."""
         now = dt_util.now()
-        try:
-            start_t = time.fromisoformat(start)
-        except (TypeError, ValueError):
-            start_t = time(0, 0)
+
+        def start_of(day: date) -> tuple[str, time]:
+            raw = str(self._opt(self._quiet_keys(day)[0]))
+            try:
+                return raw, time.fromisoformat(raw)
+            except (TypeError, ValueError):
+                return raw, time(0, 0)
+
+        _raw, start_t = start_of(now.date())
         day = now.date() if now.time() >= start_t else (now - timedelta(days=1)).date()
-        return f"{day.isoformat()}T{start}"
+        return f"{day.isoformat()}T{start_of(day)[0]}"
 
     def _note_quiet_skip(self, what: str) -> None:
         """Log the quiet-hours skip ONCE per quiet period (it used to log on
@@ -2005,7 +2151,13 @@ class NotificationManager:
         lang = self._lang
         parts: list[str] = []
         for f in held:
-            line = _bundled_line(f.get("status"), lang, str(f.get("task_name") or ""), self._trigger_detail(f.get("status"), f.get("entry_id"), f.get("task_id")))
+            line = _bundled_line(
+                f.get("status"),
+                lang,
+                str(f.get("task_name") or ""),
+                self._trigger_detail(f.get("status"), f.get("entry_id"), f.get("task_id")),
+                f.get("days_until_due"),
+            )
             parts.append(f"{f.get('object_name') or ''}: {line}" if f.get("object_name") else line)
         title = _notif_t("quiet_end_title", lang, count=str(len(held)))
         message = "; ".join(parts)
@@ -2041,6 +2193,8 @@ class NotificationManager:
             self._quiet_held.pop(key, None)
             if f.get("entry_id") and f.get("task_id"):
                 keys.append(task_key_of(str(f["entry_id"]), str(f["task_id"])))
+                if reminder_kind(f.get("status"), f.get("days_until_due")) == DUE_TODAY:
+                    self._note_due_today(str(f["entry_id"]), str(f["task_id"]))
         self._mark_delivered(keys)
         # One tag for every recipient's summary: what they list adds up,
         # within one morning. Added to yesterday's as well, the summary
@@ -2223,10 +2377,15 @@ class NotificationManager:
             _LOGGER.debug("Skipping %s notification for %s (%s)", new_status, task_id, gate.blocked_by)
             return
 
-        # Rate limiting / interval
+        # Rate limiting / interval; the due date itself is reminded of once
+        # whatever the interval (#280, D#283).
         key = notification_key(entry_id, task_id, new_status)
         interval_hours = self._get_interval_hours(new_status)
-        if not self._status_due(key, interval_hours):
+
+        def _due() -> bool:
+            return self._status_due(key, interval_hours) or self._due_today_pending(entry_id, task_id, new_status, days_until_due)
+
+        if not _due():
             return
 
         # Quiet hours: hold the reminder — it goes out in the one summary at
@@ -2246,7 +2405,7 @@ class NotificationManager:
                 },
             )
             return
-        if await self.async_flush_quiet_held() and not self._status_due(key, interval_hours):
+        if await self.async_flush_quiet_held() and not _due():
             return  # this task was part of the summary
 
         # Daily limit with priority + fairness (a refusal is not stamped, so
@@ -2297,6 +2456,8 @@ class NotificationManager:
             return
 
         self._stamp_status_sent(key, interval_hours)
+        if reminder_kind(new_status, days_until_due) == DUE_TODAY:
+            self._note_due_today(entry_id, task_id)
         self._mark_delivered([task_key])
         self._count_pushed(task_key)
         self._on_phones[task_key] = ON_PHONES_STATUS
@@ -2405,8 +2566,9 @@ class NotificationManager:
         ``task`` (its config) brings its own texts (#252): a title replaces
         the styled one, a message the standard one. ``detail`` (#228, what a
         trigger is about) follows the message on its own line, unless an own
-        text puts ``{detail}`` where it belongs."""
-        kind = str(status)
+        text puts ``{detail}`` where it belongs. A task due soon on its due
+        date speaks the due-today texts (#280, D#283)."""
+        kind = reminder_kind(status, days_until_due)
         # One set of values for the standard text and the task's own: the
         # days of an overdue task count up, an unknown number reads "?".
         days = abs(days_until_due) if kind == MaintenanceStatus.OVERDUE and days_until_due is not None else days_until_due
@@ -2420,15 +2582,19 @@ class NotificationManager:
             # event keeps the ISO date (``next_due``).
             "due": (spoken_iso_date(next_due, lang) or next_due) if next_due is not None else "?",
             "detail": detail or "",
+            "days_since": days_since_done(task),
         }
-        title, message = self._standard_message(status, lang, values)
+        title, message = self._standard_message(kind, lang, values)
         title = self._styled_title(title, task_name, object_name)
         if kind in NOTIFICATION_TEXT_PLACEHOLDERS:
-            own_title = own_text_raw(task, kind, "title")
-            own_message = own_text_raw(task, kind, "message")
-            title = own_text(task, kind, "title", values) or title
-            message = own_text(task, kind, "message", values) or message
-            if "{detail}" in f"{own_title or ''}{own_message or ''}":
+            # Without a due-today text of its own the task's due-soon text
+            # speaks on the due day too: it was written for every reminder
+            # before the task is late.
+            own_kinds = (DUE_TODAY, str(MaintenanceStatus.DUE_SOON)) if kind == DUE_TODAY else (kind,)
+            raw = "".join(own_text_raw(task, k, field) or "" for k in own_kinds for field in ("title", "message"))
+            title = next((text for k in own_kinds if (text := own_text(task, k, "title", values))), None) or title
+            message = next((text for k in own_kinds if (text := own_text(task, k, "message", values))), None) or message
+            if "{detail}" in raw:
                 detail = None  # in its place already
         if detail:
             message = f"{message}\n{detail}"
@@ -2436,10 +2602,14 @@ class NotificationManager:
 
     @staticmethod
     def _standard_message(status: str, lang: str, values: Mapping[str, str]) -> tuple[str, str]:
-        """The translated standard title and message of a status reminder,
-        from the values :meth:`_build_message` worked out."""
+        """The translated standard title and message of a status reminder
+        (or :data:`DUE_TODAY`), from the values :meth:`_build_message`
+        worked out."""
         task, obj = values["task"], values["object"]
-        if status == MaintenanceStatus.DUE_SOON:
+        if status == DUE_TODAY:
+            title = _notif_t("due_today_title", lang)
+            message = _notif_t("due_today_message", lang, task=task, object=obj)
+        elif status == MaintenanceStatus.DUE_SOON:
             title = _notif_t("due_soon_title", lang)
             message = _notif_t("due_soon_message", lang, task=task, object=obj, days=values["days"], due=values["due"])
         elif status == MaintenanceStatus.OVERDUE:
@@ -2554,7 +2724,13 @@ class NotificationManager:
         by_object: dict[str, list[str]] = {}
         for t in due:
             by_object.setdefault(str(t["object_name"]), []).append(
-                _bundled_line(t["status"], lang, str(t["task_name"]), self._trigger_detail(t["status"], t["entry_id"], t["task_id"], t.get("task_data")))
+                _bundled_line(
+                    t["status"],
+                    lang,
+                    str(t["task_name"]),
+                    self._trigger_detail(t["status"], t["entry_id"], t["task_id"], t.get("task_data")),
+                    t.get("days_until_due"),
+                )
             )
         task_list = "; ".join(f"{name}: {', '.join(lines)}" for name, lines in by_object.items())
         entry_ids = sorted({str(t["entry_id"]) for t in due})
@@ -2613,7 +2789,7 @@ class NotificationManager:
                 if not t.get("task_id"):
                     continue
                 key = notification_key(entry_id, t["task_id"], t["status"])
-                if self._status_due(key, self._get_interval_hours(t["status"])):
+                if self.reminder_due(entry_id, t["task_id"], t["status"], t.get("days_until_due")):
                     self._hold_for_quiet_end(key, {"entry_id": entry_id, "task_id": t["task_id"], "task_name": t.get("task_name"), "object_name": object_name, "status": t["status"], "days_until_due": t.get("days_until_due")})
             return
         await self.async_flush_quiet_held()
@@ -2640,7 +2816,7 @@ class NotificationManager:
                 task_may_notify(
                     self.hass, entry_id, t["task_id"], t["status"], self._task_config(entry_id, t["task_id"]), kind=KIND_BUNDLE, manager=self
                 )
-                and self._status_due(notification_key(entry_id, t["task_id"], t["status"]), self._get_interval_hours(t["status"]))
+                and self.reminder_due(entry_id, t["task_id"], t["status"], t.get("days_until_due"))
             )
         ]
         if not due:
@@ -2653,7 +2829,9 @@ class NotificationManager:
             return
 
         lang = self._lang
-        task_parts = [_bundled_line(t["status"], lang, t["task_name"], self._trigger_detail(t["status"], entry_id, t.get("task_id"))) for t in tasks]
+        task_parts = [
+            _bundled_line(t["status"], lang, t["task_name"], self._trigger_detail(t["status"], entry_id, t.get("task_id")), t.get("days_until_due")) for t in tasks
+        ]
 
         title = _notif_t("bundled_title", lang, count=str(len(tasks)))
         message = _notif_t("bundled_message", lang, object=object_name, task_list=", ".join(task_parts))
@@ -2688,6 +2866,8 @@ class NotificationManager:
                 for t in tasks:
                     if t.get("task_id"):
                         self._stamp_status_sent(notification_key(entry_id, t["task_id"], t["status"]), self._get_interval_hours(t["status"]))
+                        if reminder_kind(t["status"], t.get("days_until_due")) == DUE_TODAY:
+                            self._note_due_today(entry_id, t["task_id"])
                 self._mark_delivered(member_keys)
                 self._note_group_push(bundle_tag(entry_id), member_keys, [self.notify_service], replace=True)
                 for t in tasks:
@@ -2776,6 +2956,10 @@ class NotificationManager:
         today = dt_util.now().date().isoformat()
         if self._lead_sent.get(lead_key) == today:
             return
+        # D#283: a lead of 0 days is the due-today reminder; when the status
+        # path (or a summary) already sent that, the due day got two pings.
+        if days == 0 and self._due_today_sent.get(task_key_of(entry_id, task_id)) == today:
+            return
         if self._is_quiet_hours():
             self._note_quiet_skip("a lead-time reminder")
             return
@@ -2833,6 +3017,13 @@ class NotificationManager:
             # Keep only today's stamps - yesterday's are dead weight.
             self._lead_sent = {k: d for k, d in self._lead_sent.items() if d == today}
             self._lead_sent[lead_key] = today
+            if days == 0:
+                # It was the due-today reminder: the status path, whose
+                # due-soon repeat may fall due later today, stays silent.
+                self._note_due_today(entry_id, task_id)
+                self._stamp_status_sent(
+                    notification_key(entry_id, task_id, MaintenanceStatus.DUE_SOON), self._get_interval_hours(MaintenanceStatus.DUE_SOON)
+                )
             self._dirty()
             _LOGGER.debug("Lead reminder sent: %s due in %s day(s)", task_name, days)
 
@@ -2912,12 +3103,13 @@ class NotificationManager:
         self._seeded_entries.add(entry_id)
         return True
 
-    def seed_startup_state(self, entry_id: str, task_id: str, status: str) -> None:
+    def seed_startup_state(self, entry_id: str, task_id: str, status: str, days_until_due: int | None = None) -> None:
         """Seed notification state for a task that is already notifiable at startup.
 
         Called once on first coordinator refresh to prevent a burst of stale
         notifications.  Sets the ``_last_notified`` timestamp so the repeat
-        interval starts *now* rather than firing immediately.
+        interval starts *now* rather than firing immediately. A task due
+        today counts as reminded of today, too.
         """
         key = notification_key(entry_id, task_id, status)
         if key in self._last_notified:
@@ -2933,6 +3125,8 @@ class NotificationManager:
             self._last_notified[key] = _SENT_ONCE
         else:
             self._last_notified[key] = dt_util.now()
+        if reminder_kind(status, days_until_due) == DUE_TODAY:
+            self._note_due_today(entry_id, task_id)
         # Seeded as sent: the previous process's push is taken to be there.
         self._on_phones.setdefault(tkey, ON_PHONES_STATUS)
         self._dirty()
@@ -3006,6 +3200,7 @@ class NotificationManager:
         self._deferred_today.discard(tkey)
         self._starved.discard(tkey)
         self._on_phones.pop(tkey, None)
+        self._due_today_sent.pop(tkey, None)
         self._leave_group_pushes(tkey)
         self._dirty()
 
@@ -3113,6 +3308,7 @@ class NotificationManager:
             self._quiet_held,
             self._on_phones,
             self._lead_sent,
+            self._due_today_sent,
         )
         for mapping in mappings:
             for key in [k for k in mapping if k.startswith(prefix)]:

@@ -296,7 +296,7 @@ from suggested setups use the same mechanism.)
 **Events and automations.** Every completion, skip and reset fires an event
 with the details (`maintenance_supporter_task_completed` …); Home Assistant
 2026.7+ also offers maintenance triggers and conditions directly in the
-automation editor. Your own notification rule, as Developer tools sees it:
+automation editor. Your own notification rule, as *Settings → Tools → Events* shows it:
 
 ![The notification event and its payload](images/gifs/notification-event.gif)
 

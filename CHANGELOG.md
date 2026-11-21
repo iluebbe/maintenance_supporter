@@ -2,24 +2,68 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.125.0] - 2026-11-22
 
-### ✨ Added
+A reminder for the due date itself, quiet hours per day, to-do lists per object and per person, rotation by
+weekday, a rule for "nothing happened for days", new template tasks and Slovak.
 
-- **Slovak (`sk`).** Config flow, panel and cards, notifications, logbook, calendar, the buy-task name, the
-  template catalog (templates, tasks, notes and categories), region names and the Assist responses speak
-  Slovak — the 23rd language (#285).
+### ✨ New
+
+- **Due today** (#280, discussion #283). On the due date itself the reminder says *"Bins for Kitchen is due
+  today"* instead of *"due in 0 day(s)"*. It has a text of its own (*Own notification texts → Due today*; without
+  one the task's due-soon text is used) and goes out once on that day, whatever the due-soon repeat interval, also
+  with *notify once*. A lead-time reminder of 0 days counts as it, so the due day gets one ping, not two. Bundles
+  and the quiet-hours summary say *(due today)*.
+- **`{days_since}`** in own notification texts (discussion #282): the days since the task was last done.
+- **Other quiet hours on some days** (discussion #277). Pick the days (Saturday and Sunday by default) and their
+  own start and end. Such a day's morning ends and its evening starts at its own times.
+- **To-do lists of an object and of a person** (#273). The object dialog sends its tasks to its own lists, before
+  the default lists. *Settings → General → People's own to-do lists* gives each person a list: their tasks go onto
+  it too, and a tick there completes the task as them. The task editor has a to-do row of its own.
+- **Rotation by weekday** (discussion #284). Each person gets a row of weekday chips; the task goes to whoever's
+  day its due date falls on. A rotating task's page lists the next turns with their weekday (*Fri, Nov 20 · Anna*),
+  for the other rotations too, and the calendar shows each coming date's person. With *My tasks* it keeps your own
+  turns, up to five of your own dates however many of the others' lie in between.
+- **Nothing happens for days** (discussion #275). A sensor rule that makes the task due once an entity has not
+  changed for N days, or, as a kind of its own, once it has been unavailable that long.
+- **New template tasks** (discussion #85, thanks jose1711): kitchen care (wood cutting boards, kettle, coffee
+  grinder, toaster crumb tray, hood carbon filter, fridge water and carbon filters, medicines), surge protectors,
+  bed frame screws, toothbrushes, a hot dishwasher cleaning cycle, outdoor light covers and wall cracks. Objects
+  made from these templates are offered them once.
+- **Slovak** (#287, discussion #285, thanks jose1711) as the 23rd language, translated and reviewed by a native
+  speaker: config flow, panel and cards, notifications, logbook, calendar, voice responses, region names and the
+  template catalog.
+
+### 🐛 Fixed
+
+- **Garmin's Body Battery in the battery fleet** (#286). Its percent sensors were taken for batteries by their
+  name.
+- **Suggested setups in your language** (#287, thanks jose1711). The dialog named its tasks in the server's
+  language, so a profile in another language got English names next to a translated template gallery. The
+  suggestions, their preview and the tasks they create now use your profile language.
 
 ### 🔧 Developer notes
 
-- `translations/sk.json`, `frontend-src/locales/sk.json`; `sk` in `SUPPORTED_LANGS`, `langToLocale` (`sk-SK`),
-  `NOTIFICATION_LANGUAGE_NAMES` / `NOTIFICATION_LANGUAGES`, `PANEL_TITLES`, `DECIMAL_COMMA_LANGUAGES`,
-  `_BUY_NAME_TEMPLATES` and the six in-python string tables.
-- `sk` in `templates_i18n.py` (all 921 entries), `TEMPLATE_CATEGORIES` (`name_sk`), `data/regions/names_i18n.json`
-  and a new `assist_sentences/responses/sk.json`.
-- `tests/test_i18n.py`: `sk` in `_EXPECTED_LANGUAGES`; the Slovak cognates *Model*, *Interval* and *Trend*
-  allowlisted like Czech. `tests/test_i18n_audit_2026_09_27.py`: `sk` in the region-name `LANGUAGES`.
-- Docs: the language count says 23 (README, FEATURES, ARCHITECTURE, CONTRIBUTING, `data/regions/README.md`).
+- Due today: `notification_manager.reminder_kind` returns `due_today`, sent once per day (`_due_today_sent`); its
+  own text slot falls back to the due-soon text.
+- Quiet hours: four settings `quiet_hours_weekend_*` (days 0 to 6, default Saturday and Sunday).
+- To-do lists: `mirror_todo_entities` on the object, `todo_person_lists` in the settings (user id to list).
+- Rotation: `rotation_strategy: by_weekday` with `weekday_assignees` (seven entries); the person on duty is derived
+  from the due date on every read (`helpers/rotation_turns.py`). The task summary's `upcoming_turns` go on until
+  everybody on the rota has five dates (at most 35); the task page lists six.
+- Idle rule: trigger type `idle` (`trigger_idle_days`, `trigger_idle_mode` `no_change` or `unavailable`),
+  `entity/triggers/idle.py`, config and options flow steps `trigger_idle` / `opt_trigger_idle`.
+- `integration_setups/discover`, `/preview` and `/adopt` take an optional `language` (the asking user's).
+- Battery fleet: `body_battery` in the name heuristic's exclusions.
+- Slovak: `translations/sk.json`, `frontend-src/locales/sk.json`, `assist_sentences/responses/sk.json`; `sk` in
+  `SUPPORTED_LANGS`, `langToLocale` (`sk-SK`), the notification language lists, `PANEL_TITLES`,
+  `DECIMAL_COMMA_LANGUAGES`, `_BUY_NAME_TEMPLATES`, the in-python string tables, `templates_i18n.py`,
+  `TEMPLATE_CATEGORIES` (`name_sk`) and `data/regions/names_i18n.json`; `scripts/add_locale_key.py` knows it.
+- Tests: `tests/test_github_round_2026_11_19.py`, `frontend-src/__tests__/github-round-2026-11-19.test.ts`,
+  `tests/test_integration_setups.py` (45 mutations RED).
+- Docs: paths through Home Assistant's tools read *Settings → Tools* (*Developer tools* before 2026.8). The
+  screenshots and GIFs were retaken on a demo with five weeks of recorded sensor states (`e2e/demo-history.mjs`,
+  `docker/demo_history_fixture`; docs tooling only).
 
 ## [2.124.1] - 2026-11-17
 

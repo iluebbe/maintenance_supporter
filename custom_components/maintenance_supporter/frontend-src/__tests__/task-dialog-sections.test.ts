@@ -38,10 +38,10 @@ const labelsIn = (root: ShadowRoot, cls: string) =>
 describe("task dialog sections (#216)", () => {
   it("orders the sections by question; the trigger only for sensor tasks", async () => {
     expect(sections(await open({ schedule_type: "time_based", interval_days: 30 }))).to.deep.equal([
-      "schedule-section", "completion-section", "people-section", "notifications-section",
+      "schedule-section", "completion-section", "people-section", "notifications-section", "todo-section",
     ]);
     expect(sections(await open({ schedule_type: "sensor_based", trigger_config: { type: "threshold", entity_id: "sensor.x", trigger_above: 5 } }))).to.deep.equal([
-      "schedule-section", "trigger-section", "completion-section", "people-section", "notifications-section",
+      "schedule-section", "trigger-section", "completion-section", "people-section", "notifications-section", "todo-section",
     ]);
   });
 
@@ -55,7 +55,8 @@ describe("task dialog sections (#216)", () => {
     expect(root.querySelector(".completion-section .phases-section"), "cycle phases").to.exist;
     expect(schedule.some((l) => /earliest/i.test(l)), "earliest completion is a schedule rule").to.equal(true);
     expect(labelsIn(root, "completion-section").some((l) => /earliest/i.test(l))).to.equal(false);
-    expect(root.querySelector(".notifications-section .mirror-todo-field"), "to-do mirror").to.exist;
+    // #273: the to-do lists are a section of their own.
+    expect(root.querySelector(".todo-section .mirror-todo-field"), "to-do mirror").to.exist;
     expect(labelsIn(root, "people-section").some((l) => /responsible/i.test(l)), "responsible user").to.equal(true);
     const mute = [...root.querySelectorAll(".req-option")].find((n) => /no notifications/i.test(n.textContent || ""));
     expect(mute?.closest("section")?.classList.contains("notifications-section"), "no notifications").to.equal(true);

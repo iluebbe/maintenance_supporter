@@ -156,6 +156,7 @@ def _build_export_object(
             # export audit), so backups silently dropped the requirement.
             "required_completion_fields": tdata.get("required_completion_fields"),
             "rotation_strategy": tdata.get("rotation_strategy"),
+            "weekday_assignees": tdata.get("weekday_assignees"),
             "reading_unit": tdata.get("reading_unit"),
             # #161 phase 2: reading slots (history carries the per-slot values).
             "readings": tdata.get("readings"),
@@ -262,6 +263,9 @@ def _build_export_object(
         export_obj["place"] = obj_data["place"]
         if obj_data.get("remind_on_site") is True:
             export_obj["remind_on_site"] = True
+    # #273: the object's to-do lists, as a task's own are exported.
+    if obj_data.get("mirror_todo_entities"):
+        export_obj["mirror_todo_entities"] = list(obj_data["mirror_todo_entities"])
     # Battery fleet identity — only emitted for the fleet object so a plain
     # object's export stays byte-identical to earlier versions. The importer
     # mirrors these (and keeps the deterministic ``batt_<type>`` part ids).
@@ -392,6 +396,7 @@ _NON_PORTABLE_SETTINGS = (
     "adopted_task_notes",
     "shopping_list_entity",
     "mirror_todo_default_entities",
+    "todo_person_lists",
     "member_display",
 )
 

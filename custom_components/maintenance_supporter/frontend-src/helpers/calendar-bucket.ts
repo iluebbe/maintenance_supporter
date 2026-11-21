@@ -15,6 +15,12 @@
  * `upcoming_dates` (computed by the schedule engine) and they are drawn as
  * given, under the same cap.
  *
+ * A rotation (D#284) brings its dates with the person on duty for each
+ * (`upcoming_turns`), and they are drawn as given too. Under a person filter
+ * the cap counts that person's dates, not everybody's: of a daily task two
+ * people share, each sees five of their own days, not the two or three that
+ * fall among the next five.
+ *
  * Sensor-triggered tasks: only next_due is shown — we have no honest way to
  * predict when a sensor will next fire.
  */
@@ -96,14 +102,37 @@ interface ProjectionInput {
   task: any;           // panel's task shape from MaintenanceObjectResponse
   entryId: string;
   objectName: string;
+  /** How many occurrences at most (default MAX_OCCURRENCES_PER_TASK). */
+  limit?: number;
+}
+
+type Turn = { date: string; user_id: string | null };
+
+/** D#284: shared by two or more people who take turns. */
+function rotates(task: ProjectionInput["task"]): boolean {
+  return (task.assignee_pool?.length ?? 0) >= 2 && !!task.rotation_strategy;
+}
+
+/** The server's coming turns: the next due date first, then the dates after it. */
+function turnsOf(task: ProjectionInput["task"]): Turn[] {
+  return Array.isArray(task.upcoming_turns) ? task.upcoming_turns : [];
+}
+
+/** D#284: whose turn a coming date of a rotating task is; the current
+ *  person carried forward read as theirs for good. Unknown (a date past the
+ *  coming turns, a random rotation) is nobody's name. */
+function turnOn(task: ProjectionInput["task"], date: string): string | null {
+  if (!rotates(task)) return task.responsible_user_id ?? null;
+  return turnsOf(task).find((turn) => turn.date === date)?.user_id ?? null;
 }
 
 /**
- * Project up to MAX_OCCURRENCES_PER_TASK occurrences for a single task.
- * Returns events keyed by their bucketed date.
+ * Project up to `limit` (MAX_OCCURRENCES_PER_TASK) occurrences for a single
+ * task. Returns events keyed by their bucketed date.
  */
 function projectTask(input: ProjectionInput): CalendarEvent[] {
   const { windowStart, windowEnd, task, entryId, objectName } = input;
+  const limit = input.limit ?? MAX_OCCURRENCES_PER_TASK;
   const out: CalendarEvent[] = [];
 
   const baseEvent = (date: string, projected: boolean): CalendarEvent => ({
@@ -126,7 +155,7 @@ function projectTask(input: ProjectionInput): CalendarEvent[] {
     schedule_type: task.schedule_type,
     interval_days: task.interval_days ?? null,
     interval_unit: task.interval_unit ?? null,
-    responsible_user_id: task.responsible_user_id ?? null,
+    responsible_user_id: projected ? turnOn(task, date) : (task.responsible_user_id ?? null),
     avg_cost: computeAvgCost(task.history),
     adaptive_enabled: !!task.adaptive_config?.enabled,
     prediction_confidence: task.threshold_prediction_confidence ?? null,
@@ -139,13 +168,17 @@ function projectTask(input: ProjectionInput): CalendarEvent[] {
     1, Math.round(intervalSpanDays(task.interval_days, task.interval_unit)),
   );
 
-  // #266: a calendar-kind schedule brings its coming dates from the engine.
-  const upcoming: string[] = Array.isArray(task.upcoming_dates)
-    ? task.upcoming_dates.filter((d: unknown): d is string => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d))
-    : [];
+  // #266: a calendar-kind schedule brings its coming dates from the engine,
+  // and so does a rotation (D#284): the dates after the first of its turns,
+  // so every drawn date has its person (a random one knows only the first).
+  const isDate = (d: unknown): d is string => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d);
+  const scheduled: string[] = Array.isArray(task.upcoming_dates) ? task.upcoming_dates.filter(isDate) : [];
+  const upcoming: string[] = scheduled.length || !rotates(task)
+    ? scheduled
+    : turnsOf(task).slice(1).map((turn) => turn.date).filter(isDate);
   const pushUpcoming = (after: string): void => {
     for (const d of upcoming) {
-      if (out.length >= MAX_OCCURRENCES_PER_TASK) break;
+      if (out.length >= limit) break;
       if (d > after && d >= windowStart && d <= windowEnd) out.push(baseEvent(d, true));
     }
   };
@@ -161,7 +194,7 @@ function projectTask(input: ProjectionInput): CalendarEvent[] {
     if (task.schedule_type === "time_based" && task.interval_days && task.interval_days > 0) {
       let cursor = addDaysIso(windowStart, stepDays);
       let count = 1;
-      while (cursor <= windowEnd && count < MAX_OCCURRENCES_PER_TASK) {
+      while (cursor <= windowEnd && count < limit) {
         out.push(baseEvent(cursor, true));
         count++;
         cursor = addDaysIso(cursor, stepDays);
@@ -193,7 +226,7 @@ function projectTask(input: ProjectionInput): CalendarEvent[] {
   if (task.schedule_type === "time_based" && task.interval_days && task.interval_days > 0) {
     let cursor = addDaysIso(firstDate, stepDays);
     let count = out.length;
-    while (cursor <= windowEnd && count < MAX_OCCURRENCES_PER_TASK) {
+    while (cursor <= windowEnd && count < limit) {
       // Skip occurrences before window start (when next_due itself was past)
       if (cursor >= windowStart) {
         out.push(baseEvent(cursor, true));
@@ -233,14 +266,30 @@ export function buildCalendarBuckets(
     const entryId = obj.entry_id;
     const tasks = obj.tasks || [];
     for (const task of tasks) {
+      // D#284: a rotating task is filtered per date, by whose turn it is
+      // (a date nobody has is everyone's it is shared with): the next
+      // person sees their coming turns, not only today's holder.
+      const rotating = rotates(task);
       // User filter
-      if (userFilter && !taskIsFor(task, userFilter)) continue;
+      if (userFilter && !rotating && !taskIsFor(task, userFilter)) continue;
       // Disabled tasks never produce calendar events
       if (task.enabled === false) continue;
-      const projected = projectTask({
+      if (!(userFilter && rotating)) {
+        allEvents.push(...projectTask({ windowStart, windowEnd, task, entryId, objectName }));
+        continue;
+      }
+      // One person's dates among everybody's: look as far as the turns are
+      // known, then the cap counts what this viewer sees.
+      const everyones = projectTask({
         windowStart, windowEnd, task, entryId, objectName,
+        limit: Math.max(MAX_OCCURRENCES_PER_TASK, turnsOf(task).length),
       });
-      allEvents.push(...projected);
+      const pool: string[] = task.assignee_pool ?? [];
+      allEvents.push(
+        ...everyones
+          .filter((ev) => (ev.responsible_user_id ? ev.responsible_user_id === userFilter : pool.includes(userFilter)))
+          .slice(0, MAX_OCCURRENCES_PER_TASK),
+      );
     }
   }
 

@@ -348,6 +348,29 @@
           "go_back": "Return to trigger type selection without saving."
         }
       },
+      "trigger_idle": {
+        "title": "Idle Configuration",
+        "description": "Watch {entity_id} (now: {current_state}). The task becomes due once nothing has happened for the chosen number of days.",
+        "data": {
+          "trigger_idle_days": "Days of quiet",
+          "trigger_idle_mode": "What counts as quiet",
+          "interval_days": "Safety interval",
+          "interval_unit": "Interval unit",
+          "trigger_combinator": "Combine trigger and interval",
+          "warning_days": "Warning days before due",
+          "go_back": "Go back",
+          "auto_complete_on_recovery": "Auto-complete when the sensor recovers"
+        },
+        "data_description": {
+          "trigger_idle_days": "The count starts again with the next change, and when the task is completed.",
+          "trigger_idle_mode": "No change: the value stays the same (unavailable in between does not count). Unavailable: the entity is unavailable or unknown.",
+          "interval_days": "Optional time-based safety interval in addition to the sensor trigger.",
+          "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
+          "trigger_combinator": "Whichever first (default): trigger or elapsed interval makes the task due. Both required: the task only becomes due once the trigger fired and the interval elapsed.",
+          "warning_days": "Number of days before due date to show a warning.",
+          "go_back": "Return to trigger type selection without saving."
+        }
+      },
       "compound_logic": {
         "title": "Compound Trigger",
         "description": "Choose how multiple conditions should be combined.",
@@ -670,6 +693,10 @@
           "quiet_hours_enabled": "Enable quiet hours",
           "quiet_hours_start": "Quiet hours start",
           "quiet_hours_end": "Quiet hours end",
+          "quiet_hours_weekend_enabled": "Other quiet hours on some days",
+          "quiet_hours_weekend_days": "Days with their own quiet hours",
+          "quiet_hours_weekend_start": "Their quiet hours start",
+          "quiet_hours_weekend_end": "Their quiet hours end",
           "max_notifications_per_day": "Max notifications per day",
           "notification_bundling_enabled": "Bundle notifications",
           "notification_bundle_threshold": "Bundle threshold",
@@ -690,6 +717,8 @@
           "notify_overdue_interval_hours": "How often to repeat the overdue reminder. Set to 0 for a single notification.",
           "notify_triggered_interval_hours": "How often to repeat the triggered notification. Set to 0 for a single notification.",
           "quiet_hours_enabled": "Suppress notifications during quiet hours.",
+          "quiet_hours_weekend_enabled": "On the days picked, the morning ends and the evening starts at their own times.",
+          "quiet_hours_weekend_end": "With Saturday picked, Friday night lasts until this time on Saturday.",
           "max_notifications_per_day": "Maximum number of notifications per day. Set to 0 for unlimited.",
           "notification_bundling_enabled": "Send a single summary notification when multiple tasks need attention.",
           "notification_bundle_threshold": "Minimum number of tasks to trigger a bundled notification.",
@@ -1134,6 +1163,28 @@
           "warning_days": "Number of days before due date to show a warning."
         }
       },
+      "opt_trigger_idle": {
+        "title": "Idle Configuration",
+        "description": "Watch {entity_id} (now: {current_state}). The task becomes due once nothing has happened for the chosen number of days.",
+        "data": {
+          "trigger_idle_days": "Days of quiet",
+          "trigger_idle_mode": "What counts as quiet",
+          "interval_days": "Safety interval",
+          "interval_unit": "Interval unit",
+          "trigger_combinator": "Combine trigger and interval",
+          "warning_days": "Warning days before due",
+          "go_back": "Go back",
+          "auto_complete_on_recovery": "Auto-complete when the sensor recovers"
+        },
+        "data_description": {
+          "trigger_idle_days": "The count starts again with the next change, and when the task is completed.",
+          "trigger_idle_mode": "No change: the value stays the same (unavailable in between does not count). Unavailable: the entity is unavailable or unknown.",
+          "interval_days": "Optional time-based safety interval in addition to the sensor trigger.",
+          "interval_unit": "Unit for the interval: days, weeks, months or years. Months and years follow the calendar.",
+          "trigger_combinator": "Whichever first (default): trigger or elapsed interval makes the task due. Both required: the task only becomes due once the trigger fired and the interval elapsed.",
+          "warning_days": "Number of days before due date to show a warning."
+        }
+      },
       "compound_logic": {
         "title": "Compound Trigger",
         "description": "Choose how multiple conditions should be combined.",
@@ -1339,7 +1390,11 @@
         "description": "{member}: leave the initials empty and the colour on Automatic to use the default ({initials}).",
         "data": {
           "initials": "Initials",
-          "color": "Colour"
+          "color": "Colour",
+          "todo_list": "Own to-do list"
+        },
+        "data_description": {
+          "todo_list": "Their tasks also appear on this list, and a tick there completes the task as them."
         }
       },
       "battery_lifetimes": {
@@ -2132,6 +2187,7 @@
         "state_change": "State Change",
         "runtime": "Runtime",
         "due_date": "Due date (reported by a sensor)",
+        "idle": "Idle (nothing happened for days)",
         "compound": "Compound (Multiple Conditions)"
       }
     },
@@ -2237,7 +2293,8 @@
         "none": "No rotation",
         "round_robin": "Round-robin",
         "least_completed": "Least completed",
-        "random": "Random"
+        "random": "Random",
+        "by_weekday": "By weekday (the days are set in the panel)"
       }
     },
     "task_priority": {
@@ -2245,6 +2302,12 @@
         "low": "Low",
         "normal": "Normal",
         "high": "High"
+      }
+    },
+    "trigger_idle_mode": {
+      "options": {
+        "no_change": "No change",
+        "unavailable": "Unavailable"
       }
     }
   },

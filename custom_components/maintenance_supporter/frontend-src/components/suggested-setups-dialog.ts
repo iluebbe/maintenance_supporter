@@ -133,9 +133,11 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
     this._selected = new Set();
     this._offers = [];
     void this._loadOffers();
+    // The suggested names come in the viewer's language, like the template
+    // gallery's (the server's own language only when nobody says).
     const resp = await runWs<{ setups: SuggestedSetup[] }>(
       this,
-      { type: "maintenance_supporter/integration_setups/discover" },
+      { type: "maintenance_supporter/integration_setups/discover", language: this._lang },
       { onError: (m) => { this._error = m; } },
     );
     if (resp !== undefined) {
@@ -250,6 +252,7 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
         type: "maintenance_supporter/integration_setups/preview",
         device_id: setup.device_id,
         entry_id: value === NEW ? null : value,
+        language: this._lang,
       },
       { onError: (m) => { this._error = m; } },
     );
@@ -282,7 +285,7 @@ export class MaintenanceSuggestedSetupsDialog extends LitElement {
     if (selections.length === 0) return;
     const result = await runWs<AdoptResponse>(
       this,
-      { type: "maintenance_supporter/integration_setups/adopt", selections },
+      { type: "maintenance_supporter/integration_setups/adopt", selections, language: this._lang },
       { busy: (b) => { this._adopting = b; }, onError: (m) => { this._error = m; } },
     );
     if (result === undefined) return;

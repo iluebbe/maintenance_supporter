@@ -36,6 +36,7 @@ _TRIGGER_REQUIRED_FIELDS: dict[str, list[str]] = {
     "state_change": [],
     "runtime": ["trigger_runtime_hours"],
     "due_date": [],  # trigger_days_before defaults to 0 = on the date itself
+    "idle": ["trigger_idle_days"],  # D#275
     "compound": [],  # conditions validated separately
 }
 
@@ -67,6 +68,9 @@ _TRIGGER_ALLOWED_KEYS: set[str] = {
     CONF_TRIGGER_HOLD_UNTIL_DONE,
     # due_date
     "trigger_days_before",
+    # idle (D#275): quiet for N days; what counts as quiet
+    "trigger_idle_days",
+    "trigger_idle_mode",
     # compound
     "compound_logic",
     "conditions",
@@ -162,6 +166,14 @@ def _validate_trigger_config(
             "so every reading would trigger the task and it could never recover. "
             "Leave one of them empty."
         )
+
+    # D#275: what counts as quiet — no change (default) or unavailable.
+    if trigger_type == "idle":
+        mode = trigger_config.get("trigger_idle_mode")
+        if mode is None or mode == "no_change":
+            trigger_config.pop("trigger_idle_mode", None)
+        elif mode != "unavailable":
+            errors.append("trigger_config.trigger_idle_mode must be 'no_change' or 'unavailable'")
 
     # Runtime: validate trigger_on_states if provided
     if trigger_type == "runtime":

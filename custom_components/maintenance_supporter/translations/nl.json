@@ -348,6 +348,29 @@
           "go_back": "Terug naar triggertypeselectie zonder op te slaan."
         }
       },
+      "trigger_idle": {
+        "title": "Rust-configuratie",
+        "description": "Volgt {entity_id} (nu: {current_state}). De taak moet gebeuren zodra er het gekozen aantal dagen niets is gebeurd.",
+        "data": {
+          "trigger_idle_days": "Dagen rust",
+          "trigger_idle_mode": "Wat telt als rust",
+          "interval_days": "Veiligheidsinterval",
+          "interval_unit": "Intervaleenheid",
+          "trigger_combinator": "Trigger en interval combineren",
+          "warning_days": "Waarschuwingsdagen voor deadline",
+          "go_back": "Terug",
+          "auto_complete_on_recovery": "Automatisch voltooien wanneer de sensor herstelt"
+        },
+        "data_description": {
+          "trigger_idle_days": "De telling begint opnieuw bij de volgende wijziging, en wanneer de taak is voltooid.",
+          "trigger_idle_mode": "Geen wijziging: de waarde blijft gelijk (tussendoor onbeschikbaar telt niet). Onbeschikbaar: de entiteit is onbeschikbaar of onbekend.",
+          "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de sensortrigger.",
+          "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
+          "trigger_combinator": "Eerst vervuld (standaard): trigger of verstreken interval maakt de taak verschuldigd. Beide vereist: de taak wordt pas verschuldigd als de trigger is afgegaan en het interval is verstreken.",
+          "warning_days": "Aantal dagen voor de deadline waarop een waarschuwing wordt getoond.",
+          "go_back": "Terug naar triggertypeselectie zonder op te slaan."
+        }
+      },
       "compound_logic": {
         "title": "Samengestelde trigger",
         "description": "Kies hoe meerdere voorwaarden gecombineerd moeten worden.",
@@ -670,6 +693,10 @@
           "quiet_hours_enabled": "Stille uren inschakelen",
           "quiet_hours_start": "Begin stille uren",
           "quiet_hours_end": "Einde stille uren",
+          "quiet_hours_weekend_enabled": "Andere rusttijden op sommige dagen",
+          "quiet_hours_weekend_days": "Dagen met eigen rusttijden",
+          "quiet_hours_weekend_start": "Begin van hun rusttijden",
+          "quiet_hours_weekend_end": "Einde van hun rusttijden",
           "max_notifications_per_day": "Max. meldingen per dag",
           "notification_bundling_enabled": "Meldingen bundelen",
           "notification_bundle_threshold": "Bundeldrempel",
@@ -690,6 +717,8 @@
           "notify_overdue_interval_hours": "Hoe vaak de herinnering voor achterstallig wordt herhaald. Stel in op 0 voor een enkele melding.",
           "notify_triggered_interval_hours": "Hoe vaak de melding voor geactiveerd wordt herhaald. Stel in op 0 voor een enkele melding.",
           "quiet_hours_enabled": "Meldingen onderdrukken tijdens stille uren.",
+          "quiet_hours_weekend_enabled": "Op de gekozen dagen eindigen de rusttijden 's ochtends en beginnen ze 's avonds op eigen tijden.",
+          "quiet_hours_weekend_end": "Met zaterdag gekozen duurt de vrijdagnacht tot deze tijd op zaterdag.",
           "max_notifications_per_day": "Maximaal aantal meldingen per dag. Stel in op 0 voor onbeperkt.",
           "notification_bundling_enabled": "Een enkele samenvattingsmelding verzenden wanneer meerdere taken aandacht vereisen.",
           "notification_bundle_threshold": "Minimaal aantal taken om een gebundelde melding te activeren.",
@@ -1266,6 +1295,28 @@
           "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen."
         }
       },
+      "opt_trigger_idle": {
+        "title": "Rust-configuratie",
+        "description": "Volgt {entity_id} (nu: {current_state}). De taak moet gebeuren zodra er het gekozen aantal dagen niets is gebeurd.",
+        "data": {
+          "trigger_idle_days": "Dagen rust",
+          "trigger_idle_mode": "Wat telt als rust",
+          "interval_days": "Veiligheidsinterval",
+          "interval_unit": "Intervaleenheid",
+          "trigger_combinator": "Trigger en interval combineren",
+          "warning_days": "Waarschuwingsdagen voor deadline",
+          "go_back": "Terug",
+          "auto_complete_on_recovery": "Automatisch voltooien wanneer de sensor herstelt"
+        },
+        "data_description": {
+          "trigger_idle_days": "De telling begint opnieuw bij de volgende wijziging, en wanneer de taak is voltooid.",
+          "trigger_idle_mode": "Geen wijziging: de waarde blijft gelijk (tussendoor onbeschikbaar telt niet). Onbeschikbaar: de entiteit is onbeschikbaar of onbekend.",
+          "interval_days": "Optioneel tijdgebaseerd veiligheidsinterval naast de sensortrigger.",
+          "interval_unit": "Eenheid voor het interval: dagen, weken, maanden of jaren. Maanden en jaren volgen de kalender.",
+          "trigger_combinator": "Eerst vervuld (standaard): trigger of verstreken interval maakt de taak verschuldigd. Beide vereist: de taak wordt pas verschuldigd als de trigger is afgegaan en het interval is verstreken.",
+          "warning_days": "Aantal dagen voor de vervaldatum om een waarschuwing te tonen."
+        }
+      },
       "object_settings": {
         "title": "Objectinstellingen",
         "description": "Objectdetails bewerken.",
@@ -1339,7 +1390,11 @@
         "description": "{member}: laat de initialen leeg en de kleur op Automatisch om de standaard te gebruiken ({initials}).",
         "data": {
           "initials": "Initialen",
-          "color": "Kleur"
+          "color": "Kleur",
+          "todo_list": "Eigen takenlijst"
+        },
+        "data_description": {
+          "todo_list": "Hun taken staan ook op deze lijst, en een vinkje daar voltooit de taak namens hen."
         }
       },
       "battery_lifetimes": {
@@ -1738,6 +1793,7 @@
         "state_change": "Statuswijziging",
         "runtime": "Looptijd",
         "due_date": "Vervaldatum (gemeld door een sensor)",
+        "idle": "Rust (dagenlang niets gebeurd)",
         "compound": "Samengesteld (Meerdere Voorwaarden)"
       }
     },
@@ -1843,7 +1899,8 @@
         "none": "Geen rotatie",
         "round_robin": "Om de beurt",
         "least_completed": "Minst voltooid",
-        "random": "Willekeurig"
+        "random": "Willekeurig",
+        "by_weekday": "Per weekdag (de dagen stel je in het paneel in)"
       }
     },
     "task_priority": {
@@ -1851,6 +1908,12 @@
         "low": "Laag",
         "normal": "Normaal",
         "high": "Hoog"
+      }
+    },
+    "trigger_idle_mode": {
+      "options": {
+        "no_change": "Geen wijziging",
+        "unavailable": "Onbeschikbaar"
       }
     }
   },

@@ -1,4 +1,4 @@
-"""Add a frontend locale key to ALL 22 languages in one atomic step.
+"""Add a frontend locale key to ALL 23 languages in one atomic step.
 
 THE canonical way to add a panel/card UI string. Refuses to run unless a value
 is supplied for every language, so the "add to en.json now, translate later"
@@ -36,7 +36,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 LOCALES = os.path.join(HERE, "..", "custom_components", "maintenance_supporter", "frontend-src", "locales")
 
-LANGUAGES = ["en", "de", "nl", "fr", "it", "es", "pt", "pt-br", "ru", "uk", "pl", "cs", "sv", "zh", "da", "fi", "nb", "ja", "hi", "hu", "ko", "tr"]
+LANGUAGES = ["en", "de", "nl", "fr", "it", "es", "pt", "pt-br", "ru", "uk", "pl", "cs", "sk", "sv", "zh", "da", "fi", "nb", "ja", "hi", "hu", "ko", "tr"]
 
 # Mirrors tests/test_i18n.py — languages written in a non-Latin script.
 NATIVE_SCRIPTS = {

@@ -4,10 +4,10 @@
 
 ### Trigger Not Activating
 
-1. Verify the `trigger_entity` is correct — check **Developer Tools > States** for the entity ID, and confirm the source entity has a usable state there
+1. Verify the `trigger_entity` is correct — check **Settings → Tools → States** (*Developer tools* before Home Assistant 2026.8) for the entity ID, and confirm the source entity has a usable state there
 2. Check per-entity availability — the integration's diagnostics download (*Settings → Devices & services → Maintenance Supporter → ⋮ → Download diagnostics*) lists every trigger entity of every task, compound conditions included, as `available`, `unavailable` or `missing`. Right after a Home Assistant restart there is a 5-minute grace period (`startup`) after a Home Assistant restart: the source integration may not have published its states yet, so nothing is flagged as missing until the grace period is over — wait it out before troubleshooting further
 3. For threshold triggers with `trigger_for_minutes` > 0, the condition must hold continuously for that duration
-4. For compound triggers, check each condition's entity the same way (Developer Tools > States shows the value each condition compares against); the task's trigger section in the panel lists the conditions and whether the whole trigger is active
+4. For compound triggers, check each condition's entity the same way (*Settings → Tools → States* shows the value each condition compares against); the task's trigger section in the panel lists the conditions and whether the whole trigger is active
 
 ### Notifications Not Arriving
 
@@ -23,7 +23,7 @@ The arrival message goes to the arriving person's own phones only. Check, in ord
 
 1. The person is linked to a Home Assistant user (*Settings → People*), and that user has the Companion app with notifications allowed. The household notify service alone gets no arrival message; with *Only fire the event* on, the event `maintenance_supporter_notification` (kind `place_arrival`) is sent instead
 2. The object's place is that zone, and one of its tasks is overdue, triggered or due soon. Muted and snoozed tasks are left out
-3. The person stayed two minutes: a drive past the zone edge is no visit. In Developer tools → States the person's `in_zones` attribute must list the zone (apps and cores before 2026.6 report only the zone in the state)
+3. The person stayed two minutes: a drive past the zone edge is no visit. In *Settings → Tools → States* the person's `in_zones` attribute must list the zone (apps and cores before 2026.6 report only the zone in the state)
 4. At most one message per person and place in six hours, and none during quiet hours
 5. A person who is already in the zone when Home Assistant starts did not arrive: the next visit brings the message
 

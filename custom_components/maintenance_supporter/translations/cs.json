@@ -348,6 +348,29 @@
           "go_back": "Návrat k výběru typu spouště bez uložení."
         }
       },
+      "trigger_idle": {
+        "title": "Nastavení nečinnosti",
+        "description": "Sleduje {entity_id} (nyní: {current_state}). Úkol je na řadě, jakmile se po zvolený počet dní nic nestalo.",
+        "data": {
+          "trigger_idle_days": "Dny klidu",
+          "trigger_idle_mode": "Co se počítá jako klid",
+          "interval_days": "Bezpečnostní interval",
+          "interval_unit": "Jednotka intervalu",
+          "trigger_combinator": "Kombinovat spouštěč a interval",
+          "warning_days": "Dny upozornění před termínem",
+          "go_back": "Zpět",
+          "auto_complete_on_recovery": "Automaticky dokončit při zotavení senzoru"
+        },
+        "data_description": {
+          "trigger_idle_days": "Počítání začne znovu při další změně a po dokončení úkolu.",
+          "trigger_idle_mode": "Beze změny: hodnota zůstává stejná (mezitím nedostupné se nepočítá). Nedostupné: entita je nedostupná nebo neznámá.",
+          "interval_days": "Volitelný bezpečnostní interval založený na čase, navíc ke spouštěči senzoru.",
+          "interval_unit": "Jednotka intervalu: dny, týdny, měsíce nebo roky. Měsíce a roky se řídí kalendářem.",
+          "trigger_combinator": "Co nastane dřív (výchozí): spouštěč nebo uplynulý interval učiní úkol splatným. Obojí vyžadováno: úkol je splatný, až když spouštěč vystřelil a interval uplynul.",
+          "warning_days": "Počet dní před termínem pro zobrazení upozornění.",
+          "go_back": "Návrat k výběru typu spouště bez uložení."
+        }
+      },
       "compound_logic": {
         "title": "Složená spoušť",
         "description": "Vyberte, jak mají být kombinovány více podmínek.",
@@ -670,6 +693,10 @@
           "quiet_hours_enabled": "Povolit tiché hodiny",
           "quiet_hours_start": "Začátek tichých hodin",
           "quiet_hours_end": "Konec tichých hodin",
+          "quiet_hours_weekend_enabled": "Jiné hodiny klidu v některé dny",
+          "quiet_hours_weekend_days": "Dny s vlastními hodinami klidu",
+          "quiet_hours_weekend_start": "Začátek jejich hodin klidu",
+          "quiet_hours_weekend_end": "Konec jejich hodin klidu",
           "max_notifications_per_day": "Max. oznámení za den",
           "notification_bundling_enabled": "Sdružit oznámení",
           "notification_bundle_threshold": "Práh sdružování",
@@ -690,6 +717,8 @@
           "notify_overdue_interval_hours": "Jak často opakovat připomenutí „po termínu“. Nastavte 0 pro jednorázové oznámení.",
           "notify_triggered_interval_hours": "Jak často opakovat oznámení „spuštěno“. Nastavte 0 pro jednorázové oznámení.",
           "quiet_hours_enabled": "Potlačit oznámení během tichých hodin.",
+          "quiet_hours_weekend_enabled": "Ve vybrané dny hodiny klidu končí ráno a začínají večer ve vlastních časech.",
+          "quiet_hours_weekend_end": "Je-li vybraná sobota, noc z pátku trvá do tohoto času v sobotu.",
           "max_notifications_per_day": "Maximální počet oznámení za den. Nastavte 0 pro neomezené.",
           "notification_bundling_enabled": "Odeslat jedno souhrnné oznámení, když více úkolů vyžaduje pozornost.",
           "notification_bundle_threshold": "Minimální počet úkolů pro spuštění sdruženého oznámení.",
@@ -1266,6 +1295,28 @@
           "warning_days": "Počet dní před termínem pro zobrazení upozornění."
         }
       },
+      "opt_trigger_idle": {
+        "title": "Nastavení nečinnosti",
+        "description": "Sleduje {entity_id} (nyní: {current_state}). Úkol je na řadě, jakmile se po zvolený počet dní nic nestalo.",
+        "data": {
+          "trigger_idle_days": "Dny klidu",
+          "trigger_idle_mode": "Co se počítá jako klid",
+          "interval_days": "Bezpečnostní interval",
+          "interval_unit": "Jednotka intervalu",
+          "trigger_combinator": "Kombinovat spouštěč a interval",
+          "warning_days": "Dny upozornění před termínem",
+          "go_back": "Zpět",
+          "auto_complete_on_recovery": "Automaticky dokončit při zotavení senzoru"
+        },
+        "data_description": {
+          "trigger_idle_days": "Počítání začne znovu při další změně a po dokončení úkolu.",
+          "trigger_idle_mode": "Beze změny: hodnota zůstává stejná (mezitím nedostupné se nepočítá). Nedostupné: entita je nedostupná nebo neznámá.",
+          "interval_days": "Volitelný bezpečnostní interval založený na čase, navíc ke spouštěči senzoru.",
+          "interval_unit": "Jednotka intervalu: dny, týdny, měsíce nebo roky. Měsíce a roky se řídí kalendářem.",
+          "trigger_combinator": "Co nastane dřív (výchozí): spouštěč nebo uplynulý interval učiní úkol splatným. Obojí vyžadováno: úkol je splatný, až když spouštěč vystřelil a interval uplynul.",
+          "warning_days": "Počet dní před termínem pro zobrazení upozornění."
+        }
+      },
       "object_settings": {
         "title": "Nastavení objektu",
         "description": "Upravte podrobnosti objektu.",
@@ -1339,7 +1390,11 @@
         "description": "{member}: ponechte iniciály prázdné a barvu na Automaticky, aby platilo výchozí nastavení ({initials}).",
         "data": {
           "initials": "Iniciály",
-          "color": "Barva"
+          "color": "Barva",
+          "todo_list": "Vlastní seznam úkolů"
+        },
+        "data_description": {
+          "todo_list": "Úkoly této osoby se objeví i na tomto seznamu a odškrtnutí tam úkol dokončí jejím jménem."
         }
       },
       "battery_lifetimes": {
@@ -1738,6 +1793,7 @@
         "state_change": "Změna stavu",
         "runtime": "Doba běhu",
         "due_date": "Datum splatnosti (hlásí senzor)",
+        "idle": "Nečinnost (dny se nic neděje)",
         "compound": "Složený (více podmínek)"
       }
     },
@@ -1843,7 +1899,8 @@
         "none": "Bez rotace",
         "round_robin": "Postupně",
         "least_completed": "Nejméně dokončení",
-        "random": "Náhodná"
+        "random": "Náhodná",
+        "by_weekday": "Podle dne v týdnu (dny se nastavují v panelu)"
       }
     },
     "task_priority": {
@@ -1851,6 +1908,12 @@
         "low": "Nízká",
         "normal": "Normální",
         "high": "Vysoká"
+      }
+    },
+    "trigger_idle_mode": {
+      "options": {
+        "no_change": "Beze změny",
+        "unavailable": "Nedostupné"
       }
     }
   },

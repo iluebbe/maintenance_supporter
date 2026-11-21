@@ -53,6 +53,8 @@ from .const import (
     CONF_TRIGGER_FOR_MINUTES,
     CONF_TRIGGER_FROM_STATE,
     CONF_TRIGGER_HOLD_UNTIL_DONE,
+    CONF_TRIGGER_IDLE_DAYS,
+    CONF_TRIGGER_IDLE_MODE,
     CONF_TRIGGER_NOT_EQUALS,
     CONF_TRIGGER_ON_STATES,
     CONF_TRIGGER_RUNTIME_HOURS,
@@ -61,6 +63,9 @@ from .const import (
     CONF_TRIGGER_TO_STATE,
     CONF_TRIGGER_TYPE,
     DEFAULT_ENTITY_LOGIC,
+    IDLE_MODES,
+    IDLE_NO_CHANGE,
+    IDLE_UNAVAILABLE,
     TRIGGER_FIELD_RANGES,
     TRIGGER_RUNTIME_HOURS_MAX,
     ScheduleType,
@@ -364,6 +369,21 @@ def _days_before_field(stored: Mapping[str, Any] | None = None) -> dict[Any, Any
     }
 
 
+def _idle_fields(stored: Mapping[str, Any] | None = None) -> dict[Any, Any]:
+    """D#275: how many quiet days, and whether quiet means no change or unavailable."""
+    low, high = TRIGGER_FIELD_RANGES[CONF_TRIGGER_IDLE_DAYS]
+    current = _stored_number(stored, CONF_TRIGGER_IDLE_DAYS, low, high)
+    mode = (stored or {}).get(CONF_TRIGGER_IDLE_MODE)
+    return {
+        vol.Required(CONF_TRIGGER_IDLE_DAYS, default=current if current is not None else 7): selector.NumberSelector(
+            selector.NumberSelectorConfig(min=low, max=high, step=1, mode=selector.NumberSelectorMode.BOX, unit_of_measurement="d")
+        ),
+        vol.Required(CONF_TRIGGER_IDLE_MODE, default=mode if mode in IDLE_MODES else IDLE_NO_CHANGE): selector.SelectSelector(
+            selector.SelectSelectorConfig(options=list(IDLE_MODES), mode=selector.SelectSelectorMode.LIST, translation_key="trigger_idle_mode")
+        ),
+    }
+
+
 def _states_from_input(user_input: dict[str, Any]) -> tuple[str, str]:
     """(from, to) of a state-change submission, trimmed and lowercased — HA
     states are lowercase, so "ON"/"OFF" must match the state machine."""
@@ -643,6 +663,7 @@ class TriggerConfigMixin:
         runtime_step: Callable[[], Awaitable[ConfigFlowResult]],
         due_date_step: Callable[[], Awaitable[ConfigFlowResult]],
         compound_step: Callable[[], Awaitable[ConfigFlowResult]] | None = None,
+        idle_step: Callable[[], Awaitable[ConfigFlowResult]] | None = None,
     ) -> ConfigFlowResult:
         """Core logic for trigger type selection."""
         if user_input is not None:
@@ -661,11 +682,14 @@ class TriggerConfigMixin:
                 return await runtime_step()
             if trigger_type == TriggerType.DUE_DATE:
                 return await due_date_step()
+            if trigger_type == TriggerType.IDLE and idle_step:
+                return await idle_step()
             if trigger_type == TriggerType.COMPOUND and compound_step:
                 return await compound_step()
             return await state_change_step()
 
-        trigger_options = [t.value for t in TriggerType]
+        # D#275: the idle kind only where the flow has its step.
+        trigger_options = [t.value for t in TriggerType if t != TriggerType.IDLE or idle_step is not None]
         stored_type = self._stored_trigger().get("type")
         type_default = stored_type if stored_type in trigger_options else TriggerType.THRESHOLD
 
@@ -945,6 +969,39 @@ class TriggerConfigMixin:
             },
         )
 
+    async def _trigger_idle_config(
+        self,
+        user_input: dict[str, Any] | None,
+        *,
+        step_id: str,
+        on_complete: Callable[[], ConfigFlowResult],
+    ) -> ConfigFlowResult:
+        """D#275: quiet for N days, no change or unavailable."""
+        if user_input is not None:
+            cancel = await self._mixin_check_go_back(user_input)
+            if cancel is not None:
+                return cancel
+            tc = self._current_task["trigger_config"]
+            tc[CONF_TRIGGER_IDLE_DAYS] = int(user_input.get(CONF_TRIGGER_IDLE_DAYS) or 7)
+            if user_input.get(CONF_TRIGGER_IDLE_MODE) == IDLE_UNAVAILABLE:
+                tc[CONF_TRIGGER_IDLE_MODE] = IDLE_UNAVAILABLE
+            else:
+                tc.pop(CONF_TRIGGER_IDLE_MODE, None)
+            self._apply_type_step_tail(tc, user_input)
+            return on_complete()
+
+        state = self._trigger_entity_state
+        return self.async_show_form(
+            step_id=step_id,
+            data_schema=vol.Schema(
+                self._mixin_add_go_back({**_idle_fields(self._stored_trigger(TriggerType.IDLE)), **self._type_step_tail_fields()})
+            ),
+            description_placeholders={
+                "entity_id": self._trigger_entity_id or "",
+                "current_state": state.state if state is not None else "",
+            },
+        )
+
     # ------------------------------------------------------------------
     # Compound trigger configuration steps
     # ------------------------------------------------------------------
@@ -1081,7 +1138,8 @@ class TriggerConfigMixin:
                 return await due_date_step()
             return await state_change_step()
 
-        trigger_options = [t.value for t in TriggerType if t != TriggerType.COMPOUND]
+        # A compound condition offers no idle kind here (the panel's does).
+        trigger_options = [t.value for t in TriggerType if t not in (TriggerType.COMPOUND, TriggerType.IDLE)]
 
         schema_dict: dict[Any, Any] = {
             vol.Required(CONF_TRIGGER_TYPE, default=TriggerType.THRESHOLD): selector.SelectSelector(
