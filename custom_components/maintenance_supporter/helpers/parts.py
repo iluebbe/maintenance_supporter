@@ -102,6 +102,7 @@ _BUY_NAME_TEMPLATES = {
     "pl": "Kup {name}",
     "pt": "Comprar {name}",
     "cs": "Koupit {name}",
+    "sk": "Kúpiť {name}",
     "da": "Køb {name}",
     "fi": "Osta {name}",
     "hi": "{name} खरीदें",

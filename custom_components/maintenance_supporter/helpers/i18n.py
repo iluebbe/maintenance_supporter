@@ -52,7 +52,7 @@ def normalize_language_code(code: str | None) -> str:
 # Languages that write a decimal COMMA ("12,5"). Everything else here writes
 # a point; a spoken answer and a number in a reminder follow the same rule.
 DECIMAL_COMMA_LANGUAGES = frozenset(
-    {"de", "fr", "es", "it", "nl", "pt", "pt-br", "ru", "uk", "pl", "cs", "da", "fi", "nb", "sv", "tr", "hu"}
+    {"de", "fr", "es", "it", "nl", "pt", "pt-br", "ru", "uk", "pl", "cs", "da", "fi", "nb", "sv", "tr", "hu", "sk"}
 )
 _MAX_PLACES = 10
 

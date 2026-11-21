@@ -114,6 +114,13 @@ _STRINGS: dict[str, dict[str, str]] = {
         "trigger_on": "senzorový spouštěč aktivován",
         "trigger_off": "senzorový spouštěč deaktivován",
     },
+    "sk": {
+        "completed": "bola dokončená",
+        "skipped": "bola preskočená",
+        "reset": "bola vynulovaná na {date}",
+        "trigger_on": "spúšťač senzora aktivovaný",
+        "trigger_off": "spúšťač senzora zrušený",
+    },
     "sv": {
         "completed": "slutfördes",
         "skipped": "hoppades över",

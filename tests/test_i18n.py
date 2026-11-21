@@ -43,7 +43,7 @@ _FRONTEND_LOCALES = _COMPONENT / "frontend-src" / "locales"
 _EXPECTED_LANGUAGES = frozenset(
     {
         "cs", "de", "en", "es", "fr", "it", "nl", "pl", "pt", "pt-BR", "ru", "sv", "uk",
-        "zh-Hans", "da", "fi", "nb", "ja", "hi", "hu", "ko", "tr",
+        "zh-Hans", "da", "fi", "nb", "ja", "hi", "hu", "ko", "tr", "sk",
     }
 )
 
@@ -277,7 +277,7 @@ _VALUE_OK: dict[str, frozenset[str] | str] = {
     "feat_checklists": frozenset({"fr", "nl", "pt-br"}),
     "compound_condition": frozenset({"fr"}),
     "dashboard": frozenset({"de", "it", "nl"}),
-    "degradation_trend": frozenset({"de", "nl", "pl", "sv", "nb", "cs", "hu"}),
+    "degradation_trend": frozenset({"de", "nl", "pl", "sv", "nb", "cs", "hu", "sk"}),
     # The beta overview's filter pane: "Status" and "Filters" are the words
     # these languages use (as Home Assistant's own filter pane does).
     "beta_filter_status": frozenset({"da", "de", "nb", "nl", "pl", "pt-br", "sv"}),
@@ -297,12 +297,12 @@ _VALUE_OK: dict[str, frozenset[str] | str] = {
     "filter_label": frozenset({"de", "nl", "sv", "da", "nb"}),
     "qr_print_filter": frozenset({"de", "nl", "sv", "da", "nb"}),
     "inspection": frozenset({"fr"}),
-    "interval": frozenset({"nl", "da", "cs"}),
-    "interval_value": frozenset({"nl", "da", "cs"}),
+    "interval": frozenset({"nl", "da", "cs", "sk"}),
+    "interval_value": frozenset({"nl", "da", "cs", "sk"}),
     "label_filter": frozenset({"de", "nl"}),
     "labels": frozenset({"de", "nl"}),
     "maintenance": frozenset({"fr"}),
-    "model": frozenset({"nl", "pl", "da", "cs", "tr"}),
+    "model": frozenset({"nl", "pl", "da", "cs", "tr", "sk"}),
     "name": frozenset({"de"}),
     "part_name": frozenset({"de"}),
     # "Photo" is the French word too.
@@ -398,12 +398,12 @@ _BACKEND_VALUE_OK: dict[str, frozenset[str] | str] = {
     "Format": frozenset({"da", "de", "fr", "nb", "pl", "sv"}),
     "Indigo": frozenset({"da", "de", "fi", "fr", "nb", "nl", "sv"}),
     "Inspection": frozenset({"fr"}),
-    "Interval": frozenset({"cs", "da", "nl"}),
+    "Interval": frozenset({"cs", "da", "nl", "sk"}),
     "Labels": frozenset({"de", "nl"}),
     "Maintenance": frozenset({"fr"}),
     "Maintenance Supporter": "*",  # brand
     "Manual": frozenset({"da", "es", "pt", "pt-BR", "sv"}),
-    "Model": frozenset({"cs", "da", "nl", "pl", "tr"}),
+    "Model": frozenset({"cs", "da", "nl", "pl", "tr", "sk"}),
     "Name": frozenset({"de"}),
     # The task priority selector (2026-10-16, G9) — the panel's priority_normal.
     "Normal": frozenset({"da", "de", "es", "nb", "pt", "pt-BR", "sv", "tr"}),
@@ -644,6 +644,7 @@ _PY_TABLE_VALUE_OK: dict[str, dict[str, set[str]]] = {
         "nl": {"type", "interval", "service"},
         "fr": {"type", "inspection", "service"},
         "cs": {"interval"},
+        "sk": {"interval"},
         "da": {"type", "interval", "service"},
         "nb": {"type", "service"},
         "sv": {"service"},

@@ -1,0 +1,2738 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Maintenance Supporter",
+        "description": "Nastavte si systém správy údržby.",
+        "menu_options": {
+          "create_object": "Vytvoriť objekt údržby",
+          "create_from_template": "Vytvoriť zo šablóny",
+          "global_setup": "Globálne nastavenia"
+        }
+      },
+      "create_from_template": {
+        "title": "Vyberte kategóriu šablón",
+        "description": "Vyberte kategóriu na prehliadanie preddefinovaných šablón údržby. ★ n = šablóny v tejto kategórii, ktoré sa hodia do vašej domácnosti (panel: Nastavenia → Profil domácnosti).",
+        "data": {
+          "template_category": "Kategória",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "go_back": "Návrat do hlavnej ponuky bez uloženia."
+        }
+      },
+      "template_select": {
+        "title": "Vyberte šablónu",
+        "description": "Vyberte šablónu údržby ako východiskový bod. ★ odporúčané pre vašu domácnosť · ✓ už nastavené.",
+        "data": {
+          "template_id": "Šablóna",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "go_back": "Návrat na výber kategórie bez uloženia."
+        }
+      },
+      "template_customize": {
+        "title": "Prispôsobiť šablónu",
+        "description": "Prispôsobte šablónu {template_name}. Obsahuje {task_count} úloh: {task_list}.",
+        "data": {
+          "name": "Názov objektu",
+          "area_id": "Oblasť",
+          "manufacturer": "Výrobca",
+          "model": "Model",
+          "serial_number": "Sériové číslo",
+          "documentation_url": "URL adresa návodu/dokumentácie",
+          "notes": "Poznámky",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "name": "Názov tohto objektu údržby.",
+          "area_id": "Oblasť, v ktorej sa objekt nachádza.",
+          "manufacturer": "Výrobca objektu.",
+          "model": "Názov alebo číslo modelu.",
+          "serial_number": "Sériové číslo objektu.",
+          "documentation_url": "Voliteľný odkaz na PDF návod, stránku výrobcu alebo akúkoľvek URL adresu s referenčnými informáciami o tomto objekte.",
+          "notes": "Ľubovoľné poznámky k objektu – čísla dielov, postupy, pripomienky nastavení a pod.",
+          "go_back": "Návrat na výber šablóny bez uloženia."
+        }
+      },
+      "global_setup": {
+        "title": "Globálne nastavenia",
+        "description": "Nastavte globálne nastavenia údržby.",
+        "data": {
+          "default_warning_days": "Predvolený počet dní varovania pred termínom",
+          "notifications_enabled": "Zapnúť upozornenia",
+          "notify_service": "Služba upozornení"
+        },
+        "data_description": {
+          "default_warning_days": "Koľko dní pred termínom úlohy údržby sa má zobraziť varovanie.",
+          "notifications_enabled": "Posielať upozornenia, keď úlohy údržby dosiahnu termín.",
+          "notify_service": "Služba upozornení, ktorá sa má použiť (napr. notify.mobile_app_phone)."
+        }
+      },
+      "create_object": {
+        "title": "Vytvoriť objekt údržby",
+        "description": "Definujte zariadenie alebo majetok, ktorého údržbu chcete spravovať.",
+        "data": {
+          "name": "Názov objektu",
+          "area_id": "Oblasť",
+          "manufacturer": "Výrobca",
+          "model": "Model",
+          "serial_number": "Sériové číslo",
+          "documentation_url": "URL adresa návodu/dokumentácie",
+          "notes": "Poznámky",
+          "installation_date": "Dátum inštalácie",
+          "warranty_expiry": "Koniec záruky",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "name": "Jedinečný názov tohto objektu údržby (napr. „Bazénové čerpadlo“, „Auto“).",
+          "area_id": "Oblasť vo vašej domácnosti, kde sa objekt nachádza.",
+          "manufacturer": "Výrobca objektu.",
+          "model": "Názov alebo číslo modelu.",
+          "serial_number": "Sériové číslo objektu.",
+          "documentation_url": "Voliteľný odkaz na PDF návod, stránku výrobcu alebo akúkoľvek URL adresu s referenčnými informáciami o tomto objekte.",
+          "notes": "Ľubovoľné poznámky k objektu – čísla dielov, postupy, pripomienky nastavení a pod.",
+          "installation_date": "Kedy bol objekt nainštalovaný alebo kúpený.",
+          "warranty_expiry": "Kedy končí záruka výrobcu na tento objekt.",
+          "go_back": "Návrat do hlavnej ponuky bez uloženia."
+        }
+      },
+      "task_menu": {
+        "title": "Úlohy údržby",
+        "description": "Pridajte úlohy údržby pre {object_name}. Aktuálne definované úlohy: {task_count}.",
+        "menu_options": {
+          "add_task": "Pridať úlohu údržby",
+          "finish": "Dokončiť nastavenie"
+        }
+      },
+      "add_task": {
+        "title": "Pridať úlohu údržby",
+        "description": "Definujte úlohu údržby pre {object_name}.",
+        "data": {
+          "name": "Názov úlohy",
+          "type": "Typ údržby",
+          "schedule_type": "Typ plánovania",
+          "custom_icon": "Ikona úlohy",
+          "go_back": "Späť",
+          "reading_unit": "Jednotka odpočtu (pre úlohy s odpočtom, napr. kWh)"
+        },
+        "data_description": {
+          "name": "Výstižný názov úlohy (napr. „Čistenie filtra“, „Výmena oleja“).",
+          "type": "Kategória údržbových prác.",
+          "schedule_type": "Ako sa má táto úloha plánovať.",
+          "custom_icon": "Voliteľná vlastná ikona úlohy (napr. mdi:oil, mdi:filter-variant).",
+          "go_back": "Návrat do ponuky úloh bez uloženia."
+        }
+      },
+      "time_based": {
+        "title": "Časový plán",
+        "description": "Nastavte časový interval tejto úlohy údržby.",
+        "data": {
+          "interval_days": "Interval",
+          "interval_unit": "Jednotka intervalu",
+          "last_performed": "Naposledy vykonané",
+          "warning_days": "Dni varovania pred termínom",
+          "go_back": "Späť",
+          "interval_anchor": "Ukotvenie intervalu"
+        },
+        "data_description": {
+          "interval_days": "Ako často sa táto údržba opakuje, v kombinácii s jednotkou intervalu.",
+          "interval_unit": "Jednotka intervalu: dni, týždne, mesiace alebo roky. Mesiace a roky sa riadia kalendárom.",
+          "last_performed": "Kedy bola táto údržba naposledy vykonaná. Ak ešte nikdy, nechajte prázdne.",
+          "warning_days": "Koľko dní pred termínom sa má zobraziť varovanie.",
+          "go_back": "Návrat k vytváraniu úlohy bez uloženia.",
+          "interval_anchor": "Ako sa po dokončení vypočíta ďalší termín. „Plánovaný“ zabraňuje posúvaniu plánu ukotvením k pôvodnému termínu."
+        }
+      },
+      "one_time": {
+        "title": "Jednorazová úloha",
+        "description": "Nastavte jednorazovú, neopakujúcu sa úlohu údržby. Po dokončení sa archivuje.",
+        "data": {
+          "due_date": "Termín",
+          "warning_days": "Dni varovania pred termínom",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "due_date": "Dátum, kedy má byť táto jednorazová úloha splnená.",
+          "warning_days": "Koľko dní pred termínom sa má zobraziť varovanie.",
+          "go_back": "Návrat k vytváraniu úlohy bez uloženia."
+        }
+      },
+      "calendar": {
+        "title": "Opakovanie podľa kalendára",
+        "description": "Nastavte opakovanie podľa kalendára (dni v týždni, n-tý deň v týždni v mesiaci alebo deň v mesiaci).",
+        "data": {
+          "weekdays": "V tieto dni v týždni",
+          "nth": "Ktorý výskyt",
+          "weekday": "Deň v týždni",
+          "day": "Deň v mesiaci",
+          "entity_id": "Kalendár",
+          "warning_days": "Dni varovania pred termínom",
+          "go_back": "Späť",
+          "last_day": "Posledný deň mesiaca",
+          "business": "Iba pracovné dni",
+          "offset": "Posun (dni)",
+          "last_performed": "Naposledy vykonané"
+        },
+        "data_description": {
+          "weekdays": "Úloha sa opakuje v každý vybraný deň v týždni.",
+          "nth": "Ktorý výskyt v mesiaci (napr. 1., alebo Posledný).",
+          "weekday": "Deň v týždni pre pravidlo n-tého dňa (napr. sobota).",
+          "day": "Deň v mesiaci (1 – 31; obmedzené dĺžkou mesiaca).",
+          "entity_id": "Termín raz pre každú udalosť tohto kalendára, v deň začiatku udalosti – nasledujúca udalosť po poslednom dokončení.",
+          "warning_days": "Koľko dní pred termínom sa má zobraziť varovanie.",
+          "go_back": "Návrat k vytváraniu úlohy bez uloženia.",
+          "last_day": "Nahrádza číslo dňa: úloha má termín v posledný deň mesiaca.",
+          "business": "Dátum pripadajúci na víkend posunúť späť na predchádzajúci piatok (napr. posledný pracovný deň).",
+          "offset": "Posunúť vypočítaný dátum o ±N dní (napr. -2 = dva dni predtým)."
+        }
+      },
+      "sensor_select": {
+        "title": "Vyberte senzor spúšťača",
+        "description": "Vyberte entitu Home Assistanta, ktorá sa má pre túto úlohu údržby sledovať.",
+        "data": {
+          "trigger_entity": "Sledovaná entita",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "trigger_entity": "Vyberte entitu senzora, ktorá má spúšťať túto úlohu údržby.",
+          "go_back": "Návrat k vytváraniu úlohy bez uloženia."
+        }
+      },
+      "sensor_attribute": {
+        "title": "Vyberte atribút",
+        "description": "Vyberte, ktorá hodnota z {entity_id} sa má sledovať. Aktuálny stav: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "Sledovaná hodnota",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "trigger_attribute": "Vyberte stav entity alebo konkrétny atribút, ktorý sa má sledovať.",
+          "go_back": "Návrat na výber entity bez uloženia."
+        }
+      },
+      "trigger_type": {
+        "title": "Typ spúšťača",
+        "description": "Ako má hodnota senzora spúšťať údržbu?",
+        "data": {
+          "trigger_type": "Typ spúšťača",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "trigger_type": "Prah: spustí sa, keď hodnota prekročí limity. Počítadlo: spustí sa po dosiahnutí cieľovej nahromadenej hodnoty. Zmena stavu: spustí sa po určitom počte zmien stavu.",
+          "go_back": "Návrat na výber atribútu bez uloženia."
+        }
+      },
+      "trigger_threshold": {
+        "title": "Nastavenie prahu",
+        "description": "Nastavte prahy pre **{entity_id}** ({attribute}).\nAktuálne: **{current_value} {unit}** | Priemer: {average} | Rozsah: {minimum}–{maximum} ({data_period} d)\nNavrhované nad: {suggested_above} | Navrhované pod: {suggested_below}",
+        "data": {
+          "trigger_above": "Spustiť pri hodnote nad",
+          "trigger_below": "Spustiť pri hodnote pod",
+          "trigger_equals": "Spustiť pri hodnote rovnej",
+          "trigger_not_equals": "Spustiť pri hodnote inej ako",
+          "trigger_for_minutes": "Aspoň počas (minúty)",
+          "interval_days": "Bezpečnostný interval",
+          "interval_unit": "Jednotka intervalu",
+          "trigger_combinator": "Kombinácia spúšťača a intervalu",
+          "warning_days": "Dni varovania pred termínom",
+          "go_back": "Späť",
+          "auto_complete_on_recovery": "Automaticky dokončiť, keď sa senzor vráti do normálu"
+        },
+        "data_description": {
+          "trigger_above": "Spustiť údržbu, keď hodnota prekročí tento prah.",
+          "trigger_below": "Spustiť údržbu, keď hodnota klesne pod tento prah.",
+          "trigger_equals": "Spustiť údržbu, keď sa hodnota rovná tejto úrovni.",
+          "trigger_not_equals": "Spustiť údržbu, keď sa hodnota líši od tejto úrovne.",
+          "trigger_for_minutes": "Koľko minút musí hodnota prekračovať prah, kým sa údržba spustí.",
+          "interval_days": "Voliteľný časový bezpečnostný interval popri spúšťači senzora.",
+          "interval_unit": "Jednotka intervalu: dni, týždne, mesiace alebo roky. Mesiace a roky sa riadia kalendárom.",
+          "trigger_combinator": "Čokoľvek nastane skôr (predvolené): úloha má termín po spustení spúšťača alebo uplynutí intervalu. Obe podmienky: úloha má termín, až keď sa spúšťač spustil a zároveň uplynul interval.",
+          "warning_days": "Koľko dní pred termínom sa má zobraziť varovanie.",
+          "go_back": "Návrat na výber typu spúšťača bez uloženia."
+        }
+      },
+      "trigger_counter": {
+        "title": "Nastavenie počítadla",
+        "description": "Nastavte cieľovú hodnotu počítadla pre {entity_id} ({attribute}). Aktuálne: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Cieľová hodnota",
+          "trigger_delta_mode": "Režim rozdielu (počítať zmeny, nie absolútnu hodnotu)",
+          "interval_days": "Bezpečnostný interval",
+          "interval_unit": "Jednotka intervalu",
+          "trigger_combinator": "Kombinácia spúšťača a intervalu",
+          "warning_days": "Dni varovania pred termínom",
+          "go_back": "Späť",
+          "auto_complete_on_recovery": "Automaticky dokončiť, keď sa senzor vráti do normálu",
+          "trigger_baseline_value": "Počiatočný odpočet (voliteľné)"
+        },
+        "data_description": {
+          "trigger_target_value": "Spustiť údržbu po dosiahnutí tejto nahromadenej hodnoty.",
+          "trigger_delta_mode": "Ak je zapnuté, počíta sa rozdiel od východiskovej hodnoty namiesto absolútnej hodnoty.",
+          "interval_days": "Voliteľný časový bezpečnostný interval popri spúšťači počítadla.",
+          "interval_unit": "Jednotka intervalu: dni, týždne, mesiace alebo roky. Mesiace a roky sa riadia kalendárom.",
+          "trigger_combinator": "Čokoľvek nastane skôr (predvolené): úloha má termín po spustení spúšťača alebo uplynutí intervalu. Obe podmienky: úloha má termín, až keď sa spúšťač spustil a zároveň uplynul interval.",
+          "warning_days": "Koľko dní pred termínom sa má zobraziť varovanie.",
+          "go_back": "Návrat na výber typu spúšťača bez uloženia."
+        }
+      },
+      "trigger_state_change": {
+        "title": "Nastavenie zmeny stavu",
+        "description": "Počítať zmeny stavu entity {entity_id}.",
+        "data": {
+          "trigger_from_state": "Zo stavu (voliteľné)",
+          "trigger_to_state": "Do stavu (voliteľné)",
+          "trigger_target_changes": "Počet zmien na spustenie",
+          "trigger_for_minutes": "Aspoň počas (minúty)",
+          "interval_days": "Bezpečnostný interval",
+          "interval_unit": "Jednotka intervalu",
+          "trigger_combinator": "Kombinácia spúšťača a intervalu",
+          "warning_days": "Dni varovania pred termínom",
+          "go_back": "Späť",
+          "auto_complete_on_recovery": "Automaticky dokončiť, keď sa senzor vráti do normálu"
+        },
+        "data_description": {
+          "trigger_from_state": "Počítať iba zmeny z tohto stavu. Pre ľubovoľný nechajte prázdne.",
+          "trigger_to_state": "Počítať iba zmeny do tohto stavu. Pre ľubovoľný nechajte prázdne.",
+          "trigger_target_changes": "Počet zodpovedajúcich zmien stavu pred spustením údržby.",
+          "interval_days": "Voliteľný časový bezpečnostný interval popri spúšťači zmeny stavu.",
+          "interval_unit": "Jednotka intervalu: dni, týždne, mesiace alebo roky. Mesiace a roky sa riadia kalendárom.",
+          "trigger_combinator": "Čokoľvek nastane skôr (predvolené): úloha má termín po spustení spúšťača alebo uplynutí intervalu. Obe podmienky: úloha má termín, až keď sa spúšťač spustil a zároveň uplynul interval.",
+          "warning_days": "Koľko dní pred termínom sa má zobraziť varovanie.",
+          "go_back": "Návrat na výber typu spúšťača bez uloženia.",
+          "trigger_for_minutes": "Ako dlho musí nový stav trvať, kým sa zmena započíta. 0 = započítať okamžite."
+        }
+      },
+      "trigger_runtime": {
+        "title": "Nastavenie prevádzkového času",
+        "description": "Sledovať nahromadený prevádzkový čas entity {entity_id}. Údržba sa spustí, keď celkový čas zapnutia dosiahne cieľový počet hodín.",
+        "data": {
+          "trigger_runtime_hours": "Cieľový prevádzkový čas (hodiny)",
+          "trigger_on_states": "Aktívne stavy (oddelené čiarkou)",
+          "interval_days": "Bezpečnostný interval",
+          "interval_unit": "Jednotka intervalu",
+          "trigger_combinator": "Kombinácia spúšťača a intervalu",
+          "warning_days": "Dni varovania pred termínom",
+          "go_back": "Späť",
+          "auto_complete_on_recovery": "Automaticky dokončiť, keď sa senzor vráti do normálu"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Spustiť údržbu po toľkých hodinách nahromadeného prevádzkového času.",
+          "trigger_on_states": "Ktoré stavy senzora sa počítajú ako „aktívne“. Pre predvolené (on, 1, true) nechajte prázdne. Príklad: in_use, running",
+          "interval_days": "Voliteľný časový bezpečnostný interval popri spúšťači prevádzkového času.",
+          "interval_unit": "Jednotka intervalu: dni, týždne, mesiace alebo roky. Mesiace a roky sa riadia kalendárom.",
+          "trigger_combinator": "Čokoľvek nastane skôr (predvolené): úloha má termín po spustení spúšťača alebo uplynutí intervalu. Obe podmienky: úloha má termín, až keď sa spúšťač spustil a zároveň uplynul interval.",
+          "warning_days": "Koľko dní pred termínom sa má zobraziť varovanie.",
+          "go_back": "Návrat na výber typu spúšťača bez uloženia."
+        }
+      },
+      "trigger_due_date": {
+        "title": "Nastavenie termínu",
+        "description": "Sledovať dátum, ktorý hlási {entity_id} (teraz: {current_state}). Úloha bude mať termín zvolený počet dní pred týmto dátumom.",
+        "data": {
+          "trigger_days_before": "Dni pred dátumom",
+          "interval_days": "Bezpečnostný interval",
+          "interval_unit": "Jednotka intervalu",
+          "trigger_combinator": "Kombinácia spúšťača a intervalu",
+          "warning_days": "Dni varovania pred termínom",
+          "go_back": "Späť",
+          "auto_complete_on_recovery": "Automaticky dokončiť, keď sa senzor vráti do normálu"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = presne v daný deň. Keď zariadenie posunie svoj dátum dopredu (zvyčajne vlastným tlačidlom „hotovo“), spúšťač sa zruší.",
+          "interval_days": "Voliteľný časový bezpečnostný interval popri spúšťači senzora.",
+          "interval_unit": "Jednotka intervalu: dni, týždne, mesiace alebo roky. Mesiace a roky sa riadia kalendárom.",
+          "trigger_combinator": "Čokoľvek nastane skôr (predvolené): úloha má termín po spustení spúšťača alebo uplynutí intervalu. Obe podmienky: úloha má termín, až keď sa spúšťač spustil a zároveň uplynul interval.",
+          "warning_days": "Koľko dní pred termínom sa má zobraziť varovanie.",
+          "go_back": "Návrat na výber typu spúšťača bez uloženia."
+        }
+      },
+      "compound_logic": {
+        "title": "Kombinovaný spúšťač",
+        "description": "Vyberte, ako sa majú viaceré podmienky kombinovať.",
+        "data": {
+          "compound_logic": "Logika",
+          "go_back": "Späť",
+          "auto_complete_on_recovery": "Automaticky dokončiť, keď sa senzor vráti do normálu"
+        },
+        "data_description": {
+          "compound_logic": "AND = musia sa splniť všetky podmienky. OR = stačí ktorákoľvek podmienka.",
+          "go_back": "Návrat na výber typu spúšťača bez uloženia."
+        }
+      },
+      "compound_condition_entity": {
+        "title": "Podmienka č. {condition_num} – entita",
+        "description": "Vyberte entitu pre túto podmienku.",
+        "data": {
+          "trigger_entity": "Entita",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "trigger_entity": "Entita senzora, ktorá sa má pre túto podmienku sledovať.",
+          "go_back": "Návrat na predchádzajúci krok bez uloženia."
+        }
+      },
+      "compound_condition_type": {
+        "title": "Podmienka č. {condition_num} – typ",
+        "description": "Ako má táto podmienka vyhodnocovať senzor?",
+        "data": {
+          "trigger_type": "Typ spúšťača",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "trigger_type": "Spôsob, ktorým sa určí, kedy je táto podmienka splnená.",
+          "go_back": "Návrat na výber entity bez uloženia."
+        }
+      },
+      "compound_condition_threshold": {
+        "title": "Podmienka – prah",
+        "data": {
+          "trigger_above": "Spustiť nad",
+          "trigger_below": "Spustiť pod",
+          "trigger_equals": "Spustiť pri hodnote rovnej",
+          "trigger_not_equals": "Spustiť pri hodnote inej ako",
+          "trigger_for_minutes": "Trvanie (minúty)",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "trigger_above": "Spustiť, keď hodnota prekročí tento prah.",
+          "trigger_below": "Spustiť, keď hodnota klesne pod tento prah.",
+          "trigger_equals": "Spustiť údržbu, keď sa hodnota rovná tejto úrovni.",
+          "trigger_not_equals": "Spustiť údržbu, keď sa hodnota líši od tejto úrovne.",
+          "trigger_for_minutes": "Ako dlho musí hodnota zostať za prahom.",
+          "go_back": "Návrat na výber typu podmienky bez uloženia."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Podmienka – počítadlo",
+        "data": {
+          "trigger_target_value": "Cieľová hodnota",
+          "trigger_delta_mode": "Režim rozdielu",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "trigger_target_value": "Spustiť, keď nahromadená hodnota dosiahne tento cieľ.",
+          "trigger_delta_mode": "Počítať zmeny od východiskovej hodnoty namiesto absolútnej hodnoty.",
+          "go_back": "Návrat na výber typu podmienky bez uloženia."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Podmienka – zmena stavu",
+        "data": {
+          "trigger_from_state": "Zo stavu",
+          "trigger_to_state": "Do stavu",
+          "trigger_target_changes": "Počet zmien",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "trigger_from_state": "Počítať iba zmeny z tohto stavu. Pre ľubovoľný nechajte prázdne.",
+          "trigger_to_state": "Počítať iba zmeny do tohto stavu. Pre ľubovoľný nechajte prázdne.",
+          "trigger_target_changes": "Počet zodpovedajúcich zmien stavu pred spustením.",
+          "go_back": "Návrat na výber typu podmienky bez uloženia."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Podmienka – prevádzkový čas",
+        "data": {
+          "trigger_runtime_hours": "Cieľový prevádzkový čas (hodiny)",
+          "trigger_on_states": "Aktívne stavy",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Spustiť po toľkých hodinách nahromadeného prevádzkového času.",
+          "trigger_on_states": "Stavy senzora, ktoré sa počítajú ako „aktívne“. Pre predvolené nechajte prázdne.",
+          "go_back": "Návrat na výber typu podmienky bez uloženia."
+        }
+      },
+      "compound_condition_due_date": {
+        "title": "Podmienka – termín",
+        "data": {
+          "trigger_days_before": "Dni pred dátumom",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "trigger_days_before": "Podmienka je splnená od toľkých dní pred dátumom, ktorý hlási entita.",
+          "go_back": "Návrat na výber typu podmienky bez uloženia."
+        }
+      },
+      "compound_review": {
+        "title": "Kontrola kombinovaného spúšťača",
+        "description": "Nastavené podmienky: {condition_count}, logika {compound_logic}.",
+        "data": {
+          "compound_action": "Akcia",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "go_back": "Návrat na výber logiky bez uloženia."
+        }
+      },
+      "manual": {
+        "title": "Manuálny plán",
+        "description": "Táto úloha nemá automatický plán. Termín jej môžete nastaviť ručne.",
+        "data": {
+          "warning_days": "Dni varovania pred termínom",
+          "notes": "Poznámky",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "warning_days": "Koľko dní pred termínom sa má zobraziť varovanie.",
+          "notes": "Ďalšie poznámky alebo pokyny k tejto úlohe.",
+          "go_back": "Návrat k vytváraniu úlohy bez uloženia."
+        }
+      },
+      "reconfigure": {
+        "title": "Zmeniť nastavenie {name}",
+        "description": "Upravte nastavenia tohto objektu údržby.",
+        "data": {
+          "name": "Názov objektu",
+          "area_id": "Oblasť",
+          "manufacturer": "Výrobca",
+          "model": "Model",
+          "serial_number": "Sériové číslo",
+          "documentation_url": "URL adresa návodu/dokumentácie",
+          "notes": "Poznámky",
+          "installation_date": "Dátum inštalácie",
+          "warranty_expiry": "Koniec záruky"
+        },
+        "data_description": {
+          "name": "Názov tohto objektu údržby.",
+          "area_id": "Oblasť, v ktorej sa objekt nachádza.",
+          "manufacturer": "Výrobca tohto objektu.",
+          "model": "Model tohto objektu.",
+          "serial_number": "Sériové číslo tohto objektu.",
+          "documentation_url": "Voliteľný odkaz na PDF návod, stránku výrobcu alebo akúkoľvek URL adresu s referenčnými informáciami o tomto objekte.",
+          "notes": "Ľubovoľné poznámky k objektu – čísla dielov, postupy, pripomienky nastavení a pod.",
+          "installation_date": "Kedy bol objekt nainštalovaný.",
+          "warranty_expiry": "Kedy končí záruka výrobcu na tento objekt."
+        }
+      }
+    },
+    "error": {
+      "name_exists": "Objekt údržby s týmto názvom už existuje.",
+      "name_empty": "Zadajte názov.",
+      "no_tasks": "Vyžaduje sa aspoň jedna úloha údržby.",
+      "invalid_entity": "Vybraná entita neexistuje alebo nemá číselné údaje.",
+      "invalid_attribute": "Vybraný atribút nie je pre túto entitu dostupný.",
+      "invalid_threshold": "Musí byť nastavený aspoň jeden prah (nad alebo pod).",
+      "overlapping_threshold": "Prah „pod“ musí byť nižší ako prah „nad“ – inak každý odpočet spustí úlohu a tá sa nikdy nevráti do normálu. Jednu z nich nechajte prázdnu.",
+      "invalid_due_date": "Jednorazové úlohy vyžadujú termín.",
+      "last_performed_future": "Dátum posledného vykonania nemôže byť v budúcnosti.",
+      "invalid_interval": "Interval musí byť kladné číslo.",
+      "min_exceeds_max": "Minimálny interval nesmie byť väčší ako maximálny interval.",
+      "invalid_notify_service": "Neplatný formát služby upozornení. Použite „notify.nazov_sluzby“ (napr. notify.mobile_app_phone).",
+      "notify_service_not_found": "Táto služba upozornení sa v Home Assistante nenašla. Skontrolujte názov služby.",
+      "nfc_tag_duplicate": "Tento NFC tag je už priradený k inej úlohe.",
+      "invalid_shopping_list_entity": "Nákupný zoznam musí byť entita zoznamu úloh (todo.…).",
+      "invalid_schedule": "Plán je neúplný – vyberte aspoň jeden deň v týždni (alebo kalendár pre úlohu riadenú kalendárom).",
+      "invalid_delta_target": "Pri počítaní nahromadeného použitia (režim rozdielu) musí byť cieľová hodnota väčšia ako 0."
+    },
+    "abort": {
+      "already_configured": "Tento objekt údržby je už nastavený.",
+      "global_already_exists": "Globálne nastavenia sú už nastavené.",
+      "template_not_found": "Vybraná šablóna sa nenašla.",
+      "missing_data": "Neboli zadané požadované údaje.",
+      "reconfigure_successful": "Nastavenie bolo úspešne aktualizované.",
+      "reconfigure_cancelled": "Zmena nastavenia bola zrušená.",
+      "reconfigure_global": "Globálne nastavenia nie sú objekt a nedajú sa takto zmeniť. Na ich zmenu použite Konfigurovať.",
+      "entity_unavailable": "Vybraná entita momentálne nie je dostupná. Skúste to znova, keď bude hlásiť stav.",
+      "unknown": "Vyskytla sa neočakávaná chyba. Začnite, prosím, odznova."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Možnosti údržby",
+        "description": "{object_info}",
+        "menu_options": {
+          "manage_tasks": "Spravovať úlohy",
+          "add_task": "Pridať novú úlohu",
+          "object_settings": "Nastavenia objektu",
+          "done": "Hotovo"
+        }
+      },
+      "global_init": {
+        "title": "Globálne nastavenia",
+        "description": "Nastavte globálne nastavenia údržby.",
+        "menu_options": {
+          "general_settings": "Všeobecné nastavenia",
+          "advanced_features": "Pokročilé funkcie",
+          "panel_access": "Prístup k panelu",
+          "budget_settings": "Nastavenia rozpočtu",
+          "manage_groups": "Spravovať skupiny",
+          "notification_settings": "Nastavenia upozornení",
+          "notification_actions": "Akčné tlačidlá v mobile",
+          "test_notification": "Poslať testovacie upozornenie",
+          "done": "Hotovo",
+          "home_profile": "Profil domácnosti · Galéria šablón",
+          "archive_settings": "Archív a uchovávanie",
+          "member_avatars": "Avatary členov",
+          "battery_lifetimes": "Typická životnosť batérií"
+        }
+      },
+      "advanced_features": {
+        "title": "Pokročilé funkcie",
+        "description": "Vyberte, ktoré pokročilé funkcie sa majú zobrazovať v rozhraní. Vypnutie funkcie ju skryje z rozhrania, ale nevymaže žiadne údaje.",
+        "data": {
+          "advanced_adaptive_visible": "Adaptívne plánovanie",
+          "advanced_seasonal_visible": "Sezónne úpravy",
+          "advanced_environmental_visible": "Korelácia s prostredím",
+          "advanced_budget_visible": "Sledovanie rozpočtu",
+          "advanced_groups_visible": "Skupiny",
+          "advanced_checklists_visible": "Kontrolné zoznamy",
+          "advanced_schedule_time_visible": "Plánovanie na dennú dobu",
+          "advanced_completion_actions_visible": "Akcie po dokončení",
+          "advanced_places_visible": "Miesta",
+          "advanced_beta_editor_visible": "Nový vzhľad a editor úloh"
+        },
+        "data_description": {
+          "advanced_adaptive_visible": "Zobrazovať EWA, Weibullovu analýzu a návrhy intervalov pre úlohy.",
+          "advanced_seasonal_visible": "Zobrazovať grafy sezónnych faktorov a údaje mesačných úprav.",
+          "advanced_environmental_visible": "Zobrazovať úpravy podľa korelácie s prostredím (teplota, vlhkosť).",
+          "advanced_budget_visible": "Zobrazovať sledovanie mesačného/ročného rozpočtu a výstrahy.",
+          "advanced_groups_visible": "Zobrazovať správu skupín údržby.",
+          "advanced_checklists_visible": "Zobrazovať kontrolné zoznamy úloh na dokončovanie krok za krokom.",
+          "advanced_schedule_time_visible": "Povoliť, aby úlohy boli po termíne v konkrétnom čase dňa namiesto o polnoci.",
+          "advanced_completion_actions_visible": "Akcia HA pre každú úlohu po dokončení + QR na rýchle dokončenie s prednastavenými hodnotami.",
+          "advanced_places_visible": "Objekty udržiavané na inom mieste (zóna Home Assistanta): pripomienky iba vtedy, keď tam niekto je, a správa pri príchode.",
+          "advanced_beta_editor_visible": "Vlastné ovládacie prvky Home Assistanta v celom paneli, úlohy ako pravidlá podobne ako v editore automatizácií a stopa každej úlohy. Predvolene zapnuté; pre klasický vzhľad vypnite."
+        }
+      },
+      "panel_access": {
+        "title": "Prístup k panelu",
+        "description": "Správcovia majú vždy plný prístup. Ak chcete vytváranie, úpravy a mazanie zveriť konkrétnym používateľom, ktorí nie sú správcami, zapnite možnosť nižšie a vyberte ich – všetci ostatní uvidia iba Dokončiť a Preskočiť. Nájdení používatelia, ktorí nie sú správcami: {user_count}.",
+        "data": {
+          "operator_write_enabled": "Povoliť vybraným používateľom vytvárať, upravovať a mazať",
+          "admin_panel_user_ids": "Používatelia s plným prístupom k panelu",
+          "shared_device_user_ids": "Zdieľané zariadenia"
+        },
+        "data_description": {
+          "operator_write_enabled": "Vypnuté (predvolené): obsah môžu meniť iba správcovia. Zapnuté: aj nižšie vybraní používatelia dostanú plný prístup na vytváranie/úpravy/mazanie.",
+          "admin_panel_user_ids": "Uvedení používatelia vidia celý panel; všetci ostatní vidia pri každej úlohe iba Dokončiť a Preskočiť.",
+          "shared_device_user_ids": "Účty, ktoré používa viac ľudí, napr. tablet v kuchyni. Dokončenie urobené na ňom sa pripíše tomu, kto má službu (zodpovednej osobe, pri striedaní tomu, kto je na rade); história zaznamená zariadenie."
+        }
+      },
+      "general_settings": {
+        "title": "Všeobecné nastavenia",
+        "description": "Vykonajte základné nastavenia Maintenance Supporter.",
+        "data": {
+          "default_warning_days": "Predvolený počet dní varovania pred termínom",
+          "notifications_enabled": "Zapnúť upozornenia",
+          "notify_service": "Služba upozornení",
+          "panel_enabled": "Zobraziť panel v bočnom paneli",
+          "currency_decimals": "Desatinné miesta pri sumách",
+          "parts_cost_mode": "Náhradné diely sa počítajú ako výdavok",
+          "battery_low_percent": "Prah slabej batérie (%)",
+          "battery_recovered_percent": "Batéria sa považuje za vymenenú nad (%)",
+          "battery_low_delay_minutes": "Batéria sa považuje za slabú po (minúty)",
+          "battery_auto_record_recovery": "Automaticky zaznamenať výmenu, keď sa slabá batéria zotaví",
+          "panel_title": "Názov panela v bočnom paneli",
+          "shopping_list_entity": "Nákupný zoznam na synchronizáciu nákupných úloh",
+          "mirror_todo_default_entities": "Predvolené zoznamy úloh (to-do) pre úlohy",
+          "part_search_url_template": "Odkaz na vyhľadávanie v obchode",
+          "default_consumable_threshold": "Prah nízkeho stavu spotrebného materiálu (%)",
+          "row_action_style": "Akcie v riadku úlohy",
+          "ref_numbers_in_lists": "Referenčné čísla v zoznamoch",
+          "objects_table_columns": "Stĺpce tabuľky objektov",
+          "install_assist_sentences": "Nainštalovať vety pre Assist"
+        },
+        "data_description": {
+          "default_warning_days": "Koľko dní pred termínom úlohy údržby sa má zobraziť varovanie.",
+          "notifications_enabled": "Posielať upozornenia, keď úlohy údržby dosiahnu termín alebo sú po termíne.",
+          "notify_service": "Služba upozornení, ktorá sa má použiť (napr. notify.mobile_app_phone).",
+          "panel_enabled": "Zobraziť panel Maintenance Supporter v bočnom paneli.",
+          "currency_decimals": "Koľko desatinných miest zobrazuje každá suma – KPI, rozpočty, náklady v zoznamoch a výkazoch, výstrahy rozpočtu. 0 = celé čísla.",
+          "parts_cost_mode": "Pri nákupe: počíta sa cena z pripomienky nákupu, diely použité pri práci sa zobrazia len informatívne. Pri použití: každé dokončenie zaúčtuje použité diely a nákup namiesto toho nastaví cenu dielu. Platí pre dokončenia od tejto chvíle.",
+          "battery_low_percent": "Spoločná dolná hranica pre všetky batérie: batéria na tejto úrovni alebo pod ňou sa považuje za slabú, pokiaľ nemá v Battery Notes vyšší prah.",
+          "battery_recovered_percent": "Slabá batéria sa považuje za slabú, kým jej úroveň nestúpne nad túto hodnotu alebo kým sa nezaznamená výmena – úroveň kolísajúca okolo prahu tak nemôže úlohu batérií dokončovať znova a znova.",
+          "battery_low_delay_minutes": "Takto dlho musí batéria hlásiť nízku úroveň, kým sa bude považovať za slabú – senzor, ktorý na chvíľu nahlási veľmi nízku úroveň a sám sa zotaví, ju tak nedostane do zoznamu. 0 = okamžite.",
+          "battery_auto_record_recovery": "Keď batéria, ktorá bola slabá, stúpne nad prah zotavenia, dátum výmeny sa zaznamená v Battery Notes a náhradné články sa odpíšu zo skladu – bez ťuknutia",
+          "panel_title": "Vlastný názov položky v bočnom paneli. Ak ho necháte prázdny, použije sa „Údržba“. Hodí sa, aby nedochádzalo ku kolízii s nástenkou Údržba v Home Assistante.",
+          "shopping_list_entity": "Automatické pripomienky „kúpiť“ pre diely s nízkym stavom sa zobrazia v tomto zozname úloh; odškrtnutie pripomienku dokončí a doplní diel na sklad. Pre vypnutie nechajte prázdne.",
+          "mirror_todo_default_entities": "Kým má úloha termín, zobrazuje sa v týchto zoznamoch, pokiaľ si úloha nevyberie vlastné zoznamy alebo žiadny (dialóg úlohy v paneli). Odškrtnutím tam sa úloha dokončí. Pre vypnutie nechajte prázdne.",
+          "part_search_url_template": "URL adresa s {q} na mieste hľadaných výrazov, použije sa pre diely bez odkazu na produkt. Pre automatický výber obchodu (podľa krajiny, potom podľa jazyka) nechajte prázdne.",
+          "default_consumable_threshold": "Predvolená hodnota pre nové navrhované nastavenia (spotrebný materiál so zostávajúcim percentom) a pre batérie bez vlastného prahu v Battery Notes. Existujúce úlohy si ponechajú svoju hodnotu.",
+          "ref_numbers_in_lists": "Zobrazovať odznaky #8/#8.3 pred názvami objektov a úloh v zozname Dnes, v tabuľke úloh, na kartách objektov a v tabuľke objektov.",
+          "objects_table_columns": "Vyberte, ktoré stĺpce sa zobrazia v tabuľkovom zobrazení objektov.",
+          "install_assist_sentences": "Skopíruje hlasové vety do vašej konfigurácie, aby ich klasický agent Assist rozpoznal. Súbor, ktorý ste sami upravili, sa nikdy neprepíše."
+        }
+      },
+      "notification_settings": {
+        "title": "Nastavenia upozornení",
+        "description": "Nastavte, kedy a ako často sa budú posielať upozornenia pre jednotlivé stavy.",
+        "data": {
+          "notify_due_soon_enabled": "Upozorniť, keď sa blíži termín",
+          "notify_due_soon_interval_hours": "Interval pripomienky blížiaceho sa termínu (hodiny)",
+          "notify_overdue_enabled": "Upozorniť po termíne",
+          "notify_overdue_interval_hours": "Interval pripomienky po termíne (hodiny)",
+          "notify_triggered_enabled": "Upozorniť pri spustení",
+          "notify_triggered_interval_hours": "Interval pripomienky po spustení (hodiny)",
+          "quiet_hours_enabled": "Zapnúť tiché hodiny",
+          "quiet_hours_start": "Začiatok tichých hodín",
+          "quiet_hours_end": "Koniec tichých hodín",
+          "max_notifications_per_day": "Max. počet upozornení za deň",
+          "notification_bundling_enabled": "Zoskupovať upozornenia",
+          "notification_bundle_threshold": "Prah zoskupenia",
+          "notification_title_style": "Štýl nadpisu upozornenia",
+          "notification_title_prefix": "Predpona nadpisu upozornenia",
+          "notification_language": "Jazyk upozornení",
+          "notify_completed": "Upozornenia na dokončenie",
+          "notify_event_only": "Iba vyvolať udalosť, nič neposielať",
+          "notify_extra_data": "Ďalšie údaje upozornenia (šablóna)",
+          "reminder_lead_days": "Ďalšie pripomienky (dni pred termínom)",
+          "notify_scope_view_id": "Upozorňovať iba pre zobrazenie",
+          "weekly_digest_enabled": "Týždenný súhrn",
+          "warranty_reminder_enabled": "Pripomienka konca záruky",
+          "warranty_reminder_days": "Dni pred koncom"
+        },
+        "data_description": {
+          "notify_due_soon_interval_hours": "Ako často opakovať pripomienku blížiaceho sa termínu. 0 = jediné upozornenie.",
+          "notify_overdue_interval_hours": "Ako často opakovať pripomienku po termíne. 0 = jediné upozornenie.",
+          "notify_triggered_interval_hours": "Ako často opakovať upozornenie po spustení. 0 = jediné upozornenie.",
+          "quiet_hours_enabled": "Potlačiť upozornenia počas tichých hodín.",
+          "max_notifications_per_day": "Maximálny počet upozornení za deň. 0 = bez obmedzenia.",
+          "notification_bundling_enabled": "Poslať jedno súhrnné upozornenie, keď pozornosť vyžaduje viac úloh.",
+          "notification_bundle_threshold": "Minimálny počet úloh na odoslanie zoskupeného upozornenia.",
+          "notification_title_style": "Čo sa zobrazí ako NADPIS upozornenia. Predvolené ponechá text podľa stavu (napr. „Údržba po termíne!“). Názov objektu/úlohy pomôže, keď sa upozornenia v telefóne zoskupujú.",
+          "notification_title_prefix": "Pridá sa pred nadpis každého upozornenia pri každom štýle nadpisu, napr. názov domácnosti, keď telefón dostáva pripomienky z viacerých Home Assistantov. Prázdne = bez predpony.",
+          "notification_language": "Jazyk nadpisov, správ a tlačidiel upozornení. Jazyk Home Assistanta = ako doteraz. Panel si ponechá jazyk každej osoby.",
+          "notify_completed": "Správa pre domácnosť pri dokončení úlohy aj s dôvodom (panel, sken QR/NFC, zoznam úloh, hlas, zotavenie senzora …). „Iba automatické“ oznamuje len dokončenia, ktoré nikto neurobil priamo na mieste – zotavenie senzora, odškrtnutie v nákupnom zozname, volanie služby z automatizácie.",
+          "notify_event_only": "Každé upozornenie vyvolá udalosť maintenance_supporter_notification. Ak je toto zapnuté, doručenie zabezpečuje výlučne vaša automatizácia – o tom, kedy sa udalosť vyvolá, naďalej rozhodujú intervaly opakovania, tiché hodiny a denný limit.",
+          "notify_extra_data": "JSON alebo YAML s Jinja, zlúčené do údajov každého volania notify (vaše kľúče majú prednosť). Premenné: kind, status, priority, labels, notes, area_name, object_name, task_name, object_ref, task_ref, days_until_due, next_due, last_performed, responsible_user_id, sensor_entity_id, url, target, title, message.",
+          "reminder_lead_days": "Predstihy oddelené čiarkou, napr. 14, 3, 0 – v každý zodpovedajúci deň príde jedna pripomienka navyše. Prázdne = vypnuté.",
+          "notify_scope_view_id": "Pripomienky posielajú iba úlohy, ktoré zodpovedajú filtrom štítkov/používateľov vybraného uloženého zobrazenia. Stav, triedenie a zoskupenie zobrazenia sa tu ignorujú.",
+          "weekly_digest_enabled": "Jedno súhrnné upozornenie v pondelok ráno, keď majú úlohy termín.",
+          "warranty_reminder_enabled": "Upozorniť raz, keď do konca záruky objektu zostáva toľko dní."
+        }
+      },
+      "notification_actions": {
+        "title": "Akčné tlačidlá v mobile",
+        "description": "Nastavte akčné tlačidlá zobrazené v upozorneniach v mobile (vyžaduje Companion App).",
+        "data": {
+          "action_complete_enabled": "Zobraziť tlačidlo „Dokončiť“",
+          "action_skip_enabled": "Zobraziť tlačidlo „Preskočiť“",
+          "action_snooze_enabled": "Zobraziť tlačidlo „Odložiť“",
+          "snooze_duration_hours": "Dĺžka odloženia (hodiny)"
+        },
+        "data_description": {
+          "action_complete_enabled": "Pridá tlačidlo na označenie úlohy ako dokončenej priamo z upozornenia.",
+          "action_skip_enabled": "Pridá tlačidlo na preskočenie aktuálneho cyklu údržby z upozornenia.",
+          "action_snooze_enabled": "Pridá tlačidlo na odloženie pripomienky.",
+          "snooze_duration_hours": "O koľko odložiť upozornenia po stlačení Odložiť."
+        }
+      },
+      "budget_settings": {
+        "title": "Nastavenia rozpočtu",
+        "description": "Nastavte mesačný a ročný rozpočet na údržbu na sledovanie výdavkov.",
+        "data": {
+          "budget_currency": "Mena",
+          "budget_monthly": "Mesačný rozpočet",
+          "budget_yearly": "Ročný rozpočet",
+          "budget_alerts_enabled": "Zapnúť výstrahy rozpočtu",
+          "budget_alert_threshold": "Prah výstrahy (%)"
+        },
+        "data_description": {
+          "budget_currency": "Mena použitá pri zobrazení rozpočtu a v upozorneniach.",
+          "budget_monthly": "Maximálne mesačné výdavky na údržbu. 0 = vypnuté.",
+          "budget_yearly": "Maximálne ročné výdavky na údržbu. 0 = vypnuté.",
+          "budget_alerts_enabled": "Poslať upozornenie, keď výdavky prekročia prah výstrahy.",
+          "budget_alert_threshold": "Percento rozpočtu, pri ktorom sa pošle výstraha."
+        }
+      },
+      "test_notification": {
+        "title": "Testovacie upozornenie",
+        "description": "{result}"
+      },
+      "manage_groups": {
+        "title": "Spravovať skupiny",
+        "description": "Vyberte skupinu na správu alebo vytvorte novú.",
+        "data": {
+          "selected_group": "Vybrať skupinu"
+        }
+      },
+      "add_group": {
+        "title": "Pridať skupinu",
+        "description": "Vytvorte novú skupinu údržby na usporiadanie súvisiacich úloh.",
+        "data": {
+          "group_name": "Názov skupiny",
+          "group_description": "Popis"
+        },
+        "data_description": {
+          "group_name": "Názov tejto skupiny (napr. „Jarná údržba“).",
+          "group_description": "Voliteľný popis tejto skupiny."
+        }
+      },
+      "edit_group": {
+        "title": "Upraviť skupinu",
+        "description": "Premenujte skupinu alebo ju zaškrtnutím políčka odstráňte.",
+        "data": {
+          "group_name": "Názov skupiny",
+          "group_description": "Popis",
+          "delete_group": "Odstrániť túto skupinu"
+        },
+        "data_description": {
+          "delete_group": "Jej úlohy zostanú; odstráni sa iba skupina."
+        }
+      },
+      "manage_tasks": {
+        "title": "Spravovať úlohy",
+        "description": "Vyberte úlohu na úpravu alebo odstránenie.",
+        "data": {
+          "selected_task": "Vybrať úlohu",
+          "go_back": "Späť"
+        }
+      },
+      "task_action": {
+        "title": "Akcie úlohy",
+        "description": "Úloha: {task_name} – vyberte akciu.\n\nNajbližšie termíny: {next_dates}",
+        "menu_options": {
+          "edit_task": "Upraviť úlohu",
+          "edit_trigger": "Upraviť spúšťač",
+          "remove_trigger": "Odstrániť spúšťač",
+          "edit_checklist": "Upraviť kontrolný zoznam",
+          "adaptive_scheduling": "Adaptívne plánovanie",
+          "delete_task": "Odstrániť úlohu",
+          "manage_tasks": "Späť",
+          "edit_phases": "Upraviť fázy cyklu"
+        }
+      },
+      "edit_task": {
+        "title": "Upraviť úlohu",
+        "description": "Upravte nastavenia úlohy **{task_name}**.",
+        "data": {
+          "name": "Názov úlohy",
+          "type": "Typ údržby",
+          "interval_days": "Interval",
+          "interval_unit": "Jednotka intervalu",
+          "warning_days": "Dni varovania pred termínom",
+          "due_date": "Termín",
+          "enabled": "Zapnuté",
+          "notes": "Poznámky",
+          "documentation_url": "URL adresa dokumentácie",
+          "last_performed": "Naposledy vykonané",
+          "responsible_user_id": "Zodpovedný používateľ",
+          "custom_icon": "Ikona úlohy",
+          "notify_icon": "Ikona upozornenia",
+          "nfc_tag_id": "ID NFC tagu",
+          "go_back": "Späť",
+          "interval_anchor": "Ukotvenie intervalu",
+          "reading_unit": "Jednotka odpočtu (pre úlohy s odpočtom, napr. kWh)",
+          "readings_text": "Odpočty (jeden na riadok: Názov | Jednotka)",
+          "season_months": "Sezónne obdobie (mesiace)",
+          "ends_count": "Končí po (počet opakovaní)",
+          "ends_until": "Končí dňa"
+        },
+        "data_description": {
+          "name": "Výstižný názov úlohy (napr. „Čistenie filtra“, „Výmena oleja“).",
+          "type": "Kategória údržbových prác.",
+          "interval_days": "Ako často sa táto údržba opakuje, v kombinácii s jednotkou intervalu.",
+          "interval_unit": "Jednotka intervalu: dni, týždne, mesiace alebo roky. Mesiace a roky sa riadia kalendárom.",
+          "warning_days": "Koľko dní pred termínom sa má zobraziť varovanie.",
+          "due_date": "Dátum, kedy má byť táto jednorazová úloha splnená.",
+          "enabled": "Ak je vypnuté, plánovanie a spúšťače sú pozastavené. Úloha sa neodstráni.",
+          "notes": "Ďalšie poznámky alebo pokyny k tejto úlohe.",
+          "documentation_url": "Odkaz na externú dokumentáciu alebo návod k tejto úlohe.",
+          "last_performed": "Kedy bola táto údržba naposledy vykonaná. Ak ešte nikdy, nechajte prázdne.",
+          "responsible_user_id": "Používateľ Home Assistanta zodpovedný za túto úlohu.",
+          "custom_icon": "Voliteľná vlastná ikona úlohy (napr. mdi:oil, mdi:filter-variant).",
+          "notify_icon": "Ikona zobrazená v push upozorneniach tejto úlohy (napr. mdi:air-filter). Ak ju necháte prázdnu, použije sa predvolená ikona typu údržby. Iba Android.",
+          "nfc_tag_id": "Priraďte k úlohe NFC tag. Naskenovaním tagu sa úloha automaticky označí ako dokončená.",
+          "go_back": "Návrat k akciám úlohy bez uloženia.",
+          "interval_anchor": "Ako sa po dokončení vypočíta ďalší termín. „Plánovaný“ zabraňuje posúvaniu plánu ukotvením k pôvodnému termínu.",
+          "season_months": "Termín iba vo vybraných mesiacoch; termíny mimo sezóny sa presunú na najbližší aktívny mesiac. Pre celý rok nechajte prázdne.",
+          "ends_count": "Prestať opakovať po tomto počte dokončení (konečná séria). Bez obmedzenia nechajte prázdne.",
+          "ends_until": "Prestať opakovať, keď by ďalší výskyt pripadol po tomto dátume. Ignoruje sa, ak je nastavené „Končí po“."
+        }
+      },
+      "edit_checklist": {
+        "title": "Upraviť kontrolný zoznam",
+        "description": "Definujte kroky kontrolného zoznamu pre {task_name}. Jeden krok na riadok.",
+        "data": {
+          "checklist_text": "Kroky kontrolného zoznamu",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "checklist_text": "Každý krok kontrolného zoznamu zadajte na samostatný riadok. Tieto kroky sa zobrazia pri dokončovaní úlohy.",
+          "go_back": "Návrat k akciám úlohy bez uloženia."
+        }
+      },
+      "compound_logic": {
+        "title": "Kombinovaný spúšťač",
+        "description": "Vyberte, ako sa majú viaceré podmienky kombinovať.",
+        "data": {
+          "compound_logic": "Logika",
+          "go_back": "Späť",
+          "auto_complete_on_recovery": "Automaticky dokončiť, keď sa senzor vráti do normálu"
+        },
+        "data_description": {
+          "compound_logic": "AND = musia sa splniť všetky podmienky. OR = stačí ktorákoľvek podmienka."
+        }
+      },
+      "compound_condition_entity": {
+        "title": "Podmienka č. {condition_num} – entita",
+        "description": "Vyberte entitu pre túto podmienku.",
+        "data": {
+          "trigger_entity": "Entita",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "trigger_entity": "Entita senzora, ktorá sa má pre túto podmienku sledovať."
+        }
+      },
+      "compound_condition_type": {
+        "title": "Podmienka č. {condition_num} – typ",
+        "description": "Ako má táto podmienka vyhodnocovať senzor?",
+        "data": {
+          "trigger_type": "Typ spúšťača",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "trigger_type": "Spôsob, ktorým sa určí, kedy je táto podmienka splnená."
+        }
+      },
+      "compound_condition_threshold": {
+        "title": "Podmienka – prah",
+        "data": {
+          "trigger_above": "Spustiť nad",
+          "trigger_below": "Spustiť pod",
+          "trigger_equals": "Spustiť pri hodnote rovnej",
+          "trigger_not_equals": "Spustiť pri hodnote inej ako",
+          "trigger_for_minutes": "Trvanie (minúty)",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "trigger_above": "Spustiť, keď hodnota prekročí tento prah.",
+          "trigger_below": "Spustiť, keď hodnota klesne pod tento prah.",
+          "trigger_equals": "Spustiť údržbu, keď sa hodnota rovná tejto úrovni.",
+          "trigger_not_equals": "Spustiť údržbu, keď sa hodnota líši od tejto úrovne.",
+          "trigger_for_minutes": "Ako dlho musí hodnota zostať za prahom."
+        }
+      },
+      "compound_condition_counter": {
+        "title": "Podmienka – počítadlo",
+        "data": {
+          "trigger_target_value": "Cieľová hodnota",
+          "trigger_delta_mode": "Režim rozdielu",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "trigger_target_value": "Spustiť, keď nahromadená hodnota dosiahne tento cieľ.",
+          "trigger_delta_mode": "Počítať zmeny od východiskovej hodnoty namiesto absolútnej hodnoty."
+        }
+      },
+      "compound_condition_state_change": {
+        "title": "Podmienka – zmena stavu",
+        "data": {
+          "trigger_from_state": "Zo stavu",
+          "trigger_to_state": "Do stavu",
+          "trigger_target_changes": "Počet zmien",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "trigger_from_state": "Počítať iba zmeny z tohto stavu. Pre ľubovoľný nechajte prázdne.",
+          "trigger_to_state": "Počítať iba zmeny do tohto stavu. Pre ľubovoľný nechajte prázdne.",
+          "trigger_target_changes": "Počet zodpovedajúcich zmien stavu pred spustením."
+        }
+      },
+      "compound_condition_runtime": {
+        "title": "Podmienka – prevádzkový čas",
+        "data": {
+          "trigger_runtime_hours": "Cieľový prevádzkový čas (hodiny)",
+          "trigger_on_states": "Aktívne stavy",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Spustiť po toľkých hodinách nahromadeného prevádzkového času.",
+          "trigger_on_states": "Stavy senzora, ktoré sa počítajú ako „aktívne“. Pre predvolené nechajte prázdne."
+        }
+      },
+      "compound_condition_due_date": {
+        "title": "Podmienka – termín",
+        "data": {
+          "trigger_days_before": "Dni pred dátumom",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "trigger_days_before": "Podmienka je splnená od toľkých dní pred dátumom, ktorý hlási entita."
+        }
+      },
+      "compound_review": {
+        "title": "Kontrola kombinovaného spúšťača",
+        "description": "Nastavené podmienky: {condition_count}, logika {compound_logic}.",
+        "data": {
+          "compound_action": "Akcia",
+          "go_back": "Späť"
+        }
+      },
+      "adaptive_scheduling": {
+        "title": "Adaptívne plánovanie",
+        "description": "Nastavte inteligentné prispôsobovanie intervalu pre {task_name}. Systém sa učí zo spätnej väzby pri dokončení a navrhuje lepšie intervaly.",
+        "data": {
+          "adaptive_enabled": "Zapnúť adaptívne plánovanie",
+          "ewa_alpha": "Rýchlosť učenia (alfa)",
+          "min_interval_days": "Minimálny interval (dni)",
+          "max_interval_days": "Maximálny interval (dni)",
+          "seasonal_enabled": "Zapnúť zohľadňovanie sezóny",
+          "sensor_prediction_enabled": "Zapnúť predpovede podľa senzorov",
+          "environmental_entity": "Senzor prostredia (voliteľné)",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "adaptive_enabled": "Ak je zapnuté, systém sa bude učiť z vašej spätnej väzby a navrhovať optimálne intervaly údržby.",
+          "ewa_alpha": "Ako rýchlo sa algoritmus prispôsobuje novým údajom. Vyššia = pohotovejší, nižšia = stabilnejší.",
+          "min_interval_days": "Najkratší interval, aký systém kedy odporučí.",
+          "max_interval_days": "Najdlhší interval, aký systém kedy odporučí.",
+          "seasonal_enabled": "Upravovať odporúčania podľa sezónnych vzorcov zistených z histórie údržby.",
+          "sensor_prediction_enabled": "Analyzovať trendy senzorov, predpovedať dosiahnutie prahov a v prípade potreby navrhnúť skoršiu údržbu.",
+          "environmental_entity": "Priraďte senzor teploty, vlhkosti alebo tlaku na koreláciu podmienok prostredia s intervalmi údržby.",
+          "go_back": "Návrat k akciám úlohy bez uloženia."
+        }
+      },
+      "delete_task": {
+        "title": "Odstrániť úlohu",
+        "description": "Naozaj chcete odstrániť úlohu {task_name}? Túto akciu nie je možné vrátiť.",
+        "data": {
+          "confirm": "Potvrdiť odstránenie",
+          "go_back": "Späť"
+        }
+      },
+      "remove_trigger": {
+        "title": "Odstrániť spúšťač",
+        "description": "Odstrániť spúšťač z úlohy **{task_name}**?\n\n**Entita:** {entity_ids}\n**Typ:** {trigger_type}\n**Nastavenie:** {config_details}\n\nAk sa odstránia všetky entity, plán sa vráti na časový.",
+        "data": {
+          "entities_to_remove": "Entity na odstránenie",
+          "confirm": "Potvrdiť odstránenie",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "entities_to_remove": "Vyberte, ktoré entity sa majú zo spúšťača odstrániť. Ak sa odstránia všetky, odstráni sa celý spúšťač.",
+          "go_back": "Návrat k akciám úlohy bez uloženia."
+        }
+      },
+      "trigger_summary": {
+        "title": "Aktuálny spúšťač",
+        "description": "Spúšťač úlohy **{task_name}**:\n\n**Entita:** {entity_ids}\n**Aktuálny stav:** {current_states}\n**Typ:** {trigger_type} (atribút: {attribute})\n**Nastavenie:** {config_details}",
+        "menu_options": {
+          "edit_trigger_proceed": "Upraviť spúšťač",
+          "task_action": "Späť"
+        }
+      },
+      "add_task": {
+        "title": "Pridať úlohu údržby",
+        "description": "Definujte novú úlohu údržby pre tento objekt.",
+        "data": {
+          "name": "Názov úlohy",
+          "type": "Typ údržby",
+          "schedule_type": "Typ plánovania",
+          "custom_icon": "Ikona úlohy",
+          "go_back": "Späť",
+          "reading_unit": "Jednotka odpočtu (pre úlohy s odpočtom, napr. kWh)"
+        },
+        "data_description": {
+          "name": "Výstižný názov úlohy (napr. „Čistenie filtra“, „Výmena oleja“).",
+          "type": "Kategória údržbových prác.",
+          "schedule_type": "Ako sa má táto úloha plánovať.",
+          "custom_icon": "Voliteľná vlastná ikona úlohy (napr. mdi:oil, mdi:filter-variant).",
+          "go_back": "Návrat do hlavnej ponuky bez uloženia."
+        }
+      },
+      "opt_time_based": {
+        "title": "Časový plán",
+        "description": "Nastavte časový interval tejto úlohy.",
+        "data": {
+          "interval_days": "Interval",
+          "interval_unit": "Jednotka intervalu",
+          "last_performed": "Naposledy vykonané",
+          "warning_days": "Dni varovania pred termínom",
+          "go_back": "Späť",
+          "interval_anchor": "Ukotvenie intervalu"
+        },
+        "data_description": {
+          "interval_days": "Ako často sa táto údržba opakuje, v kombinácii s jednotkou intervalu.",
+          "interval_unit": "Jednotka intervalu: dni, týždne, mesiace alebo roky. Mesiace a roky sa riadia kalendárom.",
+          "last_performed": "Kedy bola táto údržba naposledy vykonaná. Ak ešte nikdy, nechajte prázdne.",
+          "warning_days": "Koľko dní pred termínom sa má zobraziť varovanie.",
+          "go_back": "Návrat do hlavnej ponuky bez uloženia.",
+          "interval_anchor": "Ako sa po dokončení vypočíta ďalší termín. „Plánovaný“ zabraňuje posúvaniu plánu ukotvením k pôvodnému termínu."
+        }
+      },
+      "opt_one_time": {
+        "title": "Jednorazová úloha",
+        "description": "Nastavte jednorazovú, neopakujúcu sa úlohu údržby. Po dokončení sa archivuje.",
+        "data": {
+          "due_date": "Termín",
+          "warning_days": "Dni varovania pred termínom",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "due_date": "Dátum, kedy má byť táto jednorazová úloha splnená.",
+          "warning_days": "Koľko dní pred termínom sa má zobraziť varovanie.",
+          "go_back": "Návrat do hlavnej ponuky bez uloženia."
+        }
+      },
+      "opt_calendar": {
+        "title": "Opakovanie podľa kalendára",
+        "description": "Nastavte opakovanie podľa kalendára (dni v týždni, n-tý deň v týždni v mesiaci alebo deň v mesiaci).",
+        "data": {
+          "weekdays": "V tieto dni v týždni",
+          "nth": "Ktorý výskyt",
+          "weekday": "Deň v týždni",
+          "day": "Deň v mesiaci",
+          "entity_id": "Kalendár",
+          "last_performed": "Naposledy vykonané",
+          "warning_days": "Dni varovania pred termínom",
+          "go_back": "Späť",
+          "last_day": "Posledný deň mesiaca",
+          "business": "Iba pracovné dni",
+          "offset": "Posun (dni)"
+        },
+        "data_description": {
+          "weekdays": "Úloha sa opakuje v každý vybraný deň v týždni.",
+          "nth": "Ktorý výskyt v mesiaci (napr. 1., alebo Posledný).",
+          "weekday": "Deň v týždni pre pravidlo n-tého dňa (napr. sobota).",
+          "day": "Deň v mesiaci (1 – 31; obmedzené dĺžkou mesiaca).",
+          "entity_id": "Termín raz pre každú udalosť tohto kalendára, v deň začiatku udalosti – nasledujúca udalosť po poslednom dokončení.",
+          "last_performed": "Kedy bola táto údržba naposledy vykonaná. Ak ešte nikdy, nechajte prázdne.",
+          "warning_days": "Koľko dní pred termínom sa má zobraziť varovanie.",
+          "go_back": "Návrat do hlavnej ponuky bez uloženia.",
+          "last_day": "Nahrádza číslo dňa: úloha má termín v posledný deň mesiaca.",
+          "business": "Dátum pripadajúci na víkend posunúť späť na predchádzajúci piatok (napr. posledný pracovný deň).",
+          "offset": "Posunúť vypočítaný dátum o ±N dní (napr. -2 = dva dni predtým)."
+        }
+      },
+      "opt_manual": {
+        "title": "Manuálny plán",
+        "description": "Táto úloha nemá automatický plán. Termín jej môžete nastaviť ručne.",
+        "data": {
+          "warning_days": "Dni varovania pred termínom",
+          "notes": "Poznámky",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "warning_days": "Koľko dní pred termínom sa má zobraziť varovanie.",
+          "notes": "Ďalšie poznámky alebo pokyny k tejto úlohe.",
+          "go_back": "Návrat do hlavnej ponuky bez uloženia."
+        }
+      },
+      "opt_sensor_select": {
+        "title": "Vyberte senzor spúšťača",
+        "description": "Vyberte entitu Home Assistanta, ktorá sa má sledovať.",
+        "data": {
+          "trigger_entity": "Sledovaná entita",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "trigger_entity": "Vyberte entitu senzora, ktorá má spúšťať túto úlohu údržby."
+        }
+      },
+      "opt_sensor_attribute": {
+        "title": "Vyberte atribút",
+        "description": "Vyberte, ktorá hodnota z {entity_id} sa má sledovať. Aktuálny stav: {current_state} {unit}",
+        "data": {
+          "trigger_attribute": "Sledovaná hodnota",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "trigger_attribute": "Vyberte stav entity alebo konkrétny atribút, ktorý sa má sledovať."
+        }
+      },
+      "opt_trigger_type": {
+        "title": "Typ spúšťača",
+        "description": "Ako má hodnota senzora spúšťať údržbu?",
+        "data": {
+          "trigger_type": "Typ spúšťača",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "trigger_type": "Prah: spustí sa, keď hodnota prekročí limity. Počítadlo: spustí sa po dosiahnutí cieľovej nahromadenej hodnoty. Zmena stavu: spustí sa po určitom počte zmien stavu."
+        }
+      },
+      "opt_trigger_threshold": {
+        "title": "Nastavenie prahu",
+        "description": "Nastavte prahy pre **{entity_id}** ({attribute}).\nAktuálne: **{current_value} {unit}** | Priemer: {average} | Rozsah: {minimum}–{maximum} ({data_period} d)\nNavrhované nad: {suggested_above} | Navrhované pod: {suggested_below}",
+        "data": {
+          "trigger_above": "Spustiť pri hodnote nad",
+          "trigger_below": "Spustiť pri hodnote pod",
+          "trigger_equals": "Spustiť pri hodnote rovnej",
+          "trigger_not_equals": "Spustiť pri hodnote inej ako",
+          "trigger_for_minutes": "Aspoň počas (minúty)",
+          "interval_days": "Bezpečnostný interval",
+          "interval_unit": "Jednotka intervalu",
+          "trigger_combinator": "Kombinácia spúšťača a intervalu",
+          "warning_days": "Dni varovania pred termínom",
+          "go_back": "Späť",
+          "auto_complete_on_recovery": "Automaticky dokončiť, keď sa senzor vráti do normálu"
+        },
+        "data_description": {
+          "trigger_above": "Spustiť údržbu, keď hodnota prekročí tento prah.",
+          "trigger_below": "Spustiť údržbu, keď hodnota klesne pod tento prah.",
+          "trigger_equals": "Spustiť údržbu, keď sa hodnota rovná tejto úrovni.",
+          "trigger_not_equals": "Spustiť údržbu, keď sa hodnota líši od tejto úrovne.",
+          "trigger_for_minutes": "Koľko minút musí hodnota prekračovať prah, kým sa údržba spustí.",
+          "interval_days": "Voliteľný časový bezpečnostný interval popri spúšťači senzora.",
+          "interval_unit": "Jednotka intervalu: dni, týždne, mesiace alebo roky. Mesiace a roky sa riadia kalendárom.",
+          "trigger_combinator": "Čokoľvek nastane skôr (predvolené): úloha má termín po spustení spúšťača alebo uplynutí intervalu. Obe podmienky: úloha má termín, až keď sa spúšťač spustil a zároveň uplynul interval.",
+          "warning_days": "Koľko dní pred termínom sa má zobraziť varovanie."
+        }
+      },
+      "opt_trigger_counter": {
+        "title": "Nastavenie počítadla",
+        "description": "Nastavte cieľovú hodnotu počítadla pre {entity_id} ({attribute}). Aktuálne: {current_value} {unit}.",
+        "data": {
+          "trigger_target_value": "Cieľová hodnota",
+          "trigger_delta_mode": "Režim rozdielu (počítať zmeny, nie absolútnu hodnotu)",
+          "interval_days": "Bezpečnostný interval",
+          "interval_unit": "Jednotka intervalu",
+          "trigger_combinator": "Kombinácia spúšťača a intervalu",
+          "warning_days": "Dni varovania pred termínom",
+          "go_back": "Späť",
+          "auto_complete_on_recovery": "Automaticky dokončiť, keď sa senzor vráti do normálu",
+          "trigger_baseline_value": "Počiatočný odpočet (voliteľné)"
+        },
+        "data_description": {
+          "trigger_target_value": "Spustiť údržbu po dosiahnutí tejto nahromadenej hodnoty.",
+          "trigger_delta_mode": "Ak je zapnuté, počíta sa rozdiel od východiskovej hodnoty namiesto absolútnej hodnoty.",
+          "interval_days": "Voliteľný časový bezpečnostný interval popri spúšťači počítadla.",
+          "interval_unit": "Jednotka intervalu: dni, týždne, mesiace alebo roky. Mesiace a roky sa riadia kalendárom.",
+          "trigger_combinator": "Čokoľvek nastane skôr (predvolené): úloha má termín po spustení spúšťača alebo uplynutí intervalu. Obe podmienky: úloha má termín, až keď sa spúšťač spustil a zároveň uplynul interval.",
+          "warning_days": "Koľko dní pred termínom sa má zobraziť varovanie."
+        }
+      },
+      "opt_trigger_state_change": {
+        "title": "Nastavenie zmeny stavu",
+        "description": "Počítať zmeny stavu entity {entity_id}.",
+        "data": {
+          "trigger_from_state": "Zo stavu (voliteľné)",
+          "trigger_to_state": "Do stavu (voliteľné)",
+          "trigger_target_changes": "Počet zmien na spustenie",
+          "trigger_for_minutes": "Aspoň počas (minúty)",
+          "interval_days": "Bezpečnostný interval",
+          "interval_unit": "Jednotka intervalu",
+          "trigger_combinator": "Kombinácia spúšťača a intervalu",
+          "warning_days": "Dni varovania pred termínom",
+          "go_back": "Späť",
+          "auto_complete_on_recovery": "Automaticky dokončiť, keď sa senzor vráti do normálu"
+        },
+        "data_description": {
+          "trigger_from_state": "Počítať iba zmeny z tohto stavu. Pre ľubovoľný nechajte prázdne.",
+          "trigger_to_state": "Počítať iba zmeny do tohto stavu. Pre ľubovoľný nechajte prázdne.",
+          "trigger_target_changes": "Počet zodpovedajúcich zmien stavu pred spustením údržby.",
+          "interval_days": "Voliteľný časový bezpečnostný interval popri spúšťači zmeny stavu.",
+          "interval_unit": "Jednotka intervalu: dni, týždne, mesiace alebo roky. Mesiace a roky sa riadia kalendárom.",
+          "trigger_combinator": "Čokoľvek nastane skôr (predvolené): úloha má termín po spustení spúšťača alebo uplynutí intervalu. Obe podmienky: úloha má termín, až keď sa spúšťač spustil a zároveň uplynul interval.",
+          "warning_days": "Koľko dní pred termínom sa má zobraziť varovanie.",
+          "trigger_for_minutes": "Ako dlho musí nový stav trvať, kým sa zmena započíta. 0 = započítať okamžite."
+        }
+      },
+      "opt_trigger_runtime": {
+        "title": "Nastavenie prevádzkového času",
+        "description": "Sledovať nahromadený prevádzkový čas entity {entity_id}.",
+        "data": {
+          "trigger_runtime_hours": "Cieľový prevádzkový čas (hodiny)",
+          "trigger_on_states": "Aktívne stavy (oddelené čiarkou)",
+          "interval_days": "Bezpečnostný interval",
+          "interval_unit": "Jednotka intervalu",
+          "trigger_combinator": "Kombinácia spúšťača a intervalu",
+          "warning_days": "Dni varovania pred termínom",
+          "go_back": "Späť",
+          "auto_complete_on_recovery": "Automaticky dokončiť, keď sa senzor vráti do normálu"
+        },
+        "data_description": {
+          "trigger_runtime_hours": "Spustiť údržbu po toľkých hodinách nahromadeného prevádzkového času.",
+          "trigger_on_states": "Ktoré stavy senzora sa počítajú ako „aktívne“. Pre predvolené (on, 1, true) nechajte prázdne. Príklad: in_use, running",
+          "interval_days": "Voliteľný časový bezpečnostný interval popri spúšťači prevádzkového času.",
+          "interval_unit": "Jednotka intervalu: dni, týždne, mesiace alebo roky. Mesiace a roky sa riadia kalendárom.",
+          "trigger_combinator": "Čokoľvek nastane skôr (predvolené): úloha má termín po spustení spúšťača alebo uplynutí intervalu. Obe podmienky: úloha má termín, až keď sa spúšťač spustil a zároveň uplynul interval.",
+          "warning_days": "Koľko dní pred termínom sa má zobraziť varovanie."
+        }
+      },
+      "opt_trigger_due_date": {
+        "title": "Nastavenie termínu",
+        "description": "Sledovať dátum, ktorý hlási {entity_id} (teraz: {current_state}). Úloha bude mať termín zvolený počet dní pred týmto dátumom.",
+        "data": {
+          "trigger_days_before": "Dni pred dátumom",
+          "interval_days": "Bezpečnostný interval",
+          "interval_unit": "Jednotka intervalu",
+          "trigger_combinator": "Kombinácia spúšťača a intervalu",
+          "warning_days": "Dni varovania pred termínom",
+          "go_back": "Späť",
+          "auto_complete_on_recovery": "Automaticky dokončiť, keď sa senzor vráti do normálu"
+        },
+        "data_description": {
+          "trigger_days_before": "0 = presne v daný deň. Keď zariadenie posunie svoj dátum dopredu (zvyčajne vlastným tlačidlom „hotovo“), spúšťač sa zruší.",
+          "interval_days": "Voliteľný časový bezpečnostný interval popri spúšťači senzora.",
+          "interval_unit": "Jednotka intervalu: dni, týždne, mesiace alebo roky. Mesiace a roky sa riadia kalendárom.",
+          "trigger_combinator": "Čokoľvek nastane skôr (predvolené): úloha má termín po spustení spúšťača alebo uplynutí intervalu. Obe podmienky: úloha má termín, až keď sa spúšťač spustil a zároveň uplynul interval.",
+          "warning_days": "Koľko dní pred termínom sa má zobraziť varovanie."
+        }
+      },
+      "object_settings": {
+        "title": "Nastavenia objektu",
+        "description": "Upravte údaje objektu.",
+        "data": {
+          "name": "Názov objektu",
+          "manufacturer": "Výrobca",
+          "model": "Model",
+          "serial_number": "Sériové číslo",
+          "documentation_url": "URL adresa návodu/dokumentácie",
+          "notes": "Poznámky",
+          "area_id": "Oblasť",
+          "installation_date": "Dátum inštalácie",
+          "warranty_expiry": "Koniec záruky",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "name": "Jedinečný názov tohto objektu údržby (napr. „Bazénové čerpadlo“, „Auto“).",
+          "manufacturer": "Výrobca objektu.",
+          "model": "Názov alebo číslo modelu.",
+          "serial_number": "Sériové číslo objektu.",
+          "documentation_url": "Voliteľný odkaz na PDF návod, stránku výrobcu alebo akúkoľvek URL adresu s referenčnými informáciami o tomto objekte.",
+          "notes": "Ľubovoľné poznámky k objektu – čísla dielov, postupy, pripomienky nastavení a pod.",
+          "area_id": "Oblasť vo vašej domácnosti, kde sa objekt nachádza.",
+          "installation_date": "Kedy bol objekt nainštalovaný alebo kúpený.",
+          "warranty_expiry": "Kedy končí záruka výrobcu na tento objekt.",
+          "go_back": "Návrat do hlavnej ponuky bez uloženia."
+        }
+      },
+      "edit_phases": {
+        "title": "Upraviť fázy cyklu",
+        "description": "Fázy cyklu pre {task_name}: rôzna práca v jednom spoločnom pláne. Jeden riadok na krok cyklu – pre opakovaný krok zopakujte názov. Kontrolný zoznam k fáze pridáte zápisom „Názov: položka; položka“. Pre odstránenie cyklu nechajte prázdne.",
+        "data": {
+          "phases_text": "Kroky cyklu",
+          "go_back": "Späť"
+        },
+        "data_description": {
+          "phases_text": "Jeden krok na riadok v poradí cyklu (napr. Otočiť čepeľ/Otočiť čepeľ/Vymeniť čepeľ). „Názov: položka; položka“ nastaví kontrolný zoznam fázy. Diely a povinné polia jednotlivých fáz sa upravujú v paneli a tu sa zachovajú.",
+          "go_back": "Návrat k akciám úlohy bez uloženia."
+        }
+      },
+      "home_profile": {
+        "title": "Profil domácnosti",
+        "description": "Odporúča šablóny a nastavuje sezónne obdobia podľa vašej klímy a pologule. Všetko sa vyhodnocuje lokálne z vašich podlaží, oblastí a polohy domova.\n\n**Zistené:** {detected} · {country} · {climate}",
+        "data": {
+          "home_type": "Typ domácnosti",
+          "home_region": "Štát, kraj alebo región",
+          "disabled_template_ids": "Skryté šablóny"
+        },
+        "data_description": {
+          "home_region": "Niektoré pravidlá sa v rámci krajiny líšia – v jednom štáte ročná technická kontrola vozidla, v susednom žiadna. Zistené z polohy domova; ak to nie je správne, vyberte iné.",
+          "disabled_template_ids": "Tu vybrané šablóny sa prestanú zobrazovať vo výberoch „Zo šablóny“ (panel aj konfiguračný sprievodca). Nič iné sa nemení."
+        }
+      },
+      "archive_settings": {
+        "title": "Archív a uchovávanie",
+        "description": "Vyradiť dokončené jednorazové úlohy bez ich odstránenia. Archivované položky sú skryté a neaktívne, no zachovávajú si históriu a náklady.",
+        "data": {
+          "archive_oneoff_days": "Automaticky archivovať dokončené jednorazové úlohy po (dni, 0 = vypnuté)",
+          "delete_archived_oneoff_days": "Automaticky odstrániť archivované jednorazové úlohy po (dni, 0 = nikdy)"
+        }
+      },
+      "member_avatars": {
+        "title": "Avatary členov",
+        "description": "Zobrazuje sa pri priradených úlohách – iniciály vo farbe člena. Predvolené sa odvodia z mena; na rozlíšenie členov nastavte vlastné iniciály alebo vyberte farbu.",
+        "data": {
+          "member": "Člen domácnosti"
+        }
+      },
+      "member_avatar": {
+        "title": "Avatary členov",
+        "description": "{member}: ak chcete predvolené ({initials}), nechajte iniciály prázdne a farbu na Automaticky.",
+        "data": {
+          "initials": "Iniciály",
+          "color": "Farba"
+        }
+      },
+      "battery_lifetimes": {
+        "title": "Typická životnosť batérií",
+        "description": "Používa sa iba pre batérie bez percent: záznam Battery Notes, ktorý má len typ a dátum poslednej výmeny, alebo senzor, ktorý hlási iba „slabá“. Ich termín = posledná výmena + táto životnosť. Batérie, ktoré hlásia úroveň, dostanú predpoveď podľa nameraného vybíjania. Keď sa medzi batériami vyskytnú tri výmeny daného typu, vstavanú hodnotu nahradí medián intervalu – vaša vlastná hodnota má vždy prednosť.\n\nVstavané hodnoty (mesiace): {defaults}"
+      }
+    },
+    "error": {
+      "name_exists": "Objekt údržby s týmto názvom už existuje.",
+      "name_empty": "Zadajte názov.",
+      "no_tasks": "Vyžaduje sa aspoň jedna úloha údržby.",
+      "invalid_entity": "Vybraná entita neexistuje alebo nemá číselné údaje.",
+      "invalid_attribute": "Vybraný atribút nie je pre túto entitu dostupný.",
+      "invalid_threshold": "Musí byť nastavený aspoň jeden prah (nad alebo pod).",
+      "overlapping_threshold": "Prah „pod“ musí byť nižší ako prah „nad“ – inak každý odpočet spustí úlohu a tá sa nikdy nevráti do normálu. Jednu z nich nechajte prázdnu.",
+      "invalid_interval": "Interval musí byť kladné číslo.",
+      "invalid_due_date": "Jednorazové úlohy vyžadujú termín.",
+      "last_performed_future": "Dátum posledného vykonania nemôže byť v budúcnosti.",
+      "min_exceeds_max": "Minimálny interval nesmie byť väčší ako maximálny interval.",
+      "invalid_notify_service": "Neplatný formát služby upozornení. Použite „notify.nazov_sluzby“ (napr. notify.mobile_app_phone).",
+      "notify_service_not_found": "Táto služba upozornení sa v Home Assistante nenašla. Skontrolujte názov služby.",
+      "nfc_tag_duplicate": "Tento NFC tag je už priradený k inej úlohe.",
+      "invalid_notify_icon": "Ikona upozornenia musí byť názov ikony mdi: (napr. mdi:air-filter).",
+      "invalid_shopping_list_entity": "Nákupný zoznam musí byť entita zoznamu úloh (todo.…).",
+      "invalid_mirror_todo": "Vlastný zoznam úloh Maintenance Supporter nemôže byť cieľom zrkadlenia.",
+      "invalid_search_template": "Odkaz na vyhľadávanie musí byť http(s) URL adresa obsahujúca {q}.",
+      "invalid_schedule": "Plán je neúplný – vyberte aspoň jeden deň v týždni (alebo kalendár pre úlohu riadenú kalendárom).",
+      "invalid_delta_target": "Pri počítaní nahromadeného použitia (režim rozdielu) musí byť cieľová hodnota väčšia ako 0.",
+      "invalid_reminder_lead_days": "Zadajte celé dni od 0 do 365 oddelené čiarkou (napr. 14, 3, 0)."
+    },
+    "abort": {
+      "entity_unavailable": "Vybraná entita momentálne nie je dostupná. Skúste to znova, keď bude hlásiť stav.",
+      "task_limit": "Objekt môže mať najviac {max} úloh.",
+      "archived_no_new_tasks": "Archivovaný objekt nemôže dostať nové úlohy – najprv ho obnovte."
+    }
+  },
+  "entity": {
+    "button": {
+      "button_complete": {
+        "name": "{task_name} – dokončiť"
+      },
+      "button_skip": {
+        "name": "{task_name} – preskočiť"
+      },
+      "button_reset": {
+        "name": "{task_name} – vynulovať"
+      }
+    },
+    "sensor": {
+      "maintenance_task": {
+        "name": "{task_name}",
+        "state": {
+          "ok": "OK",
+          "due_soon": "Čoskoro",
+          "overdue": "Po termíne",
+          "triggered": "Spustené",
+          "archived": "Archivované",
+          "paused": "Pozastavené"
+        },
+        "state_attributes": {
+          "maintenance_type": {
+            "name": "Typ údržby",
+            "state": {
+              "cleaning": "Čistenie",
+              "inspection": "Kontrola",
+              "replacement": "Výmena",
+              "calibration": "Kalibrácia",
+              "service": "Servis",
+              "reading": "Odpočet",
+              "custom": "Vlastné"
+            }
+          },
+          "schedule_type": {
+            "name": "Typ plánovania",
+            "state": {
+              "time_based": "Časové",
+              "sensor_based": "Podľa senzora",
+              "one_time": "Jednorazové",
+              "manual": "Manuálne"
+            }
+          },
+          "interval_days": {
+            "name": "Interval"
+          },
+          "interval_unit": {
+            "name": "Jednotka intervalu"
+          },
+          "warning_days": {
+            "name": "Dni varovania"
+          },
+          "last_performed": {
+            "name": "Naposledy vykonané"
+          },
+          "next_due": {
+            "name": "Najbližší termín"
+          },
+          "days_until_due": {
+            "name": "Dni do termínu"
+          },
+          "parent_object": {
+            "name": "Nadradený objekt"
+          },
+          "times_performed": {
+            "name": "Počet vykonaní"
+          },
+          "total_cost": {
+            "name": "Celkové náklady"
+          },
+          "average_duration": {
+            "name": "Priemerné trvanie (min)"
+          },
+          "notes": {
+            "name": "Poznámky"
+          },
+          "documentation_url": {
+            "name": "URL adresa dokumentácie"
+          },
+          "trigger_entity": {
+            "name": "Entita spúšťača"
+          },
+          "trigger_attribute": {
+            "name": "Atribút spúšťača"
+          },
+          "trigger_type": {
+            "name": "Typ spúšťača",
+            "state": {
+              "threshold": "Prah",
+              "counter": "Počítadlo",
+              "state_change": "Zmena stavu",
+              "runtime": "Prevádzkový čas",
+              "compound": "Kombinovaný"
+            }
+          },
+          "trigger_active": {
+            "name": "Spúšťač aktívny"
+          },
+          "trigger_current_value": {
+            "name": "Aktuálna hodnota spúšťača"
+          },
+          "trigger_entity_state": {
+            "name": "Stav entity spúšťača",
+            "state": {
+              "available": "Dostupná",
+              "unavailable": "Nedostupná",
+              "missing": "Chýba",
+              "startup": "Spúšťanie"
+            }
+          },
+          "trigger_above": {
+            "name": "Spustiť nad"
+          },
+          "trigger_below": {
+            "name": "Spustiť pod"
+          },
+          "trigger_for_minutes": {
+            "name": "Spustiť po (minúty)"
+          },
+          "trigger_target_value": {
+            "name": "Cieľová hodnota spúšťača"
+          },
+          "trigger_delta_mode": {
+            "name": "Rozdielový režim spúšťača"
+          },
+          "trigger_baseline_value": {
+            "name": "Východisková hodnota spúšťača"
+          },
+          "trigger_current_delta": {
+            "name": "Aktuálny rozdiel spúšťača"
+          },
+          "trigger_from_state": {
+            "name": "Spustiť zo stavu"
+          },
+          "trigger_to_state": {
+            "name": "Spustiť do stavu"
+          },
+          "trigger_target_changes": {
+            "name": "Cieľový počet zmien spúšťača"
+          },
+          "trigger_change_count": {
+            "name": "Počet zmien spúšťača"
+          },
+          "trigger_runtime_hours": {
+            "name": "Cieľový prevádzkový čas (hodiny)"
+          },
+          "trigger_accumulated_hours": {
+            "name": "Nahromadený prevádzkový čas (hodiny)"
+          },
+          "trigger_remaining_hours": {
+            "name": "Zostávajúci prevádzkový čas (hodiny)"
+          },
+          "last_entry": {
+            "name": "Posledný záznam"
+          },
+          "suggested_interval": {
+            "name": "Navrhovaný interval"
+          },
+          "interval_confidence": {
+            "name": "Spoľahlivosť intervalu",
+            "state": {
+              "low": "Nízka",
+              "medium": "Stredná",
+              "high": "Vysoká"
+            }
+          },
+          "adaptive_scheduling_enabled": {
+            "name": "Adaptívne plánovanie zapnuté"
+          },
+          "seasonal_factor": {
+            "name": "Sezónny faktor"
+          },
+          "seasonal_reason": {
+            "name": "Sezónny dôvod",
+            "state": {
+              "learned": "Naučené",
+              "manual": "Manuálne"
+            }
+          },
+          "degradation_rate": {
+            "name": "Rýchlosť degradácie"
+          },
+          "degradation_trend": {
+            "name": "Trend degradácie",
+            "state": {
+              "rising": "Stúpajúci",
+              "falling": "Klesajúci",
+              "stable": "Stabilný",
+              "insufficient_data": "Nedostatok údajov"
+            }
+          },
+          "days_until_threshold": {
+            "name": "Dni do prahu"
+          },
+          "threshold_prediction_confidence": {
+            "name": "Spoľahlivosť predpovede",
+            "state": {
+              "low": "Nízka",
+              "medium": "Stredná",
+              "high": "Vysoká"
+            }
+          },
+          "environmental_factor": {
+            "name": "Faktor prostredia"
+          },
+          "environmental_entity": {
+            "name": "Entita prostredia"
+          },
+          "weibull_beta": {
+            "name": "Weibullov tvar (β)"
+          },
+          "weibull_eta": {
+            "name": "Weibullova mierka (η)"
+          },
+          "weibull_r_squared": {
+            "name": "Weibull R²"
+          },
+          "weibull_beta_interpretation": {
+            "name": "Vzorec porúch",
+            "state": {
+              "early_failures": "Skoré poruchy",
+              "random_failures": "Náhodné poruchy",
+              "wear_out": "Opotrebenie",
+              "highly_predictable": "Vysoko predvídateľné"
+            }
+          },
+          "confidence_interval_low": {
+            "name": "Interval spoľahlivosti (spodný)"
+          },
+          "confidence_interval_high": {
+            "name": "Interval spoľahlivosti (vrchný)"
+          },
+          "interval_anchor": {
+            "name": "Ukotvenie intervalu",
+            "state": {
+              "completion": "Od dokončenia",
+              "planned": "Od plánovaného dátumu"
+            }
+          },
+          "due_date": {
+            "name": "Termín"
+          }
+        }
+      },
+      "summary_overdue": {
+        "name": "Po termíne"
+      },
+      "summary_due_soon": {
+        "name": "Čoskoro"
+      },
+      "summary_triggered": {
+        "name": "Spustené"
+      },
+      "summary_needs_attention": {
+        "name": "Vyžaduje pozornosť"
+      },
+      "summary_ok": {
+        "name": "OK"
+      },
+      "document_storage": {
+        "name": "Úložisko dokumentov"
+      },
+      "summary_total_tasks": {
+        "name": "Úloh celkom"
+      },
+      "next_due": {
+        "name": "{task_name} – najbližší termín"
+      },
+      "days_until_due": {
+        "name": "{task_name} – dni do termínu"
+      },
+      "parts_to_reorder": {
+        "name": "Diely na doobjednanie"
+      },
+      "batteries_to_replace": {
+        "name": "Batérie na výmenu"
+      },
+      "area_cost": {
+        "name": "{area} – náklady na údržbu"
+      },
+      "area_cost_year": {
+        "name": "{area} – náklady na údržbu tento rok"
+      }
+    },
+    "calendar": {
+      "maintenance_schedule": {
+        "name": "Plán údržby"
+      }
+    },
+    "binary_sensor": {
+      "maintenance_task_due": {
+        "name": "{task_name} – po termíne",
+        "state_attributes": {
+          "maintenance_status": {
+            "name": "Stav údržby",
+            "state": {
+              "ok": "OK",
+              "due_soon": "Čoskoro",
+              "overdue": "Po termíne",
+              "triggered": "Spustené",
+              "archived": "Archivované"
+            }
+          },
+          "days_until_due": {
+            "name": "Dni do termínu"
+          },
+          "next_due": {
+            "name": "Najbližší termín"
+          },
+          "parent_object": {
+            "name": "Nadradený objekt"
+          }
+        }
+      }
+    },
+    "todo": {
+      "maintenance_todo": {
+        "name": "Údržba"
+      }
+    }
+  },
+  "selector": {
+    "maintenance_type": {
+      "options": {
+        "cleaning": "Čistenie",
+        "inspection": "Kontrola",
+        "replacement": "Výmena",
+        "calibration": "Kalibrácia",
+        "service": "Servis",
+        "reading": "Odpočet",
+        "custom": "Vlastné"
+      }
+    },
+    "schedule_type": {
+      "options": {
+        "time_based": "Časové",
+        "weekdays": "Dni v týždni",
+        "nth_weekday": "N-tý deň v týždni v mesiaci",
+        "day_of_month": "Deň v mesiaci",
+        "calendar": "Entita kalendára",
+        "sensor_based": "Podľa senzora",
+        "one_time": "Jednorazové",
+        "manual": "Manuálne"
+      }
+    },
+    "interval_unit": {
+      "options": {
+        "days": "Dni",
+        "weeks": "Týždne",
+        "months": "Mesiace",
+        "years": "Roky"
+      }
+    },
+    "trigger_type": {
+      "options": {
+        "threshold": "Prah",
+        "counter": "Počítadlo",
+        "state_change": "Zmena stavu",
+        "runtime": "Prevádzkový čas",
+        "due_date": "Termín (hlásený senzorom)",
+        "compound": "Kombinovaný (viac podmienok)"
+      }
+    },
+    "compound_logic": {
+      "options": {
+        "and": "AND (musia sa splniť všetky podmienky)",
+        "or": "OR (stačí ktorákoľvek podmienka)"
+      }
+    },
+    "entity_logic": {
+      "options": {
+        "any": "Spustí ktorákoľvek entita",
+        "all": "Musia spustiť všetky entity"
+      }
+    },
+    "trigger_combinator": {
+      "options": {
+        "any": "Spúšťač alebo interval (čo nastane skôr)",
+        "all": "Spúšťač aj interval (oboje)"
+      }
+    },
+    "notify_completed": {
+      "options": {
+        "off": "Vypnuté",
+        "automatic": "Iba automatické dokončenia",
+        "all": "Všetky dokončenia"
+      }
+    },
+    "notification_title_style": {
+      "options": {
+        "default": "Predvolené (nadpis podľa stavu)",
+        "object_name": "Názov objektu ako nadpis",
+        "task_name": "Názov úlohy ako nadpis"
+      }
+    },
+    "row_action_style": {
+      "options": {
+        "buttons_compact": "Tlačidlá (na telefónoch iba ikony)",
+        "buttons": "Tlačidlá s textom",
+        "icons": "Ikony (klasické)"
+      }
+    },
+    "objects_table_columns": {
+      "options": {
+        "name": "Názov",
+        "ref_no": "Referenčné číslo",
+        "manufacturer": "Výrobca",
+        "model": "Model",
+        "serial_number": "Výr. č.",
+        "installation_date": "Nainštalované",
+        "warranty_expiry": "Záruka",
+        "area_id": "Oblasť",
+        "documentation_url": "Návod",
+        "notes": "Poznámky",
+        "task_count": "Úlohy",
+        "actions": "Akcie"
+      }
+    },
+    "home_type": {
+      "options": {
+        "auto": "Automaticky (zistené)",
+        "house": "Dom",
+        "apartment": "Byt"
+      }
+    },
+    "avatar_color": {
+      "options": {
+        "auto": "Automaticky",
+        "red": "Červená",
+        "pink": "Ružová",
+        "purple": "Fialová",
+        "deep_purple": "Tmavofialová",
+        "indigo": "Indigová",
+        "blue": "Modrá",
+        "cyan": "Azúrová",
+        "green": "Zelená",
+        "light_green": "Svetlozelená",
+        "orange": "Oranžová",
+        "brown": "Hnedá",
+        "blue_grey": "Modrosivá"
+      }
+    },
+    "interval_anchor": {
+      "options": {
+        "completion": "Od dátumu dokončenia",
+        "planned": "Od plánovaného dátumu (bez posunu)"
+      }
+    },
+    "compound_action": {
+      "options": {
+        "finish": "Dokončiť",
+        "add": "Pridať podmienku"
+      }
+    },
+    "parts_cost_mode": {
+      "options": {
+        "purchase": "Pri nákupe",
+        "use": "Pri použití"
+      }
+    },
+    "rotation_strategy": {
+      "options": {
+        "none": "Bez striedania",
+        "round_robin": "Dookola",
+        "least_completed": "Kto dokončil najmenej",
+        "random": "Náhodne"
+      }
+    },
+    "task_priority": {
+      "options": {
+        "low": "Nízka",
+        "normal": "Normálna",
+        "high": "Vysoká"
+      }
+    }
+  },
+  "services": {
+    "complete": {
+      "name": "Dokončiť údržbu",
+      "description": "Označí úlohu údržby ako dokončenú.",
+      "fields": {
+        "entity_id": {
+          "name": "Entita",
+          "description": "Entita senzora údržby, ktorá sa má dokončiť."
+        },
+        "notes": {
+          "name": "Poznámky",
+          "description": "Voliteľné poznámky k vykonanej údržbe."
+        },
+        "cost": {
+          "name": "Náklady",
+          "description": "Náklady na vykonanú údržbu. Záporná suma je príjem – vrátené peniaze, napr. za predaný starý kus."
+        },
+        "duration": {
+          "name": "Trvanie",
+          "description": "Trvanie údržby v minútach."
+        },
+        "reading_value": {
+          "name": "Hodnota odpočtu",
+          "description": "Zaznamenaná hodnota pre úlohy typu odpočet (stav meradla, kontrola hladiny)."
+        },
+        "reading_values": {
+          "name": "Odpočty",
+          "description": "Hodnoty pre úlohu s viacerými pomenovanými odpočtami, podľa názvu odpočtu (napr. Studená voda: 123.4)."
+        },
+        "completed_by": {
+          "name": "Dokončil(a)",
+          "description": "Osoba, ktorá údržbu vykonala (musí byť prepojená s používateľom Home Assistanta). Ak sa nezadá, zaznamená sa používateľ, ktorý volanie spustil."
+        },
+        "completed_at": {
+          "name": "Dokončené",
+          "description": "Kedy bola údržba skutočne vykonaná – slúži na spätné zaznamenanie dokončenia. Nesmie byť v budúcnosti; ak sa nezadá, zaznamená sa aktuálny čas."
+        },
+        "via_tag_scan": {
+          "name": "Skenom tagu",
+          "description": "Potvrdzuje, že toto dokončenie pochádza z fyzického skenu tagu/QR, ktorý spracovala sama automatizácia – vyhovuje nastaveniu úlohy „Dokončiť iba skenom tagu“."
+        },
+        "consume_parts": {
+          "name": "Spotrebovať diely",
+          "description": "Zaúčtovať diely priradené k úlohe pre toto dokončenie aj vtedy, keď je čas dokončenia pred posledným dokončením úlohy. Aktuálne dokončenie ich zaúčtuje vždy; spätne zaznamenané iba so zapnutou touto voľbou. Diely sa odpíšu z dnešného stavu skladu."
+        }
+      }
+    },
+    "reset": {
+      "name": "Vynulovať údržbu",
+      "description": "Vynuluje dátum posledného vykonania úlohy údržby.",
+      "fields": {
+        "entity_id": {
+          "name": "Entita",
+          "description": "Entita senzora údržby, ktorá sa má vynulovať."
+        },
+        "date": {
+          "name": "Dátum",
+          "description": "Dátum, ktorý sa nastaví ako posledné vykonanie. Predvolene dnes."
+        }
+      }
+    },
+    "skip": {
+      "name": "Preskočiť údržbu",
+      "description": "Preskočí aktuálny cyklus údržby.",
+      "fields": {
+        "entity_id": {
+          "name": "Entita",
+          "description": "Entita senzora údržby, ktorá sa má preskočiť."
+        },
+        "reason": {
+          "name": "Dôvod",
+          "description": "Voliteľný dôvod preskočenia údržby."
+        }
+      }
+    },
+    "export_data": {
+      "name": "Exportovať údaje",
+      "description": "Exportuje všetky údaje o údržbe ako JSON alebo YAML do maintenance_export.json/maintenance_export.yaml v konfiguračnom priečinku Home Assistanta a potom vyvolá maintenance_supporter_export_completed s cestou k súboru. Iba pre správcov.",
+      "fields": {
+        "format": {
+          "name": "Formát",
+          "description": "Výstupný formát: json alebo yaml pre úplný export, history_csv pre históriu ako tabuľku s jedným riadkom na záznam (zapíše sa do maintenance_history.csv)."
+        },
+        "include_history": {
+          "name": "Vrátane histórie",
+          "description": "Či sa majú do exportu zahrnúť záznamy histórie úloh."
+        }
+      }
+    },
+    "add_object": {
+      "name": "Pridať objekt",
+      "description": "Vytvorí nový objekt údržby (zariadenie). Vráti nové entry_id.",
+      "fields": {
+        "name": {
+          "name": "Názov",
+          "description": "Názov objektu/zariadenia."
+        },
+        "area_id": {
+          "name": "Oblasť",
+          "description": "Oblasť, do ktorej sa zariadenie priradí."
+        },
+        "manufacturer": {
+          "name": "Výrobca",
+          "description": "Výrobca objektu."
+        },
+        "model": {
+          "name": "Model",
+          "description": "Názov alebo číslo modelu."
+        },
+        "serial_number": {
+          "name": "Sériové číslo",
+          "description": "Sériové číslo objektu."
+        },
+        "installation_date": {
+          "name": "Dátum inštalácie",
+          "description": "Kedy bol objekt nainštalovaný alebo kúpený."
+        },
+        "warranty_expiry": {
+          "name": "Koniec záruky",
+          "description": "Dátum konca záruky (na evidenciu majetku a pripomienky)."
+        },
+        "documentation_url": {
+          "name": "URL adresa dokumentácie",
+          "description": "Odkaz na návod alebo stránku výrobcu; funguje aj odkaz na aplikáciu, napr. obsidian://."
+        },
+        "notes": {
+          "name": "Poznámky",
+          "description": "Ľubovoľné poznámky k objektu – čísla dielov, postupy, pripomienky nastavení a pod."
+        }
+      }
+    },
+    "add_task": {
+      "name": "Pridať úlohu",
+      "description": "Pridá úlohu údržby k existujúcemu objektu. Vráti nové task_id.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Objekt údržby, ku ktorému sa úloha pridá."
+        },
+        "name": {
+          "name": "Názov",
+          "description": "Názov úlohy."
+        },
+        "task_type": {
+          "name": "Typ úlohy",
+          "description": "Ľubovoľná kategória (napr. inspection, service, custom)."
+        },
+        "schedule_type": {
+          "name": "Typ plánovania",
+          "description": "time_based (vyžaduje interval_days), one_time (vyžaduje due_date) alebo manual. Ak vynecháte, rozhodnú ostatné polia: interval znamená time_based, termín one_time, ani jedno manual. Úlohy spúšťané senzorom potrebujú spúšťač a vytvárajú sa v paneli."
+        },
+        "interval_days": {
+          "name": "Interval",
+          "description": "Dĺžka intervalu medzi výskytmi (pre časové úlohy), v kombinácii s interval_unit."
+        },
+        "interval_unit": {
+          "name": "Jednotka intervalu",
+          "description": "Jednotka intervalu: days, weeks, months alebo years. Predvolene: days."
+        },
+        "due_date": {
+          "name": "Termín",
+          "description": "Termín (RRRR-MM-DD) jednorazovej úlohy (schedule_type one_time)."
+        },
+        "schedule": {
+          "name": "Opakovanie podľa kalendára",
+          "description": "Vnorené opakovanie pre typy kalendára, napr. kind=nth_weekday, nth=1, weekday=5 pre 1. sobotu (weekday 0=Po ... 6=Ne), kind=weekdays, weekdays=[0, 3] pre Po a Št, alebo kind=day_of_month, day=15. Má prednosť pred interval_days. Iný schedule_type ako time_based sa odmietne."
+        },
+        "warning_days": {
+          "name": "Varovanie (dni)",
+          "description": "Koľko dní pred termínom úloha prejde do stavu „Čoskoro“. Predvolene: nastavenie celej integrácie."
+        },
+        "enabled": {
+          "name": "Zapnuté",
+          "description": "Ak je vypnuté, plánovanie a spúšťače sú pozastavené. Úloha sa neodstráni."
+        },
+        "notes": {
+          "name": "Poznámky",
+          "description": "Ďalšie poznámky alebo pokyny k tejto úlohe."
+        },
+        "responsible_user": {
+          "name": "Zodpovedný používateľ",
+          "description": "Priradiť úlohu tejto osobe (musí byť prepojená s používateľom Home Assistanta)."
+        },
+        "shared_with": {
+          "name": "Zdieľané s",
+          "description": "Osoby, s ktorými je úloha zdieľaná (každá prepojená s používateľom Home Assistanta). Bez zodpovedného používateľa je určená každej z nich; pri striedaní sa vymieňajú. Prázdny zoznam zdieľanie zruší."
+        },
+        "rotation": {
+          "name": "Striedanie",
+          "description": "Ako sa zodpovednosť po každom dokončení posúva medzi osobami, s ktorými je úloha zdieľaná (aspoň dve); „Bez striedania“ ho vypne."
+        }
+      }
+    },
+    "update_task": {
+      "name": "Aktualizovať úlohu",
+      "description": "Aktualizuje bežné polia existujúcej úlohy údržby. Zmenia sa iba zadané polia.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Objekt údržby, ku ktorému úloha patrí."
+        },
+        "task_id": {
+          "name": "ID úlohy",
+          "description": "ID úlohy, ktorá sa má aktualizovať (pozri list_tasks)."
+        },
+        "name": {
+          "name": "Názov",
+          "description": "Nový názov úlohy."
+        },
+        "task_type": {
+          "name": "Typ úlohy",
+          "description": "Kategória (cleaning, inspection, replacement, calibration, service, reading, custom)."
+        },
+        "schedule_type": {
+          "name": "Typ plánovania",
+          "description": "time_based (vyžaduje interval_days, ak úloha ešte nemá interval), one_time (vyžaduje due_date) alebo manual. Prepnutím na manual alebo one_time sa starý interval zruší."
+        },
+        "interval_days": {
+          "name": "Interval",
+          "description": "Dĺžka intervalu medzi výskytmi, v kombinácii s interval_unit."
+        },
+        "interval_unit": {
+          "name": "Jednotka intervalu",
+          "description": "days, weeks, months alebo years."
+        },
+        "due_date": {
+          "name": "Termín",
+          "description": "Termín jednorazových úloh (RRRR-MM-DD)."
+        },
+        "schedule": {
+          "name": "Plán (opakovanie podľa kalendára)",
+          "description": "Vnorený objekt opakovania pre typy kalendára, napr. kind=day_of_month, day=-1, business=true. Má prednosť pred jednoduchými poľami. Iný schedule_type ako time_based bude odmietnutý."
+        },
+        "warning_days": {
+          "name": "Dni varovania",
+          "description": "Koľko dní pred termínom úloha prejde do stavu „Čoskoro“."
+        },
+        "enabled": {
+          "name": "Zapnuté",
+          "description": "Či je úloha aktívna."
+        },
+        "notes": {
+          "name": "Poznámky",
+          "description": "Ľubovoľné poznámky k úlohe."
+        },
+        "priority": {
+          "name": "Priorita",
+          "description": "low, normal alebo high."
+        },
+        "labels": {
+          "name": "Štítky",
+          "description": "Zoznam štítkov na filtrovanie a výkazy."
+        },
+        "responsible_user": {
+          "name": "Zodpovedný používateľ",
+          "description": "Priradiť úlohu tejto osobe (musí byť prepojená s používateľom Home Assistanta)."
+        },
+        "clear_responsible_user": {
+          "name": "Zrušiť zodpovedného používateľa",
+          "description": "Odstráni aktuálne priradenie. Nedá sa kombinovať so „Zodpovedný používateľ“."
+        },
+        "shared_with": {
+          "name": "Zdieľané s",
+          "description": "Osoby, s ktorými je úloha zdieľaná (každá prepojená s používateľom Home Assistanta). Bez zodpovedného používateľa je určená každej z nich; pri striedaní sa vymieňajú. Prázdny zoznam zdieľanie zruší."
+        },
+        "rotation": {
+          "name": "Striedanie",
+          "description": "Ako sa zodpovednosť po každom dokončení posúva medzi osobami, s ktorými je úloha zdieľaná (aspoň dve); „Bez striedania“ ho vypne."
+        }
+      }
+    },
+    "delete_task": {
+      "name": "Odstrániť úlohu",
+      "description": "Odstráni úlohu údržby vrátane jej histórie. Nie je možné odvolať – zvážte radšej archiváciu v paneli.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Objekt údržby, ku ktorému úloha patrí."
+        },
+        "task_id": {
+          "name": "ID úlohy",
+          "description": "ID úlohy, ktorá sa má odstrániť (pozri list_tasks)."
+        }
+      }
+    },
+    "list_tasks": {
+      "name": "Zoznam úloh",
+      "description": "Vráti aktuálny prehľad aktívnych úloh údržby (ID, entity_id senzora, názov, stav, najbližší termín, posledné dokončenie, aktuálna hodnota spúšťača s cieľom a jednotkou, kto je zodpovedný) pre automatizácie, skripty a hlas. Podporuje filtrovanie podľa objektu, stavu a osoby.",
+      "fields": {
+        "entry_id": {
+          "name": "Objekt",
+          "description": "Vrátiť iba úlohy tohto objektu údržby."
+        },
+        "status": {
+          "name": "Stav",
+          "description": "Vrátiť iba úlohy s týmto stavom."
+        },
+        "person": {
+          "name": "Osoba",
+          "description": "Vrátiť iba úlohy určené tejto osobe (tie, za ktoré zodpovedá, a tie zdieľané s ňou, za ktoré nikto nezodpovedá). Osoba musí byť prepojená s používateľom Home Assistanta."
+        }
+      }
+    },
+    "part_restock": {
+      "name": "Doplniť náhradný diel",
+      "description": "Zmení stav skladu náhradného dielu: nákup nových kusov alebo oprava. Zadajte práve jedno z polí zmena a nový počet.",
+      "fields": {
+        "entity_id": {
+          "name": "Náhradný diel",
+          "description": "Senzor stavu skladu jedného alebo viacerých náhradných dielov."
+        },
+        "delta": {
+          "name": "Zmena",
+          "description": "Koľko pridať; záporné číslo ubudne."
+        },
+        "absolute": {
+          "name": "Nový počet",
+          "description": "Nový stav skladu, ktorý nahradí starý."
+        }
+      }
+    },
+    "part_use": {
+      "name": "Použiť náhradný diel",
+      "description": "Časť náhradného dielu sa použila mimo úlohy, napr. doliata kvapalina do ostrekovačov. Odpíše sa zo skladu ako diely pri dokončení; použité kusy opakovane použiteľného dielu čakajú, kým budú znova pripravené. Nič sa nezaúčtuje ako výdavok.",
+      "fields": {
+        "entity_id": {
+          "name": "Náhradný diel",
+          "description": "Senzor stavu skladu jedného alebo viacerých náhradných dielov."
+        },
+        "quantity": {
+          "name": "Množstvo",
+          "description": "Koľko sa použilo, v jednotke dielu. Ak sa nezadá, jeden."
+        }
+      }
+    },
+    "part_purchase": {
+      "name": "Náhradný diel kúpený",
+      "description": "Náhradné diely boli kúpené: pridajú sa na sklad a zaplatená suma sa zaúčtuje ako dokončenie nákupnej úlohy dielu (otvorenej alebo novej). Diel, ktorý sa počíta ako výdavok pri použití, namiesto toho prevezme cenu, spriemerovanú so stavom na sklade.",
+      "fields": {
+        "entity_id": {
+          "name": "Náhradný diel",
+          "description": "Senzor stavu skladu jedného alebo viacerých náhradných dielov."
+        },
+        "quantity": {
+          "name": "Množstvo",
+          "description": "Koľko sa kúpilo: balenia, ak má diel veľkosť balenia, inak kusy. Ak sa nezadá, množstvo na doplnenie dielu."
+        },
+        "unit_price": {
+          "name": "Cena za kus",
+          "description": "Koľko stál jeden kus (jedno balenie, ak má diel veľkosť balenia). Zadajte toto alebo celkovú sumu."
+        },
+        "cost": {
+          "name": "Spolu",
+          "description": "Koľko nákup stál celkovo. Zadajte toto alebo cenu za kus; bez oboch sa nič nezaúčtuje ako výdavok."
+        },
+        "date": {
+          "name": "Dátum",
+          "description": "Deň nákupu; ak sa nezadá, dnes. Nie v budúcnosti."
+        },
+        "notes": {
+          "name": "Poznámky",
+          "description": "Poznámka do histórie, napr. obchod."
+        }
+      }
+    },
+    "part_ready_again": {
+      "name": "Náhradný diel znova pripravený",
+      "description": "Použité kusy opakovane použiteľného dielu sú znova pripravené (nabité, nabrúsené, …): z čakajúcich späť na sklad.",
+      "fields": {
+        "entity_id": {
+          "name": "Náhradný diel",
+          "description": "Senzor stavu skladu jedného alebo viacerých náhradných dielov."
+        },
+        "quantity": {
+          "name": "Množstvo",
+          "description": "Koľko je znova pripravených. Ak sa nezadá, všetky čakajúce."
+        }
+      }
+    },
+    "part_dispose": {
+      "name": "Vyradiť použité náhradné diely",
+      "description": "Použité kusy opakovane použiteľného dielu, ktoré sa už nedajú pripraviť, napr. mŕtvy článok, odídu z čakajúcich bez návratu na sklad.",
+      "fields": {
+        "entity_id": {
+          "name": "Náhradný diel",
+          "description": "Senzor stavu skladu jedného alebo viacerých náhradných dielov."
+        },
+        "quantity": {
+          "name": "Množstvo",
+          "description": "Koľko je natrvalo preč. Ak sa nezadá, jeden."
+        }
+      }
+    }
+  },
+  "issues": {
+    "document_storage_issues": {
+      "title": "Úložisko dokumentov treba vyčistiť",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Uvoľniť úložisko dokumentov",
+            "description": "Maintenance Supporter našiel v úložisku dokumentov neodkazované súbory a/alebo mŕtve záznamy – zvyčajne následok pádu, externého zmazania súborov alebo čiastočnej obnovy.\n\nKliknutím na **Odoslať** uvoľníte miesto: neodkazované a zastarané súbory sa odstránia a mŕtve záznamy dokumentov sa vymažú. Súbory, na ktoré dokument stále odkazuje, zostanú nedotknuté.\n\n(Ak chcete upozornenie zavrieť bez čistenia, použite tlačidlo **Ignorovať** na stránke Opravy v Home Assistante.)"
+          }
+        }
+      }
+    },
+    "missing_trigger_entity": {
+      "title": "Senzor spúšťača sa nenašiel: {task_name}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Chýbajúca entita spúšťača",
+            "description": "Entita senzora `{entity_id}` nastavená ako spúšťač úlohy „{task_name}“ objektu „{object_name}“ už nie je dostupná.\n\nVyberte, ako problém vyriešiť:",
+            "menu_options": {
+              "replace_entity": "Nahradiť inou entitou",
+              "remove_trigger": "Odstrániť spúšťač senzora",
+              "dismiss": "Zavrieť (objaví sa znova)"
+            }
+          },
+          "replace_entity": {
+            "title": "Nahradiť entitu spúšťača",
+            "description": "Vyberte novú entitu, ktorá nahradí `{entity_id}` ako spúšťač úlohy „{task_name}“ objektu „{object_name}“.",
+            "data": {
+              "new_entity_id": "Nová entita spúšťača"
+            },
+            "data_description": {
+              "new_entity_id": "Vyberte novú entitu senzora, ktorá sa použije ako spúšťač."
+            }
+          },
+          "remove_trigger": {
+            "title": "Odstrániť spúšťač senzora",
+            "description": "Týmto sa odstráni spúšťač senzora z úlohy „{task_name}“ objektu „{object_name}“ a plán sa zmení na časový alebo manuálny. História údržby sa zachová.\n\nPredchádzajúca entita spúšťača: `{entity_id}`"
+          }
+        },
+        "abort": {
+          "task_deleted": "Táto úloha už neexistuje – nie je čo opraviť.",
+          "already_fixed": "Spúšťač už túto entitu nepoužíva – nie je čo opraviť."
+        }
+      }
+    },
+    "orphan_admin_panel_user": {
+      "title": "Používateľ s prístupom k panelu už neexistuje",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Osirelý používateľ v zozname prístupu k panelu",
+            "description": "Používateľ `{user_id}…` je v zozname prístupu k panelu Maintenance Supporter, ale v Home Assistante už neexistuje. Pravdepodobne bol odstránený.\n\nKliknutím na **Odoslať** ho zo zoznamu odstránite. (Ak chcete problém nechať tak, použite tlačidlo **Ignorovať** na stránke Opravy v Home Assistante.)"
+          }
+        },
+        "abort": {
+          "entry_gone": "Nastavenia integrácie už neexistujú – nie je čo opraviť."
+        }
+      }
+    },
+    "stale_action_entity": {
+      "title": "Akcia po dokončení odkazuje na odstránenú entitu",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Akcia po dokončení: {stale_entity} už neexistuje",
+            "description": "Úloha **{task_name}** má nastavenú `on_complete_action`, ktorá volá službu na `{stale_entity}`, ale táto entita už v Home Assistante nie je registrovaná.\n\nVyberte spôsob opravy:",
+            "menu_options": {
+              "replace_entity": "Nahradiť inou entitou",
+              "remove_action": "Odstrániť akciu po dokončení"
+            }
+          },
+          "replace_entity": {
+            "title": "Nahradiť cieľovú entitu",
+            "description": "Vyberte entitu, ktorá sa použije namiesto `{stale_entity}` pre úlohu **{task_name}**.",
+            "data": {
+              "new_entity": "Nová cieľová entita"
+            }
+          },
+          "remove_action": {
+            "title": "Odstrániť akciu po dokončení",
+            "description": "Úplne odstrániť `on_complete_action` z úlohy **{task_name}**. Samotná úloha zostane nezmenená – odstráni sa iba volanie služby po dokončení."
+          }
+        },
+        "abort": {
+          "entry_gone": "Tento objekt už neexistuje – nie je čo opraviť.",
+          "task_deleted": "Táto úloha už neexistuje – nie je čo opraviť.",
+          "already_fixed": "Akcia po dokončení už túto entitu nepoužíva – nie je čo opraviť.",
+          "no_entity": "Nebola vybraná žiadna entita – nič sa nezmenilo."
+        }
+      }
+    },
+    "notify_service_missing": {
+      "title": "Služba upozornení `{service}` sa nenašla",
+      "description": "Maintenance Supporter má nastavené posielanie upozornení cez `{service}`, ale táto služba v Home Assistante momentálne neexistuje, takže pripomienky ticho zlyhávajú.\n\nZvyčajne to znamená, že služba bola premenovaná alebo bola odstránená integrácia, ktorá ju poskytuje (mobilná aplikácia, skupina notify, …). Oprava: obnovte túto službu alebo otvorte **Nastavenia → Zariadenia a služby → Maintenance Supporter → Konfigurovať → Všeobecné nastavenia** a vyberte platnú službu `notify.*`.\n\nPoznámka: kontroluje sa iba samotná nastavená služba. Ak upozornenia prichádzajú len na niektoré zariadenia, pravdepodobne je zle nastavený niektorý člen *vnútri* vašej skupiny notify – to tu nie je vidieť; pozrite **systémový protokol** Home Assistanta (Nastavenia → Systém → Protokoly)."
+    },
+    "missing_global_entry": {
+      "title": "Chýba globálna konfigurácia Maintenance Supporter",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Obnoviť globálnu konfiguráciu",
+            "description": "Vaše objekty údržby stále existujú, ale globálna položka „Maintenance Supporter“ bola odstránená – preto zmizli súhrnné senzory, panel v bočnom paneli aj počty na nástenke a KPI ukazujú „neznáme“.\n\nKliknutím na **Odoslať** sa globálna konfigurácia znova vytvorí s predvolenými nastaveniami. Vaše objekty a úlohy zostanú nedotknuté. Upozornenia a predvolené hodnoty môžete potom upraviť v Nastavenia → Zariadenia a služby.\n\n(Ak chcete veci nechať tak, použite tlačidlo **Ignorovať** v Home Assistante.)"
+          }
+        }
+      }
+    },
+    "shared_parts_moved": {
+      "title": "Zdieľané náhradné diely presunuté do {new_owner}",
+      "description": "Viaceré objekty údržby zdieľali jeden sklad náhradných dielov, ktorý patril objektu **{deleted_object}**, a ten bol práve odstránený. Aby ostatné objekty neodkazovali na neexistujúci sklad, Maintenance Supporter presunul zdieľané diely ({parts}) – spolu s ich aktuálnym stavom – na **{new_owner}** a prepojil na ne odkazy úloh všetkých ostatných objektov. Nič sa nestratilo.\n\n**{new_owner}** bol vybraný automaticky: je to najstarší objekt, ktorý sklad používal.\n\nNič ďalšie netreba robiť – po skontrolovaní toto upozornenie zavrite."
+    },
+    "broken_part_link": {
+      "title": "Nefunkčné odkazy na náhradné diely v {object_name}",
+      "description": "Úloha objektu **{object_name}** bola práve dokončená, ale nepodarilo sa vyhodnotiť tieto odkazy na náhradné diely (počet: {count}) – diel alebo objekt, ktorému patrí, už neexistuje.\n\nSamotné dokončenie sa zaznamenalo, takže práca sa nestratila. Neprebehol však odpis zo skladu: pri tomto dokončení sa zo skladu žiadneho dielu nič neodpísalo.\n\nOprava: otvorte úlohu v paneli Údržba a odstráňte zastarané odkazy na diely alebo ich nasmerujte na diely, ktoré používate teraz. Potom toto upozornenie zavrite."
+    },
+    "device_link_lost": {
+      "title": "{object} stratil prepojenie so zariadením",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Opraviť prepojenie zariadenia objektu {object}",
+            "description": "**{object}** bol pripojený k zariadeniu Home Assistanta, takže jeho entity údržby sa zobrazovali na stránke tohto zariadenia. Toto zariadenie už neexistuje – bolo odstránené alebo bola odstránená jeho integrácia – a objekt teraz zobrazuje vlastné zariadenie. Nič iné sa nezmenilo: jeho úlohy a ich história sú nedotknuté.\n\nVyberte ďalší postup. Najpravdepodobnejšie zamýšľané zariadenie: **{suggestion}**.",
+            "menu_options": {
+              "relink": "Prepojiť so zariadením spotrebiča",
+              "unlink": "Odstrániť prepojenie"
+            }
+          },
+          "relink": {
+            "title": "Vyberte zariadenie spotrebiča",
+            "description": "Vyberte zariadenie, ku ktorému **{object}** patrí. Najlepšia zhoda – **{suggestion}** – je predvybraná; pred uložením ju skontrolujte. Vlastné dvojnícke zariadenia Maintenance Supporter sa odmietnu.",
+            "data": {
+              "device": "Zariadenie"
+            }
+          },
+          "unlink": {
+            "title": "Odstrániť prepojenie so zariadením",
+            "description": "**{object}** si ponechá vlastné zariadenie. Úlohy a história zostanú nedotknuté; zariadenie môžete kedykoľvek znova prepojiť v paneli Údržba."
+          }
+        },
+        "error": {
+          "self_link": "To je zariadenie Maintenance Supporter (dvojník objektu, nie spotrebič) – vyberte vlastné zariadenie spotrebiča.",
+          "device_gone": "Toto zariadenie (už) neexistuje."
+        },
+        "abort": {
+          "entry_gone": "Tento objekt už neexistuje – nie je čo opraviť."
+        }
+      }
+    },
+    "device_link_self": {
+      "title": "{object} je prepojený so svojím vlastným zariadením údržby",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Opraviť prepojenie zariadenia objektu {object}",
+            "description": "Prepojenie zariadenia objektu **{object}** ukazuje na dvojnícke zariadenie, ktoré Maintenance Supporter vytvoril pre objekt – nesie názov spotrebiča a výber zariadení ho v minulosti ponúkal. Skutočná stránka zariadenia spotrebiča entity údržby nikdy nezobrazovala.\n\nVyberte ďalší postup. Najpravdepodobnejšie zamýšľané zariadenie: **{suggestion}**.",
+            "menu_options": {
+              "relink": "Prepojiť so zariadením spotrebiča",
+              "unlink": "Odstrániť prepojenie"
+            }
+          },
+          "relink": {
+            "title": "Vyberte zariadenie spotrebiča",
+            "description": "Vyberte zariadenie, ku ktorému **{object}** patrí. Najlepšia zhoda – **{suggestion}** – je predvybraná; pred uložením ju skontrolujte. Vlastné dvojnícke zariadenia Maintenance Supporter sa odmietnu.",
+            "data": {
+              "device": "Zariadenie"
+            }
+          },
+          "unlink": {
+            "title": "Odstrániť prepojenie so zariadením",
+            "description": "**{object}** si ponechá vlastné zariadenie. Úlohy a história zostanú nedotknuté; zariadenie môžete kedykoľvek znova prepojiť v paneli Údržba."
+          }
+        },
+        "error": {
+          "self_link": "To je zariadenie Maintenance Supporter (dvojník objektu, nie spotrebič) – vyberte vlastné zariadenie spotrebiča.",
+          "device_gone": "Toto zariadenie (už) neexistuje."
+        },
+        "abort": {
+          "entry_gone": "Tento objekt už neexistuje – nie je čo opraviť."
+        }
+      }
+    },
+    "leftover_areas": {
+      "title": "Omylom vytvorené prázdne oblasti: {areas}",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Odstrániť prázdne oblasti",
+            "description": "Pred verziou 2.96 Maintenance Supporter vytváral druhú oblasť pomenovanú podľa ID oblasti (napr. „living_room“ popri „Obývačka“) a umiestnil do nej zariadenie objektu. Zariadenia sú späť vo svojich skutočných oblastiach a tieto oblasti sú teraz prázdne:\n\n{areas}\n\nKliknutím na **Odoslať** ich odstránite. Oblasť, do ktorej medzitým pribudlo zariadenie alebo entita, zostane zachovaná. Ak ich chcete ponechať, použite tlačidlo **Ignorovať** v Home Assistante."
+          }
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_coordinator_for_entity": {
+      "message": "Pre entitu {entity_id} sa nenašiel koordinátor údržby."
+    },
+    "no_task_for_entity": {
+      "message": "Pre entitu {entity_id} sa nenašla úloha údržby."
+    },
+    "completion_details_required": {
+      "message": "„{task_name}“ pri dokončení vyžaduje tieto údaje: {fields}. Dokončite ju z panela alebo karty Údržba, aby ste ich mohli vyplniť."
+    },
+    "completed_at_in_future": {
+      "message": "Dátum dokončenia nemôže byť v budúcnosti."
+    },
+    "reading_slots_required": {
+      "message": "Táto úloha zaznamenáva pomenované odpočty – použite reading_values namiesto reading_value."
+    },
+    "tag_scan_required": {
+      "message": "„{task_name}“ sa dá dokončiť iba naskenovaním jej tagu – podíďte k veci a naskenujte NFC tag alebo QR kód priamo na nej."
+    },
+    "task_inactive": {
+      "message": "„{task_name}“ je archivovaná, vypnutá alebo je jej objekt pozastavený – nedá sa dokončiť"
+    },
+    "task_inactive_postpone": {
+      "message": "„{task_name}“ je archivovaná, vypnutá alebo je jej objekt pozastavený – nedá sa odložiť"
+    },
+    "task_inactive_reset": {
+      "message": "„{task_name}“ je archivovaná, vypnutá alebo je jej objekt pozastavený – nedá sa vynulovať"
+    },
+    "task_inactive_skip": {
+      "message": "„{task_name}“ je archivovaná, vypnutá alebo je jej objekt pozastavený – nedá sa preskočiť"
+    },
+    "too_early": {
+      "message": "„{task_name}“ sa dá dokončiť až bližšie k termínu"
+    },
+    "person_not_found": {
+      "message": "{entity_id} nie je známa entita osoby."
+    },
+    "person_without_user": {
+      "message": "Osoba {name} nie je prepojená s používateľským účtom Home Assistanta."
+    },
+    "bulk_partial": {
+      "message": "{action}: úspešne {done} z {total} úloh. Odmietnuté: {errors}"
+    },
+    "single_entity_only": {
+      "message": "{field} sa dá použiť iba s jedným entity_id."
+    },
+    "unsafe_url": {
+      "message": "Tento odkaz nie je povolený: odkazy, ktoré spúšťajú skripty alebo otvárajú lokálne súbory (javascript:, data:, file: a podobne), sa odmietajú."
+    },
+    "responsible_user_conflict": {
+      "message": "Zadajte buď responsible_user, alebo clear_responsible_user, nie oboje."
+    },
+    "object_not_found": {
+      "message": "Pre entry_id {entry_id} sa nenašiel objekt údržby."
+    },
+    "task_not_found_in_object": {
+      "message": "Úloha {task_id} v {object_name} neexistuje."
+    },
+    "invalid_input": {
+      "message": "Akciu sa nepodarilo vykonať: {error}"
+    },
+    "task_no_longer_exists": {
+      "message": "Táto úloha údržby už neexistuje."
+    },
+    "skip_disabled": {
+      "message": "Preskočenie je pre „{task_name}“ vypnuté."
+    },
+    "object_name_taken": {
+      "message": "Iný objekt už má tento názov."
+    },
+    "name_empty": {
+      "message": "Názov nesmie byť prázdny."
+    },
+    "task_not_duplicable": {
+      "message": "Nákupnú úlohu náhradného dielu ani úlohu batérií nie je možné duplikovať."
+    },
+    "fleet_not_duplicable": {
+      "message": "Objekt batérií nie je možné duplikovať."
+    },
+    "fleet_not_replaceable": {
+      "message": "Objekt batérií nie je možné nahradiť."
+    },
+    "parts_limit": {
+      "message": "Objekt môže mať najviac {max} náhradných dielov."
+    },
+    "task_limit": {
+      "message": "Objekt môže mať najviac {max} úloh."
+    },
+    "archived_cannot_pause": {
+      "message": "Archivovaný objekt nie je možné pozastaviť – najprv ho obnovte."
+    },
+    "archived_task_cannot_pause": {
+      "message": "Archivovanú úlohu nie je možné pozastaviť – najprv ju obnovte."
+    },
+    "archived_cannot_replace": {
+      "message": "Archivovaný objekt nie je možné nahradiť – najprv ho obnovte."
+    },
+    "archived_no_new_tasks": {
+      "message": "Archivovaný objekt nemôže dostať nové úlohy – najprv ho obnovte."
+    },
+    "part_owner_archived": {
+      "message": "„{object_name}“ je archivovaný. Ak chcete zaznamenať nákup, obnovte ho."
+    },
+    "part_owner_not_loaded": {
+      "message": "{object_name} práve nebeží (je vypnutý alebo sa ešte spúšťa), preto jeho náhradné diely nemožno zaúčtovať. Skúste to znova, keď bude bežať."
+    },
+    "purchase_cost_too_high": {
+      "message": "Nákup môže stáť celkovo najviac {max}."
+    },
+    "import_not_json_yaml": {
+      "message": "Súbor nie je platný JSON ani YAML."
+    },
+    "import_no_objects_list": {
+      "message": "Súbor musí obsahovať zoznam „objects“."
+    },
+    "import_no_objects": {
+      "message": "Súbor neobsahuje žiadne objekty."
+    },
+    "import_csv_no_objects": {
+      "message": "Súbor CSV neobsahuje žiadne platné objekty."
+    },
+    "import_too_many": {
+      "message": "Súbor obsahuje viac ako {max} objektov."
+    },
+    "import_too_large": {
+      "message": "Súbor je väčší ako {limit}."
+    },
+    "until_in_past": {
+      "message": "Dátum konca musí byť v budúcnosti."
+    },
+    "postpone_too_far": {
+      "message": "Nový dátum musí byť do {days} dní."
+    },
+    "date_in_future": {
+      "message": "Dátum nesmie byť v budúcnosti."
+    },
+    "time_based_needs_interval": {
+      "message": "Časová úloha vyžaduje interval."
+    },
+    "weekdays_need_a_day": {
+      "message": "Úloha podľa dní v týždni vyžaduje aspoň jeden deň v týždni."
+    },
+    "range_end_before_start": {
+      "message": "Koniec musí byť v deň začiatku alebo neskôr."
+    },
+    "notify_not_configured": {
+      "message": "Upozornenia nie sú nastavené – najprv v nastaveniach vyberte službu upozornení."
+    },
+    "battery_notes_unavailable": {
+      "message": "Integrácia Battery Notes nie je dostupná."
+    },
+    "no_battery_devices": {
+      "message": "Nenašli sa žiadne zariadenia s batériou."
+    },
+    "fleet_not_set_up": {
+      "message": "Sledovanie batérií ešte nie je nastavené."
+    },
+    "move_same_object": {
+      "message": "Úloha už patrí k tomuto objektu."
+    },
+    "move_target_archived": {
+      "message": "Cieľový objekt je archivovaný."
+    },
+    "move_part_task": {
+      "message": "Nákupná úloha náhradného dielu zostáva pri svojom diele."
+    },
+    "move_fleet_task": {
+      "message": "Úlohu batérií nie je možné presunúť."
+    },
+    "move_objects_not_loaded": {
+      "message": "Na presun úlohy musia byť oba objekty načítané."
+    },
+    "view_name_empty": {
+      "message": "Uložené zobrazenie musí mať názov."
+    },
+    "qr_no_url": {
+      "message": "Nie je nastavená URL adresa Home Assistanta – nastavte externú alebo internú URL adresu v Nastavenia → Systém → Sieť."
+    },
+    "postpone_in_past": {
+      "message": "Nový dátum nesmie byť v minulosti."
+    },
+    "postpone_done": {
+      "message": "„{task_name}“ je hotová – nie je čo odložiť."
+    },
+    "no_part_for_entity": {
+      "message": "{entity_id} nie je senzor stavu skladu náhradného dielu."
+    },
+    "part_not_reusable": {
+      "message": "{entity_id} nie je opakovane použiteľný náhradný diel s počítaným stavom skladu."
+    },
+    "part_not_counted": {
+      "message": "{entity_id} je náhradný diel bez počítaného stavu skladu."
+    }
+  },
+  "triggers": {
+    "task_became_overdue": {
+      "name": "Úloha údržby je po termíne",
+      "description": "Spustí sa, keď sa stav úlohy údržby zmení na po termíne.",
+      "fields": {
+        "behavior": {
+          "name": "Správanie"
+        },
+        "for": {
+          "name": "Počas"
+        }
+      }
+    },
+    "task_became_due_soon": {
+      "name": "Úlohe údržby sa blíži termín",
+      "description": "Spustí sa, keď úloha údržby vstúpi do obdobia varovania.",
+      "fields": {
+        "behavior": {
+          "name": "Správanie"
+        },
+        "for": {
+          "name": "Počas"
+        }
+      }
+    },
+    "sensor_trigger_activated": {
+      "name": "Aktivoval sa spúšťač senzora",
+      "description": "Spustí sa, keď sa aktivuje úloha údržby založená na senzore.",
+      "fields": {
+        "behavior": {
+          "name": "Správanie"
+        },
+        "for": {
+          "name": "Počas"
+        }
+      }
+    },
+    "task_became_ok": {
+      "name": "Úloha údržby sa vrátila do stavu OK",
+      "description": "Spustí sa, keď úloha údržby už nevyžaduje pozornosť.",
+      "fields": {
+        "behavior": {
+          "name": "Správanie"
+        },
+        "for": {
+          "name": "Počas"
+        }
+      }
+    }
+  },
+  "conditions": {
+    "task_is_overdue": {
+      "name": "Úloha údržby je po termíne",
+      "description": "Overí, či je úloha údržby po termíne.",
+      "fields": {
+        "behavior": {
+          "name": "Správanie"
+        },
+        "for": {
+          "name": "Počas"
+        }
+      }
+    },
+    "task_is_due_soon": {
+      "name": "Úlohe údržby sa blíži termín",
+      "description": "Overí, či je úloha údržby v období varovania.",
+      "fields": {
+        "behavior": {
+          "name": "Správanie"
+        },
+        "for": {
+          "name": "Počas"
+        }
+      }
+    },
+    "task_is_triggered": {
+      "name": "Spúšťač senzora je aktívny",
+      "description": "Overí, či je úloha údržby založená na senzore spustená.",
+      "fields": {
+        "behavior": {
+          "name": "Správanie"
+        },
+        "for": {
+          "name": "Počas"
+        }
+      }
+    },
+    "task_needs_attention": {
+      "name": "Úloha údržby vyžaduje pozornosť",
+      "description": "Overí, či je úloha údržby po termíne alebo spustená.",
+      "fields": {
+        "behavior": {
+          "name": "Správanie"
+        },
+        "for": {
+          "name": "Počas"
+        }
+      }
+    }
+  }
+}

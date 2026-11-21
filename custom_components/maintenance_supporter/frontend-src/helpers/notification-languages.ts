@@ -26,6 +26,7 @@ export const NOTIFICATION_LANGUAGES: ReadonlyArray<readonly [string, string]> = 
   ["pt", "Português"],
   ["pt-br", "Português (Brasil)"],
   ["ru", "Русский"],
+  ["sk", "Slovenčina"],
   ["sv", "Svenska"],
   ["tr", "Türkçe"],
   ["uk", "Українська"],

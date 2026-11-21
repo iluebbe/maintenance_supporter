@@ -28,7 +28,7 @@ from .conftest import call_ws_handler, make_global_entry, make_object_entry, mak
 COMPONENT = Path(__file__).resolve().parents[1] / "custom_components" / "maintenance_supporter"
 FRONTEND = COMPONENT / "frontend-src"
 LANGUAGES = {
-    "en", "de", "nl", "fr", "it", "es", "pt", "pt-br", "ru", "uk", "pl", "cs", "sv", "zh", "da", "fi", "nb", "ja", "hi", "hu", "ko", "tr",
+    "en", "de", "nl", "fr", "it", "es", "pt", "pt-br", "ru", "uk", "pl", "cs", "sk", "sv", "zh", "da", "fi", "nb", "ja", "hi", "hu", "ko", "tr",
 }  # fmt: skip
 NATIVE = {"ru": r"[Ѐ-ӿ]", "uk": r"[Ѐ-ӿ]", "zh": r"[一-鿿]", "ja": r"[぀-ヿ一-鿿]", "hi": r"[ऀ-ॿ]", "ko": r"[가-힣]"}
 
