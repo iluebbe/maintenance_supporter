@@ -349,11 +349,11 @@
         }
       },
       "trigger_idle": {
-        "title": "Nastavenie pokoja",
+        "title": "Nastavenie nečinnosti",
         "description": "Sledovať {entity_id} (teraz: {current_state}). Úloha bude mať termín, keď sa zvolený počet dní nič nestane.",
         "data": {
-          "trigger_idle_days": "Dni pokoja",
-          "trigger_idle_mode": "Čo sa počíta ako pokoj",
+          "trigger_idle_days": "Dni nečinnosti",
+          "trigger_idle_mode": "Čo sa počíta ako nečinnosť",
           "interval_days": "Bezpečnostný interval",
           "interval_unit": "Jednotka intervalu",
           "trigger_combinator": "Kombinácia spúšťača a intervalu",
@@ -1296,11 +1296,11 @@
         }
       },
       "opt_trigger_idle": {
-        "title": "Nastavenie pokoja",
+        "title": "Nastavenie nečinnosti",
         "description": "Sledovať {entity_id} (teraz: {current_state}). Úloha bude mať termín, keď sa zvolený počet dní nič nestane.",
         "data": {
-          "trigger_idle_days": "Dni pokoja",
-          "trigger_idle_mode": "Čo sa počíta ako pokoj",
+          "trigger_idle_days": "Dni nečinnosti",
+          "trigger_idle_mode": "Čo sa počíta ako nečinnosť",
           "interval_days": "Bezpečnostný interval",
           "interval_unit": "Jednotka intervalu",
           "trigger_combinator": "Kombinácia spúšťača a intervalu",
@@ -1793,7 +1793,7 @@
         "state_change": "Zmena stavu",
         "runtime": "Prevádzkový čas",
         "due_date": "Termín (hlásený senzorom)",
-        "idle": "Pokoj (celé dni sa nič nedeje)",
+        "idle": "Nečinnosť (celé dni sa nič nedeje)",
         "compound": "Kombinovaný (viac podmienok)"
       }
     },

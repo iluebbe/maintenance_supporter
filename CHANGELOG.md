@@ -2,6 +2,13 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
+## [Unreleased]
+
+### 🐛 Fixed
+
+- **Slovak wording.** The idle trigger reads *nečinnosť* instead of *pokoj*, the state timeline says *nedostupné*
+  for an unreachable entity, and the rotation-by-weekday hints no longer repeat *pripadne*.
+
 ## [2.125.0] - 2026-11-22
 
 A reminder for the due date itself, quiet hours per day, to-do lists per object and per person, rotation by
