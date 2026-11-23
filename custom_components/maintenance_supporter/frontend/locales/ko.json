@@ -1219,6 +1219,7 @@
   "part_cost_mode_house": "설정과 같이 ({mode})",
   "part_cost_mode_hint": "구매할 때: 구매한 해에 구매 금액이 계산됩니다. 사용할 때: 부품을 사용하는 완료마다 그 가격이 사용된 대상, 즉 그 구역에 기록됩니다.",
   "part_stock": "재고",
+  "unit_pieces": "개",
   "part_reorder_threshold": "재주문 기준",
   "part_restock_quantity": "보충 수량",
   "part_package_size": "포장 크기(단위)",

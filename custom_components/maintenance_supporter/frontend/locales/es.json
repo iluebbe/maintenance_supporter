@@ -1211,6 +1211,7 @@
   "part_cost_mode_house": "Como en Ajustes ({mode})",
   "part_cost_mode_hint": "Al comprarlos: cuenta la compra, en el año en que se hace. Al usarlos: cada finalización que usa el repuesto registra su precio en el objeto, y así en el área, donde se usa.",
   "part_stock": "Existencias",
+  "unit_pieces": "uds.",
   "part_reorder_threshold": "Umbral de reposición",
   "part_restock_quantity": "Cantidad de reposición",
   "part_package_size": "Tamaño del envase (unidades)",

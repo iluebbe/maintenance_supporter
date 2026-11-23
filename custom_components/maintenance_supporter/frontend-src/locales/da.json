@@ -1211,6 +1211,7 @@
   "part_cost_mode_house": "Som i indstillingerne ({mode})",
   "part_cost_mode_hint": "Ved køb: købet tæller, i det år det sker. Ved forbrug: hver gennemførelse, der bruger delen, bogfører dens pris på objektet, og dermed området, hvor den bruges.",
   "part_stock": "Lager",
+  "unit_pieces": "stk.",
   "part_reorder_threshold": "Genbestillingsgrænse",
   "part_restock_quantity": "Genopfyldningsmængde",
   "part_package_size": "Pakningsstørrelse (enheder)",

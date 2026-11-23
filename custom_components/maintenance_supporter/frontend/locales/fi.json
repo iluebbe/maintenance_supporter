@@ -1211,6 +1211,7 @@
   "part_cost_mode_house": "Kuten asetuksissa ({mode})",
   "part_cost_mode_hint": "Ostettaessa: osto lasketaan sinä vuonna, jona se tehdään. Käytettäessä: jokainen suoritus, joka käyttää osan, kirjaa sen hinnan kohteelle, ja siis alueelle, jossa se käytetään.",
   "part_stock": "Varasto",
+  "unit_pieces": "kpl",
   "part_reorder_threshold": "Tilausraja",
   "part_restock_quantity": "Täydennysmäärä",
   "part_package_size": "Pakkauskoko (yksikköä)",

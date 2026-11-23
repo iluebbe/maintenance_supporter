@@ -2,7 +2,7 @@
 
 A Home Assistant custom integration for tracking, scheduling, and predicting maintenance of household objects and devices. Combines time-based scheduling, sensor-driven triggers, adaptive ML algorithms, and environmental correlation for intelligent maintenance management.
 
-**Version:** 2.125.0 | 383 source files (205 Python + 178 TypeScript) | **98% test coverage** (6,618 backend tests + 1,990 frontend tests)
+**Version:** 2.125.1 | 383 source files (205 Python + 178 TypeScript) | **98% test coverage** (6,624 backend tests + 2,006 frontend tests)
 
 ---
 
@@ -306,19 +306,19 @@ custom_components/maintenance_supporter/
 │   ├── strategy/                              Code-split dashboard strategy + content-hashed chunks/
 │   ├── locales/{22 non-EN}.json               Runtime-fetched UI translations
 │   └── vendor/pdf.min.mjs, pdf.worker.min.mjs pdf.js for the work sheet's manual excerpt
-├── frontend-src/               (56,913 lines)  178 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
-│   ├── maintenance-panel.ts     (6,473 lines)  Panel shell: today / dashboard / calendar / settings tabs,
+├── frontend-src/               (57,326 lines)  178 files — TypeScript sources, built into frontend/ by `node esbuild.mjs` (not automatic)
+│   ├── maintenance-panel.ts     (6,549 lines)  Panel shell: today / dashboard / calendar / settings tabs,
 │   │                                           object detail, task detail, all-objects, deep-link router
-│   ├── maintenance-dashboard-strategy.ts (1,265 lines)  Auto-generated dashboard strategy + 4 section strategies
-│   ├── maintenance-card.ts        (919 lines)  Lovelace card
-│   ├── maintenance-calendar-card.ts (798 lines)  Calendar card (object filter, #83)
+│   ├── maintenance-dashboard-strategy.ts (1,274 lines)  Auto-generated dashboard strategy + 4 section strategies
+│   ├── maintenance-card.ts        (945 lines)  Lovelace card
+│   ├── maintenance-calendar-card.ts (819 lines)  Calendar card (object filter, #83)
 │   ├── maintenance-card-editor.ts (526 lines)  Visual editor of the Lovelace card
 │   ├── maintenance-strategy-shim.ts (448 lines)  Zero-import boot shim: defines the dashboard AND the four
 │   │                                           section strategy tags synchronously (lazy-loads the bundle on
 │   │                                           first generate(); v2.73.0), picker entries, scoped-registry self-heal
-│   ├── panel-styles.ts          (2,599 lines)  Panel-specific CSS
-│   ├── calendar-styles.ts         (208 lines)  Calendar-card CSS
-│   ├── styles.ts                (2,149 lines)  Shared CSS, i18n runtime loader (bundled EN + on-demand fetch
+│   ├── panel-styles.ts          (2,668 lines)  Panel-specific CSS
+│   ├── calendar-styles.ts         (304 lines)  Calendar-card CSS
+│   ├── styles.ts                (2,183 lines)  Shared CSS, i18n runtime loader (bundled EN + on-demand fetch
 │   │                                           of the other 21) + shared helpers; the ONLY module that formats
 │   │                                           dates, times and numbers (HA profile date_format/time_format/
 │   │                                           number_format via the __msDateTimePrefs singleton) — tripwired
@@ -335,7 +335,7 @@ custom_components/maintenance_supporter/
 │   ├── ds-preview-kit.ts          (230 lines)  Design-sync preview kit: a demo household behind a mock `hass`
 │   ├── maintenance-panel-card.ts  (369 lines)  The whole panel as a Lovelace card (#174)
 │   ├── status-constants.ts        (110 lines)  Status colors + icons — THE single source for every renderer
-│   ├── helpers/                (10,416 lines)  101 files — Pure functions and small services shared by the panel, the cards and the dialogs
+│   ├── helpers/                (10,451 lines)  101 files — Pure functions and small services shared by the panel, the cards and the dialogs
 │   │   ├── calendar-bucket.ts     (491 lines)  Pure 7/14/30/365-day projection, 5 occurrences max per task, no projection for sensor-based
 │   │   ├── notes-markdown.ts      (143 lines)  Notes rendering (ha-markdown hand-off)
 │   │   ├── bundle-version.ts       (55 lines)  Stale-bundle guard; the versions of our bundles running in the window
@@ -369,7 +369,7 @@ custom_components/maintenance_supporter/
 │   │   ├── notify-icons.ts         (20 lines)  #185: default push-notification icon per maintenance type (twin of helpers/notify_icons.py)
 │   │   ├── object-columns.ts       (67 lines)  (#67) Objects-table column catalog
 │   │   ├── object-history.ts      (189 lines)  Object lifecycle history (#138): every task's history merged into one chronological record
-│   │   ├── objects-cache.ts        (59 lines)  Skeleton-from-cache: the last known objects payload in localStorage
+│   │   ├── objects-cache.ts        (70 lines)  Skeleton-from-cache: the last known objects payload in localStorage
 │   │   ├── overview-tabs.ts         (7 lines)  The overview's tabs — one list for the sidebar panel and the panel-as-card editor
 │   │   ├── parts-cost.ts           (88 lines)  What spare parts cost, and when that counts (#104, #98 follow-up)
 │   │   ├── permissions.ts          (54 lines)  Who may do what — the frontend twin of the three backend tiers (helpers/permissions.py)
@@ -384,11 +384,11 @@ custom_components/maintenance_supporter/
 │   │   ├── search-match.ts        (150 lines)  Tolerant text matching (#171) — the TypeScript twin of helpers/search_match.py
 │   │   ├── service-record.ts      (345 lines)  Printable object service record (#138, #170): every completed maintenance of all tasks
 │   │   ├── setting-ranges.ts       (77 lines)  Bounds of the integer global settings — mirror of helpers/settings_registry.py
-│   │   ├── settings-cache.ts      (202 lines)  Household settings the surfaces outside the panel read once per page (`window.__msSettingsCache`)
+│   │   ├── settings-cache.ts      (223 lines)  Household settings the surfaces outside the panel read once per page (`window.__msSettingsCache`)
 │   │   ├── shared-parts.ts        (140 lines)  Rendering task→part links when the pool may belong to ANOTHER object (#111)
 │   │   ├── snooze.ts               (30 lines)  What a snooze did, in words (#193)
 │   │   ├── sticky-pane.ts         (108 lines)  Scroll-aware docking for the master-detail task pane (split view)
-│   │   ├── storage-keys.ts         (68 lines)  localStorage keys for panel UI preferences — single source of truth
+│   │   ├── storage-keys.ts         (71 lines)  localStorage keys for panel UI preferences — single source of truth
 │   │   ├── subscription-merge.ts   (51 lines)  Merge logic for the 2.52 delta subscription protocol
 │   │   ├── toast.ts                (48 lines)  Toast timing — one set for every surface that shows a transient message
 │   │   ├── trigger-domains.ts      (44 lines)  Domains offered by the trigger entity pickers (#129)
@@ -437,31 +437,31 @@ custom_components/maintenance_supporter/
 │   │   ├── order-mail.ts           (84 lines)  Several parts ordered by e-mail in one message, one per supplier address (#265)
 │   │   ├── rotation-turns.ts       (72 lines)  D#284: a rotation by weekday, and whose turn the coming dates are
 │   │   └── weekday-chips.ts        (76 lines)  A row of weekday chips (0 = Monday … 6 = Sunday), each a toggle button
-│   ├── renderers/               (2,896 lines)  11 files — Pure lit-html render functions of the task views and the charts
-│   │   ├── task-detail.ts         (642 lines)  The task detail view (header, ⋮ menu, sections) as a function of its context
+│   ├── renderers/               (2,929 lines)  11 files — Pure lit-html render functions of the task views and the charts
+│   │   ├── task-detail.ts         (652 lines)  The task detail view (header, ⋮ menu, sections) as a function of its context
 │   │   ├── chart-utils.ts         (124 lines)  Shared chart helpers: nice axis ticks and consistent number/date formats
 │   │   ├── charts.ts              (167 lines)  Cost/duration chart renderers (task detail)
 │   │   ├── history.ts             (273 lines)  Task history sub-view: filter chips + search + the timeline of entries
 │   │   ├── prediction.ts           (69 lines)  Sensor prediction section renderer
-│   │   ├── progress.ts            (366 lines)  Progress renderers shared by the dashboard rows, the object-detail view and the task-detail overview tab
+│   │   ├── progress.ts            (389 lines)  Progress renderers shared by the dashboard rows, the object-detail view and the task-detail overview tab
 │   │   ├── recommendation.ts       (49 lines)  Shared recommendation-card visuals (bars + confidence badge)
 │   │   ├── seasonal.ts            (118 lines)  Seasonal factor chart renderers
 │   │   ├── sparkline.ts           (797 lines)  Trigger section renderer (task detail)
 │   │   ├── status.ts              (103 lines)  A task's status as the user sees it — THE derivation for every surface
 │   │   └── weibull.ts             (188 lines)  Weibull reliability analysis renderers
-│   ├── components/             (25,042 lines)  46 files — Lit elements: dialogs, sections, views, cards
+│   ├── components/             (25,056 lines)  46 files — Lit elements: dialogs, sections, views, cards
 │   │   ├── task-dialog.ts       (4,938 lines)  Add/edit task (schedule kinds, triggers, checklist, assignees)
 │   │   ├── settings-view.ts     (2,952 lines)  In-panel global settings editor
 │   │   ├── task-quick-actions-dialog.ts (1,002 lines)  Task ⋮ menu
 │   │   ├── documents-section.ts   (715 lines)  Object-detail documents/manuals section
 │   │   ├── parts-section.ts     (1,144 lines)  Object-detail spare-parts section; ticks parts for one order e-mail
-│   │   ├── complete-dialog.ts     (867 lines)  Mark task complete
+│   │   ├── complete-dialog.ts     (869 lines)  Mark task complete
 │   │   ├── qr-dialog.ts           (509 lines)  QR code generation
 │   │   ├── adopt-problem-sensors-dialog.ts (633 lines)  Adopt HA problem sensors
 │   │   ├── battery-fleet-section.ts (1,443 lines)  Task-detail battery-fleet section
 │   │   ├── trigger-chart.ts       (405 lines)  Responsive sensor-history chart of the task detail
 │   │   ├── storage-section-card.ts (397 lines)  Document-storage overview card (panel overview)
-│   │   ├── task-documents.ts      (353 lines)  Documents linked to a task — or (v2.26) to a spare part
+│   │   ├── task-documents.ts      (365 lines)  Documents linked to a task — or (v2.26) to a spare part
 │   │   ├── suggested-setups-dialog.ts (519 lines)  Signature-catalog discovery UI
 │   │   ├── groups-section-card.ts (344 lines)  Interactive groups section card (dashboard strategy)
 │   │   ├── vacation-section-card.ts (362 lines)  Interactive vacation section card (dashboard strategy)
@@ -496,9 +496,9 @@ custom_components/maintenance_supporter/
 │   │   ├── part-pill-styles.ts     (31 lines)  The small rounded action of a part row (*Used*, *Bought*): one look for both, which each kept a copy of it (DRY audit 2026-10-30, FE6-B10)
 │   │   ├── state-timeline.ts      (685 lines)  A state, code or AND/OR rule as a timeline: the result, its conditions and sensors, the newest report in words, a magnifier for short alerts
 │   │   └── runtime-bars.ts        (180 lines)  A runtime rule's chart: hours run per day as bars, the services marked, the mean and the time to the target
-│   └── __tests__/              (42,249 lines)  276 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
+│   └── __tests__/              (42,553 lines)  277 files — Web Test Runner specs in real Chromium (`npm test`); fixtures/ holds the task-summary contract
 │
-├── helpers/                    (40,465 lines)  118 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
+├── helpers/                    (40,513 lines)  118 files — Rules and services in plain Python behind the coordinator, the WebSocket API and the flows
 │   ├── notification_manager.py  (3,384 lines)  Multi-channel notification system
 │   ├── notify_hooks.py            (422 lines)  The one send hook (#165): event `maintenance_supporter_notification`, extra-data template, event-only delivery
 │   ├── notify_icons.py             (97 lines)  Notification icons (#185): defaults per maintenance type / kind / fleet, `notify_icon_for`, `is_valid_icon`
@@ -607,11 +607,11 @@ custom_components/maintenance_supporter/
 │       ├── _discovery.py          (391 lines)  Entity-registry scan → per-duty setup proposals
 │       ├── _registry.py            (30 lines)  Merge + duplicate-domain guard
 │       ├── _shared.py             (293 lines)  Signatures shared verbatim by several integrations (DRY audit 2026-09-26 B)
-│       ├── air.py               (1,001 lines)  Air treatment — purifiers, ACs and HRV/ventilation filters
-│       ├── cars.py                (696 lines)  Cars and EVs — odometer-driven service duties
+│       ├── air.py               (1,007 lines)  Air treatment — purifiers, ACs and HRV/ventilation filters
+│       ├── cars.py                (705 lines)  Cars and EVs — odometer-driven service duties
 │       ├── garden.py              (659 lines)  Robot lawn mowers, irrigation and pool/spa water care
-│       ├── heating.py             (635 lines)  Boilers, heating & water treatment
-│       ├── home_it.py             (202 lines)  NAS, home IT & safety detectors
+│       ├── heating.py             (649 lines)  Boilers, heating & water treatment
+│       ├── home_it.py             (221 lines)  NAS, home IT & safety detectors
 │       ├── kitchen.py           (1,075 lines)  Kitchen & household appliances incl. espresso machines
 │       ├── locks.py               (298 lines)  Smart locks — cycle-count lubrication duties
 │       ├── personal.py             (95 lines)  Personal-care devices
@@ -1181,7 +1181,7 @@ The rules that are easiest to regress are tripwired:
 
 ## Test Coverage
 
-**6,618 tests** across **399 test files** with **98% code coverage** (plus a 1,990-test frontend suite in real Chromium across 273 spec files, the 34-scenario journey suite, and the live e2e scripts under `e2e/`).
+**6,624 tests** across **400 test files** with **98% code coverage** (plus a 2,006-test frontend suite in real Chromium across 274 spec files, the 34-scenario journey suite, and the live e2e scripts under `e2e/`).
 
 ### Coverage policy
 

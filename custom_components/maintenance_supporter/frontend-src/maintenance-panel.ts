@@ -18,7 +18,7 @@ import {
   mdiAccountOutline, mdiCheck, mdiCheckboxBlankCircleOutline, mdiChevronDoubleDown, mdiChevronDoubleUp, mdiCircleMedium, mdiCubeOutline,
   mdiFolderOutline, mdiMapMarkerOutline, mdiNfcVariant, mdiQrcode, mdiSkipNext, mdiTagOutline,
 } from "@mdi/js";
-import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, currencySymbolOf, t, ensureLocale, isLocaleLoaded, formatDate, formatDayCount, formatDueDays, countText, formatInterval, formatRecurrence, setProfilePrefs, langOf, formatCost, formatNumber, formatQty, formatUnit, syncCurrencyDecimals} from "./styles";
+import { syncLocaleFromHass, sharedStyles, STATUS_COLORS, currencySymbolOf, t, ensureLocale, isLocaleLoaded, formatDate, formatDayCount, formatDueDays, countText, formatInterval, formatRecurrence, setProfilePrefs, langOf, formatCost, formatNumber, formatQty, formatUnit, syncCurrencyDecimals, taskTypeLabel} from "./styles";
 import { OVERVIEW_TABS, type OverviewTab } from "./helpers/overview-tabs";
 import { LS_KEYS, lsGet, lsSet } from "./helpers/storage-keys";
 import { openHtmlInNewTab, openSignedDocument, preopenTab, signApiPath } from "./helpers/document-url";
@@ -39,7 +39,7 @@ import { buildTaskWorksheetHtml, type WorksheetExcerpt, type WorksheetLabels } f
 import { describePartLink } from "./helpers/shared-parts";
 import { docDisplayName } from "./helpers/document-categories";
 import { effectivePhase } from "./helpers/phases";
-import { renderTaskTitle, triggerDetailText } from "./helpers/event-titles";
+import { renderTaskTitle, taskTitleText, triggerDetailText } from "./helpers/event-titles";
 import { recommendationReason, type HomeProfile, type TemplateRecommendation } from "./helpers/home-profile";
 import { buildCompleteDialogArgs, fillAndOpenCompleteDialog } from "./helpers/complete-dialog-args";
 import { areaDisplayName, areaKeyOf, areaLabel } from "./helpers/area-history";
@@ -149,7 +149,7 @@ import type { MaintenanceTaskDetailView } from "./components/task-detail-view";
 import "./components/task-detail-view";
 import { computeWindow, RowHeights, sectionWindow, VIRTUAL_MIN_ROWS } from "./helpers/virtual-window";
 import { INITIAL_STICKY, nextStickyState, stickyStateOnSelect, stickyTop, type StickyState } from "./helpers/sticky-pane";
-import { invalidateSettingsCache, parseSettings, type SettingsWire } from "./helpers/settings-cache";
+import { invalidateSettingsCache, parseSettings, rememberedRowActionStyle, rememberRowActionStyle, type SettingsWire } from "./helpers/settings-cache";
 import { partCostMode, type PartsCostMode } from "./helpers/parts-cost";
 import { canWrite } from "./helpers/permissions";
 // #226: the All-parts view's Use pill (the parts shelf imports it too).
@@ -209,6 +209,14 @@ interface PartsOverviewRow {
     pooled: boolean;
   }>;
 }
+/** What the panel draws around the rows and only the settings and the
+ *  budget answers know; kept with the skeleton cache for the first draw. */
+interface PanelLook {
+  features: AdvancedFeatures;
+  budget: BudgetStatus | null;
+  refsInLists: boolean;
+}
+
 type SortMode = "due_date" | "object" | "type" | "task_name" | "area" | "assigned_user" | "group";
 type ObjectSortMode = "alphabetical" | "due_soonest" | "task_count";
 type GroupByMode = "none" | "area" | "group" | "user" | "object";
@@ -340,7 +348,13 @@ export class MaintenanceSupporterPanel extends LitElement {
   /** #273: user id → that person's own to-do list. */
   @state() private _todoPersonLists: Record<string, string> = {};
   /** #145: global "Task row actions" style (buttons_compact | buttons | icons). */
-  @state() private _rowActionStyle = "buttons_compact";
+  /** Starts as this browser last saw it, so the first draw of the list
+   *  already wears the household's style (helpers/settings-cache). */
+  @state() private _rowActionStyle = rememberedRowActionStyle();
+  /** The feature switches, the budget and the reference numbers are known
+   *  (from the last visit's cache or from the server): only then are they
+   *  worth remembering for the next first draw. */
+  private _lookKnown = false;
   /** #170: reference numbers in front of names in the lists (global setting). */
   @state() private _refsInLists = false;
   /** #104: when spare parts count — what the complete dialog says about them. */
@@ -761,12 +775,21 @@ export class MaintenanceSupporterPanel extends LitElement {
     // Skeleton from cache: paint the previous visit's task list immediately;
     // the live payload replaces it through the normal _objects assignment.
     if (this._objects.length === 0) {
-      const cached = readObjectsCache<MaintenanceObjectResponse, StatisticsResponse>();
+      const cached = readObjectsCache<MaintenanceObjectResponse, StatisticsResponse, Partial<PanelLook>>();
       if (cached) {
         // In the look it was painted in; the settings confirm it on load.
         if (cached.beta !== undefined) setBetaUi(cached.beta);
         this._objects = cached.objects;
         if (cached.stats) this._stats = cached.stats;
+        // And with what stood around the rows: the budget tiles, the
+        // feature switches' controls, the reference numbers.
+        const look = cached.extras;
+        if (look) {
+          if (look.features && typeof look.features === "object") this._features = { ...this._features, ...look.features };
+          if (look.budget && typeof look.budget === "object") { this._budget = look.budget; syncCurrencyDecimals(this._budget); }
+          if (typeof look.refsInLists === "boolean") this._refsInLists = look.refsInLists;
+          this._lookKnown = true;
+        }
       }
     }
   }
@@ -1139,12 +1162,21 @@ export class MaintenanceSupporterPanel extends LitElement {
     ]);
     this._loadIncomplete = !objResult || !groupsResult || !settingsResult || !viewsResult;
     if (viewsResult) this._savedViews = (viewsResult as { views: SavedView[] }).views || [];
+    // The one settings parser (helpers/settings-cache) — the panel kept its
+    // own copy of the field rules (DRY audit 2026-09-26).
+    const settings = settingsResult ? parseSettings(settingsResult as SettingsWire) : null;
+    if (settings) this._lookKnown = true;
     if (objResult) {
       this._objects = hydrateObjects((objResult as { objects: MaintenanceObjectResponse[] }).objects);
       writeObjectsCache(
         this._objects,
         (statsResult as StatisticsResponse | null) ?? this._stats ?? null,
-        settingsResult ? parseSettings(settingsResult as SettingsWire).features.beta_editor : betaUi(),
+        settings ? settings.features.beta_editor : betaUi(),
+        this._lookKnown ? {
+          features: settings?.features ?? this._features,
+          budget: (budgetResult as BudgetStatus | null) ?? this._budget,
+          refsInLists: settings?.refsInLists ?? this._refsInLists,
+        } satisfies PanelLook : undefined,
       );
       // #125: getting-started discovery runs AFTER the objects are known —
       // judging youth on the pre-load empty list would bill every mature
@@ -1179,10 +1211,8 @@ export class MaintenanceSupporterPanel extends LitElement {
     if (statsResult) this._stats = statsResult as StatisticsResponse;
     if (budgetResult) { this._budget = budgetResult as BudgetStatus; syncCurrencyDecimals(this._budget); }
     if (groupsResult) this._groups = (groupsResult as { groups: Record<string, MaintenanceGroup> }).groups || {};
-    if (settingsResult) {
-      // The one settings parser (helpers/settings-cache) — the panel kept its
-      // own copy of the field rules (DRY audit 2026-09-26).
-      const s = parseSettings(settingsResult as SettingsWire);
+    if (settings) {
+      const s = settings;
       this._features = s.features;
       setBetaUi(s.features.beta_editor);
       this._adminPanelUserIds = [...s.access.operatorIds];
@@ -1191,6 +1221,7 @@ export class MaintenanceSupporterPanel extends LitElement {
       this._mirrorTodoDefault = s.mirrorTodoDefault;
       this._todoPersonLists = s.todoPersonLists;
       this._rowActionStyle = s.rowActionStyle;
+      rememberRowActionStyle(s.rowActionStyle);
       this._rowActionNotice = s.rowActionNoticePending;
       this._refsInLists = s.refsInLists;
       this._objectsTableColumns = sanitizeColumns(s.objectsTableColumns);
@@ -1566,7 +1597,9 @@ export class MaintenanceSupporterPanel extends LitElement {
           // Full snapshots are rare (subscribe start) — keep the skeleton
           // cache fresh from them; per-delta writes would churn storage.
           if ((msg as SubscriptionEvent<MaintenanceObjectResponse>).objects) {
-            writeObjectsCache(next, this._stats ?? null);
+            writeObjectsCache(next, this._stats ?? null, betaUi(), this._lookKnown ? {
+              features: this._features, budget: this._budget, refsInLists: this._refsInLists,
+            } satisfies PanelLook : undefined);
           }
           // The KPI row (_stats) and the budget card come from their own
           // endpoints — a pushed change (completion from the card, a timer
@@ -3971,7 +4004,16 @@ export class MaintenanceSupporterPanel extends LitElement {
       const task = this._getTask(this._selectedEntryId, this._selectedTaskId);
       crumbs.push({ label: task?.name || "Task" });
     }
+    // The three lists name themselves here, All parts and All areas under
+    // All objects, where their chips are: each page had a second back arrow
+    // with its title right below this one (prod look 2026-11-23).
+    if (this._view === "all_objects") crumbs.push({ label: t("all_objects", this._lang) });
+    if (this._view === "all_parts" || this._view === "all_areas") {
+      crumbs.push({ label: t("all_objects", this._lang), action: () => this._showAllObjects() });
+      crumbs.push({ label: t(this._view, this._lang) });
+    }
     if (this._view === "area" && this._selectedAreaId) {
+      crumbs.push({ label: t("all_objects", this._lang), action: () => this._showAllObjects() });
       crumbs.push({ label: t("all_areas", this._lang), action: () => this._showAllAreas() });
       crumbs.push({ label: areaDisplayName(this._selectedAreaId, this.hass?.areas, t("no_area", this._lang)) });
     }
@@ -3981,10 +4023,12 @@ export class MaintenanceSupporterPanel extends LitElement {
         ${this.narrow && !this.embedded ? html`<ha-menu-button .hass=${this.hass} .narrow=${this.narrow}></ha-menu-button>` : nothing}
         ${this._view !== "overview"
           ? html`<ha-icon-button
+              .label=${t("back", this._lang)}
               .path=${"M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"}
               @click=${() => {
                 if (this._view === "task") this._showObject(this._selectedEntryId!);
                 else if (this._view === "area") this._showAllAreas();
+                else if (this._view === "all_parts" || this._view === "all_areas") this._showAllObjects();
                 // #225: a sub-object's page goes up to the object it is in.
                 else if (this._view === "object" && ancestors.length) this._showObject(ancestors[ancestors.length - 1].entry_id);
                 else this._showOverview(true);
@@ -4445,6 +4489,10 @@ export class MaintenanceSupporterPanel extends LitElement {
             }}
           ></maintenance-storage-section-card>`
         : nothing}
+      ${/* Room for the floating create button under the LAST block: it was
+           under the list, so at the end of the page the button lay on the
+           storage card below it (prod look 2026-11-23). */
+      beta && !isOperator && !this.embedded ? html`<div class="ms-fab-space"></div>` : nothing}
     `;
   }
 
@@ -4461,11 +4509,17 @@ export class MaintenanceSupporterPanel extends LitElement {
       due_date: t("sort_due_date", L), object: t("sort_object", L), type: t("sort_type", L), task_name: t("sort_task_name", L),
       area: t("sort_area", L), assigned_user: t("sort_assigned_user", L), group: t("sort_group", L),
     };
-    const chip = (label: string) => html`<button class="ms-chip" slot="trigger" type="button">
-      <span>${label}</span><ha-icon class="ms-chip-caret" icon="mdi:menu-down"></ha-icon></button>`;
+    const chip = (label: string, icon?: string, title?: string) => html`<button class="ms-chip" slot="trigger" type="button" title=${title ?? nothing} aria-label=${title ?? nothing}>
+      ${icon ? html`<ha-icon icon=${icon}></ha-icon>` : nothing}${label ? html`<span>${label}</span>` : nothing}<ha-icon class="ms-chip-caret" icon="mdi:menu-down"></ha-icon></button>`;
     const groups = GROUP_BY_MODES.filter((g) => g !== "group" || this._features.groups);
     const sorts = SORT_MODES.filter((s) => s !== "group" || this._features.groups);
     const g = this._groupByMode;
+    // On a phone the two chips carry an icon and the choice instead of
+    // "Group by …" and "Sort by …": spelled out, they took a toolbar line
+    // of their own and the first task started at 46 % of the screen (prod
+    // look 2026-11-23). The words stay as the chips' names.
+    const groupBy = g === "none" ? t("group_by_label", L) : `${t("group_by_label", L)} ${groupLabel[g]}`;
+    const sortBy = t("beta_sort_by", L).replace("{sort}", sortLabel[this._sortMode]);
     return html`
       <div class="ms-toolbar">
         ${this._filterPaneOpen ? nothing : html`
@@ -4486,9 +4540,9 @@ export class MaintenanceSupporterPanel extends LitElement {
           ${this._listSearch || this._listSearchDraft ? html`<button class="ms-search-clear" type="button" aria-label=${t("clear", L)} title=${t("clear", L)}
             @click=${() => this._setListSearch("")}><ha-icon icon="mdi:close"></ha-icon></button>` : nothing}
         </label>
-        ${renderHaMenu(chip(g === "none" ? t("group_by_label", L) : `${t("group_by_label", L)} ${groupLabel[g]}`),
+        ${renderHaMenu(this.narrow ? chip(g === "none" ? "" : groupLabel[g], "mdi:format-list-group", groupBy) : chip(groupBy),
           groups.map((mode) => ({ label: groupLabel[mode], selected: mode === g, action: () => this._setGroupBy(mode) })), { cls: "ms-chip-menu" })}
-        ${renderHaMenu(chip(t("beta_sort_by", L).replace("{sort}", sortLabel[this._sortMode])),
+        ${renderHaMenu(this.narrow ? chip(sortLabel[this._sortMode], "mdi:sort", sortBy) : chip(sortBy),
           sorts.map((mode) => ({ label: sortLabel[mode], selected: mode === this._sortMode, action: () => this._setSortMode(mode) })), { cls: "ms-chip-menu" })}
       </div>
     `;
@@ -4664,23 +4718,52 @@ export class MaintenanceSupporterPanel extends LitElement {
       </div>`;
   }
 
-  /** Invisible zero-height row whose badge cell carries the union of the
-   *  widest badges across ALL rows. Because the subgrid's `auto` badge track
-   *  sizes to the max over rendered rows, including this row makes the track
-   *  width independent of which data rows happen to be in the window. */
+  /** Invisible zero-height row that carries the widest content of every
+   *  track that sizes to its content, taken across ALL rows. Because such a
+   *  track sizes to the max over rendered rows, including this row makes
+   *  its width independent of which data rows happen to be in the window:
+   *  the badges (`auto`), the object and task names on the one-line layouts
+   *  (`fit-content`) and the row actions (`auto`). The last two followed
+   *  the window until 2026-11-23: the due date jumped 27 px whenever a
+   *  "completes itself" row scrolled in, and at 1440 px the chips track
+   *  swung between 88 and 196 px with the longest name on screen. */
   private _renderVirtSizerRow(rows: TaskRow[]) {
     const L = this._lang;
+    const oneLine = !this.narrow && !this.tight;
     let widest = "";
     let anyDisabled = false;
     let anyNfc = false;
     let anyPriority = false;
+    let longestObject = "";
+    // The three longest titles: letters are not pixels, so the widest of a
+    // few stands in for the widest of all.
+    const longest: { row: TaskRow; len: number }[] = [];
+    let anyPlain = false;
+    let anySkip = false;
+    let anySelf = false;
     for (const r of rows) {
       const label = statusLabel(statusKey(r), L);
       if (label.length > widest.length) widest = label;
       if (!r.enabled) anyDisabled = true;
       if (r.nfc_tag_id) anyNfc = true;
       if (r.priority === "high" || r.priority === "low") anyPriority = true;
+      if (oneLine) {
+        if (r.object_name.length > longestObject.length) longestObject = r.object_name;
+        const len = taskTitleText(r.task_name, r.next_event_titles, r.trigger_detail).length;
+        if (longest.length < 3 || len > longest[longest.length - 1].len) {
+          longest.push({ row: r, len });
+          longest.sort((a, b) => b.len - a.len);
+          if (longest.length > 3) longest.pop();
+        }
+      }
+      if (isInertTask(r)) continue;
+      if (completesItself(r)) anySelf = true;
+      else {
+        anyPlain = true;
+        if (r.allow_skip) anySkip = true;
+      }
     }
+    const noop = () => undefined;
     return html`
       <div class="task-row virt-sizer" aria-hidden="true">
         ${this._bulkMode ? html`<span></span>` : nothing}
@@ -4690,7 +4773,15 @@ export class MaintenanceSupporterPanel extends LitElement {
           ${anyNfc ? html`<span class="nfc-badge"><ha-svg-icon .path=${mdiNfcVariant}></ha-svg-icon></span>` : nothing}
           ${anyPriority ? html`<span class="priority-badge"><ha-svg-icon .path=${mdiChevronDoubleUp}></ha-svg-icon></span>` : nothing}
         </span>
-        <span></span><span></span><span></span><span></span><span></span><span></span>
+        ${oneLine
+          ? html`<span class="cell object-name">${longestObject}</span>
+              <span class="cell task-name virt-names">${longest.map(({ row }) => html`<span>${this._listRef(row.entry_id, row.task_id)}${renderTaskTitle(row.task_name, row.next_event_titles, row.trigger_detail)}</span>`)}</span>`
+          : html`<span></span><span></span>`}
+        <span></span><span></span><span></span>
+        <span class="row-actions virt-actions">
+          ${anyPlain ? this._renderRowActions(L, noop, noop, anySkip) : nothing}
+          ${anySelf ? this._renderRowActions(L, noop, noop, false, false, true) : nothing}
+        </span>
       </div>
     `;
   }
@@ -4806,7 +4897,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     // chain (Chrome's ::details-content box breaks subgrid), hence the
     // div-based disclosure with its own collapsed state.
     return html`
-      <div class="task-table grouped${this._bulkMode ? " bulk" : ""}${virtual ? " virtual" : ""}">
+      <div class="task-table grouped${this._bulkMode ? " bulk" : ""}${virtual ? " virtual" : ""}${this._groupByMode === "object" ? " no-object" : ""}">
         ${this._renderTaskHead()}
         ${virtual ? this._renderVirtSizerRow(rows) : nothing}
         ${sorted.map(([key, taskRows], i) => {
@@ -4913,11 +5004,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     };
 
     return html`
-      <div class="breadcrumb">
-        <ha-icon-button .label=${t("back", L)} @click=${() => this._showOverview(true)}>
-          <ha-icon icon="mdi:arrow-left"></ha-icon>
-        </ha-icon-button>
-        <span>${t("all_objects", L)}</span>
+      <div class="sibling-views">
         <button class="sibling-view-chip" @click=${() => this._showAllParts()}>
           <ha-icon icon="mdi:package-variant-closed"></ha-icon> ${t("all_parts", L)}
         </button>
@@ -5115,11 +5202,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const rows = this._allParts;
     const currency = this._currencySymbol;
     return html`
-      <div class="breadcrumb">
-        <ha-icon-button .label=${t("back", L)} @click=${() => this._showAllObjects()}>
-          <ha-icon icon="mdi:arrow-left"></ha-icon>
-        </ha-icon-button>
-        <span>${t("all_parts", L)}</span>
+      <div class="sibling-views">
         <button class="sibling-view-chip" @click=${() => this._showAllObjects()}>
           <ha-icon icon="mdi:devices"></ha-icon> ${t("all_objects", L)}
         </button>
@@ -5138,7 +5221,7 @@ export class MaintenanceSupporterPanel extends LitElement {
         ? html`<div class="empty-state">${t("parts_section", L)}: 0</div>`
         : html`
           <div class="objects-table-wrap">
-            <table class="objects-table">
+            <table class="objects-table all-parts-table">
               <thead>
                 <tr>
                   <th>${t("part_name", L)}</th>
@@ -5153,14 +5236,14 @@ export class MaintenanceSupporterPanel extends LitElement {
               <tbody>
                 ${rows.map((row) => html`
                   <tr class="objects-table-row" @click=${() => this._showObject(row.entry_id)}>
-                    <td>
+                    <td class="ap-name">
                       <span class="objects-table-name">${this._objRef(this._getObject(row.entry_id)?.object)}${row.name}</span>
                       ${row.low
                         ? html`<ha-icon class="part-low-icon" icon="mdi:cart-arrow-down"
                             title="${t("part_reorder_threshold", L)}: ${row.reorder_threshold}"></ha-icon>`
                         : nothing}
                     </td>
-                    <td>${row.object_name || "—"}</td>
+                    <td class="ap-object">${row.object_name || "—"}</td>
                     <td class="all-parts-stock">${row.stock !== null ? formatQty(row.stock, row.unit, L) : "—"}${this._renderAllPartsUse(row)}${this._renderAllPartsBought(row)}</td>
                     <td>${row.reorder_threshold ?? "—"}</td>
                     <td>${row.cost != null
@@ -5169,7 +5252,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                         : formatCost(row.cost, currency, L)
                       : "—"}</td>
                     <td>${row.storage_location || "—"}</td>
-                    <td>
+                    <td class="ap-used">
                       ${row.consumers.length === 0
                         ? "—"
                         : row.consumers.map((c) => html`
@@ -5226,11 +5309,7 @@ export class MaintenanceSupporterPanel extends LitElement {
     const L = this._lang;
     this._ensureAreaUi();
     return html`
-      <div class="breadcrumb">
-        <ha-icon-button .label=${t("back", L)} @click=${() => this._showAllObjects()}>
-          <ha-icon icon="mdi:arrow-left"></ha-icon>
-        </ha-icon-button>
-        <span>${t("all_areas", L)}</span>
+      <div class="sibling-views">
         <button class="sibling-view-chip" @click=${() => this._showAllObjects()}>
           <ha-icon icon="mdi:devices"></ha-icon> ${t("all_objects", L)}
         </button>
@@ -5254,12 +5333,6 @@ export class MaintenanceSupporterPanel extends LitElement {
     const L = this._lang;
     this._ensureAreaUi();
     return html`
-      <div class="breadcrumb">
-        <ha-icon-button .label=${t("back", L)} @click=${() => this._showAllAreas()}>
-          <ha-icon icon="mdi:arrow-left"></ha-icon>
-        </ha-icon-button>
-        <span>${t("all_areas", L)}</span>
-      </div>
       <maintenance-area-view
         .hass=${this.hass}
         .areaKey=${this._selectedAreaId}
@@ -5688,7 +5761,7 @@ export class MaintenanceSupporterPanel extends LitElement {
               <ha-svg-icon .path=${mdiTagOutline}></ha-svg-icon>${label}
             </span>`)}
         </span>
-        <span class="cell type">${t(row.type, L)}</span>
+        <span class="cell type">${taskTypeLabel(row.type, L)}</span>
         <span class="due-cell" @click=${() => this._showTask(row.entry_id, row.task_id)}>
           ${renderDueText(row.days_until_due, row.last_performed, L)}
           ${hasDaysBar
@@ -5722,7 +5795,10 @@ export class MaintenanceSupporterPanel extends LitElement {
     const ok = await runWs(this, { type: "maintenance_supporter/global/update", settings }, { onError: (m) => this._showToast(m) });
     if (ok === undefined) return;
     this._rowActionNotice = false;
-    if (backToIcons) this._rowActionStyle = "icons";
+    if (backToIcons) {
+      this._rowActionStyle = "icons";
+      rememberRowActionStyle("icons");
+    }
     invalidateSettingsCache();
   }
 
@@ -5974,7 +6050,7 @@ export class MaintenanceSupporterPanel extends LitElement {
                 </span>
                 <span class="cell task-name" @click=${() => this._showTask(obj.entry_id, task.id)}>${this._listRef(obj.entry_id, task.id)}${renderTaskTitle(task.name, task.next_event_titles, triggerDetailText(task, this._lang))}</span>
                 <span class="task-sub${taskUserIds(task).length ? '' : ' task-sub-empty'}">${renderUserBadge(task, (id) => this._userService?.getUserName(id) ?? null, (id) => this._userService?.getPerson(id) ?? null)}</span>
-                <span class="cell type">${t(task.type, L)}</span>
+                <span class="cell type">${taskTypeLabel(task.type, L)}</span>
                 <span class="due-cell" @click=${() => this._showTask(obj.entry_id, task.id)}>
                   ${renderDueText(task.days_until_due, task.last_performed, L)}
                   ${task.trigger_config

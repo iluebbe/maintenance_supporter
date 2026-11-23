@@ -382,6 +382,9 @@ describe("F9-5: a first load that failed is repeated once the server answers", (
     resetTaskSeq();
     invalidateSettingsCache();
     delete (window as unknown as Record<string, unknown>).__msObjectsFetch;
+    // The last visit's skeleton carries its feature switches (2026-11-23):
+    // these tests are about a browser that has none.
+    localStorage.removeItem("msp-objects-cache");
   });
 
   /** Unknown command until `up.now`: the integration is still loading. */

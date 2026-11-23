@@ -6,7 +6,7 @@ import type { MaintenanceTask, AdvancedFeatures } from "../types";
 
 /** The predicted days, whole and at least one: "~0 days" read as today and
  *  "~1 days" was English for no language. */
-function aboutDays(days: number | null | undefined): number {
+export function aboutDays(days: number | null | undefined): number {
   return Math.max(1, Math.round(days || 0));
 }
 

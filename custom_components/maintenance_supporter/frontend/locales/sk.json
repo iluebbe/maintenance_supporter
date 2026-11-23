@@ -1219,6 +1219,7 @@
   "part_cost_mode_house": "Ako v Nastaveniach ({mode})",
   "part_cost_mode_hint": "Pri nákupe: počíta sa nákup, v roku, keď sa uskutoční. Pri použití: každé dokončenie, ktoré diel použije, zaúčtuje jeho cenu na objekt, a teda aj oblasť, kde sa použije.",
   "part_stock": "Sklad",
+  "unit_pieces": "ks",
   "part_reorder_threshold": "Doobjednať pri",
   "part_restock_quantity": "Množstvo na doplnenie",
   "part_package_size": "Veľkosť balenia (kusy)",

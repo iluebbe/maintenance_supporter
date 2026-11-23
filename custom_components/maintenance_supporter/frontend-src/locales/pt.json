@@ -1211,6 +1211,7 @@
   "part_cost_mode_house": "Como nas Definições ({mode})",
   "part_cost_mode_hint": "Na compra: conta a compra, no ano em que é feita. No uso: cada conclusão que usa a peça regista o seu preço no objeto, e assim na área, onde é usada.",
   "part_stock": "Estoque",
+  "unit_pieces": "un.",
   "part_reorder_threshold": "Limite de reposição",
   "part_restock_quantity": "Quantidade de reposição",
   "part_package_size": "Tamanho da embalagem (unidades)",

@@ -1219,6 +1219,7 @@
   "part_cost_mode_house": "As in Settings ({mode})",
   "part_cost_mode_hint": "When bought: the purchase counts, in the year it is made. When used: every completion that uses the part books its price on the object, and so the area, where it is used.",
   "part_stock": "Stock",
+  "unit_pieces": "pcs",
   "part_reorder_threshold": "Reorder at",
   "part_restock_quantity": "Restock quantity",
   "part_package_size": "Package size (units)",

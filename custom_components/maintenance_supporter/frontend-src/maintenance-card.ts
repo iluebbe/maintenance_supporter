@@ -12,7 +12,7 @@ import { property, state } from "lit/decorators.js";
 import {
   mdiCalendarClock, mdiCheck, mdiCheckboxBlankCircleOutline, mdiFileDocumentOutline, mdiLinkVariant, mdiPlaylistPlus, mdiPlusBox,
 } from "@mdi/js";
-import { syncLocaleFromHass, sharedStyles, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, langOf, currencySymbolOf, syncCurrencyDecimals} from "./styles";
+import { syncLocaleFromHass, sharedStyles, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, langOf, currencySymbolOf, syncCurrencyDecimals, taskTypeLabel} from "./styles";
 import { openSignedDocument } from "./helpers/document-url";
 import { isPhotoDocument } from "./helpers/document-categories";
 import { isSafeLink } from "./helpers/url";
@@ -33,7 +33,7 @@ import { personOf, renderPeopleAvatars, type PersonDisplay } from "./helpers/per
 import { phaseLabel } from "./helpers/phases";
 import { renderTaskTitle, triggerDetailText } from "./helpers/event-titles";
 import { buildCompleteDialogArgs, fillAndOpenCompleteDialog } from "./helpers/complete-dialog-args";
-import { fetchSettingsOnce, FALLBACK_SETTINGS, type SettingsCache } from "./helpers/settings-cache";
+import { fetchSettingsOnce, FALLBACK_SETTINGS, rememberedRowActionStyle, type SettingsCache } from "./helpers/settings-cache";
 import { canWrite } from "./helpers/permissions";
 import { statusColor } from "./renderers/status";
 import { renderLastDone } from "./renderers/progress";
@@ -66,6 +66,9 @@ interface CardDocument extends CardDoc {
 /** Document chips on one task row before the rest is counted ("+N"). */
 const MAX_ROW_CHIPS = 2;
 
+/** How long the first rows wait for their document chips and people. */
+const FIRST_DRAW_WAIT_MS = 600;
+
 interface FlatTask {
   entry_id: string;
   object_name: string;
@@ -90,7 +93,10 @@ export class MaintenanceSupporterCard extends LitElement {
 
   @state() private _config: CardConfig = { type: "custom:maintenance-supporter-card" };
   /** #145: global "Task row actions" style, resolved once from the settings cache. */
-  @state() private _globalRowStyle = "buttons_compact";
+  /** Starts as this browser last saw it: the rows were drawn with labelled
+   *  buttons and changed to the household's icons ~150 ms later, on every
+   *  load of a dashboard (prod look 2026-11-23). */
+  @state() private _globalRowStyle = rememberedRowActionStyle();
   /** Household settings (feature switches gate the complete dialog, the
    *  write delegation gates the header's create buttons) — page cache. */
   @state() private _settings: SettingsCache = FALLBACK_SETTINGS;
@@ -111,6 +117,9 @@ export class MaintenanceSupporterCard extends LitElement {
   /** entry_id → (task_id → documents) for the row chips. */
   @state() private _taskDocs: Record<string, Record<string, CardDoc[]>> = {};
   private _docsLoadedFor = new Set<string>();
+  /** The document and people requests that are out, for the first draw. */
+  private _docsInFlight: Promise<void> = Promise.resolve();
+  private _namesInFlight: Promise<void> = Promise.resolve();
 
   private get _lang(): string {
     return langOf(this.hass);
@@ -197,9 +206,9 @@ export class MaintenanceSupporterCard extends LitElement {
       this._config.show_assignee !== false &&
       this._objects.some((o) => o.tasks.some((tk) => taskUserIds(tk).length > 0))
     ) {
-      this._loadUserNames();
+      void this._loadUserNames();
     }
-    this._loadMissingDocuments();
+    void this._loadMissingDocuments();
     if (changedProps.has("hass") && this.hass) this._follow.sync(this.hass.connection);
   }
 
@@ -215,6 +224,7 @@ export class MaintenanceSupporterCard extends LitElement {
     if (first && this.hass && this._config.show_assignee !== false && !this._userNamesLoaded) {
       void this._loadUserNames();
     }
+    let docs: Promise<void> = Promise.resolve();
     try {
       const [objResult, statsResult] = await Promise.all([
         // The first load takes what the page has: the subscription's list,
@@ -226,13 +236,23 @@ export class MaintenanceSupporterCard extends LitElement {
       // What the subscription brought while the view's scope loaded is newer.
       this._objects = (first && liveObjects(this.hass.connection)) || objResult;
       // Before the rows are drawn, not after (updated() would ask then).
-      this._loadMissingDocuments();
+      docs = this._loadMissingDocuments();
       this._stats = statsResult;
       syncCurrencyDecimals(this._stats.budget);
     } catch {
       // WS not available yet
     }
     await viewScope;
+    // The first rows come with their document chips and people: both
+    // answers landed 40 to 90 ms after the rows, half the rows grew by a
+    // line and every button below moved up to 94 px (prod look 2026-11-23).
+    // Not for long: an answer that takes its time fills in as before.
+    if (first) {
+      await Promise.race([
+        Promise.all([docs, this._namesInFlight]),
+        new Promise((resolve) => setTimeout(resolve, FIRST_DRAW_WAIT_MS)),
+      ]);
+    }
     this._firstLoadDone = true;
   }
 
@@ -257,29 +277,33 @@ export class MaintenanceSupporterCard extends LitElement {
    *  is built for can call it without admin rights. A failure (or a task
    *  whose user was deleted) leaves the name unresolved and the badge simply
    *  does not render — never a raw user id. */
-  private async _loadUserNames(): Promise<void> {
+  private _loadUserNames(): Promise<void> {
     this._userNamesLoaded = true;
     if (!this._userService) this._userService = new UserService(this.hass);
     else this._userService.updateHass(this.hass);
-    try {
-      const users = await this._userService.getUsers();
+    this._namesInFlight = this._userService.getUsers().then((users) => {
       this._userPersons = Object.fromEntries(users.map((u) => [u.id, personOf(u)!]));
       this._userNames = Object.fromEntries(users.map((u) => [u.id, u.name]));
-    } catch {
+    }).catch(() => {
       // leave whatever we had; the badge hides for unresolved ids
-    }
+    });
+    return this._namesInFlight;
   }
 
   /** Documents: same shape of guard as the names — once per object, and only
    *  for objects that actually have a document attached to one of their
    *  tasks; all of them in one request (one per object was 28 on every
    *  mount on one home, perf 2026-11-05). */
-  private _loadMissingDocuments(): void {
-    if (!this.hass || this._config.show_documents === false) return;
+  private _loadMissingDocuments(): Promise<void> {
+    if (!this.hass || this._config.show_documents === false) return this._docsInFlight;
     const missing = this._objects.filter(
       (obj) => !this._docsLoadedFor.has(obj.entry_id) && obj.tasks.some((tk) => (tk.document_count ?? 0) > 0),
     );
-    if (missing.length) void this._loadDocuments(missing);
+    if (missing.length) {
+      // With what is already on its way (updated() may have asked first).
+      this._docsInFlight = Promise.all([this._docsInFlight, this._loadDocuments(missing)]).then(() => undefined, () => undefined);
+    }
+    return this._docsInFlight;
   }
 
   /** Fetch these objects' documents in one request and index them by
@@ -645,7 +669,7 @@ export class MaintenanceSupporterCard extends LitElement {
                         </div>
                         ${!compact
                           ? html`<div class="task-meta">
-                              ${object_name} · ${t(task.type, L)}${phaseLabel(task) ? html` · ${phaseLabel(task)}` : nothing}${this._assigneeName(task)
+                              ${object_name} · ${taskTypeLabel(task.type, L)}${phaseLabel(task) ? html` · ${phaseLabel(task)}` : nothing}${this._assigneeName(task)
                                 ? html` · <span class="assignee"
                                     >${this._assigneeAvatars(task)}${this._assigneeName(task)}</span
                                   >`
@@ -792,7 +816,7 @@ export class MaintenanceSupporterCard extends LitElement {
          ll-custom handler). Hover state hints that the row is interactive. */
       .task-item.clickable { cursor: pointer; transition: background 0.12s; }
       .task-item.clickable:hover {
-        background: var(--state-icon-color, rgba(255,255,255,0.04));
+        background: color-mix(in srgb, var(--primary-text-color) 6%, transparent);
       }
 
       .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
@@ -880,7 +904,9 @@ export class MaintenanceSupporterCard extends LitElement {
         display: inline-flex;
         --ha-icon-button-size: 32px;
         --mdc-icon-size: 18px;
-        color: var(--primary-color);
+        /* Green like the panel's check and the labelled button: it was the
+           theme's blue here, so Complete had two colours on one screen. */
+        color: var(--maint-ok-color, var(--success-color, #4caf50));
       }
       /* DESIGN PROTOTYPE (#145): action_style: buttons — HA-native labelled button. */
       .complete-btn-text { --ha-button-font-size: 13px; flex: none; white-space: nowrap; }

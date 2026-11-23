@@ -207,8 +207,8 @@ describe("P-13 keyboard: menus and task rows", () => {
     expect(items.length).to.be.greaterThan(2);
     expect(items.every((i) => i.getAttribute("role") === "menuitem" && i.tabIndex === 0)).to.equal(true);
     (el as unknown as { _showAllObjects(): void })._showAllObjects();
-    await waitUntil(() => !!sr(el).querySelector(".breadcrumb ha-icon-button"), "objects list rendered");
-    const back = sr(el).querySelector(".breadcrumb ha-icon-button") as HTMLElement & { label?: string };
+    await waitUntil(() => !!sr(el).querySelector(".sibling-views"), "objects list rendered");
+    const back = sr(el).querySelector(".header ha-icon-button") as HTMLElement & { label?: string };
     expect(back.label).to.equal("Back");
   });
 

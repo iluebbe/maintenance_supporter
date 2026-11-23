@@ -307,7 +307,7 @@ export class MaintenanceGroupsSectionCard extends LitElement {
       border-radius: 4px;
     }
     .icon-btn:hover {
-      background: var(--state-icon-color, rgba(255,255,255,0.06));
+      background: color-mix(in srgb, var(--primary-text-color) 6%, transparent);
       color: var(--primary-text-color);
     }
     .icon-btn.danger:hover { color: var(--error-color); }

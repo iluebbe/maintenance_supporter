@@ -1211,6 +1211,7 @@
   "part_cost_mode_house": "Comme dans les Paramètres ({mode})",
   "part_cost_mode_hint": "À l'achat : l'achat compte, l'année où il est fait. À l'utilisation : chaque réalisation qui utilise la pièce inscrit son prix sur l'objet, et donc la zone, où elle est utilisée.",
   "part_stock": "Stock",
+  "unit_pieces": "pce",
   "part_reorder_threshold": "Seuil de réappro",
   "part_restock_quantity": "Quantité de réappro",
   "part_package_size": "Taille du conditionnement (unités)",

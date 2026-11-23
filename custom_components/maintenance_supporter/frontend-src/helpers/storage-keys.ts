@@ -41,6 +41,9 @@ export const LS_KEYS = {
   objectTableSort: "msp-object-table-sort",
   /** Beta overview: the filter pane is open ("1"). */
   filterPane: "msp-filter-pane",
+  /** The household's row-action style as last read from the server, for
+   *  the first draw of a list (helpers/settings-cache). */
+  rowActionStyle: "msp-row-action-style",
 } as const;
 
 /**

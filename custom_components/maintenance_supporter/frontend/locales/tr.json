@@ -1219,6 +1219,7 @@
   "part_cost_mode_house": "Ayarlardaki gibi ({mode})",
   "part_cost_mode_hint": "Satın alındığında: satın alma, yapıldığı yılda sayılır. Kullanıldığında: parçayı kullanan her tamamlama, fiyatını kullanıldığı nesneye, dolayısıyla alana kaydeder.",
   "part_stock": "Stok",
+  "unit_pieces": "adet",
   "part_reorder_threshold": "Sipariş eşiği",
   "part_restock_quantity": "Stok yenileme miktarı",
   "part_package_size": "Paket boyutu (birim)",

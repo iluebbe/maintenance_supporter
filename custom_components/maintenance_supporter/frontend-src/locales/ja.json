@@ -1211,6 +1211,7 @@
   "part_cost_mode_house": "設定どおり（{mode}）",
   "part_cost_mode_hint": "購入時：購入した年に購入額を計上します。使用時：部品を使う完了ごとに、使った対象（つまりそのエリア）にその価格を計上します。",
   "part_stock": "在庫",
+  "unit_pieces": "個",
   "part_reorder_threshold": "再注文しきい値",
   "part_restock_quantity": "補充数量",
   "part_package_size": "包装サイズ（単位数）",

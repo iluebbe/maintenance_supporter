@@ -1211,6 +1211,7 @@
   "part_cost_mode_house": "Som i innstillingene ({mode})",
   "part_cost_mode_hint": "Ved kjøp: kjøpet teller, i året det gjøres. Ved bruk: hver fullføring som bruker delen, fører prisen på objektet, og dermed området, der den brukes.",
   "part_stock": "Lager",
+  "unit_pieces": "stk.",
   "part_reorder_threshold": "Bestillingsgrense",
   "part_restock_quantity": "Påfyllingsmengde",
   "part_package_size": "Pakningsstørrelse (enheter)",

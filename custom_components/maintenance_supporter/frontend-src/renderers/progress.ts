@@ -99,6 +99,25 @@ export function dueDaysOf(daysLeft: number): number {
   return daysLeft > 0 ? Math.ceil(daysLeft) : Math.trunc(daysLeft) || 0;
 }
 
+/** Units a list row scales up, once the larger figure of its "a / b unit"
+ *  label is big enough: seconds and minutes read as hours, metres as
+ *  kilometres. */
+const GLANCE_UNITS: Record<string, { from: number; factor: number; unit: string }> = {
+  s: { from: 7200, factor: 3600, unit: "h" },
+  min: { from: 120, factor: 60, unit: "h" },
+  m: { from: 1000, factor: 1000, unit: "km" },
+};
+
+/** Both figures of a row's progress label in a unit that reads at a glance.
+ *  A robot's filter counted in seconds read "484,512 / 0 s" (135 hours) and
+ *  a car's interval in metres "0 / 300,000 m" (300 km) (prod look
+ *  2026-11-23). The task's own page keeps the sensor's unit. */
+export function glanceUnits(a: number, b: number, unit: string): { a: number; b: number; unit: string } {
+  const g = GLANCE_UNITS[unit];
+  if (!g || Math.max(Math.abs(a), Math.abs(b)) < g.from) return { a, b, unit };
+  return { a: a / g.factor, b: b / g.factor, unit: g.unit };
+}
+
 export function renderTriggerProgress(row: TaskRow | MaintenanceTask, opts?: { trend?: TrendState | null; lang?: string }) {
   const tc = row.trigger_config ?? null;
   if (!tc) return nothing;
@@ -127,8 +146,9 @@ export function renderTriggerProgress(row: TaskRow | MaintenanceTask, opts?: { t
       const half = Math.abs(above - below) / 2 || 1;
       pct = Math.min(100, Math.max(0, (Math.abs(val - mid) / half) * 100));
       const nearer = Math.abs(val - above) <= Math.abs(val - below) ? above : below;
-      label = `${fmtVal(val, "", opts?.lang)} / ${formatNumber(nearer, opts?.lang)}`;
-      labelUnit = unit;
+      const g = glanceUnits(val, nearer, unit);
+      label = `${fmtVal(g.a, "", opts?.lang)} / ${formatNumber(g.b, opts?.lang)}`;
+      labelUnit = g.unit;
     } else if (above != null) {
       // Progress toward the upper limit, from a sign-aware floor: 0 for a
       // positive limit; for a negative one (freezer "warn above −15 °C")
@@ -139,8 +159,9 @@ export function renderTriggerProgress(row: TaskRow | MaintenanceTask, opts?: { t
       const low = above > 0 ? 0 : entityMin != null && entityMin < above ? entityMin : above < 0 ? 2 * above : -100;
       const range = above - low || 1;
       pct = Math.min(100, Math.max(0, ((val - low) / range) * 100));
-      label = `${fmtVal(val, "", opts?.lang)} / ${formatNumber(above, opts?.lang)}`;
-      labelUnit = unit;
+      const g = glanceUnits(val, above, unit);
+      label = `${fmtVal(g.a, "", opts?.lang)} / ${formatNumber(g.b, opts?.lang)}`;
+      labelUnit = g.unit;
     } else if (below != null) {
       // Progress toward the lower limit (inverted: lower is worse), from a
       // sign-aware ceiling: the entity max, else 2× the limit for a
@@ -150,8 +171,9 @@ export function renderTriggerProgress(row: TaskRow | MaintenanceTask, opts?: { t
       const high = entityMax != null && entityMax > below ? entityMax : below > 0 ? below * 2 : below < 0 ? 0 : 100;
       const range = high - below || 1;
       pct = Math.min(100, Math.max(0, ((high - val) / range) * 100));
-      label = `${fmtVal(val, "", opts?.lang)} / ${formatNumber(below, opts?.lang)}`;
-      labelUnit = unit;
+      const g = glanceUnits(val, below, unit);
+      label = `${fmtVal(g.a, "", opts?.lang)} / ${formatNumber(g.b, opts?.lang)}`;
+      labelUnit = g.unit;
     } else if (tc.trigger_equals != null || tc.trigger_not_equals != null) {
       // Discrete = / ≠ levels have no meaningful gradient — binary bar,
       // same treatment as compound.
@@ -179,8 +201,9 @@ export function renderTriggerProgress(row: TaskRow | MaintenanceTask, opts?: { t
     }
     if (val == null) return nothing;
     pct = Math.min(100, Math.max(0, (val / target) * 100));
-    label = `${fmtVal(val, "", opts?.lang)} / ${formatNumber(target, opts?.lang)}`;
-    labelUnit = unit;
+    const g = glanceUnits(val, target, unit);
+    label = `${fmtVal(g.a, "", opts?.lang)} / ${formatNumber(g.b, opts?.lang)}`;
+    labelUnit = g.unit;
   } else if (triggerType === "state_change") {
     const target = tc.trigger_target_changes || 1;
     const val = row.trigger_current_value ?? null;

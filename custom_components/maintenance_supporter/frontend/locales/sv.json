@@ -1211,6 +1211,7 @@
   "part_cost_mode_house": "Som i inställningarna ({mode})",
   "part_cost_mode_hint": "Vid köp: köpet räknas, det år det görs. Vid användning: varje slutförande som använder delen bokför dess pris på objektet, och därmed området, där den används.",
   "part_stock": "Lager",
+  "unit_pieces": "st",
   "part_reorder_threshold": "Beställningsgräns",
   "part_restock_quantity": "Påfyllningsantal",
   "part_package_size": "Förpackningsstorlek (enheter)",

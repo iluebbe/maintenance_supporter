@@ -1211,6 +1211,7 @@
   "part_cost_mode_house": "Podle nastavení ({mode})",
   "part_cost_mode_hint": "Při nákupu: počítá se nákup, v roce, kdy proběhl. Při spotřebě: každé dokončení, které díl spotřebuje, zaúčtuje jeho cenu na objekt, a tím i oblast, kde byl spotřebován.",
   "part_stock": "Zásoba",
+  "unit_pieces": "ks",
   "part_reorder_threshold": "Práh doobjednání",
   "part_restock_quantity": "Množství doplnění",
   "part_package_size": "Velikost balení (jednotky)",

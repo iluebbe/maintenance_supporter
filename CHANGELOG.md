@@ -2,10 +2,34 @@
 
 All notable changes to Maintenance Supporter are documented in this file.
 
-## [Unreleased]
+## [2.125.1] - 2026-11-23
+
+Lists that hold still while they load, readable rows under the pointer, a calendar that reads well in a narrow
+card, and two suggested setups that are found again.
 
 ### 🐛 Fixed
 
+- **Complete and Skip no longer flash as labelled buttons.** With the row actions set to icons, a list was first
+  drawn with the labelled buttons and changed to the icons a moment later: each time the panel was opened from
+  another Home Assistant page, and on every load of a dashboard with the task card. The due dates beside them
+  jumped up to 146 px and the rows below moved. Panel and card now start with the style the browser last saw.
+- **The page holds still while it loads.** The budget tiles are there with the first draw instead of pushing the
+  counts aside a moment later. A dashboard card draws its rows together with their document chips, so rows no
+  longer grow after the fact. The Today tab's rows no longer shrink by 2 px after the switch.
+- **A long list keeps its columns while it scrolls.** The due date no longer jumps when a "completes itself" row
+  scrolls into view, and at 1440 px the area chips are no longer cut mid-word: a long task name wraps first.
+- **Hover colour.** Rows under the pointer turned solid blue with unreadable text in the calendar, the task card,
+  the quick-action dialogs and the section cards. They get the light tint the rest of the panel uses.
+- **All objects.** The red overdue dot no longer sits on the task count. The count keeps its line: beside a short
+  name, under a long one.
+- **All parts.** The table fits the panel: part names and the tasks that use a part wrap, so the last column is
+  no longer pushed out of view.
+- **Calendar on a phone and in a narrow card.** An entry shows the task first, with the object and the overdue
+  days underneath, and the status as an icon. Four tasks of one dishwasher read as four identical lines before.
+  The forecast pill stays on one line.
+- **Task page.** A label that takes two lines no longer pushes its value below the neighbouring tiles, and on a
+  phone the seventh tile fills its line. A task made due by a sensor shows the forecast date and days in the
+  first two tiles instead of two dashes. The task's name is set as the page's title.
 - **Suggested setups: Uconnect cars on a translated system.** The integration now names its sensors through
   translations, so on a non-English system the service countdown in days and the oil life were no longer
   recognised. Both are found again; existing installs were not affected.
@@ -15,10 +39,41 @@ All notable changes to Maintenance Supporter are documented in this file.
 - **Slovak wording.** The idle trigger reads *nečinnosť* instead of *pokoj*, the state timeline says *nedostupné*
   for an unreachable entity, and the rotation-by-weekday hints no longer repeat *pripadne*.
 
+### ✨ Changed
+
+- **One green for Complete.** The check in the task card and the button in the completion dialog are green like
+  in the panel and on the task page (they were the theme's blue).
+- **Calendar controls.** The window chips read in the profile's language like the chart ranges (*+7T*, *+1J* in
+  German; they were *+7d*, *+1y* everywhere). The two filters are Home Assistant menus instead of browser
+  selects, as is *Link a document…* on the task page, where picking a document now links it at once.
+- **Grouped by object**, the rows no longer repeat the object's name in a column of its own.
+- **All objects, All parts and All areas** have one back arrow: the header names the page and the way back.
+- **Phone:** the *Group by* and *Sort by* chips carry an icon and the choice, which saves a toolbar line.
+- **Figures and words in the lists.** A reading counted in seconds, minutes or metres shows as hours or
+  kilometres (*135 / 0 h* instead of *484,512 / 0 s*); the task's page keeps the sensor's unit. A task type of
+  your own reads with a capital (*Lubrication*). The battery list's unit reads in your language instead of *pcs*.
+- **German:** *Fälligkeit zur Uhrzeit* and *Aktionen beim Erledigen* instead of the half-English labels under
+  *Settings → Features*, and *Aufgabe* where a few texts said *Task*.
+- **Dashboard strategy.** The overview shows the counts once (in the sidebar on a wide screen, above the list on
+  a phone) and with the panel's status icons instead of emoji.
+
 ### 🔧 Developer notes
 
+- The row-action style is kept per browser (`msp-row-action-style`, written on a successful settings read only) and
+  the object cache carries the feature flags, the budget and the list references, so the first draw already has
+  its final shape. The task card waits up to 600 ms for documents and user names before its first draw.
+- The virtual list's sizer row carries the longest object name, the three longest task titles and both action
+  variants, so the column tracks no longer follow the rows on screen. Every `.task-table` template reads its
+  object column from `--ms-object-track`.
+- The calendar card's narrow layout is a container query on the card (560 px), not a media query on the window.
+- `glanceUnits()` (renderers/progress.ts), `taskTypeLabel()` (styles.ts) and the locale key `unit_pieces` in all
+  23 languages.
+- `helpers/signatures/cars.py`: Uconnect's `days_till_service_needed` and `oil_life` beside the former id
+  suffixes. `helpers/signatures/home_it.py`: new entry `proxmoxve_custom`; the `proxmoxve` entry stays for
+  versions before 6.0.
 - Catalog re-verified against the current sources of Generac, Blueair, MCZ Maestro and Stiebel Eltron ISG (moved
   or reshaped source files, same entities). 289 integrations / 604 verified signatures.
+- Tests: `tests/test_signature_drift_2026_11_23.py`, `frontend-src/__tests__/prod-look-2026-11-23.test.ts`.
 
 ## [2.125.0] - 2026-11-22
 

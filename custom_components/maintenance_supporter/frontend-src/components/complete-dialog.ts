@@ -625,6 +625,8 @@ export class MaintenanceCompleteDialog extends LitElement {
             ${t("cancel", L)}
           </ha-button>
           <ha-button
+            appearance="accent"
+            variant="success"
             @click=${this._complete}
             .disabled=${this._loading || this._photos.uploading || this._missingRequired.length > 0}
             title=${this._photos.uploading

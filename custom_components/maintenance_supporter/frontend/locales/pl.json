@@ -1211,6 +1211,7 @@
   "part_cost_mode_house": "Jak w ustawieniach ({mode})",
   "part_cost_mode_hint": "Przy zakupie: liczy się zakup, w roku, w którym nastąpił. Przy zużyciu: każde wykonanie, które zużywa część, księguje jej cenę na obiekcie, a więc i obszarze, gdzie została zużyta.",
   "part_stock": "Stan",
+  "unit_pieces": "szt.",
   "part_reorder_threshold": "Próg zamówienia",
   "part_restock_quantity": "Ilość uzupełnienia",
   "part_package_size": "Wielkość opakowania (jednostki)",

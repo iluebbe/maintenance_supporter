@@ -301,7 +301,26 @@ export function formatCost(amount: number, symbol?: string, lang?: string, digit
  *  interpolated the raw number (`${stock} ${unit}`), bypassing the profile
  *  number format (DRY audit 2026-09-26; tripwired in dry-round4.test.ts). */
 export function formatQty(n: number, unit?: string | null, lang?: string): string {
-  return withUnit(formatNumber(n, lang), unit, lang);
+  return withUnit(formatNumber(n, lang), unitLabel(unit, lang), lang);
+}
+
+/** A part's unit for display. "pcs" is what the battery list writes into
+ *  the parts it creates, whatever the language: it reads in the profile's
+ *  ("0 Stk."). Any other unit is the household's own word. */
+export function unitLabel(unit: string | null | undefined, lang?: string): string | null | undefined {
+  return unit === "pcs" ? t("unit_pieces", lang) : unit;
+}
+
+/** A task's type for display. The built-in types are translated; any other
+ *  is the household's own word (the type is free text on the wire) and
+ *  reads as typed, with a capital and without underscores: "lubrication"
+ *  stood in lower case between "Reinigung" and "Inspektion". */
+export function taskTypeLabel(type: string | null | undefined, lang?: string): string {
+  if (!type) return "";
+  const known = t(type, lang);
+  if (known !== type) return known;
+  const words = type.replace(/_/g, " ").trim();
+  return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
 /** BCP-47 locale for the "language" default: the UI language regionalized
@@ -845,9 +864,17 @@ export const sharedStyles = css`
     contain-intrinsic-size: auto 120px;
   }
   .object-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-  .object-card-header { display: flex; justify-content: space-between; align-items: center; }
-  .object-card-name { font-weight: 500; font-size: 16px; }
-  .object-card-count { color: var(--secondary-text-color); font-size: 13px; }
+  /* The name, then its badges and the count: beside a short name, on a
+     line of their own under a long one. One row squeezed both: the count
+     broke into "5 / Aufgaben" beside a name on two lines, or the name
+     broke inside a word. */
+  .object-card-header { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+  .object-card-name { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; font-weight: 500; font-size: 16px; }
+  .object-card-count { flex: none; white-space: nowrap; color: var(--secondary-text-color); font-size: 13px; }
+  .object-card-header .doc-badge, .object-card-header .paused-badge { flex: none; margin-left: 0; }
+  /* Room for the overdue dot in the top right corner: it sat on the last
+     letter of the count in 30 of 36 cards (prod look 2026-11-23). */
+  .object-card-overdue .object-card-header { padding-inline-end: 14px; }
   .object-card-meta { color: var(--secondary-text-color); font-size: 13px; margin-top: 4px; }
   .object-card-empty { color: var(--warning-color); font-size: 13px; margin-top: 8px; font-style: italic; }
 
@@ -962,6 +989,10 @@ export const sharedStyles = css`
 
   .stat-value {
     font-size: 24px;
+    /* Its own line height: with the font's, the strip grew by a pixel per
+       line of tiles when Roboto replaced the fallback font, and the whole
+       page below moved (cold load on a phone, 2026-11-23). */
+    line-height: 1.2;
     font-weight: bold;
     color: var(--primary-text-color);
   }
@@ -1591,6 +1622,9 @@ export const sharedStyles = css`
   .stat-item.budget-tile .budget-tile-value {
     white-space: nowrap;
   }
+  /* The counts beside them are buttons with 4 px of padding: without it
+     the two amounts stood 4 px higher than the five counts. */
+  .stat-item.budget-tile { padding: 4px 8px; }
   /* The "/ max" ratio is its OWN small line between value and bar — inline
      it overflowed the ~150px grid cell into the neighbouring tile once the
      value took the full 24px. */

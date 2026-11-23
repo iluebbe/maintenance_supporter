@@ -16,6 +16,9 @@ export const calendarStyles = css`
     flex-wrap: wrap;
     padding: 12px 16px;
     border-bottom: 1px solid var(--divider-color);
+    /* The card may be a 350 px column on a 1440 px screen: what follows
+       goes by the card's width, not the window's. */
+    container-type: inline-size;
   }
   .cal-window-chips {
     display: flex;
@@ -53,12 +56,60 @@ export const calendarStyles = css`
   .cal-past-chip.active {
     background: var(--secondary-text-color, #888);
   }
+  /* A hairline between the past and the forward windows. It was a dot the
+     size of a full stop, which read as a stray character, most of all
+     alone at the end of the first line on a phone. */
   .cal-chip-separator {
-    color: var(--divider-color);
-    font-size: 8px;
     align-self: center;
+    width: 1px;
+    height: 18px;
     margin: 0 2px;
+    background: var(--divider-color);
+  }
+  .cal-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-left: auto;
+    min-width: 0;
+  }
+  .cal-filters .cal-user-filter { margin-left: 0; }
+  /* The filters as the task list's Group by / Sort by chips (panel-styles
+     .ms-chip), with Home Assistant's menu: they were the browser's own
+     selects, the only controls on the tab that were not HA's. */
+  .cal-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+    height: 32px;
+    padding: 0 6px 0 12px;
+    box-sizing: border-box;
+    border: 1px solid var(--outline-color, var(--divider-color));
+    border-radius: 10px;
+    background: transparent;
+    color: var(--primary-text-color);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
     line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .cal-filter-chip span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .cal-filter-chip ha-icon { --mdc-icon-size: 18px; flex: none; color: var(--secondary-text-color); }
+  .cal-filter-chip:hover { background: color-mix(in srgb, var(--primary-text-color) 6%, transparent); }
+  .cal-filter-chip:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+  .cal-filter-chip.active {
+    border-color: transparent;
+    background: color-mix(in srgb, var(--primary-color) 15%, transparent);
+  }
+  .cal-filter-chip.active ha-icon { color: var(--primary-color); }
+  .cal-filter-menu { min-width: 0; max-width: 100%; }
+  .cal-filter-menu ha-dropdown-item.selected { font-weight: 600; }
+  @container (max-width: 560px) {
+    .cal-chip-separator { display: none; }
+    .cal-filters { margin-left: 0; width: 100%; }
   }
   .cal-user-filter {
     margin-left: auto;
@@ -70,7 +121,7 @@ export const calendarStyles = css`
     font-size: 13px;
     cursor: pointer;
   }
-  .cal-rolling { padding: 8px 16px 32px; }
+  .cal-rolling { padding: 8px 16px 32px; container-type: inline-size; }
   .cal-day-row {
     display: flex;
     gap: 12px;
@@ -140,7 +191,7 @@ export const calendarStyles = css`
     border-radius: 4px;
     transition: background 0.12s;
   }
-  .cal-event:hover { background: var(--state-icon-color, rgba(255,255,255,0.04)); }
+  .cal-event:hover { background: color-mix(in srgb, var(--primary-text-color) 6%, transparent); }
   .cal-event-projected { opacity: 0.55; }
   .cal-event-body { flex: 1; min-width: 0; }
   .cal-event-title {
@@ -164,6 +215,13 @@ export const calendarStyles = css`
   .cal-source-sensor { color: var(--primary-color); }
   .cal-event-prediction {
     display: inline-block;
+    /* One line: wrapped inside its pill it read as two stacked labels. */
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: top;
     font-size: 11px;
     margin-top: 2px;
     padding: 1px 6px;
@@ -189,6 +247,8 @@ export const calendarStyles = css`
     letter-spacing: 0.4px;
     color: #fff;
   }
+  /* The status as its icon: shown instead of the word on a narrow card. */
+  .cal-state-icon { display: none; --mdc-icon-size: 16px; }
   /* Same tokens as .status-badge (status-constants.ts) — the calendar used
      to keep its own palette (triggered was even BLUE here) so identical
      statuses wore different colors per view, and none followed the theme. */
@@ -197,6 +257,42 @@ export const calendarStyles = css`
   .cal-status-due_soon  { background: var(--warning-color, #ff9800); color: #000; }
   /* Dark text — white on green is only 2.8:1 (below the 3:1 UI floor). */
   .cal-status-ok        { background: var(--success-color, #4caf50); color: #000; }
+
+  /* A narrow card (a phone, a dashboard column): "Object · Task" on one
+     line showed the object and cut the task, so four tasks of one
+     dishwasher read as four identical rows. The task leads on its own line
+     and may wrap; the object and the overdue days follow underneath. */
+  @container (max-width: 560px) {
+    .cal-event-title {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      column-gap: 4px;
+      overflow: visible;
+      white-space: normal;
+    }
+    .cal-event-sep { display: none; }
+    /* A line of its own, before the object it follows in the markup. */
+    .cal-event-task { order: -1; flex: 1 1 100%; min-width: 0; overflow-wrap: anywhere; }
+    .cal-event-object, .cal-event-due {
+      font-size: 12px;
+      color: var(--secondary-text-color);
+      white-space: nowrap;
+    }
+    /* The overdue days stay whole: beside the object where both fit, on
+       the next line where they do not. In the status' red, without the
+       brackets that set them off on one line. */
+    .cal-event-object { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    .cal-event-due { flex: none; color: var(--error-color, #f44336); }
+    .cal-paren { display: none; }
+    /* The status as a disc with its icon, like the task list's rows on a
+       phone: the word took 76 px of a 286 px row and left the text 170. */
+    .cal-status-pill { padding: 3px; border-radius: 50%; line-height: 0; }
+    .cal-state-label { display: none; }
+    .cal-state-icon { display: block; }
+    /* The sensor icon in front already says "predicted". */
+    .cal-pred-word { display: none; }
+  }
 
   @media (max-width: 600px) {
     .cal-controls { padding: 10px 12px; }

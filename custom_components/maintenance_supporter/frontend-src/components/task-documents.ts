@@ -21,6 +21,7 @@ import { docCategory, docDisplayName, CATEGORY_ICONS } from "../helpers/document
 import { DOC_FILTER_MIN, filterDocuments } from "../helpers/document-filter";
 import type { HomeAssistant } from "../types";
 import { onActivationKey } from "../helpers/keyboard";
+import { menuIsHa, renderHaMenu } from "../helpers/menu";
 
 interface Doc {
   id: string;
@@ -209,7 +210,18 @@ export class MaintenanceTaskDocuments extends LitElement {
                 : html`<div class="tdoc-list">${shown.map((d) => this._renderRow(d, L))}</div>`;
             })()}
         ${this.canWrite && available.length
-          ? html`<div class="tdoc-attach">
+          ? menuIsHa()
+          // One button with Home Assistant's menu of the documents left to
+          // link; picking one links it. It was the browser's own select
+          // plus a button, the only native control on the task's page.
+          ? html`<div class="tdoc-attach">${renderHaMenu(
+              html`<button class="tdoc-btn" slot="trigger" type="button" ?disabled=${this._busy}>
+                <ha-icon icon="mdi:link-variant-plus"></ha-icon> ${t("doc_link_existing", L)}
+              </button>`,
+              available.map((d) => ({ label: docDisplayName(d), action: () => { this._attachId = d.id; this._link(); } })),
+              { placement: "bottom-start" },
+            )}</div>`
+          : html`<div class="tdoc-attach">
               <select
                 class="tdoc-select"
                 ?disabled=${this._busy}

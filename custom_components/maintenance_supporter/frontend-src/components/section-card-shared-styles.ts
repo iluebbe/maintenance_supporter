@@ -43,7 +43,7 @@ export const sectionCardSharedStyles = css`
     font-weight: 500;
     display: inline-flex; align-items: center; gap: 4px;
   }
-  .btn:hover { background: var(--state-icon-color, rgba(255,255,255,0.06)); }
+  .btn:hover { background: color-mix(in srgb, var(--primary-text-color) 6%, transparent); }
   .btn[disabled] { opacity: 0.5; cursor: not-allowed; }
   .btn.primary {
     background: var(--primary-color);

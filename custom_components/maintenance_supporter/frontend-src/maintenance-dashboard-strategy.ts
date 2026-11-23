@@ -163,6 +163,7 @@ interface ViewColumnsCondition {
 interface SectionConfig {
   type?: string;
   cards: CardConfig[];
+  visibility?: ViewColumnsCondition[];
 }
 
 interface CardConfig {
@@ -280,16 +281,25 @@ function kpiValue(key: SummaryKey, ids: SummaryEntityIds, counts: SummaryCounts)
   return n === undefined || n === null ? "—" : String(n);
 }
 
+// A status in front of its count: the panel's icon in the status' colour.
+// They were emoji (a red and a green disc, a lightning bolt), drawn by the
+// device's emoji font and unlike every other icon on the dashboard. A
+// markdown card takes ha-icon and a font colour; a core that strips either
+// still shows the counts and their names.
+const KPI_MARKS: Record<SummaryKey, { icon: string; color: string }> = {
+  overdue: { icon: STATUS_ICONS.overdue, color: "#f44336" },
+  triggered: { icon: STATUS_ICONS.triggered, color: "#ff5722" },
+  due_soon: { icon: STATUS_ICONS.due_soon, color: "#ff9800" },
+  ok: { icon: STATUS_ICONS.ok, color: "#4caf50" },
+};
+
 export function kpiMarkdownCard(ids: SummaryEntityIds = {}, counts: SummaryCounts = {}): CardConfig {
+  const chip = (key: SummaryKey) =>
+    `<font color="${KPI_MARKS[key].color}"><ha-icon icon="${KPI_MARKS[key].icon}"></ha-icon></font> **${kpiValue(key, ids, counts)}** ${s(key)}`;
   return {
     type: "markdown",
     text_only: true,
-    content: [
-      `🔴 **${kpiValue("overdue", ids, counts)}** ${s("overdue")}`,
-      `⚡ **${kpiValue("triggered", ids, counts)}** ${s("triggered")}`,
-      `🟡 **${kpiValue("due_soon", ids, counts)}** ${s("due_soon")}`,
-      `🟢 **${kpiValue("ok", ids, counts)}** ${s("ok")}`,
-    ].join(" · "),
+    content: (Object.keys(KPI_MARKS) as SummaryKey[]).map(chip).join(" · "),
   };
 }
 
@@ -349,13 +359,11 @@ function overviewView(summaryIds: SummaryEntityIds = {}, counts: SummaryCounts =
     icon: "mdi:wrench-clock",
     path: "overview",
     type: "sections",
-    // Header runs above the main content — present on every screen size
-    // so the user always sees the headline counts. Layout "responsive"
-    // matches HA core's home strategy.
-    header: { layout: "responsive", card: kpiCard },
-    // Sidebar appears only on screens wide enough for ≥2 columns. Mirrors
-    // the same KPI card so power users with a wide dashboard never lose
-    // sight of it as they scroll long lists.
+    // The headline counts stand once: in the sidebar where the screen has
+    // room for it (two columns and more), and in a section of their own
+    // above the list where it has not. That is how HA core's home strategy
+    // places its summary. They used to be in the header as well, so a wide
+    // screen showed the same line twice, side by side.
     sidebar: {
       sections: [
         {
@@ -375,6 +383,7 @@ function overviewView(summaryIds: SummaryEntityIds = {}, counts: SummaryCounts =
       sidebar_label: s("strat_status"),
     },
     sections: [
+      { type: "grid", cards: [kpiCard], visibility: [SMALL_SCREEN_CONDITION] },
       makeCardSection({
         type: "custom:maintenance-supporter-card",
         show_header: false,

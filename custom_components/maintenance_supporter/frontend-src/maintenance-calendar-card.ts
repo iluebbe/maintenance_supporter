@@ -38,6 +38,7 @@ import {
 } from "./helpers/calendar-bucket";
 import { haToday } from "./helpers/ha-time";
 import { calendarStyles } from "./calendar-styles";
+import { menuIsHa, renderHaMenu } from "./helpers/menu";
 import { syncLocaleFromHass, sharedStyles, currencySymbolOf, t, ensureLocale, isLocaleLoaded, setProfilePrefs, formatDueDays, formatInterval, formatWeekday, formatMonth, langOf, formatCost, syncCurrencyDecimals} from "./styles";
 import { registerCustomCard } from "./helpers/register-card";
 import { healCardRegistry } from "./helpers/registry-heal";
@@ -45,7 +46,7 @@ import { loadHistoryEntryDraft } from "./helpers/history-draft";
 import { canWrite } from "./helpers/permissions";
 import { fetchSettingsOnce } from "./helpers/settings-cache";
 import { openHistoryEditDialog, openTaskQuickActions } from "./dialog-mount";
-import { EDITABLE_HISTORY_TYPES } from "./status-constants";
+import { EDITABLE_HISTORY_TYPES, STATUS_ICONS } from "./status-constants";
 import { fetchTaskHistory } from "./helpers/task-history-fetch";
 import { fetchStatistics } from "./helpers/objects-fetch";
 import { ObjectsFollower, firstObjects, liveObjects } from "./helpers/objects-hub";
@@ -392,8 +393,8 @@ export class MaintenanceCalendarCard extends LitElement {
     const renderEvent = (ev: CalendarEvent) => {
       const statusClass = `cal-status-${ev.status}`;
       const projClass = ev.projected ? "cal-event-projected" : "";
-      const overdueLabel = ev.status === "overdue" && ev.days_until_due != null
-        ? ` (${formatDueDays(ev.days_until_due, L)})`
+      const overdueDays = ev.status === "overdue" && ev.days_until_due != null
+        ? formatDueDays(ev.days_until_due, L)
         : "";
       // Days read "every N days" (the calendar's own wording, singular for
       // 1); other units go through the shared interval formatter.
@@ -415,9 +416,7 @@ export class MaintenanceCalendarCard extends LitElement {
                 icon="${ev.adaptive_enabled ? "mdi:clock-time-four-outline" : "mdi:clock-outline"}"></ha-icon>`;
       const predictionSubtitle = isSensor && ev.prediction_confidence
         && ev.status !== "triggered" && !ev.projected
-        ? html`<span class="cal-event-prediction cal-conf-${ev.prediction_confidence}">
-            ${t("cal_predicted", L)} · ${t(`cal_confidence_${ev.prediction_confidence}`, L)}
-          </span>`
+        ? html`<span class="cal-event-prediction cal-conf-${ev.prediction_confidence}"><span class="cal-pred-word">${t("cal_predicted", L)} · </span>${t(`cal_confidence_${ev.prediction_confidence}`, L)}</span>`
         : nothing;
       const currencySymbol = currencySymbolOf(this._stats?.budget);
       // Past mode: ev.history_type is the actual event ('completed', 'skipped',
@@ -435,9 +434,10 @@ export class MaintenanceCalendarCard extends LitElement {
         <div class="cal-event ${projClass}"
           @click=${() => this._onEventClick(ev)}>
           ${sourceIcon}
-          <span class="cal-status-pill ${statusClass}">${badgeLabel}</span>
+          <span class="cal-status-pill ${statusClass}" title=${badgeLabel}><ha-icon class="cal-state-icon"
+            icon=${STATUS_ICONS[ev.history_type ?? ev.status] ?? "mdi:circle-medium"}></ha-icon><span class="cal-state-label">${badgeLabel}</span></span>
           <div class="cal-event-body">
-            <div class="cal-event-title">${ev.object_name} · ${ev.task_name}${overdueLabel}</div>
+            <div class="cal-event-title"><span class="cal-event-object">${ev.object_name}</span><span class="cal-event-sep"> · </span><span class="cal-event-task">${ev.task_name}</span>${overdueDays ? html`<span class="cal-event-due"><span class="cal-paren"> (</span>${overdueDays}<span class="cal-paren">)</span></span>` : nothing}</div>
             ${predictionSubtitle}
             ${recurEvery}
           </div>
@@ -486,11 +486,11 @@ export class MaintenanceCalendarCard extends LitElement {
                             @click=${() => {
                               this._pastDays = p as PastDays;
                             }}>
-                            −${p}d
+                            −${rangeLabel(p, L)}
                           </button>
                         `)}
                       </div>
-                      <span class="cal-chip-separator" aria-hidden="true">●</span>
+                      <span class="cal-chip-separator" aria-hidden="true"></span>
                       <div class="cal-window-chips" title="${t("cal_forward_windows", L)}">
                         ${[7, 14, 30, 365].map((w) => html`
                           <button class="cal-window-chip ${this._pastDays === 0 && this._windowDays === w ? "active" : ""}"
@@ -498,39 +498,17 @@ export class MaintenanceCalendarCard extends LitElement {
                               this._windowDays = w as WindowDays;
                               this._pastDays = 0;
                             }}>
-                            ${w === 365 ? "+1y" : `+${w}d`}
+                            +${rangeLabel(w, L)}
                           </button>
                         `)}
                       </div>
                     `
                   : nothing}
-                ${showUserFilter
-                  ? html`
-                      <select class="cal-user-filter"
-                        .value=${this._userFilter}
-                        @change=${(e: Event) => {
-                          this._userFilter = (e.target as HTMLSelectElement).value;
-                        }}>
-                        <option value="">${t("all_users", L)}</option>
-                        <option value="current_user">${t("my_tasks", L)}</option>
-                      </select>
-                    `
-                  : nothing}
-                ${showObjectFilter
-                  ? html`
-                      <select class="cal-user-filter"
-                        .value=${filterEntryId ?? ""}
-                        @change=${(e: Event) => {
-                          this._objectFilter = (e.target as HTMLSelectElement).value;
-                        }}>
-                        <option value="">${t("all_objects", L)}</option>
-                        ${[...base]
-                          .sort((a, b) => a.object.name.localeCompare(b.object.name))
-                          .map(
-                            (o) => html`<option value=${o.entry_id} ?selected=${o.entry_id === filterEntryId}>${o.object.name}</option>`,
-                          )}
-                      </select>
-                    `
+                ${showUserFilter || showObjectFilter
+                  ? html`<div class="cal-filters">
+                      ${showUserFilter ? this._renderUserFilter(L) : nothing}
+                      ${showObjectFilter ? this._renderObjectFilter(L, base, filterEntryId) : nothing}
+                    </div>`
                   : nothing}
               </div>
             `
@@ -544,6 +522,39 @@ export class MaintenanceCalendarCard extends LitElement {
     `;
   }
 
+  /** The two filters: a chip with Home Assistant's menu, as the task list
+   *  has for Group by and Sort by; the browser's own select where HA's
+   *  dropdown is not there (the classic look, an older core). */
+  private _renderUserFilter(L: string) {
+    const choices = [{ value: "", label: t("all_users", L) }, { value: "current_user", label: t("my_tasks", L) }];
+    return this._renderFilter(choices, this._userFilter, (value) => { this._userFilter = value; });
+  }
+
+  private _renderObjectFilter(L: string, objects: MaintenanceObjectResponse[], selected: string | null) {
+    const choices = [
+      { value: "", label: t("all_objects", L) },
+      ...[...objects].sort((a, b) => a.object.name.localeCompare(b.object.name)).map((o) => ({ value: o.entry_id, label: o.object.name })),
+    ];
+    return this._renderFilter(choices, selected ?? "", (value) => { this._objectFilter = value; });
+  }
+
+  private _renderFilter(choices: { value: string; label: string }[], current: string, pick: (value: string) => void) {
+    if (!menuIsHa()) {
+      return html`
+        <select class="cal-user-filter" .value=${current}
+          @change=${(e: Event) => pick((e.target as HTMLSelectElement).value)}>
+          ${choices.map((c) => html`<option value=${c.value} ?selected=${c.value === current}>${c.label}</option>`)}
+        </select>`;
+    }
+    const active = choices.find((c) => c.value === current) ?? choices[0];
+    return renderHaMenu(
+      html`<button class="cal-filter-chip ${current ? "active" : ""}" slot="trigger" type="button">
+        <span>${active.label}</span><ha-icon icon="mdi:menu-down"></ha-icon></button>`,
+      choices.map((c) => ({ label: c.label, selected: c.value === current, action: () => pick(c.value) })),
+      { cls: "cal-filter-menu" },
+    );
+  }
+
   static styles = [
     sharedStyles,
     calendarStyles,
@@ -552,6 +563,16 @@ export class MaintenanceCalendarCard extends LitElement {
       ha-card { padding: 0; overflow: hidden; }
     `,
   ];
+}
+
+/** A window's chip in the profile's language, built from the charts' range
+ *  labels ("7T", "1J"): the calendar wrote its own English "d" and "y"
+ *  beside them (prod look 2026-11-23). 14 days has no label of its own and
+ *  takes the 7-day one's unit. */
+function rangeLabel(days: number, lang: string): string {
+  if (days === 365) return t("chart_range_1y", lang);
+  if (days === 7 || days === 30 || days === 90) return t(`chart_range_${days}d`, lang);
+  return t("chart_range_7d", lang).replace("7", String(days));
 }
 
 // ── Calendar Card Editor ────────────────────────────────────────────────────

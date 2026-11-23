@@ -1219,6 +1219,7 @@
   "part_cost_mode_house": "A beállítások szerint ({mode})",
   "part_cost_mode_hint": "Vásárláskor: a vásárlás számít, abban az évben, amikor történt. Felhasználáskor: minden elvégzés, amely felhasználja az alkatrészt, az árát arra az objektumra, és így arra a területre könyveli, ahol felhasználták.",
   "part_stock": "Készlet",
+  "unit_pieces": "db",
   "part_reorder_threshold": "Újrarendelés ennél",
   "part_restock_quantity": "Feltöltési mennyiség",
   "part_package_size": "Kiszerelés mérete (egység)",

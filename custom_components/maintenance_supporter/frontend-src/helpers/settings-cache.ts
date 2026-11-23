@@ -20,6 +20,7 @@ import type { HomeAssistant } from "../types";
 import { setBetaUi, setBetaUiDefault } from "./beta-ui";
 import { NO_DELEGATION, type WriteAccess } from "./permissions";
 import { SETTING_INT_RANGES } from "./setting-ranges";
+import { LS_KEYS, lsGet, lsSet } from "./storage-keys";
 import { partsCostModeOf, type PartsCostMode } from "./parts-cost";
 
 export interface SettingsCache {
@@ -154,6 +155,25 @@ export const UNREAD_SETTINGS: SettingsCache = {
   rowActionStyle: effectiveRowActionStyle(undefined, false, FALLBACK_SETTINGS.features.beta_editor),
 };
 
+/** The row-action style this browser last read from the server, for the
+ *  first draw. A list is drawn before the settings answer is in (the panel
+ *  paints the last visit's rows at once, a card gets its objects from the
+ *  page's subscription), and until then it wore the default: labelled
+ *  buttons for a few frames, then the household's icons, with every column
+ *  right of them jumping (prod look 2026-11-23). A browser that never read
+ *  a style starts with the one nobody has chosen yet gets. */
+export function rememberedRowActionStyle(): string {
+  const saved = lsGet(LS_KEYS.rowActionStyle);
+  return (ROW_ACTION_STYLES as readonly string[]).includes(saved ?? "") ? (saved as string) : UNREAD_SETTINGS.rowActionStyle;
+}
+
+/** Keep what the server said (never the fallback of a failed read). */
+export function rememberRowActionStyle(style: string): void {
+  if ((ROW_ACTION_STYLES as readonly string[]).includes(style) && lsGet(LS_KEYS.rowActionStyle) !== style) {
+    lsSet(LS_KEYS.rowActionStyle, style);
+  }
+}
+
 interface CacheSlot {
   promise: Promise<SettingsCache> | null;
 }
@@ -182,6 +202,7 @@ export function fetchSettingsOnce(hass: HomeAssistant): Promise<SettingsCache> {
       const parsed = parseSettings(r);
       // Cards and the dialogs mounted on dashboards read the beta UI here.
       setBetaUi(parsed.features.beta_editor);
+      rememberRowActionStyle(parsed.rowActionStyle);
       return parsed;
     })
     .catch(() => {

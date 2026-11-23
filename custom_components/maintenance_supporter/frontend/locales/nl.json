@@ -1211,6 +1211,7 @@
   "part_cost_mode_house": "Zoals in Instellingen ({mode})",
   "part_cost_mode_hint": "Bij aankoop: de aankoop telt, in het jaar waarin die gebeurt. Bij gebruik: elke voltooiing die het onderdeel gebruikt, boekt de prijs op het object, en dus het gebied, waar het gebruikt wordt.",
   "part_stock": "Voorraad",
+  "unit_pieces": "st.",
   "part_reorder_threshold": "Bestelgrens",
   "part_restock_quantity": "Aanvulhoeveelheid",
   "part_package_size": "Verpakkingsgrootte (eenheden)",

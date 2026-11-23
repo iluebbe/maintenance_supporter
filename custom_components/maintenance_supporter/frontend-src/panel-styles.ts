@@ -189,7 +189,8 @@ export const panelStyles = css`
     grid-template-columns: 250px minmax(0, 1fr);
     align-items: start;
   }
-  .ms-list-main { min-width: 0; padding-bottom: 88px; }
+  .ms-list-main { min-width: 0; padding-bottom: 16px; }
+  .ms-fab-space { height: 88px; }
   .ms-list-layout.with-pane .ms-list-main { padding-left: 16px; }
   .ms-toolbar {
     display: flex;
@@ -373,8 +374,8 @@ export const panelStyles = css`
      drops the type and the chips, as the split list does, before the task
      name has to wrap. */
   @media (max-width: 1700px) {
-    :host(:not([narrow]):not([tight])) .ms-list-layout.with-pane .task-table:not(.object-tasks) { grid-template-columns: auto minmax(100px, 180px) minmax(120px, 1fr) 150px auto; }
-    :host(:not([narrow]):not([tight])) .ms-list-layout.with-pane .task-table.bulk:not(.object-tasks) { grid-template-columns: auto auto minmax(100px, 180px) minmax(120px, 1fr) 150px auto; }
+    :host(:not([narrow]):not([tight])) .ms-list-layout.with-pane .task-table:not(.object-tasks) { grid-template-columns: auto var(--ms-object-track, minmax(100px, 180px)) minmax(120px, 1fr) 150px auto; }
+    :host(:not([narrow]):not([tight])) .ms-list-layout.with-pane .task-table.bulk:not(.object-tasks) { grid-template-columns: auto auto var(--ms-object-track, minmax(100px, 180px)) minmax(120px, 1fr) 150px auto; }
     :host(:not([narrow]):not([tight])) .ms-list-layout.with-pane .task-table .cell.type,
     :host(:not([narrow]):not([tight])) .ms-list-layout.with-pane .task-table .task-sub,
     :host(:not([narrow]):not([tight])) .ms-list-layout.with-pane .task-head .th-type,
@@ -420,7 +421,7 @@ export const panelStyles = css`
     display: grid;
     grid-template-columns:
       auto                         /* badges */
-      minmax(100px, 180px)         /* object-name */
+      var(--ms-object-track, minmax(100px, 180px))         /* object-name */
       minmax(120px, 1fr)           /* task-name */
       minmax(0, 220px)             /* task-sub (chips) */
       100px                        /* type */
@@ -486,9 +487,37 @@ export const panelStyles = css`
     visibility: hidden;
     pointer-events: none;
   }
+  /* Its name cell stacks the longest titles and its actions cell both kinds
+     of action a row can carry: each cell is as wide as its widest line. */
+  .virt-sizer .virt-names > span { display: block; }
+  .row-actions.virt-actions { flex-direction: column; align-items: flex-end; gap: 0; }
+
+  /* Grouped by object, every section's header names the object: the
+     column that repeated it in each row closes (its track is the variable
+     in every template here). The cell stays a grid item, or every cell
+     after it would move one track; the name takes back the gap it left. */
+  .task-table.no-object { --ms-object-track: 0px; }
+  .task-table.no-object .cell.object-name,
+  .task-table.no-object .th-object {
+    visibility: hidden;
+    width: 0;
+    min-width: 0;
+    padding: 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  @media (min-width: 769px) {
+    :host(:not([narrow]):not([tight])) .task-table.no-object .cell.task-name,
+    :host(:not([narrow]):not([tight])) .task-table.no-object .th-task { margin-inline-start: -12px; }
+  }
+  :host([narrow]) .task-table.no-object .cell.object-name,
+  :host([tight]) .task-table.no-object .cell.object-name { display: none; }
+  @media (max-width: 768px) {
+    .task-table.no-object .cell.object-name { display: none; }
+  }
 
   /* Bulk selection: a leading checkbox column while selecting. */
-  .task-table.bulk { grid-template-columns: auto auto minmax(100px, 180px) minmax(120px, 1fr) minmax(0, 220px) 100px 150px auto; }
+  .task-table.bulk { grid-template-columns: auto auto var(--ms-object-track, minmax(100px, 180px)) minmax(120px, 1fr) minmax(0, 220px) 100px 150px auto; }
 
   /* Wide desktop (UX 2026-07): with a 1fr name column the slack landed
      BETWEEN the task name and its right-aligned chips — a ragged hole in
@@ -500,16 +529,19 @@ export const panelStyles = css`
     .task-table {
       grid-template-columns:
         auto                       /* badges */
-        minmax(100px, 180px)       /* object-name */
+        var(--ms-object-track, minmax(100px, 180px))       /* object-name */
         fit-content(400px)         /* task-name — hugs the longest name */
-        minmax(0, 1fr)             /* task-sub (chips) absorbs the slack */
+        minmax(120px, 1fr)         /* task-sub (chips) absorbs the slack */
         100px                      /* type */
         150px                      /* due-cell */
         auto;                      /* row-actions */
     }
     .task-table.bulk {
-      grid-template-columns: auto auto minmax(100px, 180px) fit-content(400px) minmax(0, 1fr) 100px 150px auto;
+      grid-template-columns: auto auto var(--ms-object-track, minmax(100px, 180px)) fit-content(400px) minmax(120px, 1fr) 100px 150px auto;
     }
+    /* The chips' 120 px floor: at 1440 px with the sidebar open the longest
+       name took its full 400 px and left the area chip 88 px, cut mid-word
+       ("Dachgeschos"). A long name wraps before a chip is cut. */
     .task-table .task-sub {
       justify-content: flex-start;
     }
@@ -566,8 +598,8 @@ export const panelStyles = css`
      redundant there (the docked detail names the type, assignee and labels),
      and squeezed chips read as clutter. Drop both; the task name gets the
      room and the list stays calm. */
-  .split-list .task-table { grid-template-columns: auto minmax(100px, 180px) minmax(120px, 1fr) 150px auto; }
-  .split-list .task-table.bulk { grid-template-columns: auto auto minmax(100px, 180px) minmax(120px, 1fr) 150px auto; }
+  .split-list .task-table { grid-template-columns: auto var(--ms-object-track, minmax(100px, 180px)) minmax(120px, 1fr) 150px auto; }
+  .split-list .task-table.bulk { grid-template-columns: auto auto var(--ms-object-track, minmax(100px, 180px)) minmax(120px, 1fr) 150px auto; }
   .split-list .cell.type { display: none; }
   .split-list .task-sub { display: none; }
 
@@ -581,16 +613,16 @@ export const panelStyles = css`
      four lines beside all that space. */
   @media (min-width: 2400px) {
     .task-table {
-      grid-template-columns: auto fit-content(360px) fit-content(520px) minmax(0, 440px) 100px 150px auto minmax(0, 1fr);
+      grid-template-columns: auto var(--ms-object-track, fit-content(360px)) fit-content(520px) minmax(0, 440px) 100px 150px auto minmax(0, 1fr);
     }
     .task-table.bulk {
-      grid-template-columns: auto auto fit-content(360px) fit-content(520px) minmax(0, 440px) 100px 150px auto minmax(0, 1fr);
+      grid-template-columns: auto auto var(--ms-object-track, fit-content(360px)) fit-content(520px) minmax(0, 440px) 100px 150px auto minmax(0, 1fr);
     }
     .task-table.object-tasks {
       grid-template-columns: auto fit-content(520px) minmax(0, 440px) 100px 150px auto minmax(0, 1fr);
     }
-    .split-list .task-table { grid-template-columns: auto fit-content(360px) fit-content(720px) 150px auto minmax(0, 1fr); }
-    .split-list .task-table.bulk { grid-template-columns: auto auto fit-content(360px) fit-content(720px) 150px auto minmax(0, 1fr); }
+    .split-list .task-table { grid-template-columns: auto var(--ms-object-track, fit-content(360px)) fit-content(720px) 150px auto minmax(0, 1fr); }
+    .split-list .task-table.bulk { grid-template-columns: auto auto var(--ms-object-track, fit-content(360px)) fit-content(720px) 150px auto minmax(0, 1fr); }
   }
 
   /* The object page as master-detail (beta, from 1500 px): its task list has
@@ -699,7 +731,7 @@ export const panelStyles = css`
   .today-row {
     display: flex; align-items: center; gap: 12px; padding: 11px 14px;
     border-top: 1px solid var(--divider-color); cursor: pointer;
-    content-visibility: auto; contain-intrinsic-size: auto 46px;
+    content-visibility: auto; contain-intrinsic-size: auto 44px;
   }
   .today-row:hover { background: var(--table-row-alternative-background-color, rgba(0,0,0,.04)); }
   .today-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; background: var(--success-color, #4caf50); }
@@ -1100,6 +1132,10 @@ export const panelStyles = css`
     text-decoration: none;
     overflow-wrap: anywhere;
   }
+  /* The task's name is the page's title: it was set like the badges beside
+     it, smaller than the breadcrumb above that repeats it. */
+  .task-name-breadcrumb { font-size: 20px; font-weight: 500; line-height: 1.25; }
+  :host([narrow]) .task-name-breadcrumb { font-size: 18px; }
 
   .task-name-breadcrumb:hover,
   .object-name-breadcrumb:hover {
@@ -1233,6 +1269,10 @@ export const panelStyles = css`
     font-size: 13px;
     cursor: pointer;
   }
+  /* The other lists, as chips above the list (the page's own title and
+     back arrow are the header's). */
+  .sibling-views { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0 16px; }
+  .sibling-views .sibling-view-chip { margin-left: 0; }
   .sibling-view-chip:hover {
     background: var(--secondary-background-color, rgba(0, 0, 0, 0.04));
     color: var(--primary-text-color);
@@ -1258,6 +1298,15 @@ export const panelStyles = css`
   .all-parts-stock ms-part-use { margin-left: 8px; vertical-align: middle; }
   .all-parts-stock ms-part-purchase { margin-left: 8px; vertical-align: middle; }
   .all-parts-stock ms-part-purchase[open] { margin: 6px 0 0; }
+  /* Seven columns that fit the panel: every cell kept one line, so the
+     table was 1318 px in 1150 and "used by" started outside it. The part's
+     name and its tasks may wrap; the figures keep their line. */
+  .all-parts-table td.ap-name,
+  .all-parts-table td.ap-object,
+  .all-parts-table td.ap-used { white-space: normal; overflow-wrap: anywhere; }
+  .all-parts-table td.ap-name { min-width: 160px; }
+  .all-parts-table td.ap-object { min-width: 110px; }
+  .all-parts-table td.ap-used { min-width: 150px; }
 
   /* (#67) Objects table (desktop All-Objects view) */
   .objects-table-wrap {
@@ -1373,7 +1422,7 @@ export const panelStyles = css`
   .area-range-chips { margin: 8px 0 4px; }
   .area-range-chips .filter-chip { font-family: inherit; }
   .area-filters ms-date-field { min-width: 150px; }
-  .kpi-bar.area-kpis { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); margin: 12px 0 8px; }
+  .kpi-bar.area-kpis { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); margin: 12px 0 0; }
   .area-empty { color: var(--secondary-text-color); font-style: italic; font-size: 13px; }
   .area-chart { margin: 4px 0 8px; }
   .area-chart-max { font-size: 11px; color: var(--secondary-text-color); padding-bottom: 2px; }
@@ -1678,11 +1727,23 @@ export const panelStyles = css`
   .kpi-bar {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
-    gap: 12px;
-    margin-bottom: 24px;
+    /* The tiles of one line share three rows (label, value, note), so a
+       label that wraps ("ZULETZT DURCHGEFÜHRT") takes its second line in
+       every tile and the values stay on one line: its own value sat 13 px
+       below its neighbours' (prod look 2026-11-23). The space between two
+       lines of tiles is the tiles' margin: a row gap would also open
+       between a tile's own three rows. */
+    column-gap: 12px;
+    row-gap: 0;
+    margin-bottom: 12px;
   }
 
   .kpi-card {
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-row: span 3;
+    align-content: start;
+    margin-bottom: 12px;
     background: var(--card-background-color, #fff);
     border-radius: 8px;
     padding: 16px 12px;
@@ -1703,6 +1764,8 @@ export const panelStyles = css`
   }
 
   .kpi-label {
+    /* Above its value, also where a neighbour's label takes two lines. */
+    align-self: end;
     font-size: 11px;
     color: var(--secondary-text-color);
     margin-bottom: 6px;
@@ -1727,6 +1790,7 @@ export const panelStyles = css`
     color: var(--secondary-text-color);
     margin-top: 4px;
   }
+  .kpi-subtext.kpi-capital::first-letter { text-transform: uppercase; }
 
   .two-column-layout {
     display: grid;
@@ -2144,13 +2208,17 @@ export const panelStyles = css`
 
   :host([narrow]) .kpi-bar {
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    margin-bottom: 16px;
+    column-gap: 8px;
+    margin-bottom: 8px;
   }
 
   :host([narrow]) .kpi-card {
     padding: 12px 8px;
+    margin-bottom: 8px;
   }
+  /* An odd tile at the end takes the whole line instead of leaving a hole
+     beside it (seven tiles in two columns). */
+  :host([narrow]) .kpi-bar > .kpi-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
 
   :host([narrow]) .kpi-label {
     font-size: 10px;
@@ -2504,8 +2572,9 @@ export const panelStyles = css`
   @media (max-width: 768px) {
     .content { padding: 0 8px 8px; }
     .header { padding: 8px 12px; font-size: 14px; }
-    .kpi-bar { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 16px; }
-    .kpi-card { padding: 12px 8px; }
+    .kpi-bar { grid-template-columns: repeat(2, 1fr); column-gap: 8px; margin-bottom: 8px; }
+    .kpi-card { padding: 12px 8px; margin-bottom: 8px; }
+    .kpi-bar > .kpi-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
     .kpi-label { font-size: 10px; }
     .kpi-value { font-size: 14px; }
     .kpi-value-large { font-size: 18px; }

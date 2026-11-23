@@ -1211,6 +1211,7 @@
   "part_cost_mode_house": "Come nelle Impostazioni ({mode})",
   "part_cost_mode_hint": "All'acquisto: conta l'acquisto, nell'anno in cui avviene. All'uso: ogni completamento che usa il ricambio ne registra il prezzo sull'oggetto, e quindi sull'area, dove viene usato.",
   "part_stock": "Scorta",
+  "unit_pieces": "pz",
   "part_reorder_threshold": "Soglia riordino",
   "part_restock_quantity": "Quantità di riordino",
   "part_package_size": "Dimensione confezione (unità)",

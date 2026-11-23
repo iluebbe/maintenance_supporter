@@ -342,7 +342,7 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
       background: var(--secondary-background-color, rgba(255,255,255,0.03));
       transition: background 0.12s;
     }
-    .task-row:hover { background: var(--state-icon-color, rgba(255,255,255,0.06)); }
+    .task-row:hover { background: color-mix(in srgb, var(--primary-text-color) 6%, transparent); }
     .task-row:focus-visible { outline: 2px solid var(--primary-color); outline-offset: -2px; }
     .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .task-name { flex: 1; font-size: 14px; }
@@ -359,7 +359,7 @@ export class MaintenanceObjectQuickActionsDialog extends LitElement {
       color: var(--primary-text-color); font-weight: 500;
       display: inline-flex; align-items: center; justify-content: center; gap: 6px;
     }
-    .btn:hover { background: var(--state-icon-color, rgba(255,255,255,0.06)); }
+    .btn:hover { background: color-mix(in srgb, var(--primary-text-color) 6%, transparent); }
     .btn[disabled] { opacity: 0.5; cursor: wait; }
     .btn.primary { background: var(--primary-color); color: var(--text-primary-color, white); border-color: var(--primary-color); }
     .btn.danger { color: var(--error-color); }

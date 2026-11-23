@@ -883,7 +883,7 @@ export class MaintenanceTaskQuickActionsDialog extends LitElement {
       display: inline-flex; align-items: center; gap: 6px;
       transition: background 0.12s;
     }
-    .btn:hover { background: var(--state-icon-color, rgba(255,255,255,0.06)); }
+    .btn:hover { background: color-mix(in srgb, var(--primary-text-color) 6%, transparent); }
     .btn[disabled] { opacity: 0.5; cursor: wait; }
     .btn.primary {
       background: var(--primary-color);

@@ -19,12 +19,12 @@ import { renderUpcomingTurns } from "../helpers/rotation-turns";
 import { quickCompleteOn } from "../helpers/quick-complete";
 import { isInertTask } from "../status-constants";
 import { entityName } from "../helpers/trigger-entities";
-import { t, formatDate, formatDayCount, formatRecurrence, formatCost, formatDuration } from "../styles";
+import { t, formatDate, formatDayCount, formatNumber, formatRecurrence, formatCost, formatDuration } from "../styles";
 import { renderRefChip } from "../helpers/reference";
 import type { AdvancedFeatures, CompleteWhen, HomeAssistant, MaintenanceTask, ManualDocRef } from "../types";
 import { renderTriggerSection, type SparklineContext } from "./sparkline";
 import { dueDaysOf } from "./progress";
-import { renderPredictionSection } from "./prediction";
+import { aboutDays, renderPredictionSection } from "./prediction";
 import { renderWeibullSection } from "./weibull";
 import { renderRecommendationBars } from "./recommendation";
 import { renderSeasonalCardCompact, renderSeasonalCardExpanded } from "./seasonal";
@@ -407,21 +407,31 @@ function renderKPIBar(task: MaintenanceTask, ctx: TaskDetailContext) {
   const daysClass = daysUntil !== null && daysUntil !== undefined
     ? (daysUntil < 0 ? "overdue" : (daysUntil <= warnWithin ? "warning" : ""))
     : "";
+  // A task its sensor makes due has no date either, but the forecast below
+  // knows when the limit is reached: the two tiles read "—" above a card
+  // that said "~1312 days, 27.06.2030" (prod look 2026-11-23). They show
+  // the forecast then, marked as one.
+  const forecastDays = nextDue == null && (task.days_until_threshold ?? 0) > 0 ? aboutDays(task.days_until_threshold) : null;
 
   return html`
     <div class="kpi-bar">
       <div class="kpi-card">
         <div class="kpi-label">${t("next_due", L)}</div>
-        <div class="kpi-value">${nextDue ? formatDate(nextDue, L) : "—"}</div>
+        <div class="kpi-value">${nextDue ? formatDate(nextDue, L) : forecastDays !== null && task.threshold_prediction_date ? formatDate(task.threshold_prediction_date, L) : "—"}</div>
         ${fromSensor
           ? html`<div class="kpi-subtext">${t("kpi_reported_by_sensor", L)}</div>`
+          : forecastDays !== null && task.threshold_prediction_date
+          ? html`<div class="kpi-subtext kpi-capital">${t("cal_predicted", L)}</div>`
           : ctx.features.schedule_time && task.schedule_time
             ? html`<div class="kpi-subtext">${t("at_time", L)} ${task.schedule_time}</div>`
             : nothing}
       </div>
       <div class="kpi-card ${daysClass}">
         <div class="kpi-label">${t("days_until_due", L)}</div>
-        <div class="kpi-value-large">${daysUntil !== null && daysUntil !== undefined ? daysUntil : "—"}</div>
+        <div class="kpi-value-large">${daysUntil !== null && daysUntil !== undefined ? daysUntil : forecastDays !== null ? `~${formatNumber(forecastDays, L)}` : "—"}</div>
+        ${(daysUntil === null || daysUntil === undefined) && forecastDays !== null
+          ? html`<div class="kpi-subtext kpi-capital">${t("cal_predicted", L)}</div>`
+          : nothing}
       </div>
       <div class="kpi-card">
         <div class="kpi-label">${t("interval", L)}</div>
