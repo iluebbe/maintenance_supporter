@@ -1117,7 +1117,7 @@ sweep, and a non-writer can have at most 20 of them per object waiting.
 ## Suggested setups — the shipped signature catalog
 
 **Use this before hand-rolling discovery.** The integration ships a catalog of
-**288 integrations / 603 verified signatures** (`helpers/signatures/`, every
+**289 integrations / 604 verified signatures** (`helpers/signatures/`, every
 entry read against the integration's own source) that maps consumable and wear
 entities onto maintenance duties. Discovery runs **server-side**: it walks the
 entity registry, applies the model/sibling/unit gates, hides duties already

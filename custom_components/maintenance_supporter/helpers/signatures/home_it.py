@@ -174,12 +174,13 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     "proxmoxve": IntegrationSignature(
         name="Proxmox VE",
         verified=(
-            "2026-10-25 @ dougiteixeira/proxmoxve main (8b19f82, 5.3.4) + "
-            "home-assistant/core 2026.10.4 and dev"
+            "2026-11-23 @ home-assistant/core dev + dougiteixeira/proxmoxve 5.3.5 (the last "
+            "release under this domain)"
         ),
         source=(
-            "The domain is shared by the HACS integration and core (the HACS one overrides core "
-            "when installed). HACS sensor.py PROXMOX_SENSOR_DISK tk 'disk_used_perc' (%, enabled) "
+            "The domain was shared by the HACS integration and core up to HACS 5.3.5 (the HACS "
+            "one overrode core when installed); 6.0.0 moved it to 'proxmoxve_custom', see there. "
+            "HACS sensor.py PROXMOX_SENSOR_DISK tk 'disk_used_perc' (%, enabled) "
             "is spread into nodes, QEMU and LXC guests and storages; device models 'Storage' / "
             "'Shared storage' (storages), 'QEMU', 'LXC', the CPU model string (nodes). Core "
             "sensor.py tk 'storage_used_percentage' (%, DIAGNOSTIC, used_fraction × 100) on "
@@ -197,6 +198,24 @@ SIGNATURES: dict[str, IntegrationSignature] = {
                 delta_units=85,
                 models=("storage",),
             ),
+        ),
+    ),
+    # ─── Drift 2026-11-23 (#289): the HACS Proxmox integration under its own domain ───
+    "proxmoxve_custom": IntegrationSignature(
+        name="Proxmox VE Custom",
+        verified="2026-11-23 @ dougiteixeira/proxmoxve main (09437ae, 6.0.1)",
+        source=(
+            "HACS, the integration that used the domain 'proxmoxve' up to 5.3.5: 6.0.0 (7533a11, "
+            "2026-11-22) gave it a domain of its own, so that it runs next to core's, and moves "
+            "config entries, devices and entities over (the entity ids stay). sensor.py "
+            "PROXMOX_SENSOR_DISK tk 'disk_used_perc' (%, enabled) is spread into nodes, QEMU and "
+            "LXC guests and storages; __init__.py device models 'Storage' / 'Shared storage' "
+            "(storages), 'QEMU', 'LXC', the CPU model string (nodes). Gated to the storage "
+            "devices for the reasons given at 'proxmoxve'; 'zfs_used_perc' and the SSD wear-out "
+            "'life_left' are not signed."
+        ),
+        tasks=(
+            ConsumableSignature(("disk_used_perc",), "Storage Cleanup", "alert_above", delta_units=85, models=("storage",)),
         ),
     ),
 }

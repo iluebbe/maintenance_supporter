@@ -377,7 +377,9 @@ def test_round17b_entries_cite_their_branch_heads() -> None:
         "goveelife",
     ):
         catalog = SIGNATURES[domain]
-        assert catalog.verified.startswith("2026-10-25 @ "), domain
+        # A weekly drift check re-dives an entry, and it bears that date then (#289).
+        verified = {"proxmoxve": "2026-11-23"}.get(domain, "2026-10-25")
+        assert catalog.verified.startswith(f"{verified} @ "), domain
         assert catalog.source, domain
     # The Modbus integration is left out on purpose (an overdue uint32
     # counter would read as a huge value and complete the task).

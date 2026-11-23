@@ -82,8 +82,8 @@ def _sig(domain: str, task_name: str):
     return next(s for s in SIGNATURES[domain].tasks if s.task_name == task_name)
 
 
-# Entries of these rounds checked again after a drift report (#276).
-_REVERIFIED = {"generac": "2026-11-17"}
+# Entries of these rounds checked again after a drift report (#276, #289).
+_REVERIFIED = {"generac": "2026-11-23"}
 
 
 async def test_gree_filter_cleaning_runs_on_the_climate_state(hass: HomeAssistant, global_entry: MockConfigEntry) -> None:

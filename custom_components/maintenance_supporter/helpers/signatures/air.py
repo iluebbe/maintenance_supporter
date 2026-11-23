@@ -181,11 +181,17 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "ha_blueair": IntegrationSignature(
         name="Blueair",
-        verified="2026-07-19 @ dahlb/ha_blueair master sensor.py (HACS default)",
+        verified="2026-11-23 @ dahlb/ha_blueair main (7fb9080, 1.65.3; HACS default)",
         source=(
-            "HACS ha_blueair: name-derived 'Filter Life' / 'Wick Life' / "
-            "'Water Refresher Life' (PERCENTAGE). Verified % REMAINING: the "
-            "device-aws coordinator returns 100 - filter_usage_percentage. "
+            "HACS ha_blueair sensor.py: translation_key 'filter_life' / "
+            "'wick_life' / 'water_refresher_life' (PERCENTAGE, no battery "
+            "device class any more since #388; has_entity_name, strings.json "
+            "'Filter Life' / 'Wick Life' / 'Water Refresher Life' — the names "
+            "older versions set directly, so the id suffix is the same). "
+            "Verified % REMAINING: coordinator_device_aws.py "
+            "(blueair_update_coordinator_device_aws.py until 2026-11, when "
+            "the branch 'master' also became 'main') returns 100 - "
+            "filter_usage_percentage, likewise for wick and water refresher. "
             "A filter_expired problem binary also exists (adoption path)."
         ),
         tasks=(

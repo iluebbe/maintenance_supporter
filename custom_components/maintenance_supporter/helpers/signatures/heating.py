@@ -341,7 +341,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "generac": IntegrationSignature(
         name="Generac (Mobile Link)",
-        verified="2026-11-17 @ binarydev/ha-generac main (d0864f2)",
+        verified="2026-11-23 @ binarydev/ha-generac main (38f73c3, 0.6.1)",
         source=(
             "HACS generac sensor.py RunTimeSensor: entity_key 'run_time'; "
             "since 71aa0f6 (2026-10-28) has_entity_name with the name 'Run "
@@ -353,7 +353,14 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "#202) — the LIFETIME engine-hours counter → usage_delta every "
             "200 h (Generac air-cooled home-standby schedule: oil and filter "
             "every 200 h or 2 years). The pjordanandrsn fork shares the "
-            "domain and the same property-71 sensor."
+            "domain and the same property-71 sensor. 0.6 reads the "
+            "property without a fallback value (unknown, where older "
+            "versions reported 0 h, until the API has delivered it) and "
+            "adds 'Hours Until Service' (entity_key hours_until_service) "
+            "with a 'Reset Maintenance Timer' button: the integration's "
+            "own count-down over this same counter, at an interval from "
+            "its options (default 100 h) — not signed, it would be a "
+            "second task for the one duty."
         ),
         tasks=(ConsumableSignature(("run_time",), "Oil Service", "usage_delta", delta_units=200),),
     ),
@@ -451,7 +458,7 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     # ─── Round 15 part 2 (2026-09-27): HACS heat pumps and stoves ────────
     "stiebel_eltron_isg": IntegrationSignature(
         name="Stiebel Eltron ISG (LWZ)",
-        verified="2026-09-27 @ pail23/stiebel_eltron_isg_component main (f47bcf8)",
+        verified="2026-11-23 @ pail23/stiebel_eltron_isg_component main (a137ca3)",
         source=(
             "HACS stiebel_eltron_isg binary_sensor.py LWZ_BINARY_SENSOR_TYPES "
             "(LWZ ventilation heat pumps only — WPM controllers get other "
@@ -462,7 +469,10 @@ SIGNATURES: dict[str, IntegrationSignature] = {
             "them → one latch on 'on' over the three (one filter change "
             "clears them together). The 'service' bit (6) has no documented "
             "meaning and is left out. Every entity description sets a "
-            "translation_key."
+            "translation_key: since 99dd7d7 (2026-11-10) the list is built "
+            "by _status_bits(), which numbers the operating_status bits in "
+            "the order given and sets translation_key = key (const.py "
+            "FILTER / FILTER_EXTRACT_AIR / FILTER_VENTILATION_AIR)."
         ),
         translation_keys_authoritative=True,
         tasks=(
@@ -557,17 +567,21 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "maestro_mcz": IntegrationSignature(
         name="MCZ pellet stoves (Maestro)",
-        verified="2026-11-17 @ Robbe-B/maestro_mcz main (83c314f)",
+        verified="2026-11-23 @ Robbe-B/maestro_mcz main (e500f56)",
         source=(
             "HACS maestro_mcz maestro/models/model_definitions.py (models.py "
             "until 2026-11) supported_sensors: SensorMczConfigItem 'Next "
-            "Maintenance' (status field 'ore_prox_manut' = hours to the next "
-            "maintenance, UnitOfTime.HOURS, MEASUREMENT, DIAGNOSTIC, enabled; "
-            "created only when the stove reports the field). sensor.py "
-            "MczSensorEntity has_entity_name with _attr_name = the item name, "
-            "which wins over its new translation_key 'next_maintenance' (no "
-            "entry in strings.json either) → suffix "
-            "_next_maintenance. The stove controller's own service countdown "
+            "maintenance' (status field 'ore_prox_manut' = hours to the next "
+            "maintenance, UnitOfTime.HOURS, DURATION, MEASUREMENT, "
+            "DIAGNOSTIC, enabled; created only when the stove reports the "
+            "field) with the translation_key 'next_maintenance'. sensor.py "
+            "MczSensorEntity has_entity_name: up to 1.8.0 _attr_name = the "
+            "item name ('Next Maintenance') won over the key; since 0a43dd5 "
+            "(2026-11-23) the name comes from the translation_key "
+            "(strings.json 'Next maintenance', six languages) and _attr_name "
+            "is only set for an item without one → suffix _next_maintenance "
+            "on an existing or an English install, the translation_key on a "
+            "translated one. The stove controller's own service countdown "
             "(the fumis pattern) → duration_left 24 h; named after the "
             "technician's 'Stove Service' of the Fireplace & Wood Stove "
             "template, like the ecoforest duty. The only binary ('Alarm', "

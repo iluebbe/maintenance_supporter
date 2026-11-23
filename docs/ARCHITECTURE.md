@@ -64,7 +64,7 @@ A Home Assistant custom integration for tracking, scheduling, and predicting mai
 |    strategy       |    | - interval_analyzer (EWA + Weibull)
 +-------------------+    | - sensor_predictor (degradation + env)
                          | - entity_analyzer (stats + discovery)
-                         | - signatures/ (288 integrations, 603 signals)
+                         | - signatures/ (289 integrations, 604 signals)
                          | - battery_fleet, documents, parts, saved_views
                          | - notification_manager, csv_handler, qr_generator
                          +-------------------+
@@ -602,7 +602,7 @@ custom_components/maintenance_supporter/
 │   ├── state_match.py              (11 lines)  How a state rule compares an entity's state with the one it names: case and the blanks around it do not count ("Finished " is "finished")
 │   ├── object_ready.py             (43 lines)  Waiting out an object's reload before acting on one of its tasks
 │   ├── rotation_turns.py          (161 lines)  Whose turn a shared task is, now and next (D#284)
-│   └── signatures/              (7,680 lines)  19 files — Suggested-setups catalog: 288 integrations / 603 signatures
+│   └── signatures/              (7,728 lines)  19 files — Suggested-setups catalog: 289 integrations / 604 signatures
 │       ├── _model.py              (509 lines)  IntegrationSignature / ConsumableSignature + matcher mechanics
 │       ├── _discovery.py          (391 lines)  Entity-registry scan → per-duty setup proposals
 │       ├── _registry.py            (30 lines)  Merge + duplicate-domain guard
@@ -829,7 +829,7 @@ The recorder half is cached per coordinator in `helpers/prediction_cache.py`: th
 
 ## Signature Catalog & Suggested Setups
 
-Popular integrations already expose the wear signals a maintenance task wants — a Roborock reports *filter time left*, a Brother printer its *drum remaining life*. `helpers/signatures/` turns that into a curated catalog so discovery can propose an object **with its trigger pre-wired** instead of a bare calendar interval. It currently holds **288 integrations / 603 verified signatures** across 14 category data modules (air, cars, garden, heating, home_it, kitchen, locks, personal, pets, printers, transports, vacuums, wallboxes, xiaomi); `_registry.py` merges them and raises on a duplicate domain, `_model.py` holds the dataclasses and matcher mechanics, `_discovery.py` does the entity-registry scan. The generated human-readable table is `docs/INTEGRATIONS.md`.
+Popular integrations already expose the wear signals a maintenance task wants — a Roborock reports *filter time left*, a Brother printer its *drum remaining life*. `helpers/signatures/` turns that into a curated catalog so discovery can propose an object **with its trigger pre-wired** instead of a bare calendar interval. It currently holds **289 integrations / 604 verified signatures** across 14 category data modules (air, cars, garden, heating, home_it, kitchen, locks, personal, pets, printers, transports, vacuums, wallboxes, xiaomi); `_registry.py` merges them and raises on a duplicate domain, `_model.py` holds the dataclasses and matcher mechanics, `_discovery.py` does the entity-registry scan. The generated human-readable table is `docs/INTEGRATIONS.md`.
 
 **Per-duty, not per-device.** A signature describes one *duty* (`ConsumableSignature`) — replace filter, replace main brush, descale — and each duty carries its own direction semantics, which decide the trigger the adoption builds:
 

@@ -6,8 +6,19 @@ All notable changes to Maintenance Supporter are documented in this file.
 
 ### 🐛 Fixed
 
+- **Suggested setups: Uconnect cars on a translated system.** The integration now names its sensors through
+  translations, so on a non-English system the service countdown in days and the oil life were no longer
+  recognised. Both are found again; existing installs were not affected.
+- **Suggested setups: Proxmox VE Custom.** The HACS Proxmox integration moved to its own domain
+  (`proxmoxve_custom`) in 6.0. Its storages get the "Storage Cleanup" suggestion again. Tasks that were already
+  set up keep working, the entity ids did not change.
 - **Slovak wording.** The idle trigger reads *nečinnosť* instead of *pokoj*, the state timeline says *nedostupné*
   for an unreachable entity, and the rotation-by-weekday hints no longer repeat *pripadne*.
+
+### 🔧 Developer notes
+
+- Catalog re-verified against the current sources of Generac, Blueair, MCZ Maestro and Stiebel Eltron ISG (moved
+  or reshaped source files, same entities). 289 integrations / 604 verified signatures.
 
 ## [2.125.0] - 2026-11-22
 

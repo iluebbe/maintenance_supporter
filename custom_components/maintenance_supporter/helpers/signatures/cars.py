@@ -351,21 +351,30 @@ SIGNATURES: dict[str, IntegrationSignature] = {
     ),
     "uconnect": IntegrationSignature(
         name="Uconnect (Jeep/Fiat/Chrysler/Dodge/Ram/Alfa Romeo)",
-        verified="2026-09-25 @ hass-uconnect/hass-uconnect main",
+        verified="2026-11-23 @ hass-uconnect/hass-uconnect main (9037a6c)",
         source=(
-            "HACS uconnect sensor.py (no translation_key; name '{make} "
-            "{nickname|model} <name>' → entity_id suffix): 'Odometer' (key "
-            "odometer, TOTAL_INCREASING, API unit km/mi), 'Distance to "
-            "Service' (distanceToService, remaining), 'Days till service "
-            "needed' (daysToService, DAYS remaining) and 'Oil Life' (key "
-            "oil_level = py_uconnect oilLevel, PERCENTAGE remaining). The "
-            "service countdowns replace the generic odometer service duty."
+            "HACS uconnect sensor.py: 'Odometer' (key odometer, "
+            "TOTAL_INCREASING, API unit km/mi), 'Distance to Service' (key "
+            "distance_to_service, remaining), 'Days till service needed' "
+            "(key days_to_service, DAYS remaining) and 'Oil Life' (key "
+            "oil_level = py_uconnect oilLevel, PERCENTAGE remaining). Up to "
+            "v1.0.3 no translation_key and the name '{make} {nickname|model} "
+            "<name>' → entity_id suffix from the English name. Since 5b3f54d "
+            "(2026-11-22) has_entity_name with translation_key = key; "
+            "translations/en.json keeps the English names and fr.json "
+            "translates them. An existing install keeps its ids, a new one "
+            "on a translated system only carries the key → both spellings "
+            "are keys where they differ (days_to_service / "
+            "days_till_service_needed, oil_level / oil_life). The service "
+            "countdowns replace the generic odometer service duty."
         ),
         tasks=(
             TIRE_ROTATION_ODOMETER,
-            ConsumableSignature(("days_till_service_needed",), "Annual Service", "duration_left", below_hours=336),
+            ConsumableSignature(
+                ("days_to_service", "days_till_service_needed"), "Annual Service", "duration_left", below_hours=336
+            ),
             ANNUAL_SERVICE_DISTANCE_TO_SERVICE,
-            ConsumableSignature(("oil_life",), "Oil Service", "percent_left"),
+            ConsumableSignature(("oil_level", "oil_life"), "Oil Service", "percent_left"),
         ),
     ),
     "porscheconnect": IntegrationSignature(

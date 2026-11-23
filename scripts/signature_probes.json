@@ -1067,13 +1067,13 @@
  },
  "ha_blueair": {
   "urls": [
-   "https://raw.githubusercontent.com/dahlb/ha_blueair/master/custom_components/ha_blueair/sensor.py",
-   "https://raw.githubusercontent.com/dahlb/ha_blueair/master/custom_components/ha_blueair/blueair_update_coordinator_device_aws.py"
+   "https://raw.githubusercontent.com/dahlb/ha_blueair/main/custom_components/ha_blueair/sensor.py",
+   "https://raw.githubusercontent.com/dahlb/ha_blueair/main/custom_components/ha_blueair/coordinator_device_aws.py"
   ],
   "strings": [
-   "filter_life",
-   "wick_life",
-   "water_refresher_life",
+   "translation_key=\"filter_life\"",
+   "translation_key=\"wick_life\"",
+   "translation_key=\"water_refresher_life\"",
    "100 - self.blueair_api_device.filter_usage_percentage"
   ]
  },
@@ -1800,7 +1800,7 @@
   ],
   "strings": [
    "entity_key = \"run_time\"",
-   "get_prop_value(self.aparatus_detail.properties, 71, 0)"
+   "get_prop_value(self.aparatus_detail.properties, 71, None)"
   ]
  },
  "energytrak": {
@@ -1853,13 +1853,17 @@
  },
  "uconnect": {
   "urls": [
-   "https://raw.githubusercontent.com/hass-uconnect/hass-uconnect/main/custom_components/uconnect/sensor.py"
+   "https://raw.githubusercontent.com/hass-uconnect/hass-uconnect/main/custom_components/uconnect/sensor.py",
+   "https://raw.githubusercontent.com/hass-uconnect/hass-uconnect/main/custom_components/uconnect/translations/en.json"
   ],
   "strings": [
    "key=\"odometer\"",
-   "name=\"Distance to Service\"",
-   "name=\"Days till service needed\"",
-   "name=\"Oil Life\""
+   "translation_key=\"distance_to_service\"",
+   "translation_key=\"days_to_service\"",
+   "translation_key=\"oil_level\"",
+   "\"Distance to Service\"",
+   "\"Days till service needed\"",
+   "\"Oil Life\""
   ]
  },
  "porscheconnect": {
@@ -2307,8 +2311,8 @@
    "FILTER = \"filter\"",
    "FILTER_EXTRACT_AIR = \"filter_extract_air\"",
    "FILTER_VENTILATION_AIR = \"filter_ventilation_air\"",
-   "translation_key=FILTER_EXTRACT_AIR",
-   "translation_key=FILTER_VENTILATION_AIR"
+   "translation_key=key",
+   "ControllerFamily.LWZ: LWZ_BINARY_SENSOR_TYPES"
   ]
  },
  "aguaiot": {
@@ -2736,9 +2740,9 @@
    "https://raw.githubusercontent.com/Robbe-B/maestro_mcz/main/custom_components/maestro_mcz/sensor.py"
   ],
   "strings": [
-   "\"Next Maintenance\"",
    "\"ore_prox_manut\"",
-   "self._attr_name = supported_sensor.user_friendly_name"
+   "\"next_maintenance\"",
+   "self._attr_translation_key = supported_sensor.translation_key"
   ]
  },
  "bosch_homecom": {
@@ -2949,7 +2953,7 @@
  },
  "proxmoxve": {
   "urls": [
-   "https://raw.githubusercontent.com/dougiteixeira/proxmoxve/main/custom_components/proxmoxve/sensor.py",
+   "https://raw.githubusercontent.com/dougiteixeira/proxmoxve/5.3.5/custom_components/proxmoxve/sensor.py",
    "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/proxmoxve/sensor.py",
    "https://raw.githubusercontent.com/home-assistant/core/dev/homeassistant/components/proxmoxve/entity.py"
   ],
@@ -2957,6 +2961,19 @@
    "translation_key=\"disk_used_perc\"",
    "translation_key=\"storage_used_percentage\"",
    "model=\"Storage\""
+  ]
+ },
+ "proxmoxve_custom": {
+  "urls": [
+   "https://raw.githubusercontent.com/dougiteixeira/proxmoxve/main/custom_components/proxmoxve_custom/manifest.json",
+   "https://raw.githubusercontent.com/dougiteixeira/proxmoxve/main/custom_components/proxmoxve_custom/sensor.py",
+   "https://raw.githubusercontent.com/dougiteixeira/proxmoxve/main/custom_components/proxmoxve_custom/__init__.py"
+  ],
+  "strings": [
+   "\"domain\": \"proxmoxve_custom\"",
+   "translation_key=\"disk_used_perc\"",
+   "model = \"Shared storage\"",
+   "model = api_category.capitalize()"
   ]
  },
  "evcc_intg": {

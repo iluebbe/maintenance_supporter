@@ -773,6 +773,7 @@ due/auto-complete and un-adopt/re-adopt behave.
 | Google Nest Protect | `nest_protect` | Replace Detectors | 30 days before the date the device reports |  |
 | Kidde HomeSafe | `kidde_homesafe` | Replace Detectors | below 30 days remaining |  |
 | Proxmox VE | `proxmoxve` | Storage Cleanup | above 85 | models: storage |
+| Proxmox VE Custom | `proxmoxve_custom` | Storage Cleanup | above 85 | models: storage |
 
 ## Pet tech — feeders, fountains, litter boxes
 
@@ -815,6 +816,6 @@ due/auto-complete and un-adopt/re-adopt behave.
 
 ---
 
-**288 integrations / 603 verified signatures.**
+**289 integrations / 604 verified signatures.**
 Missing yours? Suggest it in
 [discussion #101](https://github.com/iluebbe/maintenance_supporter/discussions/101).
